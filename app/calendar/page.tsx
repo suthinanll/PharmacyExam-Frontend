@@ -318,7 +318,7 @@ const Calendar = () => {
               </div>
             </div>
 
-            {/* Sidebar โน้ต - เรียบง่าย */}
+            {/* Sidebar โน้ต */}
             <div className="w-full lg:w-1/3">
               <div className="bg-white rounded-xl shadow p-4 lg:sticky lg:top-6 max-h-[calc(100vh-120px)] overflow-y-auto">
                 
@@ -377,7 +377,7 @@ const Calendar = () => {
                       
                       {/* เนื้อหา */}
                       {note.content && (
-                        <p className="text-sm text-gray-600 mb-2 ">
+                        <p className="text-sm text-gray-600 mb-2 line-clamp-3">
                           {note.content}
                         </p>
                       )}
@@ -429,7 +429,7 @@ const Calendar = () => {
                 onChange={(e) => setEventText(e.target.value)}
                 placeholder="รายละเอียดกำหนดการ..."
                 rows="4"
-                className="w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
               
               <div className="flex gap-2 mt-4">
@@ -463,152 +463,237 @@ const Calendar = () => {
           </div>
         )}
 
-        {/* Modal โน้ต */}
         {showNoteModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[95vh] overflow-hidden shadow-2xl">
               
-              <h3 className="text-xl font-bold mb-4">
-                {editingNote ? 'แก้ไขโน้ต' : 'เพิ่มโน้ตใหม่'}
-              </h3>
-
-              <div className="space-y-4">
-                {/* ชื่อเรื่อง */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    ชื่อเรื่อง <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={noteForm.title}
-                    onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
-                    placeholder="เช่น ยาแก้ปวดและลดไข้"
-                    className="w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-
-                {/* วิชา */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">วิชา</label>
-                  <input
-                    type="text"
-                    value={noteForm.subject}
-                    onChange={(e) => setNoteForm({ ...noteForm, subject: e.target.value })}
-                    placeholder="เช่น เภสัชวิทยา, เภสัชกรรมคลินิก"
-                    className="w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  />
-                </div>
-
-                {/* เนื้อหา */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">เนื้อหา/สรุป</label>
-                  <textarea
-                    value={noteForm.content}
-                    onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
-                    placeholder="พิมพ์เนื้อหาหรือสรุปบทเรียน..."
-                    rows="8"
-                    className="w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-mono text-sm"
-                  />
-                </div>
-
-                {/* อัปโหลดไฟล์ */}
-                <div>
-                  <label className="block text-sm font-medium mb-2">แนบไฟล์</label>
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-blue-400">
-                    <input
-                      type="file"
-                      multiple
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="fileUpload"
-                    />
-                    <label htmlFor="fileUpload" className="cursor-pointer">
-                      <div className="text-4xl mb-2">📁</div>
-                      <div className="text-sm text-gray-600">คลิกเพื่ออัปโหลดไฟล์</div>
-                      <div className="text-xs text-gray-400 mt-1">PDF, DOC, JPG, PNG</div>
-                    </label>
-                  </div>
-
-                  {/* รายการไฟล์ */}
-                  {noteForm.files?.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {noteForm.files.map((file, idx) => (
-                        <div key={idx} className="flex items-center justify-between bg-gray-50 p-2 rounded border">
-                          <div className="flex items-center gap-2 flex-1">
-                            <span>📄</span>
-                            <div className="flex-1">
-                              <div className="text-sm truncate">{file.name}</div>
-                              <div className="text-xs text-gray-500">{file.size}</div>
-                            </div>
-                          </div>
-                          <button
-                            onClick={() => removeFile(idx)}
-                            className="text-red-600 hover:bg-red-50 p-1 rounded"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      ))}
+              {/* Header สีสันสวยงาม */}
+              <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white/20 p-2 rounded-lg">
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
                     </div>
-                  )}
+                    <h3 className="text-2xl font-bold">
+                      {editingNote ? 'แก้ไขโน้ต' : 'สร้างโน้ตใหม่'}
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setShowNoteModal(false)}
+                    className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-lg transition"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
-              {/* ปุ่ม */}
-              <div className="flex gap-2 mt-6">
-                <button
-                  onClick={saveNote}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg font-medium"
-                >
-                  {editingNote ? 'บันทึกการแก้ไข' : 'เพิ่มโน้ต'}
-                </button>
-                <button
-                  onClick={() => setShowNoteModal(false)}
-                  className="px-6 bg-gray-400 hover:bg-gray-500 text-white py-3 rounded-lg"
-                >
-                  ยกเลิก
-                </button>
+              {/* เนื้อหา Form */}
+              <div className="p-6 overflow-y-auto max-h-[calc(95vh-200px)]">
+                <div className="space-y-5">
+                  
+                  {/* ชื่อเรื่อง */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      ชื่อเรื่อง <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={noteForm.title}
+                      onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
+                      placeholder="เช่น ยาแก้ปวดและลดไข้"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-800 placeholder-gray-400"
+                    />
+                  </div>
+
+                  {/* วิชา */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      วิชา / หมวดหมู่
+                    </label>
+                    <div className="relative">
+                      <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      <input
+                        type="text"
+                        value={noteForm.subject}
+                        onChange={(e) => setNoteForm({ ...noteForm, subject: e.target.value })}
+                        placeholder="เช่น เภสัชวิทยา, เภสัชกรรมคลินิก"
+                        className="w-full pl-11 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-gray-800 placeholder-gray-400"
+                      />
+                    </div>
+                  </div>
+
+                  {/* เนื้อหา */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      เนื้อหา / สรุปบทเรียน
+                    </label>
+                    <textarea
+                      value={noteForm.content}
+                      onChange={(e) => setNoteForm({ ...noteForm, content: e.target.value })}
+                      placeholder="พิมพ์เนื้อหา หรือ สรุปบทเรียนที่ต้องการบันทึก..."
+                      rows="10"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition font-mono text-sm text-gray-800 placeholder-gray-400 resize-none"
+                    />
+                    <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+                      <span>รองรับ Markdown และ Text formatting</span>
+                      <span>{noteForm.content.length} ตัวอักษร</span>
+                    </div>
+                  </div>
+
+                  {/* อัปโหลดไฟล์ */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      แนบไฟล์เอกสาร
+                    </label>
+                    
+                    {/* Drop Zone */}
+                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 hover:bg-blue-50/50 transition cursor-pointer group">
+                      <input
+                        type="file"
+                        multiple
+                        onChange={handleFileUpload}
+                        className="hidden"
+                        id="fileUpload"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                      />
+                      <label htmlFor="fileUpload" className="cursor-pointer">
+                        <div className="inline-block p-4 bg-blue-100 rounded-full mb-3 group-hover:bg-blue-200 transition">
+                          <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                          </svg>
+                        </div>
+                        <div className="text-gray-700 font-medium mb-1">คลิกเพื่ออัปโหลดไฟล์</div>
+                        <div className="text-sm text-gray-500">หรือลากไฟล์มาวางที่นี่</div>
+                        <div className="text-xs text-gray-400 mt-2">รองรับ PDF, DOC, DOCX, JPG, PNG (สูงสุด 10MB)</div>
+                      </label>
+                    </div>
+
+                    {/* รายการไฟล์ที่แนบ */}
+                    {noteForm.files?.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <div className="text-sm font-medium text-gray-700 mb-2">
+                          ไฟล์ที่แนบ ({noteForm.files.length})
+                        </div>
+                        {noteForm.files.map((file, idx) => (
+                          <div key={idx} className="flex items-center gap-3 bg-gray-50 p-3 rounded-lg border border-gray-200 hover:border-blue-300 transition group">
+                            {/* ไอคอนตามประเภทไฟล์ */}
+                            <div className="flex-shrink-0">
+                              {file.type?.includes('pdf') ? (
+                                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                  <span className="text-xl">📄</span>
+                                </div>
+                              ) : file.type?.includes('image') ? (
+                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                  <span className="text-xl">🖼️</span>
+                                </div>
+                              ) : (
+                                <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                                  <span className="text-xl">📎</span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* ข้อมูลไฟล์ */}
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-medium text-gray-800 truncate">{file.name}</div>
+                              <div className="text-xs text-gray-500">{file.size}</div>
+                            </div>
+                            
+                            {/* ปุ่มลบ */}
+                            <button
+                              onClick={() => removeFile(idx)}
+                              className="flex-shrink-0 text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition"
+                              title="ลบไฟล์"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer ปุ่ม */}
+              <div className="border-t bg-gray-50 px-6 py-4">
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={() => setShowNoteModal(false)}
+                    className="px-6 py-2.5 bg-white border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 font-medium transition"
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    onClick={saveNote}
+                    className="px-8 py-2.5 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 font-medium shadow-lg shadow-blue-500/30 transition flex items-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    {editingNote ? 'บันทึกการแก้ไข' : 'สร้างโน้ต'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        {/* Modal ดูไฟล์ */}
+        {/* Modaหl ดูไฟล์ */}
         {viewingFile && (
-          <div className="fixed inset-0 bg-white/95 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl border">
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[95vh] overflow-hidden shadow-2xl">
               
-              {/* Header สีขาว */}
-              <div className="bg-white border-b p-4 flex items-center justify-between">
-                <h3 className="font-semibold text-gray-800 truncate">{viewingFile.name}</h3>
+              {/* Header */}
+              <div className="bg-gradient-to-r from-gray-800 to-gray-700 text-white p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="bg-white/10 p-2 rounded-lg">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  </div>
+                  <h3 className="font-semibold truncate">{viewingFile.name}</h3>
+                </div>
                 <button
                   onClick={() => setViewingFile(null)}
-                  className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 p-2 rounded-lg"
+                  className="text-white/80 hover:text-white hover:bg-white/10 p-2 rounded-lg transition ml-4"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
 
               {/* เนื้อหาไฟล์ */}
-              <div className="p-4 overflow-auto max-h-[calc(90vh-80px)] bg-gray-50">
+              <div className="p-6 overflow-auto max-h-[calc(95vh-80px)] bg-gray-50">
                 {viewingFile.type?.includes('image') ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={viewingFile.url} alt={viewingFile.name} className="max-w-full mx-auto rounded-lg shadow" />
+                  <img src={viewingFile.url} alt={viewingFile.name} className="max-w-full mx-auto rounded-xl shadow-lg" />
                 ) : viewingFile.type?.includes('pdf') ? (
-                  <iframe src={viewingFile.url} className="w-full h-[70vh] rounded-lg border-2" />
+                  <iframe src={viewingFile.url} className="w-full h-[75vh] rounded-xl border-2 border-gray-200 shadow-lg" />
                 ) : (
-                  <div className="text-center py-12">
-                    <div className="text-6xl mb-4">📄</div>
-                    <p className="text-gray-600 mb-4">ไม่สามารถแสดงตัวอย่างไฟล์ได้</p>
+                  <div className="text-center py-16">
+                    <div className="inline-block p-6 bg-gray-100 rounded-2xl mb-4">
+                      <div className="text-7xl">📄</div>
+                    </div>
+                    <p className="text-gray-600 text-lg mb-6">ไม่สามารถแสดงตัวอย่างไฟล์ประเภทนี้ได้</p>
                     <a
                       href={viewingFile.url}
                       download={viewingFile.name}
-                      className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                      className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 font-medium shadow-lg transition"
                     >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
                       ดาวน์โหลดไฟล์
                     </a>
                   </div>
