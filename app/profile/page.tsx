@@ -7,7 +7,7 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   
   const [profileData, setProfileData] = useState({
-    firstName: 'สุทินันท์',
+    firstName: 'สุธินันท์',
     lastName: 'ลำลอง',
     email: 'suthinan.l@kkumail.com',
     phone: '094-198-5046',
@@ -117,7 +117,6 @@ const Profile = () => {
             <h2 className="text-xl font-bold text-gray-800 mb-6">ข้อมูลส่วนตัว</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* ชื่อจริง */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   ชื่อจริง

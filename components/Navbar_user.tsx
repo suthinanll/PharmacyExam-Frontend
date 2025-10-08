@@ -46,7 +46,7 @@ const Navbar = () => {
         { href: '/examset/mock-exam', label: 'ข้อสอบย้อนหลัง' },
       ]
     },
-    { href: '/calender', label: 'ปฏิทินการสอบ' },
+    { href: '/calendar', label: 'ปฏิทินการสอบ' },
     { href: '/chatbot', label: 'แชตบอตผู้ช่วย' },
     { href: '/followup', label: 'ติดตามความคืบหน้า' },
   ];
