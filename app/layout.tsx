@@ -1,6 +1,5 @@
 // app/layout.tsx
 
-import Navbar from '@/components/Navbar';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css'
@@ -39,7 +38,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="th" className={`${myFont.variable}`}>
       <body>
         <header>
-          <Navbar />
+         
         </header>
 
         <main>
