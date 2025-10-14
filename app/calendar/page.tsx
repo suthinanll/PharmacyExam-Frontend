@@ -8,7 +8,7 @@ const Calendar = () => {
   const [showEventModal, setShowEventModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [eventText, setEventText] = useState('');
-  
+
   // States สำหรับโน้ต
   const [notes, setNotes] = useState([
     {
@@ -31,15 +31,15 @@ const Calendar = () => {
    - ขนาด: 300-600 mg ทุก 4-6 ชม.
    - ห้ามให้เด็ก < 12 ปี`,
       files: [
-        { 
-          name: 'ตาราง_NSAIDs_เปรียบเทียบ.pdf', 
-          size: '423 KB', 
+        {
+          name: 'ตาราง_NSAIDs_เปรียบเทียบ.pdf',
+          size: '423 KB',
           type: 'application/pdf',
           url: 'https://www.example.com/sample.pdf'
         },
-        { 
-          name: 'คู่มือการใช้ยาแก้ปวด.docx', 
-          size: '156 KB', 
+        {
+          name: 'คู่มือการใช้ยาแก้ปวด.docx',
+          size: '156 KB',
           type: 'application/docx',
           url: '#'
         }
@@ -67,9 +67,9 @@ const Calendar = () => {
 
 ⚠️ สำคัญ: ต้องกินครบหลักสูตร ห้ามหยุดเอง`,
       files: [
-        { 
-          name: 'แผนภูมิการเลือกใช้ยา.jpg', 
-          size: '892 KB', 
+        {
+          name: 'แผนภูมิการเลือกใช้ยา.jpg',
+          size: '892 KB',
           type: 'image/jpeg',
           url: 'https://via.placeholder.com/800x600/4299e1/ffffff?text=Antibiotic+Chart'
         }
@@ -100,7 +100,7 @@ const Calendar = () => {
       updatedAt: '2024-01-13T16:45:00'
     }
   ]);
-  
+
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [editingNote, setEditingNote] = useState(null);
   const [noteForm, setNoteForm] = useState({
@@ -128,11 +128,10 @@ const Calendar = () => {
   const { firstDay, lastDate } = getDaysInMonth();
 
   // จัดการกำหนดการสอบ
-  const openEventModal = (day) => {
+  const openEventModal = (day: number) => {
     const dateKey = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${day}`;
     setSelectedDate({ day, dateKey });
     setEventText(events[dateKey] || '');
-    setShowEventModal(true);
   };
 
   const saveEvent = () => {
@@ -168,7 +167,7 @@ const Calendar = () => {
       updatedAt: new Date().toISOString()
     };
 
-    setNotes(editingNote 
+    setNotes(editingNote
       ? notes.map(n => n.id === editingNote ? newNote : n)
       : [newNote, ...notes]
     );
@@ -193,9 +192,9 @@ const Calendar = () => {
   };
 
   const removeFile = (index) => {
-    setNoteForm({ 
-      ...noteForm, 
-      files: noteForm.files.filter((_, i) => i !== index) 
+    setNoteForm({
+      ...noteForm,
+      files: noteForm.files.filter((_, i) => i !== index)
     });
   };
 
@@ -206,25 +205,25 @@ const Calendar = () => {
   // แสดงวันในปฏิทิน
   const renderDays = () => {
     const days = [];
-    
+
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="h-20 bg-gray-50 rounded" />);
     }
-    
+
     for (let day = 1; day <= lastDate; day++) {
       const dateKey = `${currentDate.getFullYear()}-${currentDate.getMonth() + 1}-${day}`;
       const hasEvent = events[dateKey];
-      const isToday = new Date().toDateString() === 
+      const isToday = new Date().toDateString() ===
         new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
-      
+
       days.push(
         <div
           key={day}
           onClick={() => openEventModal(day)}
           className={`h-20 p-2 rounded cursor-pointer transition hover:shadow-lg
-            ${isToday ? 'bg-yellow-100 border-2 border-yellow-500' 
+            ${isToday ? 'bg-yellow-100 border-2 border-yellow-500'
               : hasEvent ? 'bg-blue-100 border-2 border-blue-400'
-              : 'bg-white border-2 border-gray-200 hover:border-blue-300'}
+                : 'bg-white border-2 border-gray-200 hover:border-blue-300'}
           `}
         >
           <div className={`font-bold text-sm ${isToday ? 'text-yellow-700' : 'text-gray-700'}`}>
@@ -242,10 +241,10 @@ const Calendar = () => {
   return (
     <>
       <Navbar_user />
-      
+
       <div className="min-h-screen bg-gray-50 p-4">
         <div className="max-w-7xl mx-auto">
-          
+
           {/* Header */}
           <div className="mb-6">
             <div className="text-sm text-gray-500 mb-2">
@@ -255,11 +254,11 @@ const Calendar = () => {
           </div>
 
           <div className="flex flex-col lg:flex-row gap-4">
-            
+
             {/* ปฏิทิน */}
             <div className="w-full lg:w-2/3">
               <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                
+
                 {/* Header ปฏิทิน */}
                 <div className="bg-blue-600 text-white p-4">
                   <div className="flex items-center justify-between max-w-sm mx-auto">
@@ -269,11 +268,11 @@ const Calendar = () => {
                     >
                       ◀
                     </button>
-                    
+
                     <h2 className="text-xl font-bold">
                       {thaiMonths[currentDate.getMonth()]} {currentDate.getFullYear() + 543}
                     </h2>
-                    
+
                     <button
                       onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}
                       className="p-2 hover:bg-blue-700 rounded"
@@ -287,13 +286,12 @@ const Calendar = () => {
                 <div className="p-4">
                   <div className="grid grid-cols-7 gap-2">
                     {thaiDaysShort.map((day, i) => (
-                      <div 
-                        key={i} 
-                        className={`text-center font-bold py-2 text-sm rounded ${
-                          i === 0 ? 'bg-red-50 text-red-600' 
-                          : i === 6 ? 'bg-blue-50 text-blue-600' 
-                          : 'bg-gray-100 text-gray-700'
-                        }`}
+                      <div
+                        key={i}
+                        className={`text-center font-bold py-2 text-sm rounded ${i === 0 ? 'bg-red-50 text-red-600'
+                            : i === 6 ? 'bg-blue-50 text-blue-600'
+                              : 'bg-gray-100 text-gray-700'
+                          }`}
                       >
                         {day}
                       </div>
@@ -321,7 +319,7 @@ const Calendar = () => {
             {/* Sidebar โน้ต */}
             <div className="w-full lg:w-1/3">
               <div className="bg-white rounded-xl shadow p-4 lg:sticky lg:top-6 max-h-[calc(100vh-120px)] overflow-y-auto">
-                
+
                 {/* Header */}
                 <div className="flex items-center justify-between pb-3 mb-4">
                   <h3 className="text-lg font-bold text-gray-800">โน้ตการเรียน</h3>
@@ -341,7 +339,7 @@ const Calendar = () => {
                 <div className="space-y-3">
                   {notes.map((note) => (
                     <div key={note.id} className="rounded-lg p-3 bg-gray-50">
-                      
+
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-800 line-clamp-1 mb-1">
@@ -374,14 +372,14 @@ const Calendar = () => {
                           </button>
                         </div>
                       </div>
-                      
+
                       {/* เนื้อหา */}
                       {note.content && (
                         <p className="text-sm text-gray-600 mb-2 line-clamp-3">
                           {note.content}
                         </p>
                       )}
-                      
+
                       {/* ไฟล์แนบ */}
                       {note.files?.length > 0 && (
                         <div className="mt-2 pt-2 border-t space-y-1">
@@ -399,7 +397,7 @@ const Calendar = () => {
                           ))}
                         </div>
                       )}
-                      
+
                       {/* วันที่ */}
                       <div className="text-xs text-gray-400 mt-2">
                         {new Date(note.updatedAt).toLocaleDateString('th-TH', {
@@ -423,7 +421,7 @@ const Calendar = () => {
               <h3 className="text-xl font-bold mb-4">
                 {selectedDate?.day} {thaiMonths[currentDate.getMonth()]} {currentDate.getFullYear() + 543}
               </h3>
-              
+
               <textarea
                 value={eventText}
                 onChange={(e) => setEventText(e.target.value)}
@@ -431,7 +429,7 @@ const Calendar = () => {
                 rows="4"
                 className="w-full p-3 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
-              
+
               <div className="flex gap-2 mt-4">
                 <button
                   onClick={saveEvent}
@@ -466,7 +464,7 @@ const Calendar = () => {
         {showNoteModal && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[95vh] overflow-hidden shadow-2xl">
-              
+
               {/* Header สีสันสวยงาม */}
               <div className="bg-gradient-to-r from-blue-600 to-blue-500 text-white p-6">
                 <div className="flex items-center justify-between">
@@ -494,7 +492,7 @@ const Calendar = () => {
               {/* เนื้อหา Form */}
               <div className="p-6 overflow-y-auto max-h-[calc(95vh-200px)]">
                 <div className="space-y-5">
-                  
+
                   {/* ชื่อเรื่อง */}
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -551,7 +549,7 @@ const Calendar = () => {
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       แนบไฟล์เอกสาร
                     </label>
-                    
+
                     {/* Drop Zone */}
                     <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 hover:bg-blue-50/50 transition cursor-pointer group">
                       <input
@@ -598,13 +596,13 @@ const Calendar = () => {
                                 </div>
                               )}
                             </div>
-                            
+
                             {/* ข้อมูลไฟล์ */}
                             <div className="flex-1 min-w-0">
                               <div className="text-sm font-medium text-gray-800 truncate">{file.name}</div>
                               <div className="text-xs text-gray-500">{file.size}</div>
                             </div>
-                            
+
                             {/* ปุ่มลบ */}
                             <button
                               onClick={() => removeFile(idx)}
@@ -651,7 +649,7 @@ const Calendar = () => {
         {viewingFile && (
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[95vh] overflow-hidden shadow-2xl">
-              
+
               {/* Header */}
               <div className="bg-gradient-to-r from-gray-800 to-gray-700 text-white p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
