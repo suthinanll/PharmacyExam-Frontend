@@ -1,9 +1,9 @@
 "use client";
 import { useState } from 'react';
 import Navbar_user from "@/components/Navbar_user";
-import { 
-  LineChart, Line, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
+import {
+  LineChart, Line, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart,
 } from 'recharts';
 import { FileText, CheckCircle, Star, Clock, TrendingUp, AlertCircle } from 'lucide-react';
 
@@ -82,8 +82,8 @@ const PharmacistDashboard = () => {
   ];
 
   const weakTopics: WeakTopic[] = [
-    { 
-      subject: 'พฤติกรรมสุขภาพ', 
+    {
+      subject: 'พฤติกรรมสุขภาพ',
       topic: 'การสื่อสารกับผู้ป่วย',
       score: 62,
       priority: 'ต้องรีบทบทวน!',
@@ -91,8 +91,8 @@ const PharmacistDashboard = () => {
       studyTime: '12 ชม.',
       resources: 3
     },
-    { 
-      subject: 'เภสัชกรรมชุมชน', 
+    {
+      subject: 'เภสัชกรรมชุมชน',
       topic: 'การจัดการร้านขายยา',
       score: 65,
       priority: 'ควรทบทวนเพิ่มเติม',
@@ -100,8 +100,8 @@ const PharmacistDashboard = () => {
       studyTime: '10 ชม.',
       resources: 5
     },
-    { 
-      subject: 'เภสัชกรรมปฏิบัติ', 
+    {
+      subject: 'เภสัชกรรมปฏิบัติ',
       topic: 'การคำนวณยา IV admixture',
       score: 68,
       priority: 'พอใช้ แต่ควรฝึกฝนเพิ่มเติม',
@@ -109,8 +109,8 @@ const PharmacistDashboard = () => {
       studyTime: '8 ชม.',
       resources: 4
     },
-    { 
-      subject: 'เภสัชวิทยา', 
+    {
+      subject: 'เภสัชวิทยา',
       topic: 'ยาต้านจุลชีพ',
       score: 70,
       priority: 'ทำได้ดี',
@@ -120,15 +120,16 @@ const PharmacistDashboard = () => {
     },
   ];
 
+
   const passRate = ((examStats.passedExams / examStats.totalExams) * 100).toFixed(1);
 
   return (
     <>
       <Navbar_user />
-      
+
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
-          
+
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center text-sm text-gray-500 mb-3">
@@ -222,20 +223,20 @@ const PharmacistDashboard = () => {
                     <YAxis tick={{ fontSize: 13, fill: '#6b7280' }} domain={[0, 100]} />
                     <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                    <Line 
-                      type="monotone" 
-                      dataKey="passing" 
-                      stroke="#ef4444" 
-                      strokeWidth={2} 
-                      strokeDasharray="5 5" 
+                    <Line
+                      type="monotone"
+                      dataKey="passing"
+                      stroke="#ef4444"
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
                       name="เกณฑ์ผ่าน (60%)"
                       dot={false}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="score" 
-                      stroke="#3b82f6" 
-                      strokeWidth={3} 
+                    <Line
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#3b82f6"
+                      strokeWidth={3}
                       name="คะแนนของคุณ"
                       dot={{ fill: '#3b82f6', r: 5 }}
                     />
@@ -243,41 +244,48 @@ const PharmacistDashboard = () => {
                 </ResponsiveContainer>
               </div>
 
-            {/* ✅ Pie Chart แก้แล้ว */}
+              {/* ✅ Pie Chart แก้แล้ว */}
               <div className="lg:border-l lg:border-gray-200 lg:pl-8">
-                <h2 className="text-xl font-bold text-gray-800 mb-6">สถิติการสอบ</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-6">สถิติการสอบทั้งหมด</h2>
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie
-                      data={examTypeData as any} // ✅ แก้จุดนี้
+                      data={examTypeData as never}
+                      dataKey="value"
+                      nameKey="name"
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={(entry: { name: string; percent: number }) =>
-                        `${entry.name} ${(entry.percent * 100).toFixed(0)}%`
-                      }
+                      label={(props) => {
+                        const name = props.name ?? '';
+                        const percent = typeof props.percent === 'number' ? props.percent : 0;
+                        return `${name} ${(percent * 100).toFixed(0)}%`;
+                      }}
                       outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
                     >
                       {examTypeData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip />
+                    <Legend />
                   </PieChart>
                 </ResponsiveContainer>
+
                 <div className="mt-6 pt-6 border-t border-gray-200 text-center">
                   <p className="text-sm text-gray-600 mb-1">อัตราการผ่าน</p>
                   <p className="text-3xl font-bold text-green-600">{passRate}%</p>
                 </div>
               </div>
+
+
+
             </div>
           </div>
 
 
 
-          </div>
+
 
           {/* Analysis Section - Combined */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -290,12 +298,12 @@ const PharmacistDashboard = () => {
                     <PolarGrid stroke="#e5e7eb" />
                     <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: '#6b7280' }} />
                     <PolarRadiusAxis angle={90} domain={[0, 100]} tick={{ fontSize: 11, fill: '#6b7280' }} />
-                    <Radar 
-                      name="คะแนนของคุณ" 
-                      dataKey="score" 
-                      stroke="#3b82f6" 
-                      fill="#3b82f6" 
-                      fillOpacity={0.5} 
+                    <Radar
+                      name="คะแนนของคุณ"
+                      dataKey="score"
+                      stroke="#3b82f6"
+                      fill="#3b82f6"
+                      fillOpacity={0.5}
                       strokeWidth={2}
                     />
                     <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
@@ -312,31 +320,29 @@ const PharmacistDashboard = () => {
                 </div>
                 <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
                   {weakTopics.map((topic, index) => (
-                    <div 
+                    <div
                       key={index}
-                      className={`p-4 rounded-xl border transition-all hover:shadow-md ${
-                        topic.priority === 'ต้องรีบทบทวน!' 
-                          ? 'bg-red-50 border-red-200 hover:border-red-300' 
-                          : topic.priority === 'ควรทบทวนเพิ่มเติม' 
+                      className={`p-4 rounded-xl border transition-all hover:shadow-md ${topic.priority === 'ต้องรีบทบทวน!'
+                        ? 'bg-red-50 border-red-200 hover:border-red-300'
+                        : topic.priority === 'ควรทบทวนเพิ่มเติม'
                           ? 'bg-orange-50 border-orange-200 hover:border-orange-300'
                           : topic.priority === 'พอใช้ แต่ควรฝึกฝนเพิ่มเติม'
-                          ? 'bg-yellow-50 border-yellow-200 hover:border-yellow-300'
-                          : 'bg-green-50 border-green-200 hover:border-green-300'
-                      }`}
+                            ? 'bg-yellow-50 border-yellow-200 hover:border-yellow-300'
+                            : 'bg-green-50 border-green-200 hover:border-green-300'
+                        }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <h3 className="font-bold text-gray-800 text-base">{topic.topic}</h3>
-                            <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${
-                              topic.priority === 'ต้องรีบทบทวน!' 
-                                ? 'bg-red-200 text-red-700' 
-                                : topic.priority === 'ควรทบทวนเพิ่มเติม' 
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${topic.priority === 'ต้องรีบทบทวน!'
+                              ? 'bg-red-200 text-red-700'
+                              : topic.priority === 'ควรทบทวนเพิ่มเติม'
                                 ? 'bg-orange-200 text-orange-700'
                                 : topic.priority === 'พอใช้ แต่ควรฝึกฝนเพิ่มเติม'
-                                ? 'bg-yellow-200 text-yellow-700'
-                                : 'bg-green-200 text-green-700'
-                            }`}>
+                                  ? 'bg-yellow-200 text-yellow-700'
+                                  : 'bg-green-200 text-green-700'
+                              }`}>
                               {topic.priority}
                             </span>
                           </div>
@@ -364,6 +370,7 @@ const PharmacistDashboard = () => {
           </div>
 
         </div>
+      </div>
     </>
   );
 };
