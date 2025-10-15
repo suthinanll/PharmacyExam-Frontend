@@ -6,6 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart,
 } from 'recharts';
 import { FileText, CheckCircle, Star, Clock, TrendingUp, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 
 
 interface ExamStats {
@@ -132,11 +133,15 @@ const PharmacistDashboard = () => {
 
           {/* Header */}
           <div className="mb-8">
+
             <div className="flex items-center text-sm text-gray-500 mb-3">
-              <span className="hover:text-blue-600 cursor-pointer transition">หน้าหลัก</span>
+              <Link href="/" className="hover:text-blue-600 cursor-pointer transition">
+                หน้าหลัก
+              </Link>
               <span className="mx-2">›</span>
-              <span className="text-gray-700 font-medium">ติดตามความคืบหน้า</span>
+              <span className="text-gray-700 font-medium">คลังข้อสอบ</span>
             </div>
+
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">

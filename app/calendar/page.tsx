@@ -5,6 +5,7 @@ import { useState } from 'react';
 import Navbar from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import { Calendar, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
+import Link from 'next/link';
 
 interface ExamSchedule {
   id: string;
@@ -35,7 +36,7 @@ function Calender() {
     }
   ]);
 
-  
+
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
@@ -47,11 +48,11 @@ function Calender() {
     'สอบจริง': 'bg-red-100 text-red-800 border-red-300'
   };
 
- 
 
 
 
- 
+
+
 
 
   const getDaysInMonth = (month: number, year: number) => {
@@ -104,18 +105,25 @@ function Calender() {
     'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
   ];
 
- 
+
 
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
+
+          <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
+            <Link href="/" className="hover:text-blue-600 cursor-pointer transition">
+              หน้าหลัก
+            </Link>
+            <span className="mx-2">›</span>
+            <span className="text-gray-700 font-medium">ปฏิทินการสอบ</span>
+          </div>
           {/* Header */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="mb-6">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
-                <Calendar className="w-8 h-8 text-indigo-600" />
                 <div>
                   <h1 className="text-2xl font-bold text-gray-800">
                     ปฏิทินการสอบ
@@ -123,7 +131,7 @@ function Calender() {
 
                 </div>
               </div>
-              
+
             </div>
           </div>
 
