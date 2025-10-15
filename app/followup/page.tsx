@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { FileText, CheckCircle, Star, Clock, TrendingUp, AlertCircle } from 'lucide-react';
 
+
 interface ExamStats {
   totalExams: number;
   passedExams: number;
@@ -119,7 +120,6 @@ const PharmacistDashboard = () => {
       resources: 6
     },
   ];
-
 
   const passRate = ((examStats.passedExams / examStats.totalExams) * 100).toFixed(1);
 

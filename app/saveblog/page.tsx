@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 import { useState } from 'react';
 import Navbar from '@/components/Navbar_user';
@@ -70,7 +71,9 @@ function SaveBlog() {
       <div className="min-h-screen bg-gray-50  py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
 
-          <Search /><br />
+          <Search onSearch={function (_query: string): void {
+            throw new Error('Function not implemented.');
+          } } /><br />
 
           {/* Header */}
           <div className="mb-8">
