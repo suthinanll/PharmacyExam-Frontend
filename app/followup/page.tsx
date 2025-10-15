@@ -364,7 +364,6 @@ const PharmacistDashboard = () => {
           </div>
 
         </div>
-      </div>
     </>
   );
 };
