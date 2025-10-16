@@ -128,7 +128,7 @@ const PharmacistDashboard = () => {
     <>
       <Navbar_user />
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-4 md:p-6 lg:p-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50 p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
 
           {/* Header */}

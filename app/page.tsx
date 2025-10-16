@@ -92,13 +92,13 @@ const Page = () => {
       <Navbar />
 
       <div className='bg-gray-50 min-h-screen py-4 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6'>
-        <main className="max-w-8xl mx-auto mb-4 bg-white">
-          <SearchBar placeholder="ค้นหาข้อมูล..." onSearch={(q) => console.log(q)} />
-        </main>
 
 
-        <div className='max-w-8xl mx-auto'>
 
+        <div className='max-w-7xl mx-auto'>
+          <main className="max-w-7xl mx-auto mb-4 bg-white">
+            <SearchBar placeholder="ค้นหาข้อมูล..." onSearch={(q) => console.log(q)} />
+          </main>
           {/* Countdown Section */}
           <div className='bg-white rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 md:p-8 mb-6 border border-gray-100'>
             <div className='flex items-center justify-center gap-2 mb-4 sm:mb-6'>
