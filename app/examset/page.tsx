@@ -31,16 +31,17 @@ const examset = () => {
 
 
         <div className="container mx-auto px-4 mb-4">
-          <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
-            <Link href="/" className="hover:text-blue-600 cursor-pointer transition">
-              หน้าหลัก
-            </Link>
-            <span className="mx-2">›</span>
-            <span className="text-gray-700 font-medium">คลังข้อสอบ</span>
-          </div>
+
 
           <div className="max-w-7xl mx-auto">
-            {/* Header */}
+            {/* Header */}   <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
+              <Link href="/" className="hover:text-blue-600 cursor-pointer transition">
+                หน้าหลัก
+              </Link>
+              <span className="mx-2">›</span>
+              <span className="text-gray-700 font-medium">คลังข้อสอบ</span>
+            </div>
+
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-800 mb-2">คลังข้อสอบ</h1>
               <SearchBar onSearch={function (): void {
