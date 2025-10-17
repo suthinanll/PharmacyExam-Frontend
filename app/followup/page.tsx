@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import Navbar_user from "@/components/Navbar_user";
+import Footer from "@/components/Footer";
 import {
   LineChart, Line, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart,
@@ -46,7 +47,21 @@ interface ExamTypeData {
   name: string;
   value: number;
   color: string;
+  [key: string]: string | number; // ✅ อนุญาตให้เข้าถึง key อื่นได้
+
 }
+interface RankingInfo {
+  currentRank: number;
+  totalUsers: number;
+  percentile: number;
+  rankChange: number;
+  scoreRange: {
+    top: number;
+    userScore: number;
+    average: number;
+  };
+}
+
 
 const PharmacistDashboard = () => {
   const [examStats] = useState<ExamStats>({
@@ -58,6 +73,18 @@ const PharmacistDashboard = () => {
     improvementRate: 8.3,
     daysUntilExam: 45,
     studyHours: 234
+  });
+
+  const [rankingInfo] = useState<RankingInfo>({
+    currentRank: 342,
+    totalUsers: 1520,
+    percentile: 77.5,
+    rankChange: 23,
+    scoreRange: {
+      top: 95,
+      userScore: 68.5,
+      average: 62
+    }
   });
 
   const scoreHistory: ScoreHistory[] = [
@@ -122,6 +149,8 @@ const PharmacistDashboard = () => {
     },
   ];
 
+
+
   const passRate = ((examStats.passedExams / examStats.totalExams) * 100).toFixed(1);
 
   return (
@@ -130,10 +159,8 @@ const PharmacistDashboard = () => {
 
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50 p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
-
           {/* Header */}
           <div className="mb-8">
-
             <div className="flex items-center text-sm text-gray-500 mb-3">
               <Link href="/" className="hover:text-blue-600 cursor-pointer transition">
                 หน้าหลัก
@@ -156,6 +183,70 @@ const PharmacistDashboard = () => {
               </div>
             </div>
           </div>
+
+          <div className="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-8 border border-gray-200">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="bg-indigo-100 p-3 rounded-xl">
+                <TrendingUp className="w-6 h-6 text-indigo-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">อันดับของคุณ</h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Current Rank */}
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <p className="text-sm text-gray-600 mb-2">อันดับปัจจุบัน</p>
+                <div className="flex items-end gap-2">
+                  <p className="text-5xl font-bold text-indigo-600">#{rankingInfo.currentRank}</p>
+                  <p className="text-lg text-gray-500 mb-2">/ {rankingInfo.totalUsers.toLocaleString()}</p>
+                </div>
+                {rankingInfo.rankChange > 0 && (
+                  <div className="flex items-center gap-1 mt-3 text-green-600">
+                    <TrendingUp className="w-4 h-4" />
+                    <span className="text-sm font-medium">เพิ่มขึ้น {rankingInfo.rankChange} อันดับ</span>
+                  </div>
+                )}
+              </div>
+
+
+              {/* Score Comparison */}
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <p className="text-sm text-gray-600 mb-4">เปรียบเทียบคะแนน</p>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-xs mb-1 text-gray-600">
+                      <span>คะแนนสูงสุด</span>
+                      <span className="font-semibold text-gray-800">{rankingInfo.scoreRange.top}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-indigo-600 h-2 rounded-full" style={{ width: `${rankingInfo.scoreRange.top}%` }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs mb-1 text-gray-600">
+                      <span>คะแนนของคุณ</span>
+                      <span className="font-semibold text-gray-800">{rankingInfo.scoreRange.userScore}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-indigo-600 h-2 rounded-full" style={{ width: `${rankingInfo.scoreRange.userScore}%` }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-xs mb-1 text-gray-600">
+                      <span>คะแนนเฉลี่ย</span>
+                      <span className="font-semibold text-gray-800">{rankingInfo.scoreRange.average}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-indigo-600 h-2 rounded-full" style={{ width: `${rankingInfo.scoreRange.average}%` }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
+
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
@@ -212,6 +303,8 @@ const PharmacistDashboard = () => {
             </div>
           </div>
 
+          {/* Ranking Overview Section */}
+
           {/* Charts Section - Combined */}
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -249,13 +342,13 @@ const PharmacistDashboard = () => {
                 </ResponsiveContainer>
               </div>
 
-              {/* ✅ Pie Chart แก้แล้ว */}
+              {/* Pie Chart */}
               <div className="lg:border-l lg:border-gray-200 lg:pl-8">
                 <h2 className="text-xl font-bold text-gray-800 mb-6">สถิติการสอบทั้งหมด</h2>
                 <ResponsiveContainer width="100%" height={220}>
                   <PieChart>
                     <Pie
-                      data={examTypeData as never}
+                      data={examTypeData}
                       dataKey="value"
                       nameKey="name"
                       cx="50%"
@@ -282,15 +375,8 @@ const PharmacistDashboard = () => {
                   <p className="text-3xl font-bold text-green-600">{passRate}%</p>
                 </div>
               </div>
-
-
-
             </div>
           </div>
-
-
-
-
 
           {/* Analysis Section - Combined */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -373,9 +459,10 @@ const PharmacistDashboard = () => {
               </div>
             </div>
           </div>
-
         </div>
       </div>
+
+      <Footer />
     </>
   );
 };
