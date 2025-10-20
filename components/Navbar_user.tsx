@@ -341,7 +341,7 @@ const Navbar = () => {
                     </Link>
                    
                     <Link
-                      href="/Examhistory"
+                      href="/examhis"
                       className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       onClick={() => setIsProfileDropdownOpen(false)}
                     >
