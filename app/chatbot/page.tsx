@@ -5,6 +5,7 @@ import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar_user";
 import Image from 'next/image';
+import Link from "next/link";
 
 const useTypewriter = (text: string, speed: number = 20) => {
   const [displayText, setDisplayText] = useState("");
@@ -181,7 +182,6 @@ const ChatbotPage = () => {
 
       <div className="flex flex-1 overflow-hidden relative">
 
-        {/* Sidebar Overlay for Mobile */}
         {sidebarOpen && (
           <div
             className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -230,8 +230,8 @@ const ChatbotPage = () => {
                   key={session.id}
                   onClick={() => handleSelectSession(session.id)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${currentSessionId === session.id
-                      ? "bg-blue-50 text-blue-600 border border-blue-200"
-                      : "text-neutral-700 hover:bg-neutral-100"
+                    ? "bg-blue-50 text-blue-600 border border-blue-200"
+                    : "text-neutral-700 hover:bg-neutral-100"
                     }`}
                 >
                   <div className="flex items-start gap-2">
@@ -266,8 +266,10 @@ const ChatbotPage = () => {
                 <Menu size={20} />
               </button>
 
-              <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-2">
-                <span className="hover:text-blue-600 cursor-pointer">หน้าหลัก</span>
+              <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
+                <Link href="/" className="hover:text-blue-600 cursor-pointer transition">
+                  หน้าหลัก
+                </Link>
                 <span className="mx-2">›</span>
                 <span className="text-gray-700 font-medium">แชตบอตผู้ช่วย</span>
               </div>

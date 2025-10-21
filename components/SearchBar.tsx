@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search } from "lucide-react"; // icon
+import { Search } from "lucide-react";
 
 interface SearchBarProps {
   placeholder?: string;
   onSearch: (query: string) => void;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Search...", onSearch }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "พิมพ์สิ่งที่คุณต้องการค้นหา", onSearch }) => {
   const [query, setQuery] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -24,9 +24,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Search...", onSear
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 
+          className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-300 
                      focus:outline-none focus:ring-2 focus:ring-blue-500 
-                     focus:border-blue-500 shadow-sm text-lg"
+                     focus:border-blue-500 shadow-sm text-sm"
         />
         <button
           type="submit"
