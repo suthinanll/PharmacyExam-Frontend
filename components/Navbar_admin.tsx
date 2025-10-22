@@ -11,7 +11,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
   const sidebarItems = [
     {
       title: 'คลังข้อสอบ',
-      href: '/exam-bank',
+      href: '/admin/manage_examset',
     },
     {
       title: 'ปฏิทินกำหนดการ',
@@ -19,7 +19,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
     },
     {
       title: 'บล็อกข่าวสาร',
-      href: '/blog',
+      href: '/admin/mnblog',
     }
   ];
 

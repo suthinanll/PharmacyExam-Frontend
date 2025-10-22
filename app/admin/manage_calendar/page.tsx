@@ -179,22 +179,24 @@ function Page() {
 
   return (
     <Navbar_admin>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">
               ปฏิทินกำหนดการ
             </h1>
             <p className="text-sm sm:text-base text-gray-600">
               จัดการปฏิทินกำหนดการ เพิ่ม แก้ไข ลบ
             </p>
           </div>
+
           <Link
-            href="/admin/calendar_add"
+            href="/admin/manage_calendar/calendar_add"
             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm"
           >
-            เพิ่มกำหนดการใหม่
             <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+            เพิ่มกำหนดการใหม่
+
           </Link>
         </div>
 
@@ -390,7 +392,7 @@ function Page() {
                   </div>
                 </div>
 
-                
+
 
                 <div className="flex gap-3 justify-end pt-4 border-t border-gray-200">
                   <button
