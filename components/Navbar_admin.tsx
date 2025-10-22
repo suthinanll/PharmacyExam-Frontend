@@ -15,7 +15,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
     },
     {
       title: 'ปฏิทินกำหนดการ',
-      href: '/admin/manage_calender',
+      href: '/admin/manage_calendar',
     },
     {
       title: 'บล็อกข่าวสาร',
