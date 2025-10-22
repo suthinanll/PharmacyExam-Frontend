@@ -85,7 +85,7 @@ export default function Page() {
         </div>
 
         <div className="text-center mt-6 text-sm text-gray-600">
-          ยังไม่มีบัญชี ?{" "}
+          ยังไม่มีบัญชี?{" "}
           <a href="/register" className="text-green-600 hover:underline">
             สมัครสมาชิก
           </a>
