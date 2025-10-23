@@ -94,7 +94,7 @@ function Page() {
             </div>
 
             <Link
-              href="/admin/exam-bank/create"
+              href="/admin/manage_examset/examadd"
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
             >
               <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -117,16 +117,12 @@ function Page() {
           </div>
         </div>
 
-        {/* Table Container - เพิ่ม rounded-xl และ shadow-lg */}
         <div className="bg-white rounded-xl overflow-hidden border border-gray-200">
-          {/* Exam List Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
 
-              {/* Table Header - เพิ่ม rounded-t-xl ให้กับ thead */}
               <thead className="bg-green-600 text-white">
                 <tr>
-                  {/* ลำดับ: ปรับเป็น text-center */}
                   <th scope="col" className="px-6 py-3 text-center text-xs font-medium  tracking-wider w-16 rounded-tl-xl">ลำดับ</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider">ชื่อข้อสอบ</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-32">จำนวนข้อสอบ</th>
@@ -138,7 +134,6 @@ function Page() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {examData.map((exam, index) => (
                   <tr key={exam.id} className="hover:bg-gray-50">
-                    {/* ลำดับ: ปรับเป็น text-center */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-16 **text-center**">{index + 1}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{exam.name}</div>
@@ -150,7 +145,7 @@ function Page() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 w-40">{exam.createdDate}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium w-20">
-                      <Link href={`/admin/exam-bank/${exam.id}/edit`} className="text-blue-600 hover:text-blue-900 text-sm">แก้ไข</Link>
+                      <Link href={`/admin/manage_examset/examedit`} className="text-blue-600 hover:text-blue-900 text-sm">แก้ไข</Link>
                     </td>
                   </tr>
                 ))}

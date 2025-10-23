@@ -73,13 +73,11 @@ function AdminDashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 💡 จำลองการดึงข้อมูลจาก API
   useEffect(() => {
-    // ในการใช้งานจริง: const response = await fetch('/api/admin/dashboard');
     setTimeout(() => {
       setStats(initialStats);
       setIsLoading(false);
-    }, 1000);
+    }, 500);
   }, []);
 
 

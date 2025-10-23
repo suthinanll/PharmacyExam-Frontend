@@ -70,21 +70,13 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
     { title: 'การตั้งค่า', href: '/settings' },
   ];
 
-  /**
-   * ตรวจสอบว่าเมนูควร Active หรือไม่ โดยใช้ startsWith เพื่อรองรับ Sub-paths 
-   * เช่น: href='/admin/manage_calendar' จะ Active เมื่อ pathname เป็น 
-   * '/admin/manage_calendar' หรือ '/admin/manage_calendar/edit/123'
-   */
+
   const isActive = (href: string) => {
-    // กำหนดให้ Path ที่ลงท้ายด้วยชื่อเมนูเป็น Base Path ที่จะ Active
-    // ตัวอย่าง: href='/admin/manage_calendar'
+   
     if (href === '/') {
         return pathname === href; 
     }
-    
-    // ตรวจสอบว่า pathname ปัจจุบัน "เริ่มต้นด้วย" href หรือไม่
-    // และเพิ่มการตรวจสอบพิเศษสำหรับ Link ที่เป็น /settings หรือ /profile 
-    // เพื่อไม่ให้ active ผิดเมื่อมี path อื่นที่บังเอิญเริ่มด้วยข้อความเดียวกัน
+   
     if (href === '/settings' || href === '/profile') {
         return pathname === href; // สำหรับเมนูที่ไม่ต้องการให้ Active กับ Sub-path ให้ใช้ ===
     }
@@ -115,7 +107,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
       <aside className="hidden lg:flex lg:flex-col w-64 xl:w-72 bg-white border-r border-gray-200 fixed h-full">
         {/* Logo */}
         <div className="p-4 sm:p-5 lg:p-6 border-b border-gray-200">
-          <Link href="/admin/homeadmin" className="block hover:opacity-80 transition-opacity">
+          <Link href="/admin" className="block hover:opacity-80 transition-opacity">
             <h1 className="text-lg sm:text-xl font-semibold text-green-700">
               เภสัชพร้อมสอบ
             </h1>
@@ -197,7 +189,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
         {/* Top Navbar - Mobile & Tablet */}
         <header className="lg:hidden bg-white shadow-md sticky top-0 z-40">
           <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
-            <Link href="/admin/homeadmin" className="hover:opacity-80 transition-opacity">
+            <Link href="/admin" className="hover:opacity-80 transition-opacity">
               <h1 className="text-base sm:text-lg md:text-xl font-semibold text-green-700">
                 เภสัชพร้อมสอบ
               </h1>

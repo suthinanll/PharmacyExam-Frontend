@@ -35,8 +35,8 @@ const Navbar = () => {
   const examSetDropdownRef = useRef<HTMLDivElement>(null);
 
   const navItems = [
-    { href: '/user/homeuser', label: 'เภสัชพร้อมสอบ' },
-    { href: '/user/homeuser', label: 'หน้าหลัก' },
+    { href: '/user', label: 'เภสัชพร้อมสอบ' },
+    { href: '/user', label: 'หน้าหลัก' },
 
     {
       href: '/user/examset',
