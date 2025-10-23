@@ -67,7 +67,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
 
   const settingsItems = [
     { title: 'ประวัติการสนทนาแชตบอต', href: '/admin/chatlog' },
-    { title: 'การตั้งค่า', href: '/settings' },
+    { title: 'การตั้งค่า', href: '/admin/settingp' },
   ];
 
 
