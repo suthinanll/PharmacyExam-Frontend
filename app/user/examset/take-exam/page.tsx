@@ -70,9 +70,9 @@ function TakeExam() {
                 <div className="container mx-auto px-4">
                     {/* Breadcrumb */}
                     <div className="flex items-center text-sm text-gray-500 mb-4">
-                        <Link href="/" className="hover:text-blue-600">หน้าหลัก</Link>
+                        <Link href="/user" className="hover:text-blue-600">หน้าหลัก</Link>
                         <span className="mx-2">›</span>
-                        <Link href="/examset" className="hover:text-blue-600">คลังข้อสอบ</Link>
+                        <Link href="/user/examset" className="hover:text-blue-600">คลังข้อสอบ</Link>
                         <span className="mx-2">›</span>
                         <span className="text-gray-700 font-medium">{examData.title}</span>
                     </div>

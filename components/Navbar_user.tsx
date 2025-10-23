@@ -128,7 +128,7 @@ const Navbar = () => {
 
           <div className="flex flex-1 items-center justify-center lg:items-stretch lg:justify-start">
             <div className="flex shrink-0 items-center">
-              <Link href="/user/homeuser" className="flex items-center space-x-2 group">
+              <Link href="/user" className="flex items-center space-x-2 group">
                 <span className="text-base sm:text-lg md:text-xl font-medium text-white group-hover:text-green-100 transition-colors">
                   เภสัชพร้อมสอบ
                 </span>

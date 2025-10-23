@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable @next/next/no-html-link-for-pages */
+ 
 "use client"
 import { useState } from 'react';
 import Navbar from "@/components/Navbar_user";
@@ -102,7 +102,7 @@ function examhis() {
                 <div className="container mx-auto px-4 max-w-6xl">
                 {/* Breadcrumb */}
                 <div className="flex items-center text-sm text-gray-500 mb-4">
-                    <a href="/" className="hover:text-blue-600">หน้าหลัก</a>
+                    <a href="/user" className="hover:text-blue-600">หน้าหลัก</a>
                     <span className="mx-2">›</span>
                     <span className="text-gray-700 font-medium">ประวัติการสอบ</span>
                 </div>

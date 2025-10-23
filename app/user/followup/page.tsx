@@ -3,8 +3,8 @@ import { useState } from 'react';
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import {
-  LineChart, Line, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart,
+   RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+  Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import { FileText, CheckCircle, Star, Clock, TrendingUp, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
@@ -21,11 +21,6 @@ interface ExamStats {
   studyHours: number;
 }
 
-interface ScoreHistory {
-  month: string;
-  score: number;
-  passing: number;
-}
 
 interface RadarData {
   subject: string;
@@ -43,13 +38,6 @@ interface WeakTopic {
   resources: number;
 }
 
-interface ExamTypeData {
-  name: string;
-  value: number;
-  color: string;
-  [key: string]: string | number; // ✅ อนุญาตให้เข้าถึง key อื่นได้
-
-}
 interface RankingInfo {
   currentRank: number;
   totalUsers: number;
@@ -87,14 +75,6 @@ const PharmacistDashboard = () => {
     }
   });
 
-  const scoreHistory: ScoreHistory[] = [
-    { month: 'มี.ค.', score: 62, passing: 60 },
-    { month: 'เม.ย.', score: 65, passing: 60 },
-    { month: 'พ.ค.', score: 64, passing: 60 },
-    { month: 'มิ.ย.', score: 68, passing: 60 },
-    { month: 'ก.ค.', score: 70, passing: 60 },
-    { month: 'ส.ค.', score: 72, passing: 60 },
-  ];
 
   const radarData: RadarData[] = [
     { subject: 'เภสัชเคมี', score: 75, fullMark: 100 },
@@ -105,10 +85,6 @@ const PharmacistDashboard = () => {
     { subject: 'กฎหมายเภสัช', score: 78, fullMark: 100 },
   ];
 
-  const examTypeData: ExamTypeData[] = [
-    { name: 'ผ่าน', value: examStats.passedExams, color: '#10b981' },
-    { name: 'ไม่ผ่าน', value: examStats.failedExams, color: '#ef4444' },
-  ];
 
   const weakTopics: WeakTopic[] = [
     {
@@ -149,8 +125,6 @@ const PharmacistDashboard = () => {
     },
   ];
 
-
-
   const passRate = ((examStats.passedExams / examStats.totalExams) * 100).toFixed(1);
 
   return (
@@ -162,7 +136,7 @@ const PharmacistDashboard = () => {
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center text-sm text-gray-500 mb-3">
-              <Link href="/" className="hover:text-blue-600 cursor-pointer transition">
+              <Link href="/user" className="hover:text-blue-600 cursor-pointer transition">
                 หน้าหลัก
               </Link>
               <span className="mx-2">›</span>
@@ -305,78 +279,7 @@ const PharmacistDashboard = () => {
 
           {/* Ranking Overview Section */}
 
-          {/* Charts Section - Combined */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Line Chart */}
-              <div className="lg:col-span-2">
-                <div className="flex items-center gap-2 mb-6">
-                  <TrendingUp className="w-6 h-6 text-blue-600" />
-                  <h2 className="text-xl font-bold text-gray-800">พัฒนาการคะแนน</h2>
-                </div>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={scoreHistory}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="month" tick={{ fontSize: 13, fill: '#6b7280' }} />
-                    <YAxis tick={{ fontSize: 13, fill: '#6b7280' }} domain={[0, 100]} />
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                    <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                    <Line
-                      type="monotone"
-                      dataKey="passing"
-                      stroke="#ef4444"
-                      strokeWidth={2}
-                      strokeDasharray="5 5"
-                      name="เกณฑ์ผ่าน (60%)"
-                      dot={false}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="score"
-                      stroke="#3b82f6"
-                      strokeWidth={3}
-                      name="คะแนนของคุณ"
-                      dot={{ fill: '#3b82f6', r: 5 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Pie Chart */}
-              <div className="lg:border-l lg:border-gray-200 lg:pl-8">
-                <h2 className="text-xl font-bold text-gray-800 mb-6">สถิติการสอบทั้งหมด</h2>
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Pie
-                      data={examTypeData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={(props) => {
-                        const name = props.name ?? '';
-                        const percent = typeof props.percent === 'number' ? props.percent : 0;
-                        return `${name} ${(percent * 100).toFixed(0)}%`;
-                      }}
-                      outerRadius={80}
-                    >
-                      {examTypeData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-
-                <div className="mt-6 pt-6 border-t border-gray-200 text-center">
-                  <p className="text-sm text-gray-600 mb-1">อัตราการผ่าน</p>
-                  <p className="text-3xl font-bold text-green-600">{passRate}%</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          
 
           {/* Analysis Section - Combined */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
