@@ -164,7 +164,7 @@ function Page() {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
                                             <Link
-                                                href={`/admin/chatlog/${chat.id}`}
+                                                href={`/admin/chatlog/detail`}
                                                 className="text-blue-600 hover:text-blue-800 transition-colors"
                                             >
                                                 ดูบทสนทนา

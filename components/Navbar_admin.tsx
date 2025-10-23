@@ -70,7 +70,27 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
     { title: 'การตั้งค่า', href: '/settings' },
   ];
 
-  const isActive = (href: string) => pathname === href;
+  /**
+   * ตรวจสอบว่าเมนูควร Active หรือไม่ โดยใช้ startsWith เพื่อรองรับ Sub-paths 
+   * เช่น: href='/admin/manage_calendar' จะ Active เมื่อ pathname เป็น 
+   * '/admin/manage_calendar' หรือ '/admin/manage_calendar/edit/123'
+   */
+  const isActive = (href: string) => {
+    // กำหนดให้ Path ที่ลงท้ายด้วยชื่อเมนูเป็น Base Path ที่จะ Active
+    // ตัวอย่าง: href='/admin/manage_calendar'
+    if (href === '/') {
+        return pathname === href; 
+    }
+    
+    // ตรวจสอบว่า pathname ปัจจุบัน "เริ่มต้นด้วย" href หรือไม่
+    // และเพิ่มการตรวจสอบพิเศษสำหรับ Link ที่เป็น /settings หรือ /profile 
+    // เพื่อไม่ให้ active ผิดเมื่อมี path อื่นที่บังเอิญเริ่มด้วยข้อความเดียวกัน
+    if (href === '/settings' || href === '/profile') {
+        return pathname === href; // สำหรับเมนูที่ไม่ต้องการให้ Active กับ Sub-path ให้ใช้ ===
+    }
+
+    return pathname.startsWith(href);
+  };
 
   const handleConfirmLogout = () => {
     setIsLogoutModalOpen(false);

@@ -6,17 +6,23 @@ import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 
+// ข้อมูลจำลองสำหรับคลังข้อสอบ (Placeholder Data)
 const examData = [
-  // ... (ข้อมูล examData)
   { id: 1, name: "Cardiovascular disorder", thaiName: "(ความผิดปกติของหัวใจและหลอดเลือด)", count: 108, status: "เปิดให้ทำข้อสอบ", statusColor: "bg-green-100 text-green-700", createdDate: "02/04/2566 - 18:52" },
   { id: 2, name: "Respiratory disorder", thaiName: "(ความผิดปกติของระบบทางเดินหายใจ)", count: 52, status: "เปิดให้ทำข้อสอบ", statusColor: "bg-green-100 text-green-700", createdDate: "29/03/2566 - 11:22" },
-  // ... (ข้อมูลอื่นๆ)
+  { id: 3, name: "Hematologic disorder", thaiName: "(ความผิดปกติของหัวใจและหลอดเลือด)", count: 38, status: "เปิดให้ทำข้อสอบ", statusColor: "bg-green-100 text-green-700", createdDate: "21/03/2566 - 18:52" },
+  { id: 4, name: "Gastrointestinal disorder", thaiName: "(โรคทางเดินอาหาร)", count: 74, status: "เปิดให้ทำข้อสอบ", statusColor: "bg-green-100 text-green-700", createdDate: "18/03/2566 - 18:52" },
+  { id: 5, name: "Rheumatologic disorder", thaiName: "(โรคข้ออักเสบ)", count: 61, status: "เปิดให้ทำข้อสอบ", statusColor: "bg-green-100 text-green-700", createdDate: "17/03/2566 - 18:52" },
+  { id: 6, name: "Dermatologic disorder", thaiName: "(โรคผิวหนัง)", count: 63, status: "ปิดข้อสอบ", statusColor: "bg-gray-100 text-gray-700", createdDate: "02/03/2566 - 18:52" },
+  { id: 7, name: "EENT disorder", thaiName: "(จักษุ หู คอ จมูก)", count: 22, status: "ปิดข้อสอบ", statusColor: "bg-gray-100 text-gray-700", createdDate: "27/02/2566 - 18:52" },
   { id: 8, name: "PLE-CC1 2564", thaiName: "(ข้อสอบใน MCQ ปี 2564)", count: 120, status: "ปิดข้อสอบ", statusColor: "bg-gray-100 text-gray-700", createdDate: "01/02/2566 - 18:52" },
 ];
 
+// Interface สำหรับ props ของ PageButton
 interface PageButtonProps {
   page: number;
   isActive: boolean;
+  setCurrentPage: (page: number) => void;
 }
 
 function Page() {
@@ -27,7 +33,7 @@ function Page() {
     const totalPages = 5;
     const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
 
-    const PageButton = ({ page, isActive }: PageButtonProps) => (
+    const PageButton = ({ page, isActive, setCurrentPage }: PageButtonProps) => (
       <button
         className={`w-10 h-10 flex items-center justify-center text-sm font-medium border rounded-lg transition-colors ${isActive
           ? "bg-green-600 text-white border-green-600"
@@ -40,7 +46,7 @@ function Page() {
     );
 
     return (
-      <div className="flex items-center justify-end space-x-2 mt-4">
+      <div className="flex items-center justify-end space-x-2 mt-6">
         {/* Previous Button */}
         <button
           className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50"
@@ -56,6 +62,7 @@ function Page() {
             key={page}
             page={page}
             isActive={page === currentPage}
+            setCurrentPage={setCurrentPage}
           />
         ))}
 
@@ -73,9 +80,9 @@ function Page() {
 
   return (
     <Navbar_admin>
-      {/* ... (ส่วน Header และ Search Bar) ... */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-        <div className="mb-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+        {/* Header Section */}
+        <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">
@@ -86,50 +93,53 @@ function Page() {
               </p>
             </div>
 
-            <div className="flex gap-2">
-              <Link
-                href="/admin/exam-bank/create"
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                สร้างข้อสอบใหม่
-              </Link>
-            </div>
+            <Link
+              href="/admin/exam-bank/create"
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
+            >
+              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+              สร้างข้อสอบใหม่
+            </Link>
           </div>
         </div>
 
-        {/* Search Bar and Table Container */}
-        <div className="bg-white rounded-xl shadow-lg border border-gray-200">
-          <div className="p-4 border-b border-gray-200">
-            <div className="relative max-w-sm">
-              <input
-                type="text"
-                placeholder="ค้นหาข้อสอบ"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            </div>
+        {/* Search Bar (แยกออกมาตามที่ต้องการ) */}
+        <div className="mb-6"> {/* ปรับ mb-5 เป็น mb-6 เพื่อระยะห่าง */}
+          <div className="relative max-w-sm">
+            <input
+              type="text"
+              placeholder="ค้นหาข้อสอบ"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm"
+            />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           </div>
+        </div>
 
+        {/* Table Container - เพิ่ม rounded-xl และ shadow-lg */}
+        <div className="bg-white rounded-xl overflow-hidden border border-gray-200">
           {/* Exam List Table */}
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
+
+              {/* Table Header - เพิ่ม rounded-t-xl ให้กับ thead */}
               <thead className="bg-green-600 text-white">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider w-16">ลำดับ</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">ชื่อข้อสอบ</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider w-32">จำนวนข้อสอบ</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider w-32">สถานะ</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider w-40">วัน-เวลาที่สร้าง</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider w-20">จัดการ</th>
+                  {/* ลำดับ: ปรับเป็น text-center */}
+                  <th scope="col" className="px-6 py-3 text-center text-xs font-medium  tracking-wider w-16 rounded-tl-xl">ลำดับ</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider">ชื่อข้อสอบ</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-32">จำนวนข้อสอบ</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-32">สถานะ</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-40">วัน-เวลาที่สร้าง</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-20 rounded-tr-xl">จัดการ</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {examData.map((exam, index) => (
                   <tr key={exam.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-16">{index + 1}</td>
+                    {/* ลำดับ: ปรับเป็น text-center */}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-16 **text-center**">{index + 1}</td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{exam.name}</div>
                       <div className="text-xs text-gray-500 mt-0.5">{exam.thaiName}</div>

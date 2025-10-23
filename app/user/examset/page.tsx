@@ -99,7 +99,7 @@ const examset = () => {
                       </p>
                     </div>
                     <Link
-                      href={`/take-exam`}
+                      href={`/user/examset/take-exam`}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors w-full sm:w-auto text-center inline-block"
                     >
                       เริ่มทำข้อสอบ

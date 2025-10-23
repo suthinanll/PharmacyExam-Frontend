@@ -202,10 +202,10 @@ function Summarize() {
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-3 justify-center">
-                        <Link href="/take-exam" className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors inline-block text-center">
+                        <Link href="/user/examset/take-exam" className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors inline-block text-center">
                             ทำข้อสอบอีกครั้ง
                         </Link>
-                        <Link href="/take-exam" className="px-8 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors inline-block text-center">
+                        <Link href="/user/examset/take-exam" className="px-8 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors inline-block text-center">
                             ดูเฉลยคำตอบ
                         </Link>
                     </div>

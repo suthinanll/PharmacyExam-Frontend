@@ -24,36 +24,22 @@ interface BlogCardProps {
 
 // ข้อมูลจำลองสำหรับบล็อกข่าวสาร (Placeholder Data)
 const blogData: BlogData[] = [ // กำหนด Type ให้กับ array ด้วย
-  {
-    id: 1,
-    title: "สถาบันเภสัชกรรม ฯ วิทยาลัยเภสัชบำบัด บำเพ็ญบุญผู้มีอุปการคุณพิเศษ P-HARMA TIPS ONCOLOGY EP.03",
-    topic: "Topic: Dexamethasone-Sparing Antiemetics for Cancer - How Effective Are They ?...",
-    createdDate: "31 กรกฎาคม 2568",
-    image: "/images/blog_placeholder_1.jpg", 
-    isLive: true,
-  },
+  
   {
     id: 2,
     title: "PHARMA LAW EP.02",
     topic: "Topic: 'เภสัช review ยา/อาหารเสริม ใน social media - รุ่ง หรือ ร่วง?' เภสัชกรไม่ได้มีเวลามาทำอาหารเสริมเดินดินกินได้ไหม?",
     createdDate: "29 ตุลาคม 2568",
-    image: "/images/blog_placeholder_2.jpg",
+    image: "/img/news1.jpg",
     isLive: true,
   },
-  {
-    id: 3,
-    title: "ประกาศตามหาเภสัชกรรม ที่ 6/2568",
-    topic: "เนื่องจากมีองค์ประชุมไม่เพียงพอและมีประเด็นบางประเด็นอยู่ในระหว่างปรึกษาเภสัชกรรม...",
-    createdDate: "30 มิถุนายน 2568",
-    image: "/images/blog_placeholder_3.jpg",
-    isLive: false,
-  },
+  
   {
     id: 4,
     title: "Policy Innovation",
     topic: "สถาบันเทคโนโลยีเพื่ออนาคต-การเรียนรู้แห่งชาติและนโยบายด้านนวัตกรรม 'Policy Innovation On Demand' เภสัชกรกับภาคธุรกิจนำไปสู่การเปลี่ยนแปลง...",
     createdDate: "31 กรกฎาคม 2568",
-    image: "/images/blog_placeholder_4.jpg",
+    image: "/img/news3.jpg",
     isLive: false,
   },
   {
@@ -61,21 +47,12 @@ const blogData: BlogData[] = [ // กำหนด Type ให้กับ array 
     title: "ขอเชิญชวนเข้าร่วมงานประชุมวิชาการผู้แทนครู/ผู้บริหารในด้านผลิตภัณฑ์สุขภาพและยาแห่งชาติ ประจำปี พ.ศ. 2568",
     topic: "National Thai FDA Forum 2025 'Digital Economy Challenge for Sustainability...",
     createdDate: "31 กรกฎาคม 2568",
-    image: "/images/blog_placeholder_5.jpg",
+    image: "/img/news4.jpg",
     isLive: true,
   },
-  {
-    id: 6,
-    title: "PHARMA TRENDS EP.07 The Art of Being Positive with Mindfulness",
-    topic: "ในโลกที่หมุนอยู่เร็ว เราจะบริหารกาย และความคิดตนเองอย่างไรให้หยุดคิดเห็นเพียง ก้าวเดียว ทำให้เราไม่ลืมหายใจ...",
-    createdDate: "31 กรกฎาคม 2568",
-    image: "/images/blog_placeholder_6.jpg",
-    isLive: true,
-  },
+
 ];
 
-
-// Interface สำหรับ props ของ PageButton (ใช้ซ้ำจากหน้าคลังข้อสอบ)
 interface PageButtonProps {
   page: number;
   isActive: boolean;
@@ -196,7 +173,7 @@ function Page() {
 
             <div className="flex gap-2">
               <Link
-                href="/admin/blog/create" 
+                href="/admin/mnblog/addblog" 
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
               >
                 <Plus className="w-4 h-4 sm:w-5 sm:h-5" />

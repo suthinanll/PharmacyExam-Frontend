@@ -220,7 +220,7 @@ function TakeExam() {
                                                 });
 
                                                 setTimeout(() => {
-                                                    window.location.href = `/summarize-exam`;
+                                                    window.location.href = `/user/examset/take-exam/summarize-exam`;
                                                 }, 1000);
                                             }
                                         });
