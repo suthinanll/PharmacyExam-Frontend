@@ -6,6 +6,217 @@ import Footer from '@/components/Footer';
 import NewsCard from '@/components/์News';
 import SearchBar from "@/components/SearchBar";
 
+// =========================================================================================
+// ข้อมูลมหาวิทยาลัย (ใช้ร่วมกัน)
+// =========================================================================================
+const universityLeaderboardData = [
+  { rank: 1, name: "มหาวิทยาลัยเชียงใหม่", score: 85.75 },
+  { rank: 2, name: "มหาวิทยาลัยมหิดล", score: 84.30 },
+  { rank: 3, name: "จุฬาลงกรณ์มหาวิทยาลัย", score: 83.99 },
+  { rank: 4, name: "มหาวิทยาลัยสงขลานครินทร์", score: 81.12 },
+  { rank: 5, name: "มหาวิทยาลัยขอนแก่น", score: 80.50 },
+  { rank: 6, name: "มหาวิทยาลัยเกษตรศาสตร์", score: 79.88 },
+  { rank: 7, name: "มหาวิทยาลัยธรรมศาสตร์", score: 78.90 },
+];
+
+// =========================================================================================
+// Component: UniversityLeaderboardCard (สำหรับอันดับ 4 ขึ้นไป)
+// =========================================================================================
+interface UniversityLeaderboardProps {
+  rank: number;
+  name: string;
+  score: number;
+}
+
+const UniversityLeaderboardCard = ({ rank, name, score }: UniversityLeaderboardProps) => {
+  return (
+    <div className="flex items-center justify-between p-3 border-b border-gray-100 last:border-b-0 hover:bg-blue-50 transition-colors duration-150 rounded-lg">
+      <div className="flex items-center space-x-4">
+        <span className="text-lg font-bold w-6 text-center text-gray-500">
+          {String(rank).padStart(2, '0')}
+        </span>
+        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
+            {name.substring(0, 1)}
+        </div>
+        <span className="text-gray-700 font-medium truncate">
+          {name}
+        </span>
+      </div>
+      <div className="text-xl font-extrabold text-blue-700">
+        {score.toFixed(2)}
+      </div>
+    </div>
+  );
+};
+
+const UniversityLeaderboard = () => {
+  const top3 = universityLeaderboardData.slice(0, 3);
+  const remaining = universityLeaderboardData.slice(3);
+
+  const podiumOrder = top3.length === 3 ? [top3[1], top3[0], top3[2]] : top3;
+
+  const podiumStyles = {
+    1: {
+      medal: '🥇',
+      bgColor: 'bg-yellow-50',
+      borderColor: 'border-yellow-400',
+      textColor: 'text-yellow-600',
+      height: 'h-40', // สูงที่สุด
+      scale: 'scale-110',
+      shadow: 'shadow-2xl',
+      ring: 'ring-4 ring-yellow-200',
+    },
+    2: {
+      medal: '🥈',
+      bgColor: 'bg-gray-50',
+      borderColor: 'border-gray-400',
+      textColor: 'text-gray-600',
+      height: 'h-32', // สูงรองลงมา
+      scale: 'scale-100',
+      shadow: 'shadow-xl',
+      ring: 'ring-4 ring-gray-200',
+    },
+    3: {
+      medal: '🥉',
+      bgColor: 'bg-orange-50',
+      borderColor: 'border-orange-400',
+      textColor: 'text-orange-600',
+      height: 'h-28', // เตี้ยที่สุด
+      scale: 'scale-100',
+      shadow: 'shadow-xl',
+      ring: 'ring-4 ring-orange-200',
+    },
+  };
+
+  return (
+    <div className='bg-white rounded-3xl shadow-lg hover:shadow-xl transition-shadow duration-300 p-6 sm:p-8 md:p-10 mb-6 border border-gray-200'>
+      {/* Header */}
+      <div className='flex items-center justify-between gap-2 mb-8'>
+        <div className='flex items-center gap-3'>
+          <div className='bg-yellow-50 p-3 rounded-xl'>
+            <span className='text-2xl'>🏆</span>
+          </div>
+          <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-gray-800'>
+            อันดับคะแนนเฉลี่ยสูงสุด
+            <span className='block text-sm sm:text-base font-normal text-gray-500 mt-1'>
+              มหาวิทยาลัย
+            </span>
+          </h2>
+        </div>
+        <button className='px-4 py-2 text-sm text-blue-600 hover:text-white hover:bg-blue-600 font-medium rounded-xl border border-blue-600 transition-all duration-200'>
+            ดูทั้งหมด
+        </button>
+      </div>
+
+      {/* Podium Section (1, 2, 3) */}
+      <div className="relative bg-gray-50 rounded-2xl p-6 mb-8 overflow-hidden">
+        <div className="flex justify-center items-end gap-3 sm:gap-6">
+          {podiumOrder.map((uni) => {
+            // ดึงสไตล์ตาม Rank
+            const style = podiumStyles[uni.rank as keyof typeof podiumStyles];
+            const isFirst = uni.rank === 1;
+
+            return (
+              <div
+                key={uni.rank}
+                className={`relative flex flex-col items-center transition-transform duration-300 ${isFirst ? 'z-10' : 'z-0'}`}
+              >
+                {/* Medal Badge (เหรียญ) */}
+                <div className={`absolute -top-3 ${isFirst ? 'animate-bounce' : ''}`}>
+                  <div className={`${style.bgColor} ${style.ring} rounded-full p-2 ${style.shadow} transition-all duration-300`}>
+                    <span className='text-3xl sm:text-4xl'>{style.medal}</span>
+                  </div>
+                </div>
+
+                {/* University Card (ข้อมูลมหาวิทยาลัย) */}
+                <div className={`${style.bgColor} ${style.borderColor} border-2 ${style.shadow} rounded-2xl p-4 w-28 sm:w-36 md:w-40 mt-12 transition-all duration-300`}>
+                  
+                  {/* Rank Number */}
+                  <div className={`${style.textColor} text-2xl sm:text-3xl font-bold text-center mb-2`}>
+                    #{uni.rank}
+                  </div>
+
+                  {/* University Name */}
+                  <div className='text-center mb-3'>
+                    <p className='text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 min-h-[2.5rem]'>
+                      {uni.name}
+                    </p>
+                  </div>
+
+                  {/* Score */}
+                  <div className={`bg-white rounded-xl p-2 border ${style.borderColor}`}>
+                    <p className='text-xs text-gray-500 text-center'>คะแนนเฉลี่ย</p>
+                    <p className={`text-lg sm:text-xl font-bold ${style.textColor} text-center`}>
+                      {uni.score.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Podium Base (แท่น) */}
+                <div className={`${style.bgColor} ${style.borderColor} border-t-4 ${style.height} w-28 sm:w-36 md:w-40 rounded-b-2xl flex items-end justify-center pb-3 transition-all duration-300 shadow-inner`}>
+                  <span className={`text-4xl sm:text-5xl font-bold ${style.textColor} opacity-20`}>
+                    {uni.rank}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+      </div>
+
+      {/* Divider */}
+      <div className="relative my-8">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200"></div>
+        </div>
+        <div className="relative flex justify-center">
+          <span className="bg-white px-4 text-xs font-medium text-gray-400 uppercase tracking-wider">
+            อันดับถัดไป
+          </span>
+        </div>
+      </div>
+
+      {/* The rest of the list (4+) */}
+      <div className="space-y-2">
+        {remaining.map((uni) => (
+          <UniversityLeaderboardCard
+            key={uni.rank}
+            rank={uni.rank}
+            name={uni.name}
+            score={uni.score}
+          />
+        ))}
+      </div>
+
+      {/* Footer Note */}
+      <div className="mt-6 pt-4 border-t border-gray-100">
+        <p className="text-center text-xs text-gray-400 italic flex items-center justify-center gap-1">
+          <span className="inline-block w-1 h-1 bg-gray-300 rounded-full"></span>
+          ข้อมูลนี้เป็นเพียงตัวอย่างสมมติ
+          <span className="inline-block w-1 h-1 bg-gray-300 rounded-full"></span>
+        </p>
+      </div>
+
+      {/* CSS for Twinkle Animation */}
+      <style jsx>{`
+        @keyframes twinkle {
+          0% { opacity: 0.5; transform: scale(1) rotate(0deg); }
+          50% { opacity: 1; transform: scale(1.3) rotate(15deg); }
+          100% { opacity: 0.5; transform: scale(1) rotate(0deg); }
+        }
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-5px); }
+        }
+        .animate-bounce {
+            animation: bounce 1.5s infinite;
+        }
+      `}</style>
+    </div>
+  );
+}
+
 
 const Page = () => {
 
@@ -99,6 +310,7 @@ const Page = () => {
           <main className="max-w-7xl mx-auto mb-4 bg-white">
             <SearchBar placeholder="ค้นหาข้อมูล..." onSearch={(q) => console.log(q)} />
           </main>
+
           {/* Countdown Section */}
           <div className='bg-white rounded-2xl sm:rounded-3xl shadow-xl p-4 sm:p-6 md:p-8 mb-6 border border-gray-100'>
             <div className='flex items-center justify-center gap-2 mb-4 sm:mb-6'>
@@ -158,6 +370,9 @@ const Page = () => {
               </div>
             </div>
           </div>
+
+          {/* INSERTED: University Leaderboard Card (The new, redesigned one) */}
+          <UniversityLeaderboard />
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {newsData.map((news) => (
