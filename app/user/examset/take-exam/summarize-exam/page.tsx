@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
+import { ChevronRight } from 'lucide-react';
 
 function Summarize() {
     const examData = {
@@ -47,7 +48,6 @@ function Summarize() {
         ]
     };
 
-
     return (
         <>
             <Navbar_user />
@@ -55,17 +55,27 @@ function Summarize() {
             <div className="min-h-screen bg-gray-100 py-8">
                 <div className="container mx-auto px-4 max-w-6xl">
 
-                    <div className="flex items-center text-sm text-gray-500 mb-4">
-                        <Link href="/user" className="hover:text-blue-600">หน้าหลัก</Link>
-                        <span className="mx-2">›</span>
-                        <Link href="/user/examset" className="hover:text-blue-600">คลังข้อสอบ</Link>
-                        <span className="mx-2">›</span>
-                        <span>{examData.title}</span>
-                        <span className="mx-2">›</span>
-                        <span className="text-gray-700 font-medium">สรุปผลการสอบ</span>
 
+                    <div className="flex items-center text-xs  text-gray-500 mb-6 ">
+                        <Link href="/user" className="hover:text-blue-600 transition">หน้าหลัก</Link>
+                        <span className="mx-1 sm:mx-2 flex items-center">
+                            <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        </span>
+
+                        <Link href="/user/examset" className="hover:text-blue-600 transition">คลังข้อสอบ</Link>
+
+                        <span className="mx-1 sm:mx-2 flex items-center">
+                            <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        </span>
+                        <span className="hidden sm:inline-flex items-center">
+                            <Link href="/user/examset/take-exam" className="hover:text-blue-600 transition truncate max-w-[100px] md:max-w-none">
+                                {examData.title}
+                            </Link>
+                        </span>
+                        <span className="text-gray-700 font-medium whitespace-nowrap">สรุปผลการสอบ</span>
                     </div>
-                    {/* Title Section */}
+
+
                     <div className="text-center mb-8">
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">{examResult.title}</h1>
                         <p className="text-gray-600">{examResult.subtitle}</p>
@@ -205,7 +215,7 @@ function Summarize() {
                         <Link href="/user/examset/take-exam" className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors inline-block text-center">
                             ทำข้อสอบอีกครั้ง
                         </Link>
-                        <Link href="/user/examset/take-exam" className="px-8 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors inline-block text-center">
+                        <Link href="/user/examset/take-exam/summarize-exam/answer" className="px-8 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors inline-block text-center">
                             ดูเฉลยคำตอบ
                         </Link>
                     </div>

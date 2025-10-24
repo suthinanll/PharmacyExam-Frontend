@@ -32,7 +32,6 @@ const examset = () => {
 
         <div className="container mx-auto px-4 mb-4">
 
-
           <div className="max-w-7xl mx-auto">
             {/* Header */}   <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
               <Link href="/user" className="hover:text-blue-600 cursor-pointer transition">

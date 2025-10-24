@@ -80,7 +80,7 @@ const Profile = () => {
                             หน้าหลัก
                         </Link>
                         <span className="mx-2">›</span>
-                        <span className="text-gray-700 font-medium">คลังข้อสอบ</span>
+                        <span className="text-gray-700 font-medium">โปรไฟล์ของฉัน</span>
                     </div>
                     {/* Main Content Card */}
                     <div className="bg-white rounded-xl shadow-xl p-6 sm:p-8 md:p-10 max-w-3xl mx-auto">

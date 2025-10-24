@@ -215,10 +215,11 @@ const ChatbotPage = () => {
 
             <button
               onClick={handleNewChat}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="w-full flex items-center justify-center py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
             >
-              <Plus size={20} />
-              <span>แชทใหม่</span>
+              <Plus className="h-5" />
+              <span>แชทใหม่ </span>
+
             </button>
           </div>
 
