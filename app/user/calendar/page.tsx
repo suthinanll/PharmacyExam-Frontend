@@ -1,13 +1,13 @@
 "use client";
-
 import { useState, useMemo } from 'react';
 import Navbar from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import {
-  Plus, Edit2, Trash2, Save, X, ChevronLeft, ChevronRight,
-  Bookmark, Tag, Search, FileText, Upload, Link as LinkIcon
+  Plus, Trash2, Save, X, ChevronLeft, ChevronRight,
+  FileText, Upload, Link as LinkIcon
 } from 'lucide-react';
 import Link from 'next/link';
+import NoteList from "@/components/note/NoteList";
 
 
 interface ExamSchedule {
@@ -92,8 +92,6 @@ const Calender = () => {
     'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
   ]), []);
 
-  // --- Schedule/Modal Logic ---
-
   const handleAddSchedule = (dateStr?: string) => {
     setEditingSchedule({
       id: `new-${Date.now()}`,
@@ -113,20 +111,6 @@ const Calender = () => {
 
   // --- Notes Logic ---
 
-  const handleOpenNoteModal = (note: UserNote | null) => {
-    if (note) {
-      setEditingNote(note);
-    } else {
-      setEditingNote({
-        id: `new-${Date.now()}`,
-        content: '',
-        tags: [],
-        files: [],
-        createdAt: Date.now(),
-      });
-    }
-    setIsNoteModalOpen(true);
-  }
 
   const handleSaveNote = (noteData: Omit<UserNote, 'createdAt'>) => {
     if (noteData.id.startsWith('new-')) {
@@ -154,15 +138,6 @@ const Calender = () => {
   };
 
   // กรองโน้ตตาม Tag
-  const filteredNotes = useMemo(() => {
-    if (!tagFilter) return userNotes;
-    const lowerCaseFilter = tagFilter.toLowerCase();
-    return userNotes.filter(note =>
-      note.tags.some(tag => tag.toLowerCase().includes(lowerCaseFilter)) ||
-      note.content.toLowerCase().includes(lowerCaseFilter) ||
-      note.files.some(file => file.toLowerCase().includes(lowerCaseFilter)) // กรองด้วยชื่อไฟล์ด้วย
-    );
-  }, [userNotes, tagFilter]);
 
   // --- Calendar Logic ---
 
@@ -254,7 +229,7 @@ const Calender = () => {
       }
     };
 
-     
+
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -283,7 +258,7 @@ const Calender = () => {
                 <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">รายละเอียด</label>
               <textarea name="description" value={formData.description} onChange={handleChange} rows={3} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" placeholder="รายละเอียดการเตรียมตัว หรือหัวข้อสอบ" />
@@ -309,7 +284,6 @@ const Calender = () => {
     );
   };
 
-  // --- Component: Note Editing Modal (New) ---
 
   const EditNoteModal = () => {
     if (!isNoteModalOpen || !editingNote) return null;
@@ -354,184 +328,115 @@ const Calender = () => {
 
 
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">       
-       <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl">
-        {/* Modal Header */}
-        <div className="p-5 border-b flex justify-between items-center">
-          <h3 className="text-xl font-bold text-gray-800">
-            {isNew ? 'เพิ่มบันทึกสรุปใหม่' : 'แก้ไขบันทึกสรุป'}
-          </h3>
-          <button onClick={() => setIsNoteModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        {/* Modal Body */}
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">เนื้อหาบันทึก</label>
-            <textarea
-              name="content"
-              value={formData.content}
-              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 resize-none text-gray-700"
-              rows={4}
-              placeholder="บันทึกข้อความสรุปการเตรียมตัว..."
-            />
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl">
+          {/* Modal Header */}
+          <div className="p-5 border-b flex justify-between items-center">
+            <h3 className="text-xl font-bold text-gray-800">
+              {isNew ? 'เพิ่มบันทึกสรุปใหม่' : 'แก้ไขบันทึกสรุป'}
+            </h3>
+            <button onClick={() => setIsNoteModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+              <X className="w-6 h-6" />
+            </button>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Tags </label>
-            <input
-              type="text"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-              placeholder="เช่น เคมี, สำคัญ, กลางภาค"
-            />
-          </div>
-
-          {/* File Attachment Section */}
-          <div className="border p-4 rounded-lg bg-gray-50">
-            <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-              <FileText className="w-4 h-4" /> ไฟล์ที่แนบมา 
-            </label>
-
-            <div className="space-y-2 mb-3">
-              {formData.files.map((file, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-white border rounded-lg">
-                  <span className="text-sm text-gray-700 truncate flex items-center gap-2">
-                    <LinkIcon className="w-4 h-4 text-indigo-500" /> {file}
-                  </span>
-                  <button
-                    onClick={() => handleRemoveFile(index)}
-                    className="text-red-500 hover:text-red-700 ml-2"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-              {formData.files.length === 0 && (
-                <p className="text-sm text-gray-500 italic">ยังไม่มีไฟล์แนบ</p>
-              )}
+          {/* Modal Body */}
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">เนื้อหาบันทึก</label>
+              <textarea
+                name="content"
+                value={formData.content}
+                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 resize-none text-gray-700"
+                rows={4}
+                placeholder="บันทึกข้อความสรุปการเตรียมตัว..."
+              />
             </div>
 
-            <div className="flex gap-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Tags </label>
               <input
                 type="text"
-                value={newFileUrl}
-                onChange={(e) => setNewFileUrl(e.target.value)}
-                className="flex-grow p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                placeholder="เพิ่มชื่อ/URL ไฟล์ เช่น Summary.pdf"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                placeholder="เช่น เคมี, สำคัญ, กลางภาค"
               />
-              <button
-                onClick={handleAddFile}
-                type="button"
-                className="px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition flex items-center gap-1"
-              >
-                <Upload className="w-4 h-4" /> เพิ่ม
-              </button>
             </div>
-         
+
+            {/* File Attachment Section */}
+            <div className="border p-4 rounded-lg bg-gray-50">
+              <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
+                <FileText className="w-4 h-4" /> ไฟล์ที่แนบมา
+              </label>
+
+              <div className="space-y-2 mb-3">
+                {formData.files.map((file, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-white border rounded-lg">
+                    <span className="text-sm text-gray-700 truncate flex items-center gap-2">
+                      <LinkIcon className="w-4 h-4 text-indigo-500" /> {file}
+                    </span>
+                    <button
+                      onClick={() => handleRemoveFile(index)}
+                      className="text-red-500 hover:text-red-700 ml-2"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+                {formData.files.length === 0 && (
+                  <p className="text-sm text-gray-500 italic">ยังไม่มีไฟล์แนบ</p>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newFileUrl}
+                  onChange={(e) => setNewFileUrl(e.target.value)}
+                  className="flex-grow p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                  placeholder="เพิ่มชื่อ/URL ไฟล์ เช่น Summary.pdf"
+                />
+                <button
+                  onClick={handleAddFile}
+                  type="button"
+                  className="px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition flex items-center gap-1"
+                >
+                  <Upload className="w-4 h-4" /> เพิ่ม
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          {/* Modal Footer */}
+          <div className="p-5 border-t flex justify-end gap-3">
+            {!isNew && (
+              <button
+                onClick={() => { handleDeleteNote(editingNote.id); setIsNoteModalOpen(false); }}
+                className="px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50 flex items-center gap-1 transition"
+              >
+                <Trash2 className="w-4 h-4" /> ลบ
+              </button>
+            )}
+            <button
+              onClick={() => setIsNoteModalOpen(false)}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+            >
+              ยกเลิก
+            </button>
+            <button
+              onClick={handleSave}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-1 transition"
+            >
+              <Save className="w-4 h-4" /> บันทึก
+            </button>
           </div>
         </div>
-
-        {/* Modal Footer */}
-        <div className="p-5 border-t flex justify-end gap-3">
-          {!isNew && (
-            <button
-              onClick={() => { handleDeleteNote(editingNote.id); setIsNoteModalOpen(false); }}
-              className="px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50 flex items-center gap-1 transition"
-            >
-              <Trash2 className="w-4 h-4" /> ลบ
-            </button>
-          )}
-          <button
-            onClick={() => setIsNoteModalOpen(false)}
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
-          >
-            ยกเลิก
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-1 transition"
-          >
-            <Save className="w-4 h-4" /> บันทึก
-          </button>
-        </div>
-      </div>
       </div>
     );
   };
-
-  const AddNoteButton = () => (
-    <div className="p-5 bg-indigo-50 rounded-xl shadow-inner border border-indigo-100 mb-6 flex justify-between items-center">
-      <h3 className="text-lg font-bold text-indigo-800 flex items-center gap-2">
-        บันทึกสรุปการเรียนรู้
-      </h3>
-      <button
-        onClick={() => handleOpenNoteModal(null)}
-        className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition flex items-center gap-1"
-      >
-        <Plus className="w-4 h-4" /> เพิ่มโน้ต
-      </button>
-    </div>
-  );
-
-  const NoteItem = ({ note }: { note: UserNote }) => (
-    <div className="bg-white p-4 rounded-lg shadow border border-gray-100 hover:shadow-lg transition duration-150">
-      <div className="flex justify-between items-start mb-2">
-        <p className="text-gray-800 whitespace-pre-line">{note.content}</p>
-        <div className="flex gap-1 ml-4 flex-shrink-0">
-          <button
-            onClick={() => handleOpenNoteModal(note)}
-            className="p-1 text-blue-500 hover:text-blue-700 rounded-full hover:bg-blue-50"
-          >
-            <Edit2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => handleDeleteNote(note.id)}
-            className="p-1 text-red-500 hover:text-red-700 rounded-full hover:bg-red-50"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {/* Files Display */}
-      {note.files.length > 0 && (
-        <div className="mt-3 pt-2 border-t border-dashed border-gray-200">
-          <p className="text-xs font-semibold text-gray-600 flex items-center gap-1 mb-3"><FileText className="w-3 h-3" /> ไฟล์แนบ:</p>
-          <div className="flex flex-wrap gap-2">
-            {note.files.map((file, index) => (
-              <span key={index} className="text-xs text-indigo-700 bg-indigo-100 px-2 py-1 rounded-full flex items-center gap-1 max-w-full truncate">
-                <LinkIcon className="w-3 h-3 flex-shrink-0" />
-                {file}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tags and Date */}
-      <div className="mt-2 flex flex-wrap gap-2 pt-2 border-t border-dashed border-gray-200">
-        {note.tags.map(tag => (
-          <span
-            key={tag}
-            className="flex items-center text-xs font-medium text-indigo-600 bg-indigo-100 px-2 py-0.5 rounded-full cursor-pointer hover:bg-indigo-200"
-            onClick={() => setTagFilter(tag)}
-          >
-            <Tag className="w-3 h-3 mr-1" /> {tag}
-          </span>
-        ))}
-        <span className="text-xs text-gray-400 ml-auto flex-shrink-0">
-          {new Date(note.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
-        </span>
-      </div>
-    </div>
-  );
-
-  // --- Main Render ---
 
   return (
     <>
@@ -609,51 +514,16 @@ const Calender = () => {
               </div>
             </div>
 
-            {/* 2. Notes Section */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-xl shadow-xl p-4">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <Bookmark className="w-6 h-6 text-indigo-600" /> บันทึกสรุป
-                </h2>
-
-                {/* Filter / Search Bar */}
-                <div className="mb-4 flex items-center relative">
-                  <Search className="w-5 h-5 text-gray-400 absolute left-3" />
-                  <input
-                    type="text"
-                    value={tagFilter}
-                    onChange={(e) => setTagFilter(e.target.value)}
-                    placeholder="กรองโน้ตด้วย Tags ข้อความ หรือชื่อไฟล์..."
-                    className="w-full p-2 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                  />
-                  {tagFilter && (
-                    <button
-                      onClick={() => setTagFilter('')}
-                      className="absolute right-2 p-1 text-gray-500 hover:text-gray-700"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Add New Note Button */}
-                <AddNoteButton />
-
-                {/* Filtered Notes List */}
-                <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-                  {filteredNotes.length > 0 ? (
-                    filteredNotes.map(note => (
-                      <NoteItem key={note.id} note={note} />
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-center py-4">
-                      ไม่พบโน้ตที่ตรงกับคำค้นหา
-                    </p>
-                  )}
-                </div>
-
-              </div>
-            </div>
+            <NoteList
+              notes={userNotes}
+              onSaveNote={(note) => setUserNotes([note, ...userNotes])}
+              onUpdateNote={(note) =>
+                setUserNotes(userNotes.map((n) => (n.id === note.id ? note : n)))
+              }
+              onDeleteNote={(id) => setUserNotes(userNotes.filter((n) => n.id !== id))}
+              tagFilter={tagFilter}
+              setTagFilter={setTagFilter}
+            />
 
           </div>
 
