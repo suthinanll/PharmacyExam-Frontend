@@ -2,7 +2,7 @@
 
 import Navbar_admin from "@/components/Navbar_admin";
 import { useState } from "react";
-import { ChevronLeft, Plus, Upload, X, Calendar } from "lucide-react";
+import { ChevronLeft, Plus, X, Calendar } from "lucide-react";
 import Link from "next/link";
 
 interface CalendarEvent {
@@ -25,6 +25,8 @@ function Page() {
       file: null,
     },
   ]);
+  // State ใหม่สำหรับเก็บไฟล์ PDF ที่อัปโหลดรอการประมวลผล
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   const addNewEvent = () => {
     const newEvent: CalendarEvent = {
@@ -53,10 +55,6 @@ function Page() {
     );
   };
 
-  const handleFileChange = (id: number, file: File | null) => {
-    updateEvent(id, "file", file);
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // ตรวจสอบข้อมูล
@@ -82,9 +80,63 @@ function Page() {
     alert("บันทึกแบบร่างเรียบร้อยแล้ว");
   };
 
+  // ฟังก์ชันใหม่สำหรับประมวลผล PDF และเพิ่มกำหนดการอัตโนมัติ
+  const handleGenerateFromPdf = async () => {
+    if (!pdfFile) {
+      alert("กรุณาเลือกไฟล์ PDF ก่อน");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", pdfFile);
+
+    try {
+      // แสดงสถานะกำลังโหลด
+      alert("กำลังประมวลผลไฟล์ PDF...");
+
+      // เรียก API เพื่อประมวลผล
+      const res = await fetch("http://localhost:5000/api/calendar/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if (data.events && Array.isArray(data.events)) {
+        // กรองกำหนดการแรกออกถ้าว่างเปล่าก่อนเพิ่มรายการใหม่
+        const filteredEvents = events.filter(e => e.title.trim() !== "" || e.startDate !== "");
+
+        // เพิ่มกำหนดการที่ได้จาก PDF
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const newEventsFromPdf: CalendarEvent[] = data.events.map((e: any) => ({
+          id: Date.now() + Math.random(), // ใช้ ID ที่ไม่ซ้ำกัน
+          title: e.title || "กำหนดการใหม่",
+          description: e.description || "",
+          startDate: e.startDate || "",
+          endDate: e.endDate || "",
+          file: null,
+        }));
+
+        setEvents([...filteredEvents, ...newEventsFromPdf]);
+        setPdfFile(null); // เคลียร์ไฟล์หลังจากประมวลผล
+        alert(`เพิ่มกำหนดการจาก PDF สำเร็จ (${newEventsFromPdf.length} รายการ)`);
+      } else {
+        alert("ไม่พบกำหนดการในไฟล์ PDF หรือข้อมูลไม่ถูกต้อง");
+      }
+    } catch (error) {
+      console.error("Error processing PDF:", error);
+      alert("เกิดข้อผิดพลาดในการประมวลผลไฟล์ PDF");
+    }
+  };
+
+
   return (
     <Navbar_admin>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">      
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div className="mb-6">
           <Link
             href="/admin/manage_calendar"
@@ -123,6 +175,70 @@ function Page() {
             </div>
           </div>
         </div>
+
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            อัปโหลดปฏิทิน PDF เพื่อสร้างกำหนดการอัตโนมัติ
+          </h3>
+
+          <div className="sm:flex-row gap-4 items-end">
+            {/* Input & File Info */}
+            <div className="flex-grow w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                เลือกไฟล์ปฏิทิน PDF
+              </label>
+
+              {/* กล่องอัปโหลดแบบ label + input hidden */}
+              <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all">
+                <div className="text-center">
+                  <Calendar className="mx-auto h-10 w-10 text-green-500 mb-2" />
+                  <p className="text-sm text-gray-700">
+                    {pdfFile ? (
+                      <>
+                        📄 <span className="font-medium text-green-700">{pdfFile.name}</span>
+                        <span className="text-gray-500 ml-1">
+                          ({(pdfFile.size / 1024).toFixed(1)} KB)
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        คลิกเพื่อเลือกไฟล์
+                      </>
+                    )}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    รองรับเฉพาะ PDF (สูงสุด 10MB)
+                  </p>
+                </div>
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+                  className="hidden"
+                />
+              </label>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGenerateFromPdf}
+              disabled={!pdfFile}
+              className={`mt-5 ml-auto flex-shrink-0 flex items-center  gap-2 px-6 py-3 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto transition-colors ${pdfFile
+                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                : "bg-gray-300 text-gray-600 cursor-not-allowed"
+                }`}
+            >
+              <Calendar className="w-5 h-5" />
+              สร้างกำหนดการอัตโนมัติ
+            </button>
+
+
+          </div>
+        </div>
+
+
+        {/* ------------------------------------------------------------- */}
+
 
         {/* Form Section */}
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -222,64 +338,6 @@ function Page() {
                       <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                     </div>
                   </div>
-                </div>
-
-                {/* File Upload */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    อัปโหลดไฟล์เอกสารแนบ
-                  </label>
-                  <div className="mt-1">
-                    <label
-                      htmlFor={`file-upload-${event.id}`}
-                      className="flex items-center justify-center w-full px-4 py-6 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all"
-                    >
-                      <div className="text-center">
-                        <Upload className="mx-auto h-10 w-10 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-600">
-                          <span className="font-medium text-green-600">
-                            คลิกเพื่ออัปโหลด
-                          </span>{" "}
-                          หรือลากไฟล์มาวางที่นี่
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          PDF, DOC, DOCX, JPG, PNG (สูงสุด 10MB)
-                        </p>
-                      </div>
-                      <input
-                        id={`file-upload-${event.id}`}
-                        type="file"
-                        className="hidden"
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0] || null;
-                          handleFileChange(event.id, file);
-                        }}
-                      />
-                    </label>
-                  </div>
-
-                  {/* Display selected file */}
-                  {event.file && (
-                    <div className="mt-3 flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
-                      <div className="flex items-center gap-2">
-                        <Upload className="w-4 h-4 text-green-600" />
-                        <span className="text-sm text-gray-700">
-                          {event.file.name}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          ({(event.file.size / 1024).toFixed(2)} KB)
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleFileChange(event.id, null)}
-                        className="text-red-600 hover:text-red-700 p-1"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
