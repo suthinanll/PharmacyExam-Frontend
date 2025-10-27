@@ -32,12 +32,10 @@ function Summarize() {
         percentage: 100,
         timeUsed: "01:00:51",
         correctAnswers: [
-            "พื่อมารถการซักถอดเบื้อ คะเเนนผลพื้นมีอื่นจ่างบ่องเมื่อง",
-            "การร้อยรู้ที่ในประดิกธรรพา : แหละจักความปุ่นและการวิธีการเรื่อนที่ถูกจ้อง",
-            "ความคำด่านย้นอื่นฯ : ในใครการถอดเของนในสนบ"
+            "ภาพรวมการทำคะแนนของคุณมีแนวโน้มที่ดีมากขึ้นเรื่อยๆครับ"
         ],
         incorrectAnswers: [
-            "ความเษน่าเสมอ รักการระดับการเรียนรู้กลุ่มน่าเเบบดิ่งเเชิน้นเป็น"
+            "ทบทวนเรื่องโรคหลอดเลือดหัวใจมากขึ้น"
         ],
         chartData: [
             { attempt: "1", score: 45, color: "#3b82f6" },
@@ -68,9 +66,10 @@ function Summarize() {
                             <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         </span>
                         <span className="hidden sm:inline-flex items-center">
-                            <Link href="/user/examset/take-exam" className="hover:text-blue-600 transition truncate max-w-[100px] md:max-w-none">
                                 {examData.title}
-                            </Link>
+                        </span>
+                        <span className="mx-1 sm:mx-2 flex items-center">
+                            <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         </span>
                         <span className="text-gray-700 font-medium whitespace-nowrap">สรุปผลการสอบ</span>
                     </div>

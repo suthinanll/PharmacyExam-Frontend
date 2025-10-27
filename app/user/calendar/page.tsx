@@ -51,18 +51,19 @@ const initialSchedules: ExamSchedule[] = [
 const initialNotes: UserNote[] = [
   {
     id: 'n1',
-    content: 'สูตรเคมีอินทรีย์ออกเยอะมาก เน้น Benzene rings',
-    tags: ['เคมี', 'สำคัญ', 'สูตร'],
-    files: ['Organic_Chem_Summary.pdf', 'Example_Quiz.docx'], // มีไฟล์แนบ
+    content: 'สรุปข้อมูลการสอบ PLE-CC1',
+    tags: ['โรคเกี่ยวกับกระดูก', 'สำคัญ', 'กฏหทาย'],
+    files: ['Example_Quiz.docx'], // มีไฟล์แนบ
     createdAt: Date.now() - 86400000
   },
   {
     id: 'n2',
-    content: 'ทบทวนวิธีจ่ายยาเด็กก่อนสอบปฏิบัติ 2 วัน',
-    tags: ['ปฏิบัติ', 'เด็ก', 'เภสัช'],
-    files: [], // ไม่มีไฟล์แนบ
-    createdAt: Date.now()
-  }
+    content: 'สรุปข้อมูลการสอบ PLE-CC1 เฉพาะเรื่องกฏหมาย',
+    tags: ['กฏหทาย'],
+    files: ['LAW-PLE-CC1.docx'], // มีไฟล์แนบ
+    createdAt: Date.now() - 86400000
+  },
+
 ];
 
 const categoryColors = {
@@ -78,11 +79,9 @@ const Calender = () => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  // State สำหรับ Modal ของ Schedule
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<ExamSchedule | null>(null);
 
-  // State สำหรับ Modal ของ Note
   const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<UserNote | null>(null);
 
@@ -222,7 +221,6 @@ const Calender = () => {
     return days;
   };
 
-  // --- Component: Schedule Modal (Unchanged for brevity, but moved outside Calender for clean up) ---
   const ScheduleModal = ({ isOpen, schedule, onSave, onDelete, onClose }: {
     isOpen: boolean;
     schedule: ExamSchedule | null;
@@ -256,8 +254,7 @@ const Calender = () => {
       }
     };
 
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const colors = useMemo(() => categoryColors, []);
+     
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -286,12 +283,7 @@ const Calender = () => {
                 <input type="time" name="time" value={formData.time} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">ประเภท</label>
-              <select name="category" value={formData.category} onChange={handleChange} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
-                {Object.keys(colors).map(cat => (<option key={cat} value={cat}>{cat}</option>))}
-              </select>
-            </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">รายละเอียด</label>
               <textarea name="description" value={formData.description} onChange={handleChange} rows={3} className="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500" placeholder="รายละเอียดการเตรียมตัว หรือหัวข้อสอบ" />
