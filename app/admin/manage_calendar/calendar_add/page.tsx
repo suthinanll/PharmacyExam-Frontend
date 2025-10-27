@@ -227,7 +227,7 @@ function Page() {
                 {/* File Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    อัปโหลดไฟล์เอกสารแนบ (ถ้าม)
+                    อัปโหลดไฟล์เอกสารแนบ
                   </label>
                   <div className="mt-1">
                     <label

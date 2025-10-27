@@ -132,6 +132,33 @@ function CreateExamPage() {
             </div>
           </div>
 
+          {/* ไฟล์ข้อสอบ */}
+          <div>
+            <label htmlFor="exam-file" className="block text-sm font-medium text-gray-700 mb-2">
+              ไฟล์ข้อสอบ
+            </label>
+            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer hover:border-green-500 transition-colors">
+              <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-green-600 hover:text-green-700 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-green-500">
+                <div className="text-center">
+                    <Upload className="mx-auto h-10 w-10 text-gray-400" />
+                    <span className="mt-2 block text-sm font-semibold text-gray-900">
+                        {examFile ? examFile.name : "เลือกไฟล์"}
+                    </span>
+                    <p className="mt-1 text-xs text-gray-500">
+                        ขนาดสูงสุด 10MB (ไฟล์ .xls, .xlsx, .csv, .pdf)
+                    </p>
+                </div>
+                <input
+                  id="file-upload"
+                  name="file-upload"
+                  type="file"
+                  className="sr-only"
+                  onChange={handleFileChange}
+                  accept=".xls,.xlsx,.csv,.pdf" // กำหนดประเภทไฟล์ที่ยอมรับ
+                />
+              </label>
+            </div>
+          </div>
 
           {/* ไฟล์เฉลยข้อสอบ */}
           <div>

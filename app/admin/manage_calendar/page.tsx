@@ -40,22 +40,14 @@ function Page() {
   const [events, setEvents] = useState<CalendarEvent[]>([
     {
       id: 1,
-      title: "สอบกลางภาคเรียนที่ 1 ปีการศึกษา 2568",
-      description: "การสอบกลางภาคเรียนสำหรับนักศึกษาชั้นปีที่ 1-4",
+      title: "สอบ PLE-CC1",
+      description: "การสอบใบประกอบวิชาชีพเภสัชกรรม",
       startDate: "27",
-      endDate: "29",
+      endDate: "27",
       month: 0,
-      color: "bg-yellow-200",
+      color: "bg-green-200",
     },
-    {
-      id: 2,
-      title: "วันหยุดเทศกาลสงกรานต์",
-      description: "วันหยุดประจำปีตามประเพณีไทย",
-      startDate: "13",
-      endDate: "15",
-      month: 3,
-      color: "bg-blue-200",
-    },
+   
   ]);
 
   const getDaysInMonth = (month: number, year: number) => {
