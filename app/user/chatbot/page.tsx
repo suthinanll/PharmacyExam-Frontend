@@ -215,10 +215,11 @@ const ChatbotPage = () => {
 
             <button
               onClick={handleNewChat}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="w-full flex items-center justify-center py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
             >
-              <Plus size={20} />
-              <span>แชทใหม่</span>
+              <Plus className="h-5" />
+              <span>แชทใหม่ </span>
+
             </button>
           </div>
 
@@ -267,7 +268,7 @@ const ChatbotPage = () => {
               </button>
 
               <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
-                <Link href="/" className="hover:text-blue-600 cursor-pointer transition">
+                <Link href="/user" className="hover:text-blue-600 cursor-pointer transition">
                   หน้าหลัก
                 </Link>
                 <span className="mx-2">›</span>

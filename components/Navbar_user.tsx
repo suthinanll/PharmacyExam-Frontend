@@ -36,11 +36,11 @@ const Navbar = () => {
   const examSetDropdownRef = useRef<HTMLDivElement>(null);
 
   const navItems = [
-    { href: '/', label: 'เภสัชพร้อมสอบ' },
-    { href: '/', label: 'หน้าหลัก' },
+    { href: '/user', label: 'เภสัชพร้อมสอบ' },
+    { href: '/user', label: 'หน้าหลัก' },
 
     {
-      href: '/examset',
+      href: '/user/examset',
       label: 'คลังข้อสอบ',
       submenu: [
         { href: '/examset/by-year', label: 'ข้อสอบโรคและระบบต่างๆ' },
@@ -48,9 +48,9 @@ const Navbar = () => {
         { href: '/examcat', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)'}
       ]
     },
-    { href: '/calendar', label: 'ปฏิทินการสอบ' },
-    { href: '/chatbot', label: 'แชตบอตผู้ช่วย' },
-    { href: '/followup', label: 'ติดตามความคืบหน้า' },
+    { href: '/user/calendar', label: 'ปฏิทินการสอบ' },
+    { href: '/user/chatbot', label: 'แชตบอตผู้ช่วย' },
+    { href: '/user/followup', label: 'ติดตามความคืบหน้า' },
   ];
 
   const notifications = [
@@ -130,7 +130,7 @@ const Navbar = () => {
 
           <div className="flex flex-1 items-center justify-center lg:items-stretch lg:justify-start">
             <div className="flex shrink-0 items-center">
-              <Link href="/" className="flex items-center space-x-2 group">
+              <Link href="/user" className="flex items-center space-x-2 group">
                 <span className="text-base sm:text-lg md:text-xl font-medium text-white group-hover:text-green-100 transition-colors">
                   เภสัชพร้อมสอบ
                 </span>
@@ -325,7 +325,7 @@ const Navbar = () => {
                   {/* รายการเมนู */}
                   <div className="py-1">
                     <Link
-                      href="/profile"
+                      href="/user/profile"
                       className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors"
                       onClick={() => setIsProfileDropdownOpen(false)}
                     >
@@ -334,7 +334,7 @@ const Navbar = () => {
                     </Link>
                      
                      <Link
-                      href="/saveblog"
+                      href="/user/saveblog"
                       className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors"
                       onClick={() => setIsProfileDropdownOpen(false)}
                     >
@@ -343,7 +343,7 @@ const Navbar = () => {
                     </Link>
                    
                     <Link
-                      href="/examhis"
+                      href="/user/examhis"
                       className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                       onClick={() => setIsProfileDropdownOpen(false)}
                     >

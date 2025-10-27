@@ -32,10 +32,9 @@ const examset = () => {
 
         <div className="container mx-auto px-4 mb-4">
 
-
           <div className="max-w-7xl mx-auto">
             {/* Header */}   <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
-              <Link href="/" className="hover:text-blue-600 cursor-pointer transition">
+              <Link href="/user" className="hover:text-blue-600 cursor-pointer transition">
                 หน้าหลัก
               </Link>
               <span className="mx-2">›</span>
@@ -99,7 +98,7 @@ const examset = () => {
                       </p>
                     </div>
                     <Link
-                      href={`/take-exam`}
+                      href={`/user/examset/take-exam`}
                       className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors w-full sm:w-auto text-center inline-block"
                     >
                       เริ่มทำข้อสอบ
