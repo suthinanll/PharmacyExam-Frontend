@@ -1161,9 +1161,9 @@ export default function PharmacyCATSystem() {
       <div className="min-h-screen flex flex-col justify-between">
         <Navbar_user />
         <div className="flex-grow flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-4xl w-full p-8">
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-8 mt-8">
             <div className="text-center mb-8">
-              <div className="text-6xl mb-4">🏥</div>
+              {/* <div className="text-6xl mb-4">🏥</div> */}
               <h1 className="text-3xl font-bold text-green-800 mb-2">
                 ระบบสอบใบประกอบวิชาชีพเภสัชกรรม
               </h1>
@@ -1247,7 +1247,7 @@ export default function PharmacyCATSystem() {
             </div>
           </div>
 
-          <div className="p-6 bg-gray-50">
+          <div className="p-6 mt-2 bg-gray-50">
             <div className="relative h-12 flex items-center">
               <div className="flex-1 h-8 rounded-l-xl bg-gradient-to-r from-red-200 to-red-100 border-2 border-red-300 flex items-center justify-center text-red-800 font-semibold text-sm">
                 ❌ ไม่ผ่าน
@@ -1575,12 +1575,12 @@ export default function PharmacyCATSystem() {
             </div>
 
             <div className="flex gap-4">
-              <button
+              {/* <button
                 onClick={() => window.print()}
                 className="flex-1 bg-white border-2 border-green-500 text-green-700 py-4 rounded-xl font-semibold hover:bg-green-50 transition-all"
               >
                 🖨️ พิมพ์ใบรับรอง
-              </button>
+              </button> */}
               <button
                 onClick={() => {
                   setScreen("home");
