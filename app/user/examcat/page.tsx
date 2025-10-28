@@ -1440,6 +1440,7 @@ export default function PharmacyCATSystem() {
               </div>
 
               <div className="flex justify-between text-sm text-gray-600 mb-4">
+                <span>-4</span>
                 <span>-3</span>
                 <span>-2</span>
                 <span>-1</span>
@@ -1447,6 +1448,7 @@ export default function PharmacyCATSystem() {
                 <span>1</span>
                 <span>2</span>
                 <span>3</span>
+                <span>4</span>
               </div>
 
               <div className="text-center bg-white rounded-xl p-4">
@@ -1543,7 +1545,7 @@ export default function PharmacyCATSystem() {
             </div>
 
             <div className="bg-gray-50 rounded-2xl p-6 mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">🔍 รายละเอียดการตอบ (10 ข้อแรก)</h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-4">🔍 รายละเอียดการตอบ (20 ข้อแรก)</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-green-100">
@@ -1557,7 +1559,7 @@ export default function PharmacyCATSystem() {
                     </tr>
                   </thead>
                   <tbody className="bg-white">
-                    {examResult.responses.slice(0, 10).map((r, i) => (
+                    {examResult.responses.slice(0, 20).map((r, i) => (
                       <tr key={i} className="border-b border-gray-100">
                         <td className="p-3 text-sm">{i + 1}</td>
                         <td className="p-3 text-sm">{r.item.contentArea}</td>
