@@ -1,7 +1,7 @@
 "use client";
 import Footer from "@/components/Footer";
 import React, { useState, useEffect } from "react";
-import Navbar_user from "@/components/Navbar_user"
+import Navbar_user from "@/components/Navbar_user";
 
 import {
   LineChart,
@@ -16,16 +16,68 @@ import {
   AreaChart,
 } from "recharts";
 
-// ==================== CONSTANTS ====================
-const ContentArea = {
-  PHARMACOLOGY: "เภสัชวิทยา",
-  CLINICAL_PHARMACY: "เภสัชกรรมคลินิก",
-  PHARMACEUTICAL_CARE: "เภสัชกรรมบริบาล",
-  PHARMACY_PRACTICE: "การปฏิบัติการเภสัชกรรม",
-  PHARMACEUTICS: "เภสัชเคมีและเภสัชกรรมปรับปรุง",
-  PHARMACOKINETICS: "เภสัชจลนศาสตร์",
-};
+// ==================== TYPE DEFINITIONS ====================
+enum ContentArea {
+  PHARMACOLOGY = "เภสัชวิทยา",
+  CLINICAL_PHARMACY = "เภสัชกรรมคลินิก",
+  PHARMACEUTICAL_CARE = "เภสัชกรรมบริบาล",
+  PHARMACY_PRACTICE = "การปฏิบัติการเภสัชกรรม",
+  PHARMACEUTICS = "เภสัชเคมีและเภสัชกรรมปรับปรุง",
+  PHARMACOKINETICS = "เภสัชจลนศาสตร์",
+}
 
+interface IRTItem {
+  id: string;
+  contentArea: ContentArea;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  a: number;
+  b: number;
+  c: number;
+}
+
+interface IRTResponse {
+  item: IRTItem;
+  selectedAnswer: number;
+  isCorrect: boolean;
+  thetaBefore?: number;
+  thetaAfter?: number;
+  seAfter?: number;
+}
+
+interface ExamResult {
+  finalTheta: number;
+  finalSE: number;
+  numItems: number;
+  numCorrect: number;
+  passed: boolean;
+  responses: IRTResponse[];
+  contentPerformance: Record<string, { correct: number; total: number }>;
+  totalTime: number;
+  stopReason: string;
+}
+
+interface CATOptions {
+  minItems?: number;
+  maxItems?: number;
+  targetSE?: number;
+  cutScore?: number;
+  contentTargets?: Record<ContentArea, number>;
+}
+
+interface ChartDataPoint {
+  item: number;
+  theta: number;
+  cutScore: number;
+}
+
+interface NormalDistDataPoint {
+  x: string;
+  y: number;
+}
+
+// ==================== CONSTANTS ====================
 const ITEM_BANK = [
   // 🧠 PHARMACOLOGY
   {
@@ -758,42 +810,44 @@ const ITEM_BANK = [
 
 // ==================== IRT ENGINE ====================
 class IRTEngine {
-  static probability(theta, item) {
+  static probability(theta: number, item: IRTItem): number {
     const exponent = -item.a * (theta - item.b);
     const prob = item.c + (1 - item.c) / (1 + Math.exp(exponent));
     return Math.max(0.0001, Math.min(0.9999, prob));
   }
 
-  static information(theta, item) {
+  static information(theta: number, item: IRTItem): number {
     const P = this.probability(theta, item);
     if (P <= 0.0001 || P >= 0.9999) return 0.0;
+
     const numerator = Math.pow(item.a, 2) * Math.pow(P - item.c, 2) * (1 - P);
     const denominator = Math.pow(1 - item.c, 2) * P;
+
     return denominator === 0 ? 0.0 : numerator / denominator;
   }
 
-  static normalPDF(x, mean, sd) {
+  static normalPDF(x: number, mean: number, sd: number): number {
     const exponent = -Math.pow(x - mean, 2) / (2 * Math.pow(sd, 2));
     return Math.exp(exponent) / (sd * Math.sqrt(2 * Math.PI));
   }
 
-  static estimateThetaEAP(responses, priorMean = 0, priorSD = 1) {
+  static estimateThetaEAP(
+    responses: IRTResponse[],
+    priorMean: number = 0,
+    priorSD: number = 1
+  ): { theta: number; se: number } {
     if (responses.length === 0) return { theta: 0.0, se: 999.0 };
 
     const numQuadrature = 49;
     const thetaMin = -4.0;
     const thetaMax = 4.0;
 
-    const thetaPoints = [];
-    for (let i = 0; i < numQuadrature; i++) {
-      thetaPoints.push(
-        thetaMin + ((thetaMax - thetaMin) * i) / (numQuadrature - 1)
-      );
-    }
-
-    const prior = thetaPoints.map((theta) =>
-      this.normalPDF(theta, priorMean, priorSD)
+    const thetaPoints = Array.from(
+      { length: numQuadrature },
+      (_, i) => thetaMin + ((thetaMax - thetaMin) * i) / (numQuadrature - 1)
     );
+
+    const prior = thetaPoints.map((theta) => this.normalPDF(theta, priorMean, priorSD));
 
     const likelihoods = thetaPoints.map((theta) => {
       let logL = 0;
@@ -806,35 +860,39 @@ class IRTEngine {
 
     const posterior = likelihoods.map((L, i) => L * prior[i]);
     const total = posterior.reduce((sum, p) => sum + p, 0);
+
     if (total === 0) return { theta: priorMean, se: 999.0 };
 
     const normalizedPosterior = posterior.map((p) => p / total);
+
     const thetaEAP = thetaPoints.reduce(
       (sum, theta, i) => sum + theta * normalizedPosterior[i],
       0
     );
+
     const variance = thetaPoints.reduce(
-      (sum, theta, i) =>
-        sum + Math.pow(theta - thetaEAP, 2) * normalizedPosterior[i],
+      (sum, theta, i) => sum + Math.pow(theta - thetaEAP, 2) * normalizedPosterior[i],
       0
     );
 
     return { theta: thetaEAP, se: Math.sqrt(variance) };
   }
 
-  static simulateResponse(item, trueAbility) {
+  static simulateResponse(item: IRTItem, trueAbility: number): IRTResponse {
     const prob = this.probability(trueAbility, item);
     const isCorrect = Math.random() < prob;
+
     if (isCorrect) {
-      return { selectedAnswer: item.correctAnswer, isCorrect: true };
+      return { item, selectedAnswer: item.correctAnswer, isCorrect: true };
     }
-    const wrongAnswers = [];
-    for (let i = 0; i < item.options.length; i++) {
-      if (i !== item.correctAnswer) wrongAnswers.push(i);
-    }
+
+    const wrongAnswers = item.options
+      .map((_, index) => index)
+      .filter((index) => index !== item.correctAnswer);
+
     return {
-      selectedAnswer:
-        wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)],
+      item,
+      selectedAnswer: wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)],
       isCorrect: false,
     };
   }
@@ -842,7 +900,16 @@ class IRTEngine {
 
 // ==================== CAT ENGINE ====================
 class CATEngine {
-  constructor(itemBank, options = {}) {
+  itemBank: IRTItem[];
+  minItems: number;
+  maxItems: number;
+  targetSE: number;
+  cutScore: number;
+  contentTargets: Record<ContentArea, number>;
+  usedItems: Set<string>;
+  contentCount: Record<string, number>;
+
+  constructor(itemBank: IRTItem[], options: CATOptions = {}) {
     this.itemBank = itemBank;
     this.minItems = options.minItems || 20;
     this.maxItems = options.maxItems || 50;
@@ -863,15 +930,15 @@ class CATEngine {
     });
   }
 
-  selectFirstItem() {
+  selectFirstItem(): IRTItem {
     const candidates = this.itemBank.filter((item) => Math.abs(item.b) < 0.5);
     return candidates.length > 0
       ? candidates[Math.floor(Math.random() * candidates.length)]
       : this.itemBank[0];
   }
 
-  selectNextItem(currentTheta) {
-    const priorityContents = [];
+  selectNextItem(currentTheta: number): IRTItem | null {
+    const priorityContents: string[] = [];
     for (const [content, target] of Object.entries(this.contentTargets)) {
       if ((this.contentCount[content] || 0) < target) {
         priorityContents.push(content);
@@ -882,19 +949,16 @@ class CATEngine {
       priorityContents.length > 0
         ? this.itemBank.filter(
             (item) =>
-              !this.usedItems.has(item.id) &&
-              priorityContents.includes(item.contentArea)
+              !this.usedItems.has(item.id) && priorityContents.includes(item.contentArea)
           )
         : this.itemBank.filter((item) => !this.usedItems.has(item.id));
 
     if (eligibleItems.length === 0) return null;
 
-    let bestItem = null;
+    let bestItem: IRTItem | null = null;
     let maxInfo = -1;
     for (const item of eligibleItems) {
-      const info =
-        IRTEngine.information(currentTheta, item) *
-        (0.95 + Math.random() * 0.1);
+      const info = IRTEngine.information(currentTheta, item) * (0.95 + Math.random() * 0.1);
       if (info > maxInfo) {
         maxInfo = info;
         bestItem = item;
@@ -903,7 +967,11 @@ class CATEngine {
     return bestItem;
   }
 
-  checkStoppingRule(currentTheta, currentSE, numItems) {
+  checkStoppingRule(
+    currentTheta: number,
+    currentSE: number,
+    numItems: number
+  ): { shouldStop: boolean; reason: string } {
     if (numItems >= this.maxItems) {
       return {
         shouldStop: true,
@@ -921,38 +989,31 @@ class CATEngine {
     const margin = zScore * currentSE;
     const ciLower = currentTheta - margin;
     const ciUpper = currentTheta + margin;
-    if (ciLower > this.cutScore)
-      return { shouldStop: true, reason: "มั่นใจว่าสอบผ่าน" };
-    if (ciUpper < this.cutScore)
-      return { shouldStop: true, reason: "มั่นใจว่าสอบไม่ผ่าน" };
+    if (ciLower > this.cutScore) return { shouldStop: true, reason: "มั่นใจว่าสอบผ่าน" };
+    if (ciUpper < this.cutScore) return { shouldStop: true, reason: "มั่นใจว่าสอบไม่ผ่าน" };
     return { shouldStop: false, reason: "" };
   }
 
-  recordItemUsage(item) {
+  recordItemUsage(item: IRTItem): void {
     this.usedItems.add(item.id);
-    this.contentCount[item.contentArea] =
-      (this.contentCount[item.contentArea] || 0) + 1;
+    this.contentCount[item.contentArea] = (this.contentCount[item.contentArea] || 0) + 1;
   }
 }
 
 // ==================== MAIN APP ====================
 export default function PharmacyCATSystem() {
-  const [screen, setScreen] = useState("home"); // 'home', 'exam', 'result'
-  const [examineeName, setExamineeName] = useState("");
-  const [examineeId, setExamineeId] = useState("");
-  const [examMode, setExamMode] = useState("real");
-
-  const [catEngine, setCatEngine] = useState(null);
-  const [currentTheta, setCurrentTheta] = useState(0.0);
-  const [currentSE, setCurrentSE] = useState(999.0);
-  const [responses, setResponses] = useState([]);
-  const [currentItem, setCurrentItem] = useState(null);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [examStartTime, setExamStartTime] = useState(null);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [showSidePanel, setShowSidePanel] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [examResult, setExamResult] = useState(null);
+  const [screen, setScreen] = useState<"home" | "exam" | "result">("home");
+  const [examMode, setExamMode] = useState<"real" | "demo-easy" | "demo-medium" | "demo-hard">("real");
+  const [catEngine, setCatEngine] = useState<CATEngine | null>(null);
+  const [currentTheta, setCurrentTheta] = useState<number>(0.0);
+  const [currentSE, setCurrentSE] = useState<number>(999.0);
+  const [responses, setResponses] = useState<IRTResponse[]>([]);
+  const [currentItem, setCurrentItem] = useState<IRTItem | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [examStartTime, setExamStartTime] = useState<number | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [examResult, setExamResult] = useState<ExamResult | null>(null);
 
   // Timer
   useEffect(() => {
@@ -965,11 +1026,6 @@ export default function PharmacyCATSystem() {
   }, [screen, examStartTime]);
 
   const startExam = () => {
-    if (!examineeName || !examineeId) {
-      alert("กรุณากรอกชื่อและรหัสผู้สอบ");
-      return;
-    }
-
     const engine = new CATEngine(ITEM_BANK, {
       minItems: 20,
       maxItems: 50,
@@ -983,21 +1039,18 @@ export default function PharmacyCATSystem() {
     loadNextQuestion(engine, 0.0, []);
   };
 
-  const loadNextQuestion = (engine, theta, currentResponses) => {
+  const loadNextQuestion = (
+    engine: CATEngine,
+    theta: number,
+    currentResponses: IRTResponse[]
+  ) => {
     setLoading(true);
     setTimeout(() => {
       const item =
-        currentResponses.length === 0
-          ? engine.selectFirstItem()
-          : engine.selectNextItem(theta);
+        currentResponses.length === 0 ? engine.selectFirstItem() : engine.selectNextItem(theta);
 
       if (!item) {
-        finishExam(
-          "ไม่มีข้อสอบเหลือในคลัง",
-          currentResponses,
-          theta,
-          currentSE
-        );
+        finishExam("ไม่มีข้อสอบเหลือในคลัง", currentResponses, theta, currentSE);
         return;
       }
 
@@ -1009,38 +1062,30 @@ export default function PharmacyCATSystem() {
       // Auto answer for demo mode
       if (examMode !== "real") {
         const trueAbility =
-          examMode === "demo-easy"
-            ? -1.0
-            : examMode === "demo-medium"
-            ? 0.0
-            : 1.5;
+          examMode === "demo-easy" ? -1.0 : examMode === "demo-medium" ? 0.0 : 1.5;
         setTimeout(() => {
           const response = IRTEngine.simulateResponse(item, trueAbility);
           setSelectedAnswer(response.selectedAnswer);
-          setTimeout(
-            () =>
-              submitAnswer(
-                response.selectedAnswer,
-                item,
-                engine,
-                theta,
-                currentResponses
-              ),
-            500
-          );
+          setTimeout(() => submitAnswer(response.selectedAnswer, item, engine, theta, currentResponses), 500);
         }, 1000);
       }
     }, 500);
   };
 
-  const submitAnswer = (answer, item, engine, theta, currentResponses) => {
+  const submitAnswer = (
+    answer: number | null,
+    item: IRTItem,
+    engine: CATEngine,
+    theta: number,
+    currentResponses: IRTResponse[]
+  ) => {
     if (answer === null) {
       alert("กรุณาเลือกคำตอบ");
       return;
     }
 
     const isCorrect = answer === item.correctAnswer;
-    const response = {
+    const response: IRTResponse = {
       item,
       selectedAnswer: answer,
       isCorrect,
@@ -1057,34 +1102,28 @@ export default function PharmacyCATSystem() {
     setCurrentTheta(estimation.theta);
     setCurrentSE(estimation.se);
 
-    const stoppingRule = engine.checkStoppingRule(
-      estimation.theta,
-      estimation.se,
-      newResponses.length
-    );
+    const stoppingRule = engine.checkStoppingRule(estimation.theta, estimation.se, newResponses.length);
 
     if (stoppingRule.shouldStop) {
-      finishExam(
-        stoppingRule.reason,
-        newResponses,
-        estimation.theta,
-        estimation.se
-      );
+      finishExam(stoppingRule.reason, newResponses, estimation.theta, estimation.se);
     } else {
       loadNextQuestion(engine, estimation.theta, newResponses);
     }
   };
 
-  const finishExam = (reason, finalResponses, finalTheta, finalSE) => {
-    const totalTime = (Date.now() - examStartTime) / 1000;
+  const finishExam = (
+    reason: string,
+    finalResponses: IRTResponse[],
+    finalTheta: number,
+    finalSE: number
+  ) => {
+    const totalTime = examStartTime ? (Date.now() - examStartTime) / 1000 : 0;
     const numCorrect = finalResponses.filter((r) => r.isCorrect).length;
     const passed = finalTheta >= 0.0;
 
-    const contentPerformance = {};
+    const contentPerformance: Record<string, { correct: number; total: number }> = {};
     for (const content of Object.values(ContentArea)) {
-      const contentResponses = finalResponses.filter(
-        (r) => r.item.contentArea === content
-      );
+      const contentResponses = finalResponses.filter((r) => r.item.contentArea === content);
       if (contentResponses.length > 0) {
         const correct = contentResponses.filter((r) => r.isCorrect).length;
         contentPerformance[content] = {
@@ -1094,9 +1133,7 @@ export default function PharmacyCATSystem() {
       }
     }
 
-    const result = {
-      examineeName,
-      examineeId,
+    const result: ExamResult = {
       finalTheta,
       finalSE,
       numItems: finalResponses.length,
@@ -1112,22 +1149,19 @@ export default function PharmacyCATSystem() {
     setScreen("result");
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   // ==================== SCREENS ====================
   if (screen === "home") {
     return (
       <div className="min-h-screen flex flex-col justify-between">
-        <Navbar_user/>
-        {/* ส่วนเนื้อหา (กลางจอ) */}
+        <Navbar_user />
         <div className="flex-grow flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl  max-w-4xl w-full p-8">
+          <div className="bg-white rounded-3xl max-w-4xl w-full p-8">
             <div className="text-center mb-8">
               <div className="text-6xl mb-4">🏥</div>
               <h1 className="text-3xl font-bold text-green-800 mb-2">
@@ -1136,63 +1170,16 @@ export default function PharmacyCATSystem() {
               <p className="text-gray-600">Computer Adaptive Testing (CAT)</p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label className="block text-sm font-semibold text-green-800 mb-2">
-                  ชื่อ-นามสกุล:
-                </label>
-                <input
-                  type="text"
-                  value={examineeName}
-                  onChange={(e) => setExamineeName(e.target.value)}
-                  className="w-full p-3 border-2 border-green-200 rounded-lg focus:outline-none focus:border-green-500"
-                  placeholder="กรอกชื่อของคุณ"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-green-800 mb-2">
-                  รหัสผู้สอบ:
-                </label>
-                <input
-                  type="text"
-                  value={examineeId}
-                  onChange={(e) => setExamineeId(e.target.value)}
-                  className="w-full p-3 border-2 border-green-200 rounded-lg focus:outline-none focus:border-green-500"
-                  placeholder="เช่น EXAM001"
-                />
-              </div>
-            </div>
-
             <div className="mb-6">
               <h3 className="text-center text-lg font-semibold text-green-800 mb-4">
                 เลือกโหมดการสอบ:
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {[
-                  {
-                    value: "real",
-                    icon: "👨‍🎓",
-                    label: "สอบจริง",
-                    desc: "ตอบคำถามด้วยตัวเอง",
-                  },
-                  {
-                    value: "demo-easy",
-                    icon: "😊",
-                    label: "Demo: ง่าย",
-                    desc: "จำลอง θ = -1.0",
-                  },
-                  {
-                    value: "demo-medium",
-                    icon: "😐",
-                    label: "Demo: ปานกลาง",
-                    desc: "จำลอง θ = 0.0",
-                  },
-                  {
-                    value: "demo-hard",
-                    icon: "😎",
-                    label: "Demo: ยาก",
-                    desc: "จำลอง θ = 1.5",
-                  },
+                  { value: "real" as const, icon: "👨‍🎓", label: "สอบจริง", desc: "ตอบคำถามด้วยตัวเอง" },
+                  { value: "demo-easy" as const, icon: "😊", label: "Demo: ง่าย", desc: "จำลอง θ = -1.0" },
+                  { value: "demo-medium" as const, icon: "😐", label: "Demo: ปานกลาง", desc: "จำลอง θ = 0.0" },
+                  { value: "demo-hard" as const, icon: "😎", label: "Demo: ยาก", desc: "จำลอง θ = 1.5" },
                 ].map((mode) => (
                   <label key={mode.value} className="cursor-pointer">
                     <input
@@ -1200,7 +1187,7 @@ export default function PharmacyCATSystem() {
                       name="mode"
                       value={mode.value}
                       checked={examMode === mode.value}
-                      onChange={(e) => setExamMode(e.target.value)}
+                      onChange={(e) => setExamMode(e.target.value as typeof examMode)}
                       className="sr-only"
                     />
                     <div
@@ -1211,9 +1198,7 @@ export default function PharmacyCATSystem() {
                       }`}
                     >
                       <div className="text-3xl mb-2">{mode.icon}</div>
-                      <h4 className="font-semibold text-sm text-green-800">
-                        {mode.label}
-                      </h4>
+                      <h4 className="font-semibold text-sm text-green-800">{mode.label}</h4>
                       <p className="text-xs text-gray-600">{mode.desc}</p>
                     </div>
                   </label>
@@ -1229,8 +1214,6 @@ export default function PharmacyCATSystem() {
             </button>
           </div>
         </div>
-
-        {/* ✅ Footer แยกออกมาอยู่ล่าง */}
         <Footer />
       </div>
     );
@@ -1242,16 +1225,10 @@ export default function PharmacyCATSystem() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 p-4">
         <div className="max-w-7xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
-          {/* Header */}
           <div className="bg-gradient-to-r from-green-700 to-green-600 text-white p-6">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold mb-1">
-                  🏥 การสอบใบประกอบวิชาชีพเภสัชกรรม
-                </h1>
-                <p className="text-sm opacity-90">
-                  {examineeName} | {examineeId}
-                </p>
+                <h1 className="text-2xl font-bold mb-1">🏥 การสอบใบประกอบวิชาชีพเภสัชกรรม</h1>
               </div>
               <div className="flex gap-4">
                 <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
@@ -1260,21 +1237,16 @@ export default function PharmacyCATSystem() {
                 </div>
                 <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
                   <div className="text-xs opacity-80">θ</div>
-                  <div className="text-xl font-bold">
-                    {currentTheta.toFixed(2)}
-                  </div>
+                  <div className="text-xl font-bold">{currentTheta.toFixed(2)}</div>
                 </div>
                 <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
                   <div className="text-xs opacity-80">เวลา</div>
-                  <div className="text-xl font-bold">
-                    {formatTime(elapsedTime)}
-                  </div>
+                  <div className="text-xl font-bold">{formatTime(elapsedTime)}</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Progress Bar */}
           <div className="p-6 bg-gray-50">
             <div className="relative h-12 flex items-center">
               <div className="flex-1 h-8 rounded-l-xl bg-gradient-to-r from-red-200 to-red-100 border-2 border-red-300 flex items-center justify-center text-red-800 font-semibold text-sm">
@@ -1302,14 +1274,11 @@ export default function PharmacyCATSystem() {
             </div>
           </div>
 
-          {/* Question */}
           {loading ? (
             <div className="flex items-center justify-center h-96">
               <div className="text-center">
                 <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-lg text-gray-600">
-                  กำลังคำนวณข้อสอบถัดไป...
-                </p>
+                <p className="text-lg text-gray-600">กำลังคำนวณข้อสอบถัดไป...</p>
               </div>
             </div>
           ) : (
@@ -1331,9 +1300,7 @@ export default function PharmacyCATSystem() {
                     </span>
                   </div>
 
-                  <p className="text-lg font-medium text-gray-800 mb-6">
-                    {currentItem.question}
-                  </p>
+                  <p className="text-lg font-medium text-gray-800 mb-6">{currentItem.question}</p>
 
                   <div className="space-y-3">
                     {currentItem.options.map((option, index) => (
@@ -1349,11 +1316,7 @@ export default function PharmacyCATSystem() {
                           selectedAnswer === index
                             ? "border-green-500 bg-green-50"
                             : "border-green-200 bg-white hover:border-green-300 hover:bg-green-50"
-                        } ${
-                          examMode !== "real"
-                            ? "cursor-not-allowed opacity-60"
-                            : "cursor-pointer"
-                        }`}
+                        } ${examMode !== "real" ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                       >
                         <div
                           className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
@@ -1372,13 +1335,7 @@ export default function PharmacyCATSystem() {
                   {examMode === "real" && (
                     <button
                       onClick={() =>
-                        submitAnswer(
-                          selectedAnswer,
-                          currentItem,
-                          catEngine,
-                          currentTheta,
-                          responses
-                        )
+                        catEngine && submitAnswer(selectedAnswer, currentItem, catEngine, currentTheta, responses)
                       }
                       disabled={selectedAnswer === null}
                       className="w-full mt-6 bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
@@ -1396,13 +1353,13 @@ export default function PharmacyCATSystem() {
   }
 
   if (screen === "result" && examResult) {
-    const chartData = examResult.responses.map((r, i) => ({
+    const chartData: ChartDataPoint[] = examResult.responses.map((r, i) => ({
       item: i + 1,
-      theta: r.thetaAfter,
+      theta: r.thetaAfter || 0,
       cutScore: 0,
     }));
 
-    const normalDistData = [];
+    const normalDistData: NormalDistDataPoint[] = [];
     for (let x = -4; x <= 4; x += 0.1) {
       normalDistData.push({
         x: x.toFixed(1),
@@ -1413,7 +1370,6 @@ export default function PharmacyCATSystem() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 p-4">
         <div className="max-w-6xl mx-auto bg-white rounded-3xl shadow-2xl overflow-hidden">
-          {/* Result Header */}
           <div
             className={`p-12 text-center text-white ${
               examResult.passed
@@ -1421,9 +1377,7 @@ export default function PharmacyCATSystem() {
                 : "bg-gradient-to-r from-red-600 to-red-700"
             }`}
           >
-            <div className="text-7xl mb-4">
-              {examResult.passed ? "🎉" : "📚"}
-            </div>
+            <div className="text-7xl mb-4">{examResult.passed ? "🎉" : "📚"}</div>
             <h1 className="text-4xl font-bold mb-2">
               {examResult.passed ? "ยินดีด้วย! คุณสอบผ่าน" : "ไม่ผ่านการสอบ"}
             </h1>
@@ -1435,20 +1389,7 @@ export default function PharmacyCATSystem() {
           </div>
 
           <div className="p-8">
-            {/* Summary Stats */}
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-4 mb-8">
-              <div className="bg-gray-50 p-4 rounded-xl text-center">
-                <div className="text-sm text-gray-600 mb-1">ผู้สอบ</div>
-                <div className="text-base font-semibold text-gray-800">
-                  {examResult.examineeName}
-                </div>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-xl text-center">
-                <div className="text-sm text-gray-600 mb-1">รหัส</div>
-                <div className="text-base font-semibold text-gray-800">
-                  {examResult.examineeId}
-                </div>
-              </div>
+            <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mb-8">
               <div className="bg-gray-50 p-4 rounded-xl text-center">
                 <div className="text-sm text-gray-600 mb-1">เวลาที่ใช้</div>
                 <div className="text-base font-semibold text-gray-800">
@@ -1457,15 +1398,11 @@ export default function PharmacyCATSystem() {
               </div>
               <div className="bg-gray-50 p-4 rounded-xl text-center">
                 <div className="text-sm text-gray-600 mb-1">จำนวนข้อ</div>
-                <div className="text-base font-semibold text-gray-800">
-                  {examResult.numItems}
-                </div>
+                <div className="text-base font-semibold text-gray-800">{examResult.numItems}</div>
               </div>
               <div className="bg-green-50 p-4 rounded-xl text-center">
                 <div className="text-sm text-gray-600 mb-1">ตอบถูก</div>
-                <div className="text-base font-semibold text-green-700">
-                  {examResult.numCorrect}
-                </div>
+                <div className="text-base font-semibold text-green-700">{examResult.numCorrect}</div>
               </div>
               <div className="bg-red-50 p-4 rounded-xl text-center">
                 <div className="text-sm text-gray-600 mb-1">ตอบผิด</div>
@@ -1475,15 +1412,13 @@ export default function PharmacyCATSystem() {
               </div>
             </div>
 
-            {/* Theta Display */}
             <div className="bg-green-50 rounded-2xl p-8 mb-8">
               <h3 className="text-xl font-bold text-green-800 mb-4 text-center">
                 📈 ประมาณการความสามารถ (θ)
               </h3>
               <div className="text-center mb-6">
                 <span className="text-4xl font-bold text-green-700">
-                  θ = {examResult.finalTheta.toFixed(3)} ±{" "}
-                  {examResult.finalSE.toFixed(3)}
+                  θ = {examResult.finalTheta.toFixed(3)} ± {examResult.finalSE.toFixed(3)}
                 </span>
               </div>
 
@@ -1496,9 +1431,7 @@ export default function PharmacyCATSystem() {
                 </div>
                 <div
                   className="absolute top-1/2 -translate-y-1/2 transition-all"
-                  style={{
-                    left: `${((examResult.finalTheta + 3) / 6) * 100}%`,
-                  }}
+                  style={{ left: `${((examResult.finalTheta + 3) / 6) * 100}%` }}
                 >
                   <div className="text-4xl filter drop-shadow-lg -translate-x-1/2">
                     {examResult.passed ? "✅" : "⚠️"}
@@ -1529,58 +1462,36 @@ export default function PharmacyCATSystem() {
               </div>
             </div>
 
-            {/* Content Performance */}
             <div className="mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                📚 ผลการสอบแยกตามหมวดวิชา
-              </h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-4">📚 ผลการสอบแยกตามหมวดวิชา</h3>
               <div className="space-y-3">
-                {Object.entries(examResult.contentPerformance).map(
-                  ([content, data]) => {
-                    const percent = ((data.correct / data.total) * 100).toFixed(
-                      0
-                    );
-                    return (
-                      <div key={content} className="flex items-center gap-4">
-                        <div className="w-48 text-sm font-medium text-gray-700">
-                          {content}
-                        </div>
-                        <div className="flex-1 h-8 bg-gray-100 rounded-full overflow-hidden relative">
-                          <div
-                            className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
-                            style={{ width: `${percent}%` }}
-                          ></div>
-                          <div className="absolute inset-0 flex items-center justify-end pr-3 text-sm font-semibold text-gray-700">
-                            {data.correct}/{data.total} ({percent}%)
-                          </div>
+                {Object.entries(examResult.contentPerformance).map(([content, data]) => {
+                  const percent = ((data.correct / data.total) * 100).toFixed(0);
+                  return (
+                    <div key={content} className="flex items-center gap-4">
+                      <div className="w-48 text-sm font-medium text-gray-700">{content}</div>
+                      <div className="flex-1 h-8 bg-gray-100 rounded-full overflow-hidden relative">
+                        <div
+                          className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
+                          style={{ width: `${percent}%` }}
+                        ></div>
+                        <div className="absolute inset-0 flex items-center justify-end pr-3 text-sm font-semibold text-gray-700">
+                          {data.correct}/{data.total} ({percent}%)
                         </div>
                       </div>
-                    );
-                  }
-                )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Theta Progress Chart */}
             <div className="bg-gray-50 rounded-2xl p-6 mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                📊 กราฟการเปลี่ยนแปลงของ θ
-              </h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-4">📊 กราฟการเปลี่ยนแปลงของ θ</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="item"
-                    label={{
-                      value: "ข้อที่",
-                      position: "insideBottom",
-                      offset: -5,
-                    }}
-                  />
-                  <YAxis
-                    domain={[-3, 3]}
-                    label={{ value: "θ", angle: -90, position: "insideLeft" }}
-                  />
+                  <XAxis dataKey="item" label={{ value: "ข้อที่", position: "insideBottom", offset: -5 }} />
+                  <YAxis domain={[-4, 4]} label={{ value: "θ", angle: -90, position: "insideLeft" }} />
                   <Tooltip />
                   <Legend />
                   <Line
@@ -1604,40 +1515,17 @@ export default function PharmacyCATSystem() {
               </ResponsiveContainer>
             </div>
 
-            {/* Normal Distribution Chart */}
             <div className="bg-gray-50 rounded-2xl p-6 mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                🔔 กราฟ Normal Distribution ของ θ
-              </h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-4">🔔 กราฟ Normal Distribution ของ θ</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={normalDistData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis
                     dataKey="x"
-                    label={{
-                      value: "θ (Ability)",
-                      position: "insideBottom",
-                      offset: -5,
-                    }}
-                    ticks={[
-                      "-4.0",
-                      "-3.0",
-                      "-2.0",
-                      "-1.0",
-                      "0.0",
-                      "1.0",
-                      "2.0",
-                      "3.0",
-                      "4.0",
-                    ]}
+                    label={{ value: "θ (Ability)", position: "insideBottom", offset: -5 }}
+                    ticks={["-4.0", "-3.0", "-2.0", "-1.0", "0.0", "1.0", "2.0", "3.0", "4.0"]}
                   />
-                  <YAxis
-                    label={{
-                      value: "Probability Density",
-                      angle: -90,
-                      position: "insideLeft",
-                    }}
-                  />
+                  <YAxis label={{ value: "Probability Density", angle: -90, position: "insideLeft" }} />
                   <Tooltip />
                   <Area
                     type="monotone"
@@ -1654,33 +1542,18 @@ export default function PharmacyCATSystem() {
               </div>
             </div>
 
-            {/* Response Details Table */}
             <div className="bg-gray-50 rounded-2xl p-6 mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                🔍 รายละเอียดการตอบ (10 ข้อแรก)
-              </h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-4">🔍 รายละเอียดการตอบ (10 ข้อแรก)</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-green-100">
                     <tr>
-                      <th className="p-3 text-left text-sm font-semibold text-gray-700">
-                        ข้อที่
-                      </th>
-                      <th className="p-3 text-left text-sm font-semibold text-gray-700">
-                        หมวด
-                      </th>
-                      <th className="p-3 text-center text-sm font-semibold text-gray-700">
-                        ความยาก (b)
-                      </th>
-                      <th className="p-3 text-center text-sm font-semibold text-gray-700">
-                        ผล
-                      </th>
-                      <th className="p-3 text-center text-sm font-semibold text-gray-700">
-                        θ หลัง
-                      </th>
-                      <th className="p-3 text-center text-sm font-semibold text-gray-700">
-                        SE
-                      </th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-700">ข้อที่</th>
+                      <th className="p-3 text-left text-sm font-semibold text-gray-700">หมวด</th>
+                      <th className="p-3 text-center text-sm font-semibold text-gray-700">ความยาก (b)</th>
+                      <th className="p-3 text-center text-sm font-semibold text-gray-700">ผล</th>
+                      <th className="p-3 text-center text-sm font-semibold text-gray-700">θ หลัง</th>
+                      <th className="p-3 text-center text-sm font-semibold text-gray-700">SE</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white">
@@ -1688,18 +1561,12 @@ export default function PharmacyCATSystem() {
                       <tr key={i} className="border-b border-gray-100">
                         <td className="p-3 text-sm">{i + 1}</td>
                         <td className="p-3 text-sm">{r.item.contentArea}</td>
-                        <td className="p-3 text-sm text-center">
-                          {r.item.b.toFixed(2)}
-                        </td>
-                        <td className="p-3 text-center text-lg">
-                          {r.isCorrect ? "✅" : "❌"}
-                        </td>
+                        <td className="p-3 text-sm text-center">{r.item.b.toFixed(2)}</td>
+                        <td className="p-3 text-center text-lg">{r.isCorrect ? "✅" : "❌"}</td>
                         <td className="p-3 text-sm text-center font-semibold">
-                          {r.thetaAfter.toFixed(3)}
+                          {r.thetaAfter?.toFixed(3) || "N/A"}
                         </td>
-                        <td className="p-3 text-sm text-center">
-                          {r.seAfter.toFixed(3)}
-                        </td>
+                        <td className="p-3 text-sm text-center">{r.seAfter?.toFixed(3) || "N/A"}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1707,7 +1574,6 @@ export default function PharmacyCATSystem() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-4">
               <button
                 onClick={() => window.print()}
@@ -1718,8 +1584,6 @@ export default function PharmacyCATSystem() {
               <button
                 onClick={() => {
                   setScreen("home");
-                  setExamineeName("");
-                  setExamineeId("");
                   setExamMode("real");
                   setResponses([]);
                   setCurrentTheta(0.0);
