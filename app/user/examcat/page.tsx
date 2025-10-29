@@ -945,7 +945,7 @@ class CATEngine {
       }
     }
 
-    let eligibleItems =
+    const eligibleItems =
       priorityContents.length > 0
         ? this.itemBank.filter(
             (item) =>
