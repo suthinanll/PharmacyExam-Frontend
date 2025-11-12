@@ -1,20 +1,60 @@
 "use client";
 import React, { useState } from "react";
+import Swal from "sweetalert2";
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebook,  } from "react-icons/fa";
+import { FaFacebook } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Email:", email);
-    console.log("Password:", password);
+
+    try {
+      const res = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json(); // อ่าน body แค่ครั้งเดียว
+
+      if (res.ok) {
+        await Swal.fire({
+          icon: "success",
+          title: "เข้าสู่ระบบสำเร็จ!",
+          text: `ยินดีต้อนรับ ${data.user.first_name}`,
+          confirmButtonText: "ตกลง",
+        });
+
+        router.push("/user");
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "เข้าสู่ระบบไม่สำเร็จ",
+          text: data.message || "อีเมลหรือรหัสผ่านไม่ถูกต้อง",
+        });
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด",
+        text: "ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้",
+      });
+      console.error(err);
+    }
   };
 
   const handleSocialLogin = (provider: string) => {
-    console.log(`เข้าสู่ระบบด้วย ${provider}`);
+    Swal.fire({
+      title: `เข้าสู่ระบบด้วย ${provider}`,
+      text: "ฟีเจอร์นี้อยู่ระหว่างพัฒนา 😉",
+      icon: "info",
+    });
   };
 
   return (
@@ -22,7 +62,7 @@ export default function Page() {
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
       style={{ backgroundImage: "url('/bg-login.png')" }}
     >
-      <div className="bg-white backdrop-blur-md shadow-xl rounded-2xl p-8 w-[90%] max-w-md">
+      <div className="bg-white shadow-xl rounded-2xl p-8 w-[90%] max-w-md">
         <h1 className="text-3xl font-semibold text-center mb-6 text-green-600">
           เภสัชพร้อมสอบ
         </h1>
@@ -60,14 +100,12 @@ export default function Page() {
           </button>
         </form>
 
-        {/* เส้นแบ่ง */}
         <div className="flex items-center my-6">
           <div className="flex-grow border-t border-gray-300"></div>
           <span className="mx-3 text-gray-500 text-sm">หรือเข้าสู่ระบบด้วย</span>
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
-        {/* ปุ่มไอคอนแนวนอน */}
         <div className="flex justify-center space-x-6 text-3xl">
           <button
             onClick={() => handleSocialLogin("Google")}
@@ -81,7 +119,6 @@ export default function Page() {
           >
             <FaFacebook />
           </button>
-         
         </div>
 
         <div className="text-center mt-6 text-sm text-gray-600">

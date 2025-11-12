@@ -3,7 +3,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { global } from 'styled-jsx/css';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import {
   User,
@@ -19,7 +19,7 @@ import {
   Bookmark
 
 } from 'lucide-react';
-import { label } from 'framer-motion/client';
+import Swal from 'sweetalert2';
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -34,6 +34,65 @@ const Navbar = () => {
   const profileDropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
   const examSetDropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  // ดึงข้อมูลมาแสดง
+  const [user, setUser] = useState<{ first_name: string, last_name: string, email: string } | null>(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/auth/me', {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error(err);
+        setUser(null);
+      }
+    };
+
+    fetchUser();
+  }, []);
+  // logout
+  const handleLogout = async () => {
+    const result = await Swal.fire({
+      title: 'ต้องการออกจากระบบจริงหรือไม่?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'ตกลง',
+      cancelButtonText: 'ยกเลิก',
+      reverseButtons: true,
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        await Swal.fire({
+          icon: 'success',
+          title: 'ออกจากระบบเรียบร้อย',
+          showConfirmButton: false,
+          timer: 1500,
+        });
+
+        router.push('/login');
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'เกิดข้อผิดพลาด',
+          text: 'ไม่สามารถออกจากระบบได้',
+        });
+      }
+    }
+  };
 
   const navItems = [
     { href: '/user', label: 'เภสัชพร้อมสอบ' },
@@ -45,7 +104,7 @@ const Navbar = () => {
       submenu: [
         { href: '/examset/by-year', label: 'ข้อสอบโรคและระบบต่างๆ' },
         { href: '/examset/mock-exam', label: 'ข้อสอบย้อนหลัง' },
-        { href: '/user/examcat', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)'}
+        { href: '/user/examcat', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)' }
       ]
     },
     { href: '/user/calendar', label: 'ปฏิทินการสอบ' },
@@ -106,7 +165,6 @@ const Navbar = () => {
       setMobileSubmenuOpen(false);
     }
   }, [isMobileMenuOpen]);
-
   return (
     <nav className="shadow-lg sticky top-0 z-50">
       <div className="mx-auto max-w-7xl px-2 sm:px-4 md:px-6 lg:px-8">
@@ -141,7 +199,6 @@ const Navbar = () => {
               <div className="flex space-x-1 xl:space-x-2">
                 {navItems.slice(1).map((item) => (
                   item.submenu ? (
-                    // --- START: แก้ไขส่วนคลังข้อสอบ ---
                     <div key={item.label} className="relative group" ref={examSetDropdownRef}>
                       <div className={`flex items-center rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap ${isActive(item.href, true)
                         ? "buttonact  text-white shadow-md"
@@ -318,10 +375,13 @@ const Navbar = () => {
                 >
                   {/* Header แสดงข้อมูลผู้ใช้ */}
                   <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-100 bg-green-50">
-                    <p className="text-xs sm:text-sm font-medium text-green-800 truncate">นักศึกษาเภสัช</p>
-                    <p className="text-[10px] sm:text-xs text-green-600 truncate">student@pharmacy.ac.th</p>
+                    <p className="text-xs sm:text-sm font-medium text-green-800 truncate">
+                      {user?.first_name + "  " + user?.last_name || 'นักศึกษาเภสัช'}
+                    </p>
+                    <p className="text-[10px] sm:text-xs text-green-600 truncate">
+                      {user?.email || 'student@pharmacy.ac.th'}
+                    </p>
                   </div>
-
                   {/* รายการเมนู */}
                   <div className="py-1">
                     <Link
@@ -332,8 +392,8 @@ const Navbar = () => {
                       <User className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-2 sm:mr-3 text-gray-600" />
                       โปรไฟล์ของฉัน
                     </Link>
-                     
-                     <Link
+
+                    <Link
                       href="/user/saveblog"
                       className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors"
                       onClick={() => setIsProfileDropdownOpen(false)}
@@ -341,7 +401,7 @@ const Navbar = () => {
                       <Bookmark className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-2 sm:mr-3 text-gray-600" />
                       บันทึกแล้ว
                     </Link>
-                   
+
                     <Link
                       href="/user/examhis"
                       className="flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -356,12 +416,14 @@ const Navbar = () => {
                   <div className="border-t border-gray-100">
                     <button
                       className="flex items-center w-full px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm text-red-600 hover:bg-red-50 transition-colors"
-                      onClick={() => { setIsProfileDropdownOpen(false); }}
+                      onClick={handleLogout}
                     >
                       <LogOut className="w-3.5 sm:w-4 h-3.5 sm:h-4 mr-2 sm:mr-3" />
                       ออกจากระบบ
                     </button>
                   </div>
+
+
                 </div>
               )}
             </div>
