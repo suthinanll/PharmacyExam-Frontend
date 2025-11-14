@@ -1,24 +1,28 @@
 "use client";
 
-import { useState } from 'react';
-import { usePathname } from 'next/navigation';
-import { Menu, X, User, LogOut } from 'lucide-react'; 
-import Link from 'next/link'; 
-import React from 'react'; 
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Menu, X, User, LogOut } from "lucide-react";
+import Link from "next/link";
+import React from "react";
+import Swal from "sweetalert2";
 
-// Interface สำหรับ Props ของ LogoutConfirmationModal
 interface LogoutModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  loading: boolean;
 }
 
-// Component สำหรับ Logout Confirmation Modal
-const LogoutConfirmationModal = ({ isOpen, onClose, onConfirm }: LogoutModalProps) => {
+const LogoutConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  loading,
+}: LogoutModalProps) => {
   if (!isOpen) return null;
 
   return (
-    // ใช้ bg-black/60 เพื่อให้พื้นหลังเข้มขึ้น และมั่นใจว่า Opacity ทำงาน
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-auto p-6 transform transition-all duration-300 scale-100 opacity-100">
         <div className="flex flex-col items-center">
@@ -30,9 +34,8 @@ const LogoutConfirmationModal = ({ isOpen, onClose, onConfirm }: LogoutModalProp
             คุณแน่ใจหรือไม่ว่าจะออกจากระบบตอนนี้?
           </p>
         </div>
-        
-        {/* แก้ไข: ใช้ justify-center เพื่อให้ปุ่มอยู่ตรงกลาง */}
-        <div className="flex justify-center space-x-3"> 
+
+        <div className="flex justify-center space-x-3">
           <button
             onClick={onClose}
             type="button"
@@ -44,8 +47,9 @@ const LogoutConfirmationModal = ({ isOpen, onClose, onConfirm }: LogoutModalProp
             onClick={onConfirm}
             type="button"
             className="px-4 py-2 text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors shadow-md"
+            disabled={loading}
           >
-            ออกจากระบบ
+            {loading ? "กำลังออก..." : "ออกจากระบบ"}
           </button>
         </div>
       </div>
@@ -53,59 +57,98 @@ const LogoutConfirmationModal = ({ isOpen, onClose, onConfirm }: LogoutModalProp
   );
 };
 
-
 export default function Navbar_admin({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false); 
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [loadingLogout, setLoadingLogout] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   const sidebarItems = [
-    { title: 'คลังข้อสอบ', href: '/admin/manage_examset' },
-    { title: 'ปฏิทินกำหนดการ', href: '/admin/manage_calendar' },
-    { title: 'บล็อกข่าวสาร', href: '/admin/mnblog' }
+    { title: "คลังข้อสอบ", href: "/admin/manage_examset" },
+    { title: "ปฏิทินกำหนดการ", href: "/admin/manage_calendar" },
+    { title: "บล็อกข่าวสาร", href: "/admin/mnblog" },
   ];
 
   const settingsItems = [
-    { title: 'ประวัติการสนทนาแชตบอต', href: '/admin/chatlog' },
-    { title: 'การตั้งค่า', href: '/admin/settingp' },
+    { title: "ประวัติการสนทนาแชตบอต", href: "/admin/chatlog" },
+    { title: "การตั้งค่า", href: "/admin/settingp" },
   ];
 
-
   const isActive = (href: string) => {
-   
-    if (href === '/') {
-        return pathname === href; 
-    }
-   
-    if (href === '/settings' || href === '/profile') {
-        return pathname === href; // สำหรับเมนูที่ไม่ต้องการให้ Active กับ Sub-path ให้ใช้ ===
-    }
-
+    if (href === "/") return pathname === href;
+    if (href === "/settings" || href === "/profile") return pathname === href;
     return pathname.startsWith(href);
   };
 
-  const handleConfirmLogout = () => {
-    setIsLogoutModalOpen(false);
-    // ** LOGOUT LOGIC HERE **
-    console.log("User is logging out...");
-    // window.location.href = '/login'; 
-  };
-
   const handleLogoutClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-      event.preventDefault(); 
-      setIsLogoutModalOpen(true);
-      if (isMobileMenuOpen) {
-        setIsMobileMenuOpen(false); 
-      }
+    event.preventDefault();
+    setIsLogoutModalOpen(true);
+    if (isMobileMenuOpen) setIsMobileMenuOpen(false);
   };
 
+  const [user, setUser] = useState<{ first_name: string, email: string } | null>(null);
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/auth/me', {
+          credentials: 'include',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data);
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error(err);
+        setUser(null);
+      }
+    };
+
+    fetchUser();
+  }, []);
+  const handleConfirmLogout = async () => {
+    setLoadingLogout(true);
+    try {
+      const res = await fetch("http://localhost:5000/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        setIsLogoutModalOpen(false);
+        setLoadingLogout(false);
+        await Swal.fire({
+          icon: "success",
+          title: "ออกจากระบบเรียบร้อย",
+          showConfirmButton: false,
+          timer: 1500,
+        });
+        router.push("/login");
+      } else {
+        setLoadingLogout(false);
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          text: "ไม่สามารถออกจากระบบได้",
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      setLoadingLogout(false);
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด",
+        text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
+      });
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
-      
       {/* Sidebar - Desktop */}
       <aside className="hidden lg:flex lg:flex-col w-64 xl:w-72 bg-white border-r border-gray-200 fixed h-full">
-        {/* Logo */}
         <div className="p-4 sm:p-5 lg:p-6 border-b border-gray-200">
           <Link href="/admin" className="block hover:opacity-80 transition-opacity">
             <h1 className="text-lg sm:text-xl font-semibold text-green-700">
@@ -114,46 +157,40 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
           </Link>
         </div>
 
-        {/* Main Menu */}
         <nav className="flex-1 p-3 sm:p-4 overflow-y-auto navadmin">
           <div className="space-y-1 sm:space-y-2">
-            {sidebarItems.map((item, index) => (
+            {sidebarItems.map((item, idx) => (
               <Link
-                key={index}
+                key={idx}
                 href={item.href}
-                className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
-                  isActive(item.href)
-                    ? 'bg-green-50 text-green-700 font-medium border-l-4 border-green-700 '
-                    : 'text-green-600 hover:bg-gray-50 hover:text-green-700'
-                }`}
+                className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
+                  ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
+                  : "text-green-600 hover:bg-gray-50 hover:text-green-700"
+                  }`}
               >
                 {item.title}
               </Link>
             ))}
           </div>
 
-          {/* Settings Section */}
           <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
             <div className="space-y-1 sm:space-y-2">
-              {settingsItems.map((item, index) => (
+              {settingsItems.map((item, idx) => (
                 <Link
-                  key={index}
+                  key={idx}
                   href={item.href}
-                  className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
-                    isActive(item.href)
-                      ? 'bg-green-50 text-green-700 font-medium border-l-4 border-green-700'
-                      : 'text-green-600 hover:bg-gray-50 hover:text-green-700'
-                  }`}
+                  className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
+                    ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
+                    : "text-green-600 hover:bg-gray-50 hover:text-green-700"
+                    }`}
                 >
                   {item.title}
                 </Link>
               ))}
-              
-              {/* Logout Link (Desktop) - เพิ่ม ICON */}
+
               <a
-                href="#" 
+                href="#"
                 onClick={handleLogoutClick}
-                // ใช้ flex และ space-x-2 เพื่อจัด Icon กับข้อความ
                 className="flex items-center space-x-2 w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base text-red-600 hover:bg-red-50 hover:text-red-700"
               >
                 <LogOut className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
@@ -163,30 +200,25 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
           </div>
         </nav>
 
-        {/* User Profile - Bottom */}
         <div className="p-3 sm:p-4 border-t border-gray-200">
-          <Link 
-            href="/profile" 
-            className={`flex items-center space-x-3 px-2 py-2 rounded-lg transition-all duration-200 ${
-              isActive('/profile')
-                ? 'bg-green-50'
-                : 'hover:bg-gray-50'
-            }`}
+          <Link
+            href="/admin/settingp"
+            className={`flex items-center space-x-3 px-2 py-2 rounded-lg transition-all duration-200 ${isActive("/profile") ? "bg-green-50" : "hover:bg-gray-50"
+              }`}
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
               <User className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium text-green-700 truncate">Admin</p>
-              <p className="text-[10px] sm:text-xs text-green-600 truncate">admin@gmail.com</p>
+              <p className="text-xs sm:text-sm font-medium text-green-700 truncate">{user?.first_name}</p>
+              <p className="text-[10px] sm:text-xs text-green-600 truncate">{user?.email}</p>
             </div>
           </Link>
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-64 xl:ml-72">
-        {/* Top Navbar - Mobile & Tablet */}
         <header className="lg:hidden bg-white shadow-md sticky top-0 z-40">
           <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
             <Link href="/admin" className="hover:opacity-80 transition-opacity">
@@ -206,88 +238,61 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
             </div>
           </div>
 
-          {/* Mobile Menu Dropdown */}
           {isMobileMenuOpen && (
             <div className="border-t border-gray-200 bg-white max-h-[calc(100vh-64px)] overflow-y-auto">
               <div className="px-3 sm:px-4 py-3 sm:py-4 space-y-1">
-                {sidebarItems.map((item, index) => (
+                {sidebarItems.map((item, idx) => (
                   <Link
-                    key={index}
+                    key={idx}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
-                      isActive(item.href)
-                        ? 'bg-green-50 text-green-700 font-medium border-l-4 border-green-700 '
-                        : 'text-green-600 hover:bg-gray-50 hover:text-green-700'
-                    }`}
+                    className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
+                      ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
+                      : "text-green-600 hover:bg-gray-50 hover:text-green-700"
+                      }`}
                   >
                     {item.title}
                   </Link>
                 ))}
 
                 <div className="pt-3 sm:pt-4 border-t border-gray-200 mt-3 sm:mt-4 space-y-1">
-                  {settingsItems.map((item, index) => (
+                  {settingsItems.map((item, idx) => (
                     <Link
-                      key={index}
+                      key={idx}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
-                        isActive(item.href)
-                          ? 'bg-green-50 text-green-700 font-medium border-l-4 border-green-700 '
-                          : 'text-green-600 hover:bg-gray-50 hover:text-green-700'
-                      }`}
+                      className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
+                        ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
+                        : "text-green-600 hover:bg-gray-50 hover:text-green-700"
+                        }`}
                     >
                       {item.title}
                     </Link>
                   ))}
-                  
-                  {/* Logout Link (Mobile) - เพิ่ม ICON */}
+
                   <a
-                    href="#" 
+                    href="#"
                     onClick={handleLogoutClick}
-                    // ใช้ flex และ space-x-2 เพื่อจัด Icon กับข้อความ
                     className="flex items-center space-x-2 w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base text-red-600 hover:bg-red-50 hover:text-red-700"
                   >
                     <LogOut className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span>ออกจากระบบ</span>
                   </a>
                 </div>
-
-                <div className="pt-3 sm:pt-4 border-t border-gray-200 mt-3 sm:mt-4">
-                  <Link 
-                    href="/profile" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-3 sm:px-4 py-3 rounded-lg transition-all duration-200 ${
-                      isActive('/profile')
-                        ? 'bg-green-50'
-                        : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm font-medium text-green-700">Admin</p>
-                      <p className="text-[10px] sm:text-xs text-green-600">admin@gmail.com</p>
-                    </div>
-                  </Link>
-                </div>
               </div>
             </div>
           )}
         </header>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-7 lg:p-8">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-7 lg:p-8">{children}</main>
       </div>
 
-      {/* Logout Modal Component */}
+      {/* Logout Modal */}
       <LogoutConfirmationModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
         onConfirm={handleConfirmLogout}
+        loading={loadingLogout}
       />
     </div>
   );

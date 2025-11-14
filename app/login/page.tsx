@@ -21,7 +21,7 @@ export default function Page() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json(); // อ่าน body แค่ครั้งเดียว
+      const data = await res.json(); // อ่านข้อมูลจาก backend
 
       if (res.ok) {
         await Swal.fire({
@@ -31,7 +31,19 @@ export default function Page() {
           confirmButtonText: "ตกลง",
         });
 
-        router.push("/user");
+        // -------------------------------
+        // 🟢 เช็ค role_id แล้วส่งไปตามหน้า
+        // -------------------------------
+        const roleId = data.user.role_id;
+
+        if (roleId === 1) {
+          router.push("/user");
+        } else if (roleId === 2) {
+          router.push("/admin");
+        } else {
+          // fallback ถ้า role ไม่รู้จัก
+          router.push("/");
+        }
       } else {
         Swal.fire({
           icon: "error",
