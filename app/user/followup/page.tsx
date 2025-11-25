@@ -76,13 +76,13 @@ const PharmacistDashboard = () => {
   });
 
 
-  const radarData: RadarData[] = [
-    { subject: 'เภสัชเคมี', score: 75, fullMark: 100 },
-    { subject: 'เภสัชกรรมปฏิบัติ', score: 68, fullMark: 100 },
-    { subject: 'เภสัชกรรมคลินิก', score: 72, fullMark: 100 },
+ const radarData: RadarData[] = [
+    { subject: 'กฏหทาย', score: 75, fullMark: 100 },
+    { subject: 'บริบาล', score: 68, fullMark: 100 },
+    { subject: 'เทคโน', score: 72, fullMark: 100 },
     { subject: 'เภสัชกรรมชุมชน', score: 65, fullMark: 100 },
     { subject: 'เภสัชวิทยา', score: 70, fullMark: 100 },
-    { subject: 'กฎหมายเภสัช', score: 78, fullMark: 100 },
+    { subject: 'medchem สมุนไพร ', score: 78, fullMark: 100 },
   ];
 
 
