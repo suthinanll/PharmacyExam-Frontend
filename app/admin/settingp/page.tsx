@@ -1,35 +1,8 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect } from "react";
 import React from "react";
-
-const PROFILE_IMAGE_URL =
-  "https://preview.redd.it/post-the-best-cat-memes-you-got-in-the-comments-please-v0-kg82lbnu0ste1.png?auto=webp&s=e6f9eee86484f5de3f4e31f3c33b2d07fb982bd5";
-
-interface UserAvatarProps {
-  size?: number;
-  src?: string;
-  alt?: string;
-}
-const UserAvatar: React.FC<UserAvatarProps> = ({ size = 96, src, alt }) => (
-  <div
-    className="rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-md"
-    style={{ width: size, height: size }}
-  >
-    <img
-      src={src || PROFILE_IMAGE_URL}
-      alt={alt || "Profile Picture"}
-      className="w-full h-full object-cover"
-      onError={(e) => {
-        const target = e.currentTarget as HTMLImageElement;
-        target.src = "https://via.placeholder.com/96/C4C4C4/FFFFFF?text=P";
-        target.onerror = null;
-      }}
-    />
-  </div>
-);
 
 const PencilIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -90,82 +63,116 @@ function Page() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string>("");
-  const [successMessage, setSuccessMessage] = useState<string>("");
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const disabledInputClass =
-    "w-full border border-gray-200 rounded-lg p-3 bg-gray-100 text-base text-gray-700 cursor-not-allowed shadow-inner focus:outline-none";
-
+  // =============================
+  // โหลดข้อมูลผู้ใช้
+  // =============================
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await fetch("http://localhost:5000/auth/me", {
+          method: "GET",
           credentials: "include",
         });
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-          setFormData({
-            first_name: data.first_name || "",
-            last_name: data.last_name || "",
-            email: data.email || "",
-            tel: data.tel || "",
-          });
-        } else {
+
+        if (!res.ok) {
           setError("ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
+          return;
         }
+
+        const data = await res.json();
+        setUser(data);
+        setFormData({
+          first_name: data.first_name || "",
+          last_name: data.last_name || "",
+          email: data.email || "",
+          tel: data.tel || "",
+        });
       } catch (err) {
         console.error(err);
         setError("เกิดข้อผิดพลาดในการเชื่อมต่อ");
       }
     };
+
     fetchUser();
   }, []);
 
+  // =============================
+  // บันทึกข้อมูลโปรไฟล์
+  // =============================
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSuccessMessage("");
     setIsLoading(true);
+
     try {
-      // ตัวอย่าง API POST
-      const res = await fetch("http://localhost:5000/auth/update-profile", {
-        method: "POST",
+      const res = await fetch("http://localhost:5000/users/profile", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
         credentials: "include",
+        body: JSON.stringify(formData),
       });
-      if (res.ok) {
-        setSuccessMessage("บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว!");
+
+      if (!res.ok) {
+        const result = await res.json();
+        setError(result.message || "เกิดข้อผิดพลาดในการบันทึกข้อมูล");
       } else {
-        setError("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
+        setSuccessMessage("บันทึกข้อมูลส่วนตัวเรียบร้อยแล้ว!");
+        setIsEditing(false);
       }
     } catch (err) {
       console.error(err);
       setError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
     }
+
     setIsLoading(false);
   };
 
+  // =============================
+  // เปลี่ยนรหัสผ่าน
+  // =============================
   const handleSavePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setSuccessMessage("");
     setIsLoading(true);
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setError("รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // ตัวอย่าง API POST เปลี่ยนรหัสผ่าน
-      const res = await fetch("http://localhost:5000/auth/change-password", {
-        method: "POST",
+      const res = await fetch("http://localhost:5000/users/change-password", {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(passwordData),
         credentials: "include",
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
       });
-      if (res.ok) {
-        setSuccessMessage("เปลี่ยนรหัสผ่านเรียบร้อยแล้ว!");
-        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+
+      if (!res.ok) {
+        const result = await res.json();
+        setError(result.message || "เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน");
       } else {
-        setError("เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน");
+        setSuccessMessage("เปลี่ยนรหัสผ่านเรียบร้อยแล้ว!");
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
       }
     } catch (err) {
       console.error(err);
       setError("ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้");
     }
+
     setIsLoading(false);
   };
 
@@ -175,21 +182,22 @@ function Page() {
     <Navbar_admin>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8 md:p-10 max-w-3xl mx-auto">
-          {/* Profile Header */}
+          
+          {/* Header */}
           <div className="flex justify-between items-start mb-8 border-b pb-6">
-            <UserAvatar size={96} src={PROFILE_IMAGE_URL} alt="Profile" />
             <div className="flex space-x-3">
               <button
-                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-150 text-sm font-medium border border-gray-300"
+                className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition"
                 onClick={() => setIsEditing(!isEditing)}
               >
                 <PencilIcon className="w-4 h-4" />
                 <span>{isEditing ? "ยกเลิกแก้ไข" : "แก้ไขโปรไฟล์"}</span>
               </button>
+
               <button
                 onClick={handleSaveProfile}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-150 text-sm font-medium shadow-md shadow-green-200"
                 disabled={!isEditing || isLoading}
+                className="flex items-center space-x-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition shadow-md"
               >
                 <SaveIcon className="w-4 h-4" />
                 <span>{isLoading ? "กำลังบันทึก..." : "บันทึก"}</span>
@@ -200,30 +208,38 @@ function Page() {
           {error && <p className="text-red-600 mb-4">{error}</p>}
           {successMessage && <p className="text-green-600 mb-4">{successMessage}</p>}
 
-          {/* Profile Form */}
+          {/* =============================
+              Profile Form
+          ============================= */}
           <form className="space-y-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-6">ข้อมูลส่วนตัว</h2>
+            <h2 className="text-xl font-bold mb-6">ข้อมูลส่วนตัว</h2>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อจริง</label>
+                <label className="text-sm font-medium">ชื่อจริง</label>
                 <input
                   type="text"
                   value={formData.first_name}
                   readOnly={!isEditing}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                  className={`w-full border border-gray-300 rounded-lg p-3 text-base ${
+                  onChange={(e) =>
+                    setFormData({ ...formData, first_name: e.target.value })
+                  }
+                  className={`w-full border rounded-lg p-3 ${
                     !isEditing ? "bg-gray-100 cursor-not-allowed" : "bg-white"
                   }`}
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">นามสกุล</label>
+                <label className="text-sm font-medium">นามสกุล</label>
                 <input
                   type="text"
                   value={formData.last_name}
                   readOnly={!isEditing}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                  className={`w-full border border-gray-300 rounded-lg p-3 text-base ${
+                  onChange={(e) =>
+                    setFormData({ ...formData, last_name: e.target.value })
+                  }
+                  className={`w-full border rounded-lg p-3 ${
                     !isEditing ? "bg-gray-100 cursor-not-allowed" : "bg-white"
                   }`}
                 />
@@ -231,71 +247,95 @@ function Page() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">อีเมล</label>
+              <label className="text-sm font-medium">อีเมล</label>
               <input
                 type="email"
                 value={formData.email}
                 readOnly
-                className={disabledInputClass}
+                className="w-full border rounded-lg p-3 bg-gray-100 cursor-not-allowed"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">เบอร์โทรศัพท์</label>
+              <label className="text-sm font-medium">เบอร์โทรศัพท์</label>
               <input
                 type="tel"
                 value={formData.tel}
                 readOnly={!isEditing}
-                onChange={(e) => setFormData({ ...formData, tel: e.target.value })}
-                className={`w-full border border-gray-300 rounded-lg p-3 text-base ${
+                onChange={(e) =>
+                  setFormData({ ...formData, tel: e.target.value })
+                }
+                className={`w-full border rounded-lg p-3 ${
                   !isEditing ? "bg-gray-100 cursor-not-allowed" : "bg-white"
                 }`}
               />
             </div>
           </form>
 
-          {/* Password Form */}
+          {/* =============================
+              Change Password 
+          ============================= */}
           <div className="py-8 border-t mt-8"></div>
+
           <form className="space-y-6" onSubmit={handleSavePassword}>
-            <h2 className="text-xl font-bold text-gray-800 mb-6">ตั้งค่ารหัสผ่าน</h2>
+            <h2 className="text-xl font-bold mb-6">ตั้งค่ารหัสผ่าน</h2>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">รหัสผ่านปัจจุบัน</label>
+              <label className="text-sm font-medium">รหัสผ่านปัจจุบัน</label>
               <input
                 type="password"
-                value="********"
-                readOnly
-                className={disabledInputClass}
+                placeholder="กรอกรหัสผ่านปัจจุบัน"
+                value={passwordData.currentPassword}
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    currentPassword: e.target.value,
+                  })
+                }
+                className="w-full border rounded-lg p-3"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">รหัสผ่านใหม่</label>
+              <label className="text-sm font-medium">รหัสผ่านใหม่</label>
               <input
                 type="password"
                 placeholder="กรอกรหัสผ่านใหม่"
                 value={passwordData.newPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-green-500 focus:border-green-500 text-base"
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    newPassword: e.target.value,
+                  })
+                }
+                className="w-full border rounded-lg p-3"
               />
             </div>
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">ยืนยันรหัสผ่านใหม่</label>
+              <label className="text-sm font-medium">ยืนยันรหัสผ่านใหม่</label>
               <input
                 type="password"
                 placeholder="ยืนยันรหัสผ่านใหม่"
                 value={passwordData.confirmPassword}
-                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                className="w-full border border-gray-300 rounded-lg p-3 focus:ring-green-500 focus:border-green-500 text-base"
+                onChange={(e) =>
+                  setPasswordData({
+                    ...passwordData,
+                    confirmPassword: e.target.value,
+                  })
+                }
+                className="w-full border rounded-lg p-3"
               />
             </div>
-            <div className="pt-4">
-              <button
-                type="submit"
-                className="inline-flex items-center space-x-2 px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-green-500/50 transition duration-150"
-                disabled={isLoading}
-              >
-                <SaveIcon className="w-5 h-5" />
-                <span>{isLoading ? "กำลังบันทึก..." : "บันทึกรหัสผ่าน"}</span>
-              </button>
-            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex items-center space-x-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-md"
+            >
+              <SaveIcon className="w-5 h-5" />
+              <span>{isLoading ? "กำลังบันทึก..." : "บันทึกรหัสผ่าน"}</span>
+            </button>
           </form>
         </div>
       </div>
