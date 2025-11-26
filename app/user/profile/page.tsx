@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client"
 
 import Navbar_user from "@/components/Navbar_user";
@@ -6,32 +5,6 @@ import Footer from "@/components/Footer";
 import { Edit, Save, X } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from 'react';
-
-const PROFILE_IMAGE_URL = "https://media.tenor.com/KkSYfvEw4hsAAAAe/cat-cat-scared.png";
-
-interface UserAvatarProps {
-    size?: number;
-    src?: string;
-    alt?: string;
-}
-
-const UserAvatar: React.FC<UserAvatarProps> = ({ size = 96, src, alt }) => (
-    <div
-        className="rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-md"
-        style={{ width: size, height: size }}
-    >
-        <img
-            src={src || PROFILE_IMAGE_URL}
-            alt={alt || "Profile Picture"}
-            className="w-full h-full object-cover"
-            onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                const target = e.currentTarget as HTMLImageElement;
-                target.src = "https://via.placeholder.com/96/C4C4C4/FFFFFF?text=U";
-                target.onerror = null;
-            }}
-        />
-    </div>
-);
 
 const Profile = () => {
     const [user, setUser] = useState<{
@@ -62,40 +35,48 @@ const Profile = () => {
         confirmPassword: '',
     });
 
-    const token = localStorage.getItem("token");
-
-
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string>('');
     const [successMessage, setSuccessMessage] = useState<string>('');
 
+    const [token, setToken] = useState<string | null>(null);
+
+    useEffect(() => {
+        const t = localStorage.getItem("token");
+        setToken(t);
+    }, []);
+
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const res = await fetch('http://localhost:5000/auth/me', {
-                    credentials: 'include',
+                const res = await fetch("http://localhost:5000/auth/me", {
+                    method: "GET",
+                    credentials: "include",   // <== ต้องมี
                 });
+
                 if (res.ok) {
                     const data = await res.json();
                     setUser(data);
                     setFormData({
-                        first_name: data.first_name || '',
-                        last_name: data.last_name || '',
-                        email: data.email || '',
-                        tel: data.tel || '',
+                        first_name: data.first_name || "",
+                        last_name: data.last_name || "",
+                        email: data.email || "",
+                        tel: data.tel || "",
                     });
                 } else {
-                    setError('ไม่สามารถโหลดข้อมูลผู้ใช้ได้');
+                    const errorData = await res.json();
+                    setError(errorData.message || "ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
                 }
             } catch (err) {
                 console.error(err);
-                setError('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+                setError("เกิดข้อผิดพลาดในการเชื่อมต่อ");
             }
         };
 
         fetchUser();
     }, []);
+
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -124,7 +105,7 @@ const Profile = () => {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`,   
+                    'Authorization': `Bearer ${token}`,
 
                 },
                 credentials: 'include',
@@ -246,11 +227,7 @@ const Profile = () => {
                     <div className="bg-white rounded-xl shadow-xl p-6 sm:p-8 md:p-10 max-w-3xl mx-auto">
                         {/* Profile Header and Action Buttons */}
                         <div className="flex justify-between items-start mb-8 border-b pb-6">
-                            <UserAvatar
-                                size={96}
-                                src={PROFILE_IMAGE_URL}
-                                alt="User Profile"
-                            />
+
                             <div className="flex space-x-3">
                                 {isEditing ? (
                                     <>
