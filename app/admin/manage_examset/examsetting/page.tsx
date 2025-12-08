@@ -2,7 +2,7 @@
 
 import Navbar_admin from "@/components/Navbar_admin";
 import Link from "next/link";
-import { ChevronLeft,Save } from "lucide-react";
+import { ChevronDown, ChevronLeft, Save } from "lucide-react";
 import { useState } from "react";
 
 function CreateExamPage() {
@@ -15,6 +15,31 @@ function CreateExamPage() {
   const [totalQuestions, setTotalQuestions] = useState("120 ข้อ");
   const [answerFile] = useState("Cardiovascular_disorder_answers.pdf");
 
+
+  const [categories, setCategories] = useState(["PLE-CCI D 2566", "OSCE", "Final"]);
+  const [selected, setSelected] = useState("");
+  const [editIndex, setEditIndex] = useState<number | null>(null);
+  const [newValue, setNewValue] = useState("");
+
+  const handleAdd = () => {
+    if (!newValue.trim()) return;
+    setCategories([...categories, newValue]);
+    setNewValue("");
+  };
+
+  const handleUpdate = () => {
+    const updated = [...categories];
+    if (!newValue.trim()) return;
+    updated[editIndex] = newValue;
+    setCategories(updated);
+    setEditIndex(null);
+    setNewValue("");
+  };
+
+  const handleDelete = (index: number) => {
+    setCategories(categories.filter((_, i) => i !== index));
+    if (selected === categories[index]) setSelected("");
+  };
 
   const handleSaveSettings = (e: { preventDefault: () => void; }) => {
     e.preventDefault();
@@ -134,7 +159,84 @@ function CreateExamPage() {
               {/* You can add more status options here if needed */}
             </select>
 
-            
+
+          </div>
+
+          <div className="space-y-4">
+            <label htmlFor="exam-file" className="block text-sm font-medium text-gray-700 mb-2">
+              หมวดหมู่ของข้อสอบ
+            </label>
+
+            <div className="relative">
+              <select
+                value={selected}
+                onChange={(e) => setSelected(e.target.value)}
+                className="mt-1 block w-full px-4 py-3 pr-10 border border-gray-300 rounded-xl shadow-sm focus:ring-1 bg-white sm:text-sm appearance-none"
+              >
+                <option value="">-- เลือกหมวดหมู่ของข้อสอบ --</option>
+                {categories.map((c, i) => (
+                  <option key={i} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+            </div>
+
+            {/* ช่องเพิ่ม/แก้ไข หมวดหมู่ */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder={editIndex !== null ? "แก้ไขหมวดหมู่" : "เพิ่มหมวดหมู่ใหม่"}
+                value={newValue}
+                onChange={(e) => setNewValue(e.target.value)}
+                className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white sm:text-sm" />
+
+              <button
+                type="button"
+                onClick={editIndex !== null ? handleUpdate : handleAdd}
+                className="px-6 py-3 rounded-xl bg-green-600 text-white shadow-md hover:bg-green-700 text-sm font-medium"
+              >
+                {editIndex !== null ? "แก้ไข" : "เพิ่ม"}
+              </button>
+            </div>
+
+            {/* รายการแสดงเพื่อแก้ไข / ลบ */}
+            <div className="border border-gray-200 rounded-xl p-4 bg-gray-50 space-y-2 max-h-64 overflow-y-auto">
+              {categories.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 text-sm">
+                  ยังไม่มีหมวดหมู่
+                </div>
+              ) : (
+                categories.map((c, i) => (
+                  <div
+                    key={i}
+                    className="flex justify-between items-center bg-white p-3 rounded-xl border border-gray-200 shadow-sm hover:shadow-md"
+                  >
+                    <span className="text-sm font-medium text-gray-700">{c}</span>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditIndex(i);
+                          setNewValue(c);
+                        }}
+                        className="px-3 py-1.5 text-xs rounded-lg bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 font-medium shadow-sm"
+                      >
+                        แก้ไข
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(i)}
+                        className="px-3 py-1.5 text-xs rounded-lg bg-red-600 text-white hover:bg-red-700 font-medium shadow-sm"
+                      >
+                        ลบ
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
           {/* Save Button */}
@@ -143,7 +245,7 @@ function CreateExamPage() {
               type="submit"
               className="inline-flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
             >
-              
+
               <Save className="w-5 h-5 mr-2" /> บันทึกการตั้งค่า
             </button>
           </div>

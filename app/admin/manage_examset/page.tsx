@@ -6,19 +6,11 @@ import { Plus, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 
-// ข้อมูลจำลองสำหรับคลังข้อสอบ (Placeholder Data)
 const examData = [
-  { id: 1, name: "Cardiovascular disorder", thaiName: "(ความผิดปกติของหัวใจและหลอดเลือด)", count: 108, status: "เปิดให้ทำข้อสอบ", statusColor: "bg-green-100 text-green-700", createdDate: "02/04/2566 - 18:52" },
-  { id: 2, name: "Respiratory disorder", thaiName: "(ความผิดปกติของระบบทางเดินหายใจ)", count: 52, status: "เปิดให้ทำข้อสอบ", statusColor: "bg-green-100 text-green-700", createdDate: "29/03/2566 - 11:22" },
-  { id: 3, name: "Hematologic disorder", thaiName: "(ความผิดปกติของหัวใจและหลอดเลือด)", count: 38, status: "เปิดให้ทำข้อสอบ", statusColor: "bg-green-100 text-green-700", createdDate: "21/03/2566 - 18:52" },
-  { id: 4, name: "Gastrointestinal disorder", thaiName: "(โรคทางเดินอาหาร)", count: 74, status: "เปิดให้ทำข้อสอบ", statusColor: "bg-green-100 text-green-700", createdDate: "18/03/2566 - 18:52" },
-  { id: 5, name: "Rheumatologic disorder", thaiName: "(โรคข้ออักเสบ)", count: 61, status: "เปิดให้ทำข้อสอบ", statusColor: "bg-green-100 text-green-700", createdDate: "17/03/2566 - 18:52" },
-  { id: 6, name: "Dermatologic disorder", thaiName: "(โรคผิวหนัง)", count: 63, status: "ปิดข้อสอบ", statusColor: "bg-gray-100 text-gray-700", createdDate: "02/03/2566 - 18:52" },
-  { id: 7, name: "EENT disorder", thaiName: "(จักษุ หู คอ จมูก)", count: 22, status: "ปิดข้อสอบ", statusColor: "bg-gray-100 text-gray-700", createdDate: "27/02/2566 - 18:52" },
-  { id: 8, name: "PLE-CC1 2564", thaiName: "(ข้อสอบใน MCQ ปี 2564)", count: 120, status: "ปิดข้อสอบ", statusColor: "bg-gray-100 text-gray-700", createdDate: "01/02/2566 - 18:52" },
+  { id: 1, name: "Cardiovascular disorder", thaiName: "(ความผิดปกติของหัวใจและหลอดเลือด)", count: 108, status: "เปิดให้ทำข้อสอบ", statusColor: "bg-green-100 text-green-700", createdDate: "02/04/2566 - 18:52", catagory: "ข้อสอบเฉพาะทาง" },
+
 ];
 
-// Interface สำหรับ props ของ PageButton
 interface PageButtonProps {
   page: number;
   isActive: boolean;
@@ -103,8 +95,7 @@ function Page() {
           </div>
         </div>
 
-        {/* Search Bar (แยกออกมาตามที่ต้องการ) */}
-        <div className="mb-6"> {/* ปรับ mb-5 เป็น mb-6 เพื่อระยะห่าง */}
+        <div className="mb-6">
           <div className="relative max-w-sm">
             <input
               type="text"
@@ -128,6 +119,7 @@ function Page() {
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-32">จำนวนข้อสอบ</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-32">สถานะ</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-40">วัน-เวลาที่สร้าง</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-40">หมวดหมู่</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-20 rounded-tr-xl">จัดการ</th>
                 </tr>
               </thead>
@@ -144,6 +136,7 @@ function Page() {
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${exam.statusColor}`}>{exam.status}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 w-40">{exam.createdDate}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 w-40">{exam.catagory}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium w-20">
                       <Link href={`/admin/manage_examset/examedit`} className="text-blue-600 hover:text-blue-900 text-sm">แก้ไข</Link>
                     </td>
