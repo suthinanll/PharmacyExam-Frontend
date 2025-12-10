@@ -3,8 +3,7 @@ import { useState, useMemo } from 'react';
 import Navbar from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import {
-  Plus, Trash2, Save, X, ChevronLeft, ChevronRight,
-  FileText, Upload, Link as LinkIcon
+  Plus, Trash2, Save, X, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import NoteList from "@/components/note/NoteList";
@@ -27,7 +26,6 @@ interface UserNote {
   createdAt: number;
 }
 
-// --- Initial Data ---
 
 const initialSchedules: ExamSchedule[] = [
   {
@@ -48,23 +46,6 @@ const initialSchedules: ExamSchedule[] = [
   }
 ];
 
-const initialNotes: UserNote[] = [
-  {
-    id: 'n1',
-    content: 'สรุปข้อมูลการสอบ PLE-CC1',
-    tags: ['โรคเกี่ยวกับกระดูก', 'สำคัญ', 'กฏหทาย'],
-    files: ['Example_Quiz.docx'], // มีไฟล์แนบ
-    createdAt: Date.now() - 86400000
-  },
-  {
-    id: 'n2',
-    content: 'สรุปข้อมูลการสอบ PLE-CC1 เฉพาะเรื่องกฏหมาย',
-    tags: ['กฏหทาย'],
-    files: ['LAW-PLE-CC1.docx'], // มีไฟล์แนบ
-    createdAt: Date.now() - 86400000
-  },
-
-];
 
 const categoryColors = {
   'ทฤษฎี': 'bg-blue-100 text-blue-800 border-blue-300',
@@ -75,15 +56,15 @@ const categoryColors = {
 
 const Calender = () => {
   const [schedules, setSchedules] = useState<ExamSchedule[]>(initialSchedules);
-  const [userNotes, setUserNotes] = useState<UserNote[]>(initialNotes);
+  const [userNotes, setUserNotes] = useState<UserNote[]>([]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<ExamSchedule | null>(null);
 
-  const [isNoteModalOpen, setIsNoteModalOpen] = useState(false);
-  const [editingNote, setEditingNote] = useState<UserNote | null>(null);
+  const [isNoteModalOpen] = useState(false);
+  const [editingNote] = useState<UserNote | null>(null);
 
   const [tagFilter, setTagFilter] = useState(''); // State สำหรับกรองโน้ตด้วย Tag
 
@@ -112,34 +93,7 @@ const Calender = () => {
   // --- Notes Logic ---
 
 
-  const handleSaveNote = (noteData: Omit<UserNote, 'createdAt'>) => {
-    if (noteData.id.startsWith('new-')) {
-      // Add new note
-      const newNote: UserNote = {
-        ...noteData,
-        createdAt: Date.now(),
-        id: String(Date.now()), // ให้ ID เป็น timestamp จริง
-      };
-      setUserNotes([newNote, ...userNotes]); // เพิ่มโน้ตใหม่ไว้ด้านบน
-    } else {
-      // Edit existing note
-      setUserNotes(userNotes.map(note =>
-        note.id === noteData.id ? { ...note, ...noteData } : note
-      ));
-    }
-    setIsNoteModalOpen(false);
-    setEditingNote(null);
-  };
 
-  const handleDeleteNote = (id: string) => {
-    if (window.confirm('คุณต้องการลบโน้ตนี้หรือไม่?')) {
-      setUserNotes(userNotes.filter(n => n.id !== id));
-    }
-  };
-
-  // กรองโน้ตตาม Tag
-
-  // --- Calendar Logic ---
 
   const getDaysInMonth = (month: number, year: number) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (month: number, year: number) => new Date(year, month, 1).getDay();
@@ -229,8 +183,6 @@ const Calender = () => {
       }
     };
 
-
-
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg">
@@ -288,154 +240,18 @@ const Calender = () => {
   const EditNoteModal = () => {
     if (!isNoteModalOpen || !editingNote) return null;
 
-    const isNew = editingNote.id.startsWith('new-');
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [formData, setFormData] = useState<Omit<UserNote, 'createdAt'>>({
+    const [formData] = useState<Omit<UserNote, 'createdAt'>>({
       id: editingNote.id,
       content: editingNote.content,
       tags: editingNote.tags,
       files: editingNote.files, // ดึงข้อมูลไฟล์เริ่มต้น
     });
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [tagInput, setTagInput] = useState(formData.tags.join(', '));
+    const [] = useState(formData.tags.join(', '));
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [newFileUrl, setNewFileUrl] = useState('');
+    const [] = useState('');
 
-    const handleSave = () => {
-      const finalFormData = {
-        ...formData,
-        tags: tagInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
-      };
-      handleSaveNote(finalFormData);
-    };
-
-    const handleAddFile = () => {
-      if (newFileUrl.trim()) {
-        setFormData(prev => ({
-          ...prev,
-          files: [...prev.files, newFileUrl.trim()]
-        }));
-        setNewFileUrl('');
-      }
-    };
-
-    const handleRemoveFile = (index: number) => {
-      setFormData(prev => ({
-        ...prev,
-        files: prev.files.filter((_, i) => i !== index)
-      }));
-    };
-
-
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl">
-          {/* Modal Header */}
-          <div className="p-5 border-b flex justify-between items-center">
-            <h3 className="text-xl font-bold text-gray-800">
-              {isNew ? 'เพิ่มบันทึกสรุปใหม่' : 'แก้ไขบันทึกสรุป'}
-            </h3>
-            <button onClick={() => setIsNoteModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* Modal Body */}
-          <div className="p-6 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">เนื้อหาบันทึก</label>
-              <textarea
-                name="content"
-                value={formData.content}
-                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 resize-none text-gray-700"
-                rows={4}
-                placeholder="บันทึกข้อความสรุปการเตรียมตัว..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Tags </label>
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                placeholder="เช่น เคมี, สำคัญ, กลางภาค"
-              />
-            </div>
-
-            {/* File Attachment Section */}
-            <div className="border p-4 rounded-lg bg-gray-50">
-              <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-1">
-                <FileText className="w-4 h-4" /> ไฟล์ที่แนบมา
-              </label>
-
-              <div className="space-y-2 mb-3">
-                {formData.files.map((file, index) => (
-                  <div key={index} className="flex items-center justify-between p-2 bg-white border rounded-lg">
-                    <span className="text-sm text-gray-700 truncate flex items-center gap-2">
-                      <LinkIcon className="w-4 h-4 text-indigo-500" /> {file}
-                    </span>
-                    <button
-                      onClick={() => handleRemoveFile(index)}
-                      className="text-red-500 hover:text-red-700 ml-2"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-                {formData.files.length === 0 && (
-                  <p className="text-sm text-gray-500 italic">ยังไม่มีไฟล์แนบ</p>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newFileUrl}
-                  onChange={(e) => setNewFileUrl(e.target.value)}
-                  className="flex-grow p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                  placeholder="เพิ่มชื่อ/URL ไฟล์ เช่น Summary.pdf"
-                />
-                <button
-                  onClick={handleAddFile}
-                  type="button"
-                  className="px-3 py-1 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition flex items-center gap-1"
-                >
-                  <Upload className="w-4 h-4" /> เพิ่ม
-                </button>
-              </div>
-
-            </div>
-          </div>
-
-          {/* Modal Footer */}
-          <div className="p-5 border-t flex justify-end gap-3">
-            {!isNew && (
-              <button
-                onClick={() => { handleDeleteNote(editingNote.id); setIsNoteModalOpen(false); }}
-                className="px-4 py-2 text-red-600 border border-red-600 rounded-lg hover:bg-red-50 flex items-center gap-1 transition"
-              >
-                <Trash2 className="w-4 h-4" /> ลบ
-              </button>
-            )}
-            <button
-              onClick={() => setIsNoteModalOpen(false)}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
-            >
-              ยกเลิก
-            </button>
-            <button
-              onClick={handleSave}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 flex items-center gap-1 transition"
-            >
-              <Save className="w-4 h-4" /> บันทึก
-            </button>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -464,10 +280,7 @@ const Calender = () => {
             </button>
           </div>
 
-          {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            {/* 1. Calendar */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-xl shadow-xl p-6">
 

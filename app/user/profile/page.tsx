@@ -50,10 +50,18 @@ const Profile = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
+                const token = localStorage.getItem("token");
                 const res = await fetch("http://localhost:5000/auth/me", {
                     method: "GET",
-                    credentials: "include",  
+                    credentials: "include",
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
                 });
+
+                if (res.status === 401) {
+                    setError("กรุณา login ก่อน");
+                    setUser(null);
+                    return;
+                }
 
                 if (res.ok) {
                     const data = await res.json();

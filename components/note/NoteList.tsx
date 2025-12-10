@@ -1,9 +1,10 @@
 "use client";
 import { useState, useMemo } from "react";
-import { Plus, Search, X, Bookmark } from "lucide-react";
+import { Search, X, Bookmark } from "lucide-react";
 import NoteItem from "./NoteItem";
 import NoteModal from "./NoteModal";
 import AddNoteButton from "./AddNoteButton";
+
 
 export interface UserNote {
   id: string;
