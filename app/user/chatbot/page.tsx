@@ -500,7 +500,15 @@ export default function ChatbotPage() {
           };
 
           // Insert the new bot message right after the edited message
-          updated.splice(editedIndex + 1, 0, newBotMessage);
+          // Check if there's ALREADY a bot message there (e.g. if optimistic remove failed, or we are replacing)
+          const nextMsgIndex = editedIndex + 1;
+          const isNextBot = nextMsgIndex < updated.length && updated[nextMsgIndex].sender === "bot";
+
+          if (isNextBot) {
+            updated[nextMsgIndex] = newBotMessage;
+          } else {
+            updated.splice(nextMsgIndex, 0, newBotMessage);
+          }
         }
 
         return updated;
