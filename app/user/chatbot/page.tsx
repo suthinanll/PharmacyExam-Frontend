@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
-import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, User, Bot, AlertCircle, Trash2, Pencil } from "lucide-react";
 import Navbar from "@/components/Navbar_user";
-import Image from 'next/image';
-import Link from "next/link";
+import Swal from "sweetalert2";
 
+// Utility for typing effect
 const useTypewriter = (text: string, speed: number = 20) => {
   const [displayText, setDisplayText] = useState("");
 
   useEffect(() => {
+    setDisplayText("");
     let i = 0;
     const typingInterval = setInterval(() => {
-      if (i < text.length) {
-        setDisplayText(text.substring(0, i + 1));
-        i++;
+      i++;
+      if (i <= text.length) {
+        setDisplayText(text.substring(0, i));
       } else {
         clearInterval(typingInterval);
       }
@@ -29,9 +29,14 @@ const useTypewriter = (text: string, speed: number = 20) => {
   return displayText;
 };
 
-const BotMessage = ({ content }: { content: string }) => {
+// Bot Message Component
+// BotMessage Component
+const BotMessage = ({ content, animate = false }: { content: string, animate?: boolean }) => {
   const [isCopied, setIsCopied] = useState(false);
-  const typedContent = useTypewriter(content);
+  const typedContent = useTypewriter(content, 10); // Speed 10ms
+
+  // Use typed content if animate is true, otherwise full content
+  const displayContent = animate ? typedContent : content;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
@@ -40,58 +45,100 @@ const BotMessage = ({ content }: { content: string }) => {
   };
 
   return (
-    <div className="flex items-start gap-4">
-      <div className="flex-shrink-0 w-10 h-10 rounded-full border border-neutral-200 bg-white flex items-center justify-center shadow-sm">
-        <Sparkles className="text-blue-500" size={20} />
+    <div className="flex items-start gap-3 max-w-3xl group">
+      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 mt-1">
+        <Sparkles className="w-4 h-4 text-white" />
       </div>
-      <div className="relative group max-w-2xl px-5 py-4 rounded-2xl bg-white border border-neutral-200 text-neutral-700 shadow-sm">
-        <article
-          className="prose prose-sm max-w-none prose-neutral"
-          dangerouslySetInnerHTML={{ __html: typedContent.replace(/\n/g, '<br />').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') }}
-        />
+      <div className="relative">
+        <div className="bg-white p-4 rounded-2xl shadow-sm border border-neutral-200">
+          <div
+            className="prose prose-sm max-w-none text-gray-700"
+            dangerouslySetInnerHTML={{
+              __html: displayContent
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            }}
+          />
+        </div>
         <button
           onClick={handleCopy}
-          className="absolute -top-3 -right-3 p-1.5 bg-white border rounded-full text-neutral-500 opacity-0 group-hover:opacity-100 transition-opacity"
-          aria-label="Copy message"
+          className="absolute -top-6 right-0 p-1 text-neutral-400 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-white/80 backdrop-blur rounded px-2 shadow-sm border border-neutral-100"
         >
-          {isCopied ? <Check size={16} className="text-green-500" /> : <Clipboard size={16} />}
+          {isCopied ? <Check className="w-3 h-3" /> : <Clipboard className="w-3 h-3" />}
+          <span className="text-[10px]">คัดลอก</span>
         </button>
       </div>
     </div>
   );
 };
 
-const ChatbotPage = () => {
-  type Message = { id: string; sender: "user" | "bot"; text: string };
-  type ChatSession = { id: string; title: string; messages: Message[]; timestamp: number };
+export default function ChatbotPage() {
+  type Message = {
+    id: string;
+    sender: "user" | "bot";
+    text: string;
+    created_at?: string;
+    animate?: boolean; // Added for typing effect control
+  };
 
-  const [sessions, setSessions] = useState<ChatSession[]>([
-    {
-      id: "1",
-      title: "วันสอบใบประกอบเภสัช",
-      messages: [],
-      timestamp: Date.now() - 86400000
-    },
-    {
-      id: "2",
-      title: "เกี่ยวกับคณะเภสัชศาสตร์",
-      messages: [],
-      timestamp: Date.now() - 172800000
-    }
-  ]);
+  type ChatSession = {
+    session_id: string;
+    title: string;
+    created_at: string;
+  };
+
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const [userId, setUserId] = useState<any>(null);
 
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isMessageLoading, setIsMessageLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState("");
+  const [isEditLoading, setIsEditLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+
+  // 1. Get User ID from /auth/me
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/auth/me', {
+          credentials: 'include',
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.user_id) {
+            setUserId(data.user_id);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching /auth/me:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  // 2. Fetch sessions when userId is available
+  useEffect(() => {
+    if (userId) {
+      fetchSessions();
+    }
+  }, [userId]);
+
+  // Scroll to bottom when messages change
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isMessageLoading, isLoading]);
 
-  // Close sidebar when clicking outside on mobile
+  // Close sidebar on click outside (mobile)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (sidebarOpen && window.innerWidth < 1024) {
@@ -107,84 +154,381 @@ const ChatbotPage = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [sidebarOpen]);
 
-  const handleNewChat = () => {
-    setCurrentSessionId(null);
-    setMessages([]);
+  const fetchSessions = async () => {
+    if (!userId) return;
+    try {
+      const response = await fetch(`http://localhost:5000/chat/session/${userId}`, {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch sessions: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // API returns [sessionsArray, totalCount] or just array
+      if (Array.isArray(data)) {
+        if (data.length >= 2 && Array.isArray(data[0])) {
+          setSessions(data[0]);
+          setTotalCount(Number(data[1]) || 0);
+        } else {
+          setSessions(data);
+          setTotalCount(data.length);
+        }
+      }
+    } catch (error) {
+      console.error("Fetch sessions error:", error);
+    }
+  };
+
+  const fetchMessages = async (sessionId: string) => {
+    try {
+      setIsMessageLoading(true);
+      setFetchError(null);
+      setMessages([]);
+
+      // GET /chat/message/:session_id (Singular based on user hint)
+      const response = await fetch(`http://localhost:5000/chat/message/${sessionId}`, {
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          // 404 means no messages found or endpoint missing.
+          // Treat as empty conversation for now to avoid locking the UI.
+          console.warn(`Messages for session ${sessionId} not found (404).`);
+          setMessages([]);
+          return;
+        }
+        throw new Error(`Failed to fetch messages: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const msgs = Array.isArray(data) ? data : (data.messages || []);
+
+      const mappedMessages: Message[] = msgs.map((m: any) => ({
+        id: m.message_id ? m.message_id.toString() : `msg-${Math.random()}`,
+        sender: (m.sender_type === "USER" ? "user" : "bot"),
+        text: m.message_text || "",
+        created_at: m.sent_at
+      }));
+
+      // Sort messages by date (Oldest first)
+      mappedMessages.sort((a, b) => {
+        const dateA = new Date(a.created_at || 0).getTime();
+        const dateB = new Date(b.created_at || 0).getTime();
+        return dateA - dateB;
+      });
+
+      setMessages(mappedMessages);
+
+    } catch (error: any) {
+      console.error("Error fetching messages:", error);
+      setFetchError(error.message);
+      // Removed `if (!isBackground)` as `isBackground` is not defined in the original code.
+      // Assuming the intent was to always set loading to false on error.
+      setIsMessageLoading(false);
+    } finally {
+      setIsMessageLoading(false);
+    }
+  };
+
+  // Restore session from localStorage on mount
+  useEffect(() => {
+    const savedSessionId = localStorage.getItem("last_active_session_id");
+    if (savedSessionId) {
+      setCurrentSessionId(savedSessionId);
+      fetchMessages(savedSessionId);
+    }
+  }, []);
+
+  // Save session to localStorage
+  useEffect(() => {
+    if (currentSessionId) {
+      localStorage.setItem("last_active_session_id", currentSessionId);
+    } else {
+      localStorage.removeItem("last_active_session_id");
+    }
+  }, [currentSessionId]);
+
+  const handleSelectSession = async (sessionId: string) => {
+    if (currentSessionId === sessionId) return;
+    setCurrentSessionId(sessionId);
+    await fetchMessages(sessionId);
+
     if (window.innerWidth < 1024) {
       setSidebarOpen(false);
     }
   };
 
-  const handleSelectSession = (sessionId: string) => {
-    const session = sessions.find(s => s.id === sessionId);
-    if (session) {
-      setCurrentSessionId(sessionId);
-      setMessages(session.messages);
-      if (window.innerWidth < 1024) {
-        setSidebarOpen(false);
-      }
+  const handleNewChat = () => {
+    setCurrentSessionId(null);
+    setMessages([]);
+    setFetchError(null);
+    if (window.innerWidth < 1024) {
+      setSidebarOpen(false);
     }
   };
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
-    const userMessage: Message = { id: `user-${Date.now()}`, text: input, sender: "user" };
+    const userMessage: Message = {
+      id: `user-${Date.now()}`,
+      text: input,
+      sender: "user",
+      created_at: new Date().toISOString()
+    };
+
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
     setInput("");
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      // If we have a session ID, use it. If not (new chat), use 'new' or handle differently.
+      // Assuming backend accepts '/chat/send/new' or similar for creating a session.
+      // If 'currentSessionId' is null, interpolating it directly results in ".../null" which likely causes 500.
+      const endpointSessionId = currentSessionId || 'new';
+      const response = await fetch(`http://localhost:5000/chat/send/${endpointSessionId}`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          session_id: currentSessionId,
+          message: input
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to send message");
+
+      const data = await response.json();
+      console.log("SendMessage Response:", data);
+
+      const botData = data.bot || {};
       const botResponse: Message = {
-        id: `bot-${Date.now()}`,
+        id: botData.message_id ? botData.message_id.toString() : `bot-${Date.now()}`,
         sender: "bot",
-        text: `นี่คือคำตอบสำหรับคำถามของคุณเกี่ยวกับ "${userMessage.text}" ครับ\n\n- **ข้อที่ 1:** นี่คือรายละเอียดข้อที่หนึ่ง\n- **ข้อที่ 2:** นี่คือรายละเอียดข้อที่สอง`,
+        text: botData.message_text || data.message || data.response || "No response text",
+        created_at: botData.sent_at || new Date().toISOString(),
+        animate: true // Enable animation for new messages
       };
-      const updatedMessages = [...newMessages, botResponse];
+
+      // Update the user message with the real ID from the backend
+      const updatedUserMessages = newMessages.map(msg => {
+        if (msg.id === userMessage.id && data.user?.message_id) {
+          return { ...msg, id: data.user.message_id.toString() };
+        }
+        return msg;
+      });
+
+      const updatedMessages = [...updatedUserMessages, botResponse];
       setMessages(updatedMessages);
 
-      if (currentSessionId) {
-        setSessions(prev => prev.map(s =>
-          s.id === currentSessionId ? { ...s, messages: updatedMessages } : s
-        ));
-      } else {
-        const newSession: ChatSession = {
-          id: `session-${Date.now()}`,
-          title: userMessage.text.substring(0, 30) + (userMessage.text.length > 30 ? "..." : ""),
-          messages: updatedMessages,
-          timestamp: Date.now()
-        };
-        setSessions(prev => [newSession, ...prev]);
-        setCurrentSessionId(newSession.id);
+      if (!currentSessionId && data.user?.chat_session_id) {
+        setCurrentSessionId(data.user.chat_session_id);
+        // Refresh list to see the new title/session
+        await fetchSessions();
       }
 
+    } catch (error) {
+      console.error("Error sending message:", error);
+      const errorMessage: Message = {
+        id: `bot-error-${Date.now()}`,
+        sender: "bot",
+        text: "ขออภัยครับ เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่อีกครั้ง",
+      };
+      setMessages([...newMessages, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
-  const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleDeleteSession = async (e: React.MouseEvent, sessionId: string) => {
+    e.stopPropagation();
+
+    const result = await Swal.fire({
+      title: 'คุณแน่ใจหรือไม่?',
+      text: "คุณต้องการลบประวัติการสนทนานี้ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'ใช่, ลบเลย!',
+      cancelButtonText: 'ยกเลิก',
+      reverseButtons: true
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/chat/session/${sessionId}`, {
+        method: "DELETE",
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        setSessions((prev) => prev.filter((s) => s.session_id !== sessionId));
+        setTotalCount((prev) => prev - 1);
+        if (currentSessionId === sessionId) {
+          handleNewChat();
+        }
+        Swal.fire(
+          'ลบสำเร็จ!',
+          'ประวัติการสนทนาถูกลบเรียบร้อยแล้ว',
+          'success'
+        );
+      } else {
+        Swal.fire(
+          'เกิดข้อผิดพลาด!',
+          'ไม่สามารถลบรายการนี้ได้',
+          'error'
+        );
+      }
+    } catch (error) {
+      console.error("Delete session error:", error);
+      Swal.fire(
+        'เกิดข้อผิดพลาด!',
+        'เกิดข้อผิดพลาดในการลบ กรุณาลองใหม่อีกครั้ง',
+        'error'
+      );
+    }
+  };
+
+  const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
     }
   };
 
-  const questionSuggestions = [
-    "วันสอบใบประกอบเภสัชคือวันไหน",
-    "เกี่ยวกับคณะเภสัชศาสตร์",
-    "ช่วยแนะนำวิธีการอ่านหนังสือสอบหน่อยครับ",
-  ];
+  const startEditing = (msg: Message) => {
+    setEditingMessageId(msg.id);
+    setEditContent(msg.text);
+  };
+
+  const cancelEditing = () => {
+    setEditingMessageId(null);
+    setEditContent("");
+  };
+
+  const saveEdit = async (messageId: string) => {
+    console.log("Saving edit for ID:", messageId, "Content:", editContent);
+    if (!editContent.trim()) {
+      console.warn("Edit content is empty");
+      return;
+    }
+
+    // 1. Optimistic UI Update
+    // Close edit mode immediately
+    setEditingMessageId(null);
+    setEditContent("");
+
+    // Store original messages in case of error (optional rollback could be added)
+    const previousMessages = [...messages];
+
+    // Update the message list immediately
+    setMessages((prev) => {
+      const editedIndex = prev.findIndex(m => m.id === messageId);
+      if (editedIndex === -1) return prev;
+
+      const updated = [...prev];
+      // Update User Text
+      updated[editedIndex] = { ...updated[editedIndex], text: editContent };
+
+      // Check for next bot message to "Reset" it
+      const nextMsgIndex = editedIndex + 1;
+      const hasNextBotMsg = nextMsgIndex < updated.length && updated[nextMsgIndex].sender === "bot";
+
+      if (hasNextBotMsg) {
+        // Remove the old bot message temporarily to show "Loading" state
+        // If it's the last message, this interacts perfectly with global isLoading
+        updated.splice(nextMsgIndex, 1);
+      }
+      return updated;
+    });
+
+    // Show persistent loading (like sending a normal message)
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`http://localhost:5000/chat/message/${messageId}`, {
+        method: 'PUT',
+        credentials: 'include',
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: editContent,
+        }),
+      });
+
+      console.log("Save response status:", response.status);
+
+      if (!response.ok) {
+        throw new Error("Failed to edit message");
+      }
+
+      const data = await response.json();
+      console.log("Save success data:", data);
+
+      setMessages((prev) => {
+        // We need to find the index again because state might have changed (though unlikely during 'await')
+        // Note: We are finding based on the *User Message ID* which is stable.
+        const editedIndex = prev.findIndex(m => m.id === messageId);
+        if (editedIndex === -1) return prev;
+
+        const updated = [...prev];
+
+        // Ensure User content is synced (already done optimistically, but good to ensure)
+        updated[editedIndex] = { ...updated[editedIndex], text: editContent };
+
+        const botData = data.bot || data.bot_response;
+
+        if (botData) {
+          const newBotMessage: Message = {
+            id: botData.message_id ? botData.message_id.toString() : `bot-${Date.now()}`,
+            sender: "bot",
+            text: botData.message_text || botData.message || "...",
+            created_at: botData.sent_at || new Date().toISOString(),
+            animate: true
+          };
+
+          // Insert the new bot message right after the edited message
+          updated.splice(editedIndex + 1, 0, newBotMessage);
+        }
+
+        return updated;
+      });
+
+    } catch (error) {
+      console.error("Edit message error:", error);
+      // Rollback or show error
+      setMessages(previousMessages); // Revert on failure
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: 'ไม่สามารถแก้ไขข้อความได้'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-blue-50/30 font-sans">
       <Navbar />
 
-      <div className="flex flex-1 overflow-hidden relative">
-
+      <div className="max-w-screen-2xl mx-auto flex h-[calc(100vh-64px)] overflow-hidden">
+        {/* Mobile Sidebar Overlay */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/20 z-40 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -192,190 +536,207 @@ const ChatbotPage = () => {
         {/* Sidebar */}
         <aside
           id="chat-sidebar"
-          className={`
-            fixed lg:static inset-y-0 left-0 z-50
-            w-64 bg-white border-r border-neutral-200 
-            flex flex-col
-            transform transition-transform duration-300 ease-in-out
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          `}
+          className={`fixed lg:static inset-y-0 left-0 z-50 w-80 bg-white border-r border-neutral-200 flex flex-col transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+            }`}
         >
-          <div className="p-4 border-b border-neutral-200">
-            {/* Close button for mobile */}
-            <div className="flex items-center justify-between mb-3 lg:hidden">
-              <h2 className="text-lg font-semibold text-neutral-800">เมนู</h2>
-              <button
-                onClick={() => setSidebarOpen(false)}
-                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors"
-                aria-label="Close sidebar"
-              >
+          <div className="p-4 border-b border-neutral-100 flex flex-col gap-4">
+            <div className="flex items-center justify-between lg:hidden">
+              <h2 className="text-lg font-bold text-gray-800">เมนู</h2>
+              <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
                 <X size={20} />
               </button>
             </div>
 
             <button
               onClick={handleNewChat}
-              className="w-full flex items-center justify-center py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-sm font-medium"
             >
-              <Plus className="h-5" />
-              <span>แชทใหม่ </span>
-
+              <Plus size={20} />
+              แชทใหม่
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3">
-            <h3 className="text-xs font-semibold text-neutral-500 uppercase mb-2 px-2">ประวัติการแชท</h3>
-            <div className="space-y-1">
-              {sessions.map(session => (
-                <button
-                  key={session.id}
-                  onClick={() => handleSelectSession(session.id)}
-                  className={`w-full text-left px-3 py-2.5 rounded-lg transition-colors ${currentSessionId === session.id
-                    ? "bg-blue-50 text-blue-600 border border-blue-200"
-                    : "text-neutral-700 hover:bg-neutral-100"
-                    }`}
+          <div className="flex-1 overflow-y-auto p-3 space-y-1">
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-2">
+              ประวัติการสนทนา ({totalCount})
+            </h3>
+            {sessions.map((session) => (
+              <button
+                key={session.session_id}
+                onClick={() => handleSelectSession(session.session_id?.toString())}
+                className={`w-full text-left px-3 py-3 rounded-xl transition-all flex items-start gap-3 group relative pr-10 ${currentSessionId?.toString() === session.session_id?.toString()
+                  ? "bg-blue-50 text-blue-700 border border-blue-100 shadow-sm"
+                  : "text-gray-600 hover:bg-gray-50 border border-transparent"
+                  }`}
+              >
+                <MessageSquare size={18} className={`mt-0.5 flex-shrink-0 ${currentSessionId?.toString() === session.session_id?.toString() ? 'text-blue-500' : 'text-gray-400'}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {session.title || `Session #${session.session_id}`}
+                  </p>
+                  <p className="text-xs opacity-70 mt-0.5">
+                    {new Date(session.created_at).toLocaleDateString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+
+                <div
+                  onClick={(e) => handleDeleteSession(e, session.session_id?.toString())}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-red-500 hover:bg-red-100 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  title="ลบแชท"
                 >
-                  <div className="flex items-start gap-2">
-                    <MessageSquare size={16} className="mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm truncate">{session.title}</p>
-                      <p className="text-xs text-neutral-400 mt-0.5">
-                        {new Date(session.timestamp).toLocaleDateString('th-TH', {
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+                  <Trash2 size={16} />
+                </div>
+              </button>
+            ))}
           </div>
         </aside>
 
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header with Breadcrumb */}
-          <header className="bg-white border-b border-neutral-200 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <button
-                id="sidebar-toggle"
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 hover:bg-neutral-100 rounded-lg transition-colors lg:hidden"
-                aria-label="Toggle sidebar"
-              >
-                <Menu size={20} />
-              </button>
 
-              <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
-                <Link href="/user" className="hover:text-blue-600 cursor-pointer transition">
-                  หน้าหลัก
-                </Link>
-                <span className="mx-2">›</span>
-                <span className="text-gray-700 font-medium">แชตบอตผู้ช่วย</span>
+        <main className="flex-1 flex flex-col relative w-full bg-white/50 backdrop-blur-sm">
+
+          {/* Mobile Header for Sidebar Toggle */}
+          <div className="lg:hidden h-14 border-b border-gray-200 bg-white/80 backdrop-blur flex items-center px-4 justify-between sticky top-0 z-30">
+            <button
+              id="sidebar-toggle"
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 -ml-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
+            >
+              <Menu size={24} />
+            </button>
+            <span className="font-semibold text-gray-700">แชตบอตผู้ช่วย</span>
+            <div className="w-8"></div> {/* Spacer for centering */}
+          </div>
+
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth">
+            {!currentSessionId && messages.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
+                  <Bot size={40} className="text-blue-500" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">สวัสดีครับ!</h2>
+                <p className="text-gray-500 max-w-md">
+                  เลือกประวัติการแชทด้านซ้าย หรือกด "แชทใหม่" เพื่อปรึกษาเกี่ยวกับการสอบใบประกอบวิชาชีพเภสัชกรรม
+                </p>
               </div>
+            ) : (
+              <>
+                {fetchError && (
+                  <div className="mx-auto max-w-lg bg-red-50 text-red-600 p-4 rounded-xl flex items-center gap-3 mb-4">
+                    <AlertCircle size={20} />
+                    <p className="text-sm">ไม่สามารถโหลดข้อความได้: {fetchError}</p>
+                  </div>
+                )}
 
-            </div>
-          </header>
-
-          {/* Chat Area */}
-          <main className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto p-4 lg:p-6">
-              <div className="w-full max-w-4xl mx-auto space-y-8">
-                {messages.length === 0 ? (
-                  // Welcome Screen
-                  <div className="text-center pt-12 sm:pt-20">
-                    <div className="inline-block p-5 bg-white rounded-full shadow-lg">
-                      <Image src="/img/logoPhama.png" width={50} height={50} alt="รูปภาพโลโก้" />
-                    </div>
-                    <h1 className="text-3xl sm:text-4xl font-bold text-neutral-800 mt-6">สวัสดีครับ!</h1>
-                    <p className="text-neutral-500 mt-2 text-base sm:text-lg px-4">
-                      มีอะไรให้ผมช่วยเกี่ยวกับเรื่องการสอบใบประกอบวิชาชีพเภสัชกรรมบ้าง?
-                    </p>
+                {isMessageLoading ? (
+                  <div className="flex justify-center py-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                   </div>
                 ) : (
-                  // Chat Messages
-                  <AnimatePresence>
-                    {messages.map((msg) => (
-                      <motion.div
-                        key={msg.id}
-                        layout
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                        className={`flex items-start gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-                      >
+                  messages.length === 0 && !fetchError ? (
+                    <div className="text-center py-10 text-gray-400">
+                      ไม่พบข้อความในเซสชันนี้
+                    </div>
+                  ) : (
+                    messages.map((msg) => (
+                      <div key={msg.id} className={msg.sender === 'bot' ? '' : 'flex justify-end'}>
                         {msg.sender === 'bot' ? (
-                          <BotMessage content={msg.text} />
+                          <BotMessage content={msg.text} animate={msg.animate} />
                         ) : (
-                          <div className="max-w-xl px-5 py-4 rounded-2xl bg-blue-500 text-white shadow-md">
-                            <p>{msg.text}</p>
+                          <div className="flex flex-col items-end gap-1 max-w-[85%] sm:max-w-xl w-full">
+                            {editingMessageId === msg.id ? (
+                              <div className="bg-white border border-blue-200 p-4 rounded-2xl shadow-sm w-full md:min-w-[300px]">
+                                <textarea
+                                  value={editContent}
+                                  onChange={(e) => setEditContent(e.target.value)}
+                                  className="w-full text-gray-700 focus:outline-none resize-none bg-transparent disabled:opacity-50"
+                                  rows={2}
+                                  autoFocus
+                                  disabled={isEditLoading}
+                                />
+                                <div className="flex justify-end gap-2 mt-2">
+                                  <button
+                                    onClick={cancelEditing}
+                                    className="px-3 py-1 text-xs text-gray-500 hover:bg-gray-100 rounded-md transition-colors"
+                                    disabled={isEditLoading}
+                                  >
+                                    ยกเลิก
+                                  </button>
+                                  <button
+                                    onClick={() => saveEdit(msg.id)}
+                                    className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1 disabled:opacity-70"
+                                    disabled={isEditLoading}
+                                  >
+                                    {isEditLoading && <span className="animate-spin inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full"></span>}
+                                    บันทึก
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="bg-blue-600 text-white px-5 py-3 rounded-2xl rounded-tr-sm shadow-md relative group">
+                                <p className="whitespace-pre-wrap">{msg.text}</p>
+                                <button
+                                  onClick={() => startEditing(msg)}
+                                  className="absolute -top-3 -right-3 p-1.5 bg-white text-blue-600 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-50 border border-blue-100 scale-90 hover:scale-100 z-10"
+                                  title="แก้ไขข้อความ"
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                              </div>
+                            )}
+                            <span className="text-[10px] text-gray-500 mr-1">
+                              {msg.created_at ? new Date(msg.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
+                            </span>
                           </div>
                         )}
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
+                      </div>
+                    ))
+                  )
                 )}
 
                 {isLoading && (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-start gap-4">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full border border-neutral-200 bg-white flex items-center justify-center shadow-sm">
-                      <Sparkles className="text-blue-500" size={20} />
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 mt-1">
+                      <Sparkles className="w-4 h-4 text-white" />
                     </div>
-                    <div className="flex items-center space-x-1.5 px-5 py-4 bg-white border border-neutral-200 rounded-2xl shadow-sm">
-                      <span className="h-2 w-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-                      <span className="h-2 w-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-                      <span className="h-2 w-2 bg-neutral-400 rounded-full animate-bounce"></span>
+                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-neutral-200">
+                      <div className="flex gap-1">
+                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                      </div>
                     </div>
-                  </motion.div>
-                )}
-                <div ref={chatEndRef}></div>
-              </div>
-            </div>
-
-            {/* Input Area */}
-            <div className="px-4 lg:px-6 pb-4 sm:pb-6 pt-4 bg-neutral-50 border-t border-neutral-200">
-              <div className="max-w-4xl mx-auto">
-                {messages.length === 0 && (
-                  <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-                    {questionSuggestions.map(q => (
-                      <button
-                        key={q}
-                        onClick={() => setInput(q)}
-                        className="px-3 sm:px-4 py-2 text-xs sm:text-sm bg-white border border-neutral-200 text-neutral-600 rounded-full hover:bg-neutral-100/80 transition-all"
-                      >
-                        {q}
-                      </button>
-                    ))}
                   </div>
                 )}
+                <div ref={chatEndRef} />
+              </>
+            )}
+          </div>
 
-                <motion.div layout className="relative">
-                  <input
-                    type="text"
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    placeholder="พิมพ์คำถามของคุณที่นี่..."
-                    className="w-full text-sm sm:text-base py-3 sm:py-4 pl-4 sm:pl-6 pr-14 sm:pr-16 bg-white text-neutral-800 rounded-full border border-neutral-300 focus:outline-none focus:ring-2 focus:ring-blue-400 shadow-sm transition-all"
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={!input.trim() || isLoading}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 sm:p-2.5 rounded-full text-white bg-blue-500 hover:bg-blue-600 disabled:bg-neutral-300 disabled:cursor-not-allowed transition-all"
-                    aria-label="Send message"
-                  >
-                    <SendHorizonal size={18} className="sm:w-5 sm:h-5" />
-                  </button>
-                </motion.div>
-              </div>
+          {/* Input Area */}
+          <div className="p-4 bg-white border-t border-gray-100 px-4 sm:px-6">
+            <div className="max-w-4xl mx-auto relative">
+              <textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyPress}
+                placeholder="พิมพ์ข้อความ..."
+                className="w-full pl-5 pr-14 py-4 bg-gray-50 border-0 rounded-full focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm text-gray-800"
+                rows={1}
+                style={{ minHeight: '56px' }}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={!input.trim() || isLoading}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors shadow-sm"
+              >
+                <SendHorizonal size={20} />
+              </button>
             </div>
-          </main>
-        </div>
-      </div>
-    </div>
+          </div>
+        </main>
+      </div >
+    </div >
   );
-};
-
-export default ChatbotPage;
+}
