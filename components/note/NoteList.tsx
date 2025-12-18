@@ -9,6 +9,7 @@ import AddNoteButton from "./AddNoteButton";
 export interface UserNote {
   id: string;
   content: string;
+  title:string;
   tags: string[];
   files: string[];
   createdAt: number;

@@ -15,7 +15,11 @@ export default function NoteItem({
 }) {
   return (
     <div className="bg-white p-4 rounded-lg shadow border border-gray-100 hover:shadow-lg transition duration-150">
+      <h3 className="font-medium text-gray-900 text-base">
+        {note.title}
+      </h3>
       <div className="flex justify-between items-start mb-2">
+
         <p className="text-gray-800 whitespace-pre-line">{note.content}</p>
         <div className="flex gap-1 ml-4 flex-shrink-0">
           <button

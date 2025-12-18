@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Navbar from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import {
@@ -46,7 +46,6 @@ const initialSchedules: ExamSchedule[] = [
   }
 ];
 
-
 const categoryColors = {
   'ทฤษฎี': 'bg-blue-100 text-blue-800 border-blue-300',
   'ปฏิบัติ': 'bg-green-100 text-green-800 border-green-300',
@@ -91,7 +90,34 @@ const Calender = () => {
   };
 
   // --- Notes Logic ---
+  const fetchNotes = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/notes", {
+        credentials: "include",
+      });
 
+      if (!res.ok) throw new Error("โหลดโน้ตไม่สำเร็จ");
+
+      const data = await res.json();
+
+      const mappedNotes: UserNote[] = data.map((n: any) => ({
+        id: String(n.note_id),
+        title: n.title, // ✅ เพิ่ม
+        content: n.content,
+        tags: n.tags?.map((t: any) => t.name) ?? [],
+        files: n.files?.map((f: any) => f.filename) ?? [],
+        createdAt: new Date(n.created_at).getTime(),
+      }));
+
+      setUserNotes(mappedNotes);
+    } catch (err) {
+      console.error("Error fetching notes:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotes();
+  }, []);
 
 
 
@@ -182,6 +208,8 @@ const Calender = () => {
         onDelete(schedule.id);
       }
     };
+
+
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">

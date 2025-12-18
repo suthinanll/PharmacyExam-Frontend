@@ -67,6 +67,17 @@ export default function NoteModal({
         </div>
 
         <div className="p-6 space-y-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            หัวข้อการสรุป
+          </label>
+          <input
+            value={formData.title}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, title: e.target.value }))
+            }
+            className="w-full p-2 border rounded-lg"
+            placeholder="หัวข้อบันทึก"
+          />
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               เนื้อหาบันทึก
