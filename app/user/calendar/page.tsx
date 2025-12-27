@@ -20,9 +20,10 @@ interface ExamSchedule {
 
 interface UserNote {
   id: string;
+  title: string;        // ✅ เพิ่ม
   content: string;
-  tags: string[]; // เช่น ['เคมี', 'สำคัญ', 'กลางภาค']
-  files: string[]; // เพิ่ม array สำหรับเก็บชื่อ/URL ไฟล์ที่แนบ
+  tags: string[];
+  files: string[];
   createdAt: number;
 }
 
@@ -52,6 +53,8 @@ const categoryColors = {
   'ทบทวน': 'bg-yellow-100 text-yellow-800 border-yellow-300',
   'สอบจริง': 'bg-red-100 text-red-800 border-red-300'
 };
+
+const API_URL = "http://localhost:5000";
 
 const Calender = () => {
   const [schedules, setSchedules] = useState<ExamSchedule[]>(initialSchedules);
@@ -90,28 +93,33 @@ const Calender = () => {
   };
 
   // --- Notes Logic ---
+
+
+  /* =======================
+   FETCH NOTES
+======================= */
   const fetchNotes = async () => {
     try {
-      const res = await fetch("http://localhost:5000/notes", {
-        credentials: "include",
+      const res = await fetch(`${API_URL}/notes`, {
+        credentials: "include", // ✅ ส่ง cookie
       });
 
       if (!res.ok) throw new Error("โหลดโน้ตไม่สำเร็จ");
 
       const data = await res.json();
 
-      const mappedNotes: UserNote[] = data.map((n: any) => ({
+      const mapped: UserNote[] = data.map((n: any) => ({
         id: String(n.note_id),
-        title: n.title, // ✅ เพิ่ม
+        title: n.title,
         content: n.content,
         tags: n.tags?.map((t: any) => t.name) ?? [],
         files: n.files?.map((f: any) => f.filename) ?? [],
         createdAt: new Date(n.created_at).getTime(),
       }));
 
-      setUserNotes(mappedNotes);
+      setUserNotes(mapped);
     } catch (err) {
-      console.error("Error fetching notes:", err);
+      console.error("fetchNotes error:", err);
     }
   };
 
@@ -119,6 +127,60 @@ const Calender = () => {
     fetchNotes();
   }, []);
 
+
+  /* =======================
+    CREATE NOTE
+ ======================= */
+  const createNote = async (note: UserNote) => {
+    await fetch(`${API_URL}/notes`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include", // ✅ สำคัญที่สุด
+      body: JSON.stringify({
+        title: note.title,
+        content: note.content,
+        tags: note.tags,
+        files: note.files,
+      }),
+    });
+
+    fetchNotes(); // ✅ reload จาก DB
+  };
+
+  /* =======================
+     UPDATE NOTE
+  ======================= */
+  const updateNote = async (note: UserNote) => {
+    await fetch(`${API_URL}/notes/${note.id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        title: note.title,
+        content: note.content,
+        tags: note.tags,
+        files: note.files,
+      }),
+    });
+
+    fetchNotes();
+  };
+
+  /* =======================
+     DELETE NOTE
+  ======================= */
+  const deleteNote = async (id: string) => {
+    await fetch(`${API_URL}/notes/${id}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+
+    fetchNotes();
+  };
 
 
   const getDaysInMonth = (month: number, year: number) => new Date(year, month + 1, 0).getDate();
@@ -265,23 +327,6 @@ const Calender = () => {
   };
 
 
-  const EditNoteModal = () => {
-    if (!isNoteModalOpen || !editingNote) return null;
-
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [formData] = useState<Omit<UserNote, 'createdAt'>>({
-      id: editingNote.id,
-      content: editingNote.content,
-      tags: editingNote.tags,
-      files: editingNote.files, // ดึงข้อมูลไฟล์เริ่มต้น
-    });
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [] = useState(formData.tags.join(', '));
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const [] = useState('');
-
-  };
-
   return (
     <>
       <Navbar />
@@ -357,11 +402,9 @@ const Calender = () => {
 
             <NoteList
               notes={userNotes}
-              onSaveNote={(note) => setUserNotes([note, ...userNotes])}
-              onUpdateNote={(note) =>
-                setUserNotes(userNotes.map((n) => (n.id === note.id ? note : n)))
-              }
-              onDeleteNote={(id) => setUserNotes(userNotes.filter((n) => n.id !== id))}
+              onSaveNote={createNote}
+              onUpdateNote={updateNote}
+              onDeleteNote={deleteNote}
               tagFilter={tagFilter}
               setTagFilter={setTagFilter}
             />
@@ -371,7 +414,6 @@ const Calender = () => {
         </div>
       </div>
       <Footer />
-      {/* Schedule Modal Instance */}
       <ScheduleModal
         isOpen={isScheduleModalOpen}
         schedule={editingSchedule}
@@ -391,8 +433,6 @@ const Calender = () => {
         }}
         onClose={() => setIsScheduleModalOpen(false)}
       />
-      {/* Note Modal Instance */}
-      <EditNoteModal />
     </>
   );
 }
