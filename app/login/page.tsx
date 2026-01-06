@@ -21,7 +21,7 @@ export default function Page() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json(); // อ่านข้อมูลจาก backend
+      const data = await res.json();
 
       if (res.ok) {
         await Swal.fire({
@@ -31,9 +31,7 @@ export default function Page() {
           confirmButtonText: "ตกลง",
         });
 
-        // -------------------------------
-        // 🟢 เช็ค role_id แล้วส่งไปตามหน้า
-        // -------------------------------
+
         const roleId = data.user.role_id;
 
         if (roleId === 1) {
@@ -41,7 +39,6 @@ export default function Page() {
         } else if (roleId === 2) {
           router.push("/admin");
         } else {
-          // fallback ถ้า role ไม่รู้จัก
           router.push("/");
         }
       } else {
@@ -61,31 +58,27 @@ export default function Page() {
     }
   };
 
-  const handleSocialLogin = (provider: string) => {
-    Swal.fire({
-      title: `เข้าสู่ระบบด้วย ${provider}`,
-      text: "ฟีเจอร์นี้อยู่ระหว่างพัฒนา 😉",
-      icon: "info",
-    });
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:5000/auth/google";
   };
+
 
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-cover bg-center"
-      style={{ backgroundImage: "url('/bg-login.png')" }}
-    >
-      <div className="bg-white shadow-xl rounded-2xl p-8 w-[90%] max-w-md">
+      style={{ backgroundImage: "url('/bg-login.png')" }}>
+      <div className="bg-white shadow-2xs rounded-2xl p-8 w-[90%] max-w-md">
         <h1 className="text-3xl font-semibold text-center mb-6 text-green-600">
           เภสัชพร้อมสอบ
         </h1>
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-gray-700 mb-2">อีเมล</label>
+            <label className="block text-gray-700 mb-2">อีเมลผู้ใช้งาน</label>
             <input
               type="email"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-green-400 outline-none"
-              placeholder="yourname@example.com"
+              className="w-full border border-gray-200 rounded-xl pl-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all placeholder:text-gray-300 shadow-sm"
+              placeholder="example@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -104,12 +97,16 @@ export default function Page() {
             />
           </div>
 
-          <button
-            type="submit"
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-lg transition-all duration-200"
-          >
+          <button type="submit"
+            className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 rounded-lg transition-all duration-200  cursor-pointer">
             เข้าสู่ระบบ
+
           </button>
+
+          <div className="text-right text-sm text-gray-600">
+            <a href="/resetpassword" className="text-gray-400 hover:text-gray-600">ลืมรหัสผ่าน</a>
+          </div>
+
         </form>
 
         <div className="flex items-center my-6">
@@ -119,26 +116,26 @@ export default function Page() {
         </div>
 
         <div className="flex justify-center space-x-6 text-3xl">
-          <button
-            onClick={() => handleSocialLogin("Google")}
-            className="hover:scale-110 transition-transform"
-          >
+          <button className="text-blue-600 hover:scale-110 transition-transform cursor-pointer"
+            onClick={handleGoogleLogin}>
+
             <FcGoogle />
           </button>
-          <button
+          {/* <button
             onClick={() => handleSocialLogin("Facebook")}
-            className="text-blue-600 hover:scale-110 transition-transform"
+            className="text-blue-600 hover:scale-110 transition-transform cursor-pointer"
           >
             <FaFacebook />
-          </button>
+          </button> */}
         </div>
 
         <div className="text-center mt-6 text-sm text-gray-600">
-          ยังไม่มีบัญชี?{" "}
+          ยังไม่มีบัญชี ?{" "}
           <a href="/register" className="text-green-600 hover:underline">
             สมัครสมาชิก
           </a>
         </div>
+
       </div>
     </div>
   );

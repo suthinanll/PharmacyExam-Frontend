@@ -18,11 +18,15 @@ interface ExamSchedule {
   category: 'ทฤษฎี' | 'ปฏิบัติ' | 'ทบทวน' | 'สอบจริง';
 }
 
+interface Tag {
+  id: number;
+  name: string;
+}
 interface UserNote {
   id: string;
-  title: string;        // ✅ เพิ่ม
+  title: string;
   content: string;
-  tags: string[];
+  tags: Tag[];         
   files: string[];
   createdAt: number;
 }
@@ -65,10 +69,10 @@ const Calender = () => {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<ExamSchedule | null>(null);
 
-  const [isNoteModalOpen] = useState(false);
-  const [editingNote] = useState<UserNote | null>(null);
+  const [] = useState(false);
+  const [] = useState<UserNote | null>(null);
 
-  const [tagFilter, setTagFilter] = useState(''); // State สำหรับกรองโน้ตด้วย Tag
+  const [tagFilter, setTagFilter] = useState('');
 
   const monthsNames = useMemo(() => ([
     'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
@@ -93,15 +97,10 @@ const Calender = () => {
   };
 
   // --- Notes Logic ---
-
-
-  /* =======================
-   FETCH NOTES
-======================= */
   const fetchNotes = async () => {
     try {
       const res = await fetch(`${API_URL}/notes`, {
-        credentials: "include", // ✅ ส่ง cookie
+        credentials: "include",
       });
 
       if (!res.ok) throw new Error("โหลดโน้ตไม่สำเร็จ");
@@ -112,7 +111,12 @@ const Calender = () => {
         id: String(n.note_id),
         title: n.title,
         content: n.content,
-        tags: n.tags?.map((t: any) => t.name) ?? [],
+
+        tags: n.tags?.map((nt: any) => ({
+          id: nt.tag.tag_id,
+          name: nt.tag.tag_name,
+        })) ?? [],
+
         files: n.files?.map((f: any) => f.filename) ?? [],
         createdAt: new Date(n.created_at).getTime(),
       }));
@@ -122,7 +126,6 @@ const Calender = () => {
       console.error("fetchNotes error:", err);
     }
   };
-
   useEffect(() => {
     fetchNotes();
   }, []);
@@ -137,18 +140,19 @@ const Calender = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      credentials: "include", // ✅ สำคัญที่สุด
+      credentials: "include",
       body: JSON.stringify({
         title: note.title,
         content: note.content,
-        tags: note.tags,
+
+        tagIds: note.tags.map(t => t.id),
+
         files: note.files,
       }),
     });
 
-    fetchNotes(); // ✅ reload จาก DB
+    fetchNotes();
   };
-
   /* =======================
      UPDATE NOTE
   ======================= */
@@ -162,7 +166,10 @@ const Calender = () => {
       body: JSON.stringify({
         title: note.title,
         content: note.content,
-        tags: note.tags,
+
+        // 🔥 สำคัญ
+        tagIds: note.tags.map(t => t.id),
+
         files: note.files,
       }),
     });

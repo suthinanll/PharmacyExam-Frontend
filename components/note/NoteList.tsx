@@ -104,7 +104,6 @@ export default function NoteList({
         <NoteModal
           note={editingNote}
           onSave={(note: UserNote) => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
             editingNote ? onUpdateNote(note) : onSaveNote(note);
             setIsModalOpen(false);
           }}
