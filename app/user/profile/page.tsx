@@ -29,11 +29,6 @@ const Profile = () => {
         tel: '',
     });
 
-    const [passwordData, setPasswordData] = useState({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-    });
 
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -94,13 +89,6 @@ const Profile = () => {
         }));
     };
 
-    const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setPasswordData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
 
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -138,56 +126,6 @@ const Profile = () => {
         }
     };
 
-    const handleSavePassword = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError('');
-        setSuccessMessage('');
-
-        if (passwordData.newPassword !== passwordData.confirmPassword) {
-            setError('รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน');
-            setIsLoading(false);
-            return;
-        }
-
-        if (passwordData.newPassword.length < 6) {
-            setError('รหัสผ่านใหม่ต้องมีอย่างน้อย 6 ตัวอักษร');
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            const res = await fetch('http://localhost:5000/users/change-password', {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    currentPassword: passwordData.currentPassword,
-                    newPassword: passwordData.newPassword,
-                }),
-            });
-
-            if (res.ok) {
-                setSuccessMessage('เปลี่ยนรหัสผ่านสำเร็จ');
-                setPasswordData({
-                    currentPassword: '',
-                    newPassword: '',
-                    confirmPassword: '',
-                });
-                setTimeout(() => setSuccessMessage(''), 3000);
-            } else {
-                const errorData = await res.json();
-                setError(errorData.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้');
-            }
-        } catch (err) {
-            console.error(err);
-            setError('เกิดข้อผิดพลาดในการเปลี่ยนรหัสผ่าน');
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     const handleCancelEdit = () => {
         if (user) {
@@ -339,63 +277,7 @@ const Profile = () => {
 
                         <div className="py-8 border-t mt-8"></div>
 
-                        {/* Password Setting Section */}
-                        <form onSubmit={handleSavePassword} className="space-y-6">
-                            <h2 className="text-xl font-bold text-gray-800 mb-6">เปลี่ยนรหัสผ่าน</h2>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    รหัสผ่านเดิม
-                                </label>
-                                <input
-                                    type="password"
-                                    name="currentPassword"
-                                    value={passwordData.currentPassword}
-                                    onChange={handlePasswordChange}
-                                    placeholder="กรอกรหัสผ่านเดิม"
-                                    className={enabledInputClass}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    รหัสผ่านใหม่
-                                </label>
-                                <input
-                                    type="password"
-                                    name="newPassword"
-                                    value={passwordData.newPassword}
-                                    onChange={handlePasswordChange}
-                                    placeholder="กรอกรหัสผ่านใหม่ (อย่างน้อย 6 ตัวอักษร)"
-                                    className={enabledInputClass}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    ยืนยันรหัสผ่านใหม่
-                                </label>
-                                <input
-                                    type="password"
-                                    name="confirmPassword"
-                                    value={passwordData.confirmPassword}
-                                    onChange={handlePasswordChange}
-                                    placeholder="ยืนยันรหัสผ่านใหม่"
-                                    className={enabledInputClass}
-                                />
-                            </div>
-
-                            <div className="pt-4">
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="inline-flex items-center space-x-2 px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-red-500/50 transition duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <Save className="w-5 h-5" />
-                                    <span>{isLoading ? 'กำลังบันทึก...' : 'บันทึกรหัสผ่านใหม่'}</span>
-                                </button>
-                            </div>
-                        </form>
+                       
                     </div>
                 </div>
             </div>
