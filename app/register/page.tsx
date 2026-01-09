@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { Eye, EyeOff, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
@@ -15,6 +16,7 @@ export default function RegisterPage() {
   const [universityId, setUniversityId] = useState("");
   const [universities, setUniversities] = useState<any[]>([]);
   const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUniversities = async () => {
@@ -32,11 +34,60 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (password !== confirmPassword) {
-        Swal.fire({ icon: "warning", title: "รหัสผ่านไม่ตรงกัน", confirmButtonColor: "#f59e0b" });
-        return;
+      Swal.fire({
+        icon: "warning",
+        title: "รหัสผ่านไม่ตรงกัน",
+        text: "กรุณากรอกรหัสผ่านให้ตรงกันทั้งสองช่อง",
+      });
+      return;
     }
-    // ... logic การ fetch ...
+
+    const newUser = {
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      tel,
+      password,
+      confirm_password: confirmPassword,
+      bod,
+      university_id: Number(universityId),
+    };
+
+    try {
+      const res = await fetch("http://localhost:5000/users/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newUser),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        await Swal.fire({
+          icon: "success",
+          title: "สมัครสมาชิกสำเร็จ!",
+          text: "ระบบจะพาคุณไปยังหน้าเข้าสู่ระบบ",
+          showConfirmButton: false,
+          timer: 2000,
+        });
+        router.push("/login"); // ✅ ถูกต้อง
+      } else {
+        Swal.fire({
+          icon: "error",
+          title: "เกิดข้อผิดพลาด",
+          text: result.message || "สมัครสมาชิกไม่สำเร็จ",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
+        text: "กรุณาลองใหม่ภายหลัง",
+      });
+    }
   };
 
   return (
@@ -52,16 +103,16 @@ export default function RegisterPage() {
 
         <form onSubmit={handleRegister} className="relative space-y-8">
           <div className="flex flex-col md:flex-row gap-8 md:gap-0 relative">
-            
+
             <div className="flex-1 md:pr-10 space-y-5">
-              
+
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
                   ชื่อ-นามสกุล
                 </label>
                 <div className="flex gap-2">
-                    <input type="text" className="w-1/2 border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm" placeholder="ชื่อ" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
-                    <input type="text" className="w-1/2 border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm" placeholder="นามสกุล" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
+                  <input type="text" className="w-1/2 border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm" placeholder="ชื่อ" value={firstName} onChange={(e) => setFirstName(e.target.value)} required />
+                  <input type="text" className="w-1/2 border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm" placeholder="นามสกุล" value={lastName} onChange={(e) => setLastName(e.target.value)} required />
                 </div>
               </div>
 
@@ -74,7 +125,7 @@ export default function RegisterPage() {
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                   วันเดือนปีเกิด
+                  วันเดือนปีเกิด
                 </label>
                 <input type="date" className="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm text-gray-600" value={bod} onChange={(e) => setBod(e.target.value)} required />
               </div>
@@ -84,10 +135,10 @@ export default function RegisterPage() {
                   มหาวิทยาลัย
                 </label>
                 <div className="relative">
-                  <select 
-                    className="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm bg-white text-gray-600 appearance-none cursor-pointer" 
-                    value={universityId} 
-                    onChange={(e) => setUniversityId(e.target.value)} 
+                  <select
+                    className="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm bg-white text-gray-600 appearance-none cursor-pointer"
+                    value={universityId}
+                    onChange={(e) => setUniversityId(e.target.value)}
                     required
                   >
                     <option value="">-- เลือกมหาวิทยาลัย --</option>
@@ -103,10 +154,10 @@ export default function RegisterPage() {
             </div>
             <div className="flex-1 md:pl-10 space-y-5">
               {/* <h3 className="text-lg font-bold text-gray-800 mb-4 pb-2 border-b border-green-100">ข้อมูลความปลอดภัย</h3> */}
-              
+
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                อีเมลสำหรับเข้าใช้งาน
+                  อีเมลสำหรับเข้าใช้งาน
                 </label>
                 <input type="email" className="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm" placeholder="example@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
@@ -125,11 +176,11 @@ export default function RegisterPage() {
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                 ยืนยันรหัสผ่านอีกครั้ง
+                  ยืนยันรหัสผ่านอีกครั้ง
                 </label>
                 <input type={showPassword ? "text" : "password"} className="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
               </div>
-              
+
               <div className="bg-green-50 p-4 rounded-2xl border border-green-100 mt-4">
                 <p className="text-xs text-green-700 leading-relaxed">
                   * กรุณาใช้รหัสผ่านที่มีความยาวอย่างน้อย 8 ตัวอักษร และประกอบด้วยตัวอักษรและตัวเลขเพื่อความปลอดภัย

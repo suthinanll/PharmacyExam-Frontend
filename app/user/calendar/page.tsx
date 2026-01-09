@@ -26,7 +26,7 @@ interface UserNote {
   id: string;
   title: string;
   content: string;
-  tags: Tag[];         
+  tags: Tag[];
   files: string[];
   createdAt: number;
 }
@@ -72,7 +72,7 @@ const Calender = () => {
   const [] = useState(false);
   const [] = useState<UserNote | null>(null);
 
-  const [tagFilter, setTagFilter] = useState('');
+  const [tagFilter, setTagFilter] = useState("");
 
   const monthsNames = useMemo(() => ([
     'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
@@ -96,7 +96,6 @@ const Calender = () => {
     setIsScheduleModalOpen(true);
   };
 
-  // --- Notes Logic ---
   const fetchNotes = async () => {
     try {
       const res = await fetch(`${API_URL}/notes`, {
@@ -111,13 +110,8 @@ const Calender = () => {
         id: String(n.note_id),
         title: n.title,
         content: n.content,
-
-        tags: n.tags?.map((nt: any) => ({
-          id: nt.tag.tag_id,
-          name: nt.tag.tag_name,
-        })) ?? [],
-
-        files: n.files?.map((f: any) => f.filename) ?? [],
+        tags: n.tags || [], // Modal จะไปแกะ tag.tag_name เอง
+        files: n.files || [], // ✨ แก้ตรงนี้: ห้าม .map เอาแค่ storage_path ต้องเอามาทั้ง Object ให้มี file_id
         createdAt: new Date(n.created_at).getTime(),
       }));
 
@@ -130,53 +124,61 @@ const Calender = () => {
     fetchNotes();
   }, []);
 
+  const createNote = async (note: any, files?: File[]) => {
+    const formData = new FormData();
+    formData.append("title", note.title);
+    formData.append("content", note.content);
 
-  /* =======================
-    CREATE NOTE
- ======================= */
-  const createNote = async (note: UserNote) => {
+    // ส่งเป็น JSON string ของชื่อแท็ก
+    formData.append("tagIds", JSON.stringify(note.tags));
+
+    if (files && files.length > 0) {
+      files.forEach(file => {
+        formData.append("files", file);
+      });
+    }
+
     await fetch(`${API_URL}/notes`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       credentials: "include",
-      body: JSON.stringify({
-        title: note.title,
-        content: note.content,
-
-        tagIds: note.tags.map(t => t.id),
-
-        files: note.files,
-      }),
-    });
-
-    fetchNotes();
-  };
-  /* =======================
-     UPDATE NOTE
-  ======================= */
-  const updateNote = async (note: UserNote) => {
-    await fetch(`${API_URL}/notes/${note.id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        title: note.title,
-        content: note.content,
-
-        // 🔥 สำคัญ
-        tagIds: note.tags.map(t => t.id),
-
-        files: note.files,
-      }),
+      body: formData,
     });
 
     fetchNotes();
   };
 
+  const updateNote = async (note: UserNote, files?: File[], deletedFiles?: string[]) => {
+    try {
+      const formData = new FormData();
+      formData.append("title", note.title);
+      formData.append("content", note.content);
+
+      // ✨ จุดสำคัญ: note.tags ที่มาจาก Modal ตอนนี้จะเป็น Array ของ String (ชื่อแท็ก)
+      // เราส่งเป็น JSON string เพื่อให้ Controller.parseTags ทำงานง่ายขึ้น
+      formData.append("tagIds", JSON.stringify(note.tags));
+
+      if (deletedFiles && deletedFiles.length > 0) {
+        // ✨ ต้องส่งเป็น deletedFiles (ไม่มี []) หรือตามที่ Backend รอรับ
+        // ในที่นี้ service รอรับ deletedFiles
+        deletedFiles.forEach(id => formData.append("deletedFiles", id));
+      }
+
+      if (files && files.length > 0) {
+        files.forEach(file => formData.append("files", file));
+      }
+
+      const res = await fetch(`${API_URL}/notes/${note.id}`, {
+        method: "PATCH",
+        credentials: "include",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("แก้ไขโน้ตไม่สำเร็จ");
+      fetchNotes();
+    } catch (err) {
+      console.error("updateNote error:", err);
+    }
+  };
   /* =======================
      DELETE NOTE
   ======================= */

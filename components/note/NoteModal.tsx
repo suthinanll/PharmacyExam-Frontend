@@ -1,11 +1,11 @@
 "use client";
-import { useEffect, useState } from "react";
-import { X, Upload, Save, Trash2, FileText, Link as LinkIcon } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { X, Upload, Save, Trash2, FileText, Tag, AlignLeft, Type } from "lucide-react";
 import type { UserNote } from "./NoteList";
 
 type Props = {
   note: UserNote | null;
-  onSave: (note: UserNote) => void;
+  onSave: (note: UserNote, files?: File[], deletedFiles?: string[]) => void;
   onClose: () => void;
   onDelete: (id: string) => void;
 };
@@ -19,194 +19,217 @@ const emptyForm: UserNote = {
   createdAt: Date.now(),
 };
 
-export default function NoteModal({
-  note,
-  onSave,
-  onClose,
-  onDelete,
-}: Props) {
+export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
   const isNew = !note;
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<UserNote>(emptyForm);
   const [tagInput, setTagInput] = useState("");
-  const [newFile, setNewFile] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [deletedFiles, setDeletedFiles] = useState<string[]>([]); 
 
-  // 🔹 sync state เมื่อเปิด modal (create / edit)
   useEffect(() => {
     if (note) {
-      setFormData({
-        ...note,
-        title: note.title ?? "",
-        content: note.content ?? "",
-        tags: note.tags ?? [],
-        files: note.files ?? [],
-      });
-      setTagInput((note.tags ?? []).join(", "));
+      setFormData({ ...note });
+
+      // ดึงชื่อแท็กแบบละเอียด (ป้องกันโครงสร้าง Relations จาก Backend)
+      const tagNames = note.tags?.map((t: any) => {
+        if (!t) return null;
+        // เช็คทุกจุดที่ชื่อแท็กอาจจะซ่อนอยู่
+        return t.tag?.tag_name || t.tag_name || t.name || (typeof t === 'string' ? t : null);
+      })
+      .filter(n => n && String(n).trim() !== '' && String(n) !== 'undefined') || [];
+
+      setTagInput(tagNames.join(", "));
+      setDeletedFiles([]); 
     } else {
-      setFormData({
-        ...emptyForm,
-        id: `n-${Date.now()}`,
-        createdAt: Date.now(),
-      });
+      setFormData({ ...emptyForm });
       setTagInput("");
+      setSelectedFiles([]);
+      setPreviews([]);
+      setDeletedFiles([]);
     }
+
+    return () => {
+      previews.forEach(url => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+    };
   }, [note]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setSelectedFiles(prev => [...prev, ...filesArray]);
+
+      const newPreviews = filesArray.map(file =>
+        file.type.startsWith("image/") ? URL.createObjectURL(file) : ""
+      );
+      setPreviews(prev => [...prev, ...newPreviews]);
+    }
+  };
+
+  const removeNewFile = (index: number) => {
+    if (previews[index]) URL.revokeObjectURL(previews[index]);
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingFile = (fileId: any) => {
+    if (!fileId) return;
+
+    // เก็บ ID ลงในรายการที่จะส่งไปลบที่ Backend
+    setDeletedFiles(prev => [...prev, String(fileId)]);
+    
+    // อัปเดต UI ทันที
+    setFormData(prev => ({
+      ...prev,
+      files: prev.files?.filter((f: any) => (f.file_id || f.id) !== fileId)
+    }));
+  };
+
   const handleSave = () => {
+    // กรองชื่อแท็กให้สะอาดที่สุดก่อนส่งออก
+    const tagNames = Array.from(new Set(
+      tagInput
+        .split(",")
+        .map(t => t.trim())
+        .filter(t => t && t !== 'undefined' && t !== 'null')
+    ));
+
     onSave({
       ...formData,
-      tags: tagInput
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
-    });
-  };
-
-  const handleAddFile = () => {
-    if (!newFile.trim()) return;
-    setFormData((prev) => ({
-      ...prev,
-      files: [...prev.files, newFile.trim()],
-    }));
-    setNewFile("");
-  };
-
-  const handleRemoveFile = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      files: prev.files.filter((_, i) => i !== index),
-    }));
+      tags: tagNames as any, // ส่ง Array ของ String ชื่อแท็กไป
+    }, selectedFiles, deletedFiles);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-xl">
+    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200">
+
         {/* Header */}
-        <div className="p-5 border-b flex justify-between items-center">
-          <h3 className="text-xl font-bold text-gray-800">
-            {isNew ? "เพิ่มบันทึกสรุปใหม่" : "แก้ไขบันทึกสรุป"}
-          </h3>
-          <button onClick={onClose}>
-            <X className="w-6 h-6 text-gray-400 hover:text-gray-600" />
+        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div>
+            <h3 className="text-lg font-bold text-slate-800">{isNew ? "สร้างบันทึกใหม่" : "แก้ไขบันทึก"}</h3>
+            <p className="text-xs text-slate-500">รวบรวมเนื้อหาสำคัญสำหรับการสอบ</p>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+            <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              หัวข้อการสรุป
+        <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <Type className="w-4 h-4 text-indigo-500" /> หัวข้อบันทึก
             </label>
             <input
-              value={formData.title}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  title: e.target.value,
-                }))
-              }
-              className="w-full p-2 border rounded-lg"
-              placeholder="หัวข้อบันทึก"
+              value={formData.title || ""}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 transition-all"
+              placeholder="เช่น เภสัชวิทยา บทที่ 1"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              เนื้อหาบันทึก
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <AlignLeft className="w-4 h-4 text-indigo-500" /> เนื้อหาโดยสรุป
             </label>
             <textarea
-              value={formData.content}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  content: e.target.value,
-                }))
-              }
-              rows={4}
-              className="w-full p-3 border rounded-lg resize-none"
-              placeholder="สรุปเนื้อหาการอ่าน..."
+              value={formData.content || ""}
+              onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+              rows={5}
+              className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 transition-all resize-none"
+              placeholder="เขียนสรุปสั้นๆ..."
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Tags (คั่นด้วย ,)
+          <div className="space-y-1.5">
+            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <Tag className="w-4 h-4 text-indigo-500" /> ป้ายกำกับ
             </label>
             <input
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              className="w-full p-2 border rounded-lg text-sm"
-              placeholder="เช่น เคมี, กลางภาค, สำคัญ"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 transition-all text-sm"
+              placeholder="เคมี, สอบปลายภาค (คั่นด้วยเครื่องหมายจุลภาค)"
             />
           </div>
 
-          {/* Files */}
-          <div className="border p-4 rounded-lg bg-gray-50">
-            <label className="flex items-center gap-1 text-sm font-bold mb-2">
-              <FileText className="w-4 h-4" /> ไฟล์แนบ
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+              <FileText className="w-4 h-4 text-indigo-500" /> เอกสารแนบ
             </label>
 
-            {formData.files.length > 0 ? (
-              <div className="space-y-2 mb-3">
-                {formData.files.map((file, i) => (
-                  <div
-                    key={i}
-                    className="flex justify-between items-center bg-white p-2 border rounded-lg"
-                  >
-                    <span className="flex items-center gap-2 text-sm">
-                      <LinkIcon className="w-4 h-4 text-indigo-500" />
-                      {file}
-                    </span>
-                    <button onClick={() => handleRemoveFile(i)}>
-                      <X className="w-4 h-4 text-red-500" />
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              className="group cursor-pointer border-2 border-dashed border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/30 rounded-2xl p-6 transition-all text-center"
+            >
+              <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileChange} accept="image/*,.pdf,.doc,.docx" />
+              <div className="bg-indigo-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-2"><Upload className="w-6 h-6 text-indigo-600" /></div>
+              <p className="text-sm font-medium text-slate-700">คลิกเพื่อเพิ่มไฟล์</p>
+            </div>
+
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+              {/* รายการไฟล์ที่มีอยู่เดิม */}
+              {formData.files?.map((file: any, i) => {
+                const fileName = file.original_filename || file.storage_path || "Unnamed File";
+                const fileId = file.file_id || file.id;
+                return (
+                  <div key={fileId || `old-${i}`} className="relative aspect-square rounded-xl border border-slate-200 bg-slate-50 flex flex-col items-center justify-center overflow-hidden group shadow-sm">
+                    <FileText className="w-8 h-8 text-slate-300 group-hover:text-indigo-300 transition-colors" />
+                    <p className="text-[9px] text-slate-500 truncate w-full px-1 text-center mt-1">{fileName}</p>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeExistingFile(fileId);
+                      }}
+                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                    >
+                      <X className="w-3 h-3" />
                     </button>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm italic text-gray-500 mb-3">
-                ยังไม่มีไฟล์แนบ
-              </p>
-            )}
+                );
+              })}
 
-            <div className="flex gap-2">
-              <input
-                value={newFile}
-                onChange={(e) => setNewFile(e.target.value)}
-                className="flex-grow p-2 border rounded-lg text-sm"
-                placeholder="Lecture1.pdf"
-              />
-              <button
-                onClick={handleAddFile}
-                className="bg-indigo-500 text-white px-3 rounded-lg flex items-center gap-1"
-              >
-                <Upload className="w-4 h-4" /> เพิ่ม
-              </button>
+              {/* แสดงไฟล์ใหม่ที่กำลังเลือก */}
+              {selectedFiles.map((file, i) => (
+                <div key={`new-${i}`} className="relative aspect-square rounded-xl border-2 border-indigo-100 overflow-hidden group shadow-sm">
+                  {previews[i] ? (
+                    <img src={previews[i]} className="w-full h-full object-cover" alt="preview" />
+                  ) : (
+                    <div className="w-full h-full bg-indigo-50 flex items-center justify-center"><FileText className="w-8 h-8 text-indigo-300" /></div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeNewFile(i);
+                    }}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow-md"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="p-5 border-t flex justify-end gap-3">
+        <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-3">
           {!isNew && (
-            <button
-              onClick={() => onDelete(formData.id)}
-              className="border border-red-600 text-red-600 px-4 py-2 rounded-lg flex items-center gap-1"
-            >
-              <Trash2 className="w-4 h-4" /> ลบ
+            <button onClick={() => onDelete(formData.id)} className="flex items-center justify-center gap-2 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl font-semibold text-sm transition-colors">
+              <Trash2 className="w-4 h-4" /> ลบบันทึก
             </button>
           )}
-          <button
-            onClick={onClose}
-            className="bg-gray-200 px-4 py-2 rounded-lg"
-          >
-            ยกเลิก
-          </button>
-          <button
-            onClick={handleSave}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg flex items-center gap-1"
-          >
-            <Save className="w-4 h-4" /> บันทึก
+          <div className="flex-grow"></div>
+          <button onClick={onClose} className="px-6 py-2.5 text-slate-600 hover:bg-slate-200 rounded-xl font-semibold text-sm transition-colors">ยกเลิก</button>
+          <button onClick={handleSave} className="flex items-center justify-center gap-2 px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all">
+            <Save className="w-4 h-4" /> บันทึกข้อมูล
           </button>
         </div>
       </div>
