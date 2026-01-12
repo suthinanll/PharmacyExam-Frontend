@@ -87,13 +87,21 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
     if (isMobileMenuOpen) setIsMobileMenuOpen(false);
   };
 
-  const [user, setUser] = useState<{ first_name: string, email: string } | null>(null);
+  const [user, setUser] = useState<{ first_name: string, email: string, last_name: string } | null>(null);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('http://localhost:5000/auth/me', {
-          credentials: 'include',
+        const token = localStorage.getItem("access_token"); if (!token) {
+          setUser(null);
+          return;
+        }
+        const res = await fetch("http://localhost:5000/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
+
         if (res.ok) {
           const data = await res.json();
           setUser(data);
@@ -108,42 +116,32 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
 
     fetchUser();
   }, []);
+
   const handleConfirmLogout = async () => {
     setLoadingLogout(true);
     try {
-      const res = await fetch("http://localhost:5000/auth/logout", {
-        method: "POST",
-        credentials: "include",
+      sessionStorage.removeItem("token");
+
+      await Swal.fire({
+        icon: "success",
+        title: "ออกจากระบบเรียบร้อย",
+        showConfirmButton: false,
+        timer: 1500,
       });
 
-      if (res.ok) {
-        setIsLogoutModalOpen(false);
-        setLoadingLogout(false);
-        await Swal.fire({
-          icon: "success",
-          title: "ออกจากระบบเรียบร้อย",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        router.push("/login");
-      } else {
-        setLoadingLogout(false);
-        Swal.fire({
-          icon: "error",
-          title: "เกิดข้อผิดพลาด",
-          text: "ไม่สามารถออกจากระบบได้",
-        });
-      }
+      setIsLogoutModalOpen(false);
+      setLoadingLogout(false);
+      router.push("/login");
     } catch (err) {
       console.error(err);
       setLoadingLogout(false);
       Swal.fire({
         icon: "error",
         title: "เกิดข้อผิดพลาด",
-        text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
       });
     }
   };
+
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -203,14 +201,14 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
         <div className="p-3 sm:p-4 border-t border-gray-200">
           <Link
             href="/admin/settingp"
-            className={`flex items-center space-x-3 px-2 py-2 rounded-lg transition-all duration-200 ${isActive("/profile") ? "bg-green-50" : "hover:bg-gray-50"
+            className={`flex items-center space-x-3 px-2 py-2 rounded-lg transition-all duration-200 ${isActive("/admin/settingp") ? "bg-green-50" : "hover:bg-gray-50"
               }`}
           >
             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
               <User className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium text-green-700 truncate">{user?.first_name}</p>
+              <p className="text-xs sm:text-sm font-medium text-green-700 truncate">{user?.first_name} {user?.last_name}</p>
               <p className="text-[10px] sm:text-xs text-green-600 truncate">{user?.email}</p>
             </div>
           </Link>
@@ -278,6 +276,23 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
                     <LogOut className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span>ออกจากระบบ</span>
                   </a>
+
+                  {/* 📍 ส่วนที่เพิ่มเข้ามา: แสดงข้อมูลโปรไฟล์ในหน้า Mobile */}
+                  <div className="pt-3 sm:pt-4 border-t border-gray-200 mt-3 sm:mt-4">
+                    <Link
+                      href="/admin/settingp"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 ${isActive("/admin/settingp") ? "bg-green-50" : "bg-gray-50"}`}
+                    >
+                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-sm">
+                        <User className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-green-700 truncate">{user?.first_name} {user?.last_name}</p>
+                        <p className="text-xs text-green-600 truncate">{user?.email}</p>
+                      </div>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -287,7 +302,6 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-7 lg:p-8">{children}</main>
       </div>
 
-      {/* Logout Modal */}
       <LogoutConfirmationModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}

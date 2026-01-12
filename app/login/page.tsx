@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Swal from "sweetalert2";
 import { FcGoogle } from "react-icons/fc";
 import { useRouter } from "next/navigation";
-import { Mail, LockKeyhole, Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function Page() {
   const [email, setEmail] = useState("");
@@ -18,11 +18,11 @@ export default function Page() {
       const res = await fetch("http://localhost:5000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
+      localStorage.setItem("access_token", data.accessToken);
 
       if (res.ok) {
         await Swal.fire({
@@ -74,7 +74,6 @@ export default function Page() {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
-          {/* ส่วนของอีเมล */}
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-gray-700  ml-1 flex items-center gap-2">
               อีเมลผู้ใช้งาน
@@ -89,7 +88,6 @@ export default function Page() {
             />
           </div>
 
-          {/* ส่วนของรหัสผ่าน */}
           <div className="space-y-1.5">
             <div className="flex justify-between items-center ml-1">
               <label className="text-sm font-medium text-gray-800 flex items-center gap-2">
@@ -124,14 +122,12 @@ export default function Page() {
           </button>
         </form>
 
-        {/* เส้นแบ่ง "หรือ" */}
         <div className="flex items-center my-8">
           <div className="flex-grow border-t border-gray-300"></div>
           <span className="mx-4 text-gray-400 text-xs font-medium uppercase tracking-widest">หรือ</span>
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
-        {/* ปุ่ม Social Login */}
         <div className="flex justify-center">
           <button
             onClick={handleGoogleLogin}
@@ -144,7 +140,7 @@ export default function Page() {
 
         {/* สมัครสมาชิก */}
         <div className="text-center mt-10 text-sm font-medium text-gray-500">
-          ยังไม่มีบัญชีผู้ใช้งาน ?{" "}
+          ยังไม่มีบัญชีผู้ใช้งาน?{" "}
           <a href="/register" className="text-green-600 font-medium hover:underline underline-offset-4">
             สมัครสมาชิก
           </a>

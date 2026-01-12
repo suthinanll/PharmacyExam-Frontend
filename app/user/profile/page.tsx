@@ -2,9 +2,10 @@
 
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
-import { Edit, Save, X } from "lucide-react";
-import Link from "next/link";
+import { User, Mail, Phone, Loader2, Edit3, Save, X, School } from "lucide-react";
 import { useState, useEffect } from 'react';
+import Swal from "sweetalert2";
+import Link from "next/link";
 
 const Profile = () => {
     const [user, setUser] = useState<{
@@ -12,14 +13,8 @@ const Profile = () => {
         last_name: string,
         email: string,
         tel: string,
-        university: {
-            id: number,
-            name: string
-        },
-        role: {
-            id: number,
-            name: string
-        }
+        university?: { id: number, name: string },
+        role?: { id: number, name: string }
     } | null>(null);
 
     const [formData, setFormData] = useState({
@@ -29,261 +24,235 @@ const Profile = () => {
         tel: '',
     });
 
-
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string>('');
-    const [successMessage, setSuccessMessage] = useState<string>('');
-
-    const [token, setToken] = useState<string | null>(null);
-
-    useEffect(() => {
-        const t = localStorage.getItem("token");
-        setToken(t);
-    }, []);
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const token = localStorage.getItem("token");
+                const token = localStorage.getItem("access_token");
+                if (!token) return;
                 const res = await fetch("http://localhost:5000/auth/me", {
-                    method: "GET",
-                    credentials: "include",
-                    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+                    headers: { Authorization: `Bearer ${token}` },
                 });
-
-                if (res.status === 401) {
-                    setError("กรุณา login ก่อน");
-                    setUser(null);
-                    return;
-                }
-
                 if (res.ok) {
                     const data = await res.json();
                     setUser(data);
-                    setFormData({
-                        first_name: data.first_name || "",
-                        last_name: data.last_name || "",
-                        email: data.email || "",
-                        tel: data.tel || "",
-                    });
-                } else {
-                    const errorData = await res.json();
-                    setError(errorData.message || "ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
                 }
             } catch (err) {
-                console.error(err);
-                setError("เกิดข้อผิดพลาดในการเชื่อมต่อ");
+                console.error("Fetch Error:", err);
             }
         };
-
         fetchUser();
     }, []);
 
+    useEffect(() => {
+        if (user) {
+            setFormData({
+                first_name: user.first_name || "",
+                last_name: user.last_name || "",
+                email: user.email || "",
+                tel: user.tel || "",
+            });
+        }
+    }, [user]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
-
 
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
+        const confirm = await Swal.fire({
+            title: "บันทึกการเปลี่ยนแปลง?",
+            text: "ข้อมูลโปรไฟล์ของคุณจะถูกอัปเดต",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#111827",
+            cancelButtonColor: "#ef4444",
+            confirmButtonText: "ตกลง",
+            cancelButtonText: "ยกเลิก"
+        });
+
+        if (!confirm.isConfirmed) return;
+
         setIsLoading(true);
-        setError('');
-        setSuccessMessage('');
 
         try {
+            const token = localStorage.getItem("access_token");
             const res = await fetch('http://localhost:5000/users/profile', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
-
                 },
-                credentials: 'include',
                 body: JSON.stringify(formData),
             });
 
             if (res.ok) {
-                const updatedData = await res.json();
-                setUser(updatedData);
-                setSuccessMessage('บันทึกข้อมูลส่วนตัวสำเร็จ');
-                setIsEditing(false);
-                setTimeout(() => setSuccessMessage(''), 3000);
+                await Swal.fire({
+                    icon: "success",
+                    title: "สำเร็จ!",
+                    text: "อัปเดตข้อมูลส่วนตัวเรียบร้อยแล้ว",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+                window.location.reload();
             } else {
                 const errorData = await res.json();
-                setError(errorData.message || 'ไม่สามารถบันทึกข้อมูลได้');
+                throw new Error(errorData.message || "ล้มเหลว");
             }
         } catch (err) {
-            console.error(err);
-            setError('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            Swal.fire({
+                icon: "error",
+                title: "เกิดข้อผิดพลาด",
+                text: "ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง"
+            });
         } finally {
             setIsLoading(false);
         }
     };
 
-
-    const handleCancelEdit = () => {
-        if (user) {
-            setFormData({
-                first_name: user.first_name || '',
-                last_name: user.last_name || '',
-                email: user.email || '',
-                tel: user.tel || '',
-            });
-        }
-        setIsEditing(false);
-        setError('');
-    };
-
-    const disabledInputClass = "w-full border border-gray-200 rounded-lg p-3 bg-gray-50 text-gray-600 cursor-not-allowed text-base";
-    const enabledInputClass = "w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-base transition duration-150";
+    if (!user) return (
+        <div className="flex flex-col items-center justify-center min-h-screen space-y-4 bg-gray-50 px-4">
+            <Loader2 className="w-10 h-10 animate-spin text-gray-400" />
+            <p className="text-gray-400 font-medium tracking-wide text-center">กำลังดึงข้อมูลโปรไฟล์...</p>
+        </div>
+    );
 
     return (
-        <>
+        <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar_user />
 
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50 p-4 md:p-6 lg:p-8">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center text-sm text-gray-500 mb-3">
-                        <Link href="/user" className="hover:text-blue-600 cursor-pointer transition">
-                            หน้าหลัก
-                        </Link>
-                        <span className="mx-2">›</span>
+            <main className="flex-grow py-6 md:py-12 px-4">
+                <div className="max-w-3xl mx-auto">
+                    <div className="flex items-center text-sm text-gray-500 mb-4 ml-1 overflow-x-auto whitespace-nowrap pb-2 md:pb-0">
+                        <Link href="/user" className="hover:text-indigo-600 transition">หน้าหลัก</Link>
+                        <span className="mx-2 text-gray-400">›</span>
                         <span className="text-gray-700 font-medium">โปรไฟล์ของฉัน</span>
                     </div>
 
-                    {/* Alert Messages */}
-                    {error && (
-                        <div className="max-w-3xl mx-auto mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
-                            {error}
-                        </div>
-                    )}
-                    {successMessage && (
-                        <div className="max-w-3xl mx-auto mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 text-sm">
-                            {successMessage}
-                        </div>
-                    )}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                        
+                        <div className="px-5 py-6 md:px-8 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-white">
+                            <div className="flex items-center gap-4">
+                                <div className="hidden xs:flex w-12 h-12 bg-indigo-50 rounded-full items-center justify-center flex-shrink-0">
+                                    <User className="w-6 h-6 text-indigo-600" />
+                                </div>
+                                <div>
+                                    <h1 className="text-lg md:text-xl font-bold text-gray-900">โปรไฟล์ผู้ใช้งาน</h1>
+                                    <p className="text-xs md:text-sm text-gray-500">จัดการข้อมูลส่วนตัวของคุณ</p>
+                                </div>
+                            </div>
 
-                    {/* Main Content Card */}
-                    <div className="bg-white rounded-xl shadow-xl p-6 sm:p-8 md:p-10 max-w-3xl mx-auto">
-                        {/* Profile Header and Action Buttons */}
-                        <div className="flex justify-between items-start mb-8 border-b pb-6">
-
-                            <div className="flex space-x-3">
-                                {isEditing ? (
+                            <div className="w-full sm:w-auto flex flex-row gap-2">
+                                {!isEditing ? (
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition shadow-sm"
+                                    >
+                                        <Edit3 className="w-4 h-4" /> แก้ไข
+                                    </button>
+                                ) : (
                                     <>
                                         <button
-                                            onClick={handleCancelEdit}
-                                            className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-150 text-sm font-medium border border-gray-300"
+                                            onClick={() => setIsEditing(false)}
+                                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-50 transition"
                                         >
-                                            <X className="w-4 h-4" />
-                                            <span>ยกเลิก</span>
+                                            <X className="w-4 h-4" /> ยกเลิก
                                         </button>
                                         <button
                                             onClick={handleSaveProfile}
                                             disabled={isLoading}
-                                            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-150 text-sm font-medium shadow-md shadow-blue-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition shadow-sm disabled:opacity-50"
                                         >
-                                            <Save className="w-4 h-4" />
-                                            <span>{isLoading ? 'กำลังบันทึก...' : 'บันทึก'}</span>
+                                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                            บันทึก
                                         </button>
                                     </>
-                                ) : (
-                                    <button
-                                        onClick={() => setIsEditing(true)}
-                                        className="flex items-center space-x-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-150 text-sm font-medium border border-gray-300"
-                                    >
-                                        <Edit className="w-4 h-4" />
-                                        <span>แก้ไขโปรไฟล์</span>
-                                    </button>
                                 )}
                             </div>
                         </div>
-
-                        {/* Personal Information Section */}
-                        <form onSubmit={handleSaveProfile} className="space-y-6">
-                            <h2 className="text-xl font-bold text-gray-800 mb-6">ข้อมูลส่วนตัว</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        ชื่อจริง
-                                    </label>
+                        <div className="p-5 md:p-8">
+                            <form className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">ชื่อจริง</label>
                                     <input
-                                        type="text"
                                         name="first_name"
-                                        value={formData.first_name}
-                                        onChange={handleInputChange}
-                                        disabled={!isEditing}
-                                        className={isEditing ? enabledInputClass : disabledInputClass}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                                        นามสกุล
-                                    </label>
-                                    <input
                                         type="text"
-                                        name="last_name"
-                                        value={formData.last_name}
+                                        value={formData.first_name}
+                                        readOnly={!isEditing}
                                         onChange={handleInputChange}
-                                        disabled={!isEditing}
-                                        className={isEditing ? enabledInputClass : disabledInputClass}
+                                        className={`w-full px-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${
+                                            isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
+                                        }`}
                                     />
                                 </div>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    อีเมล
-                                </label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
-                                    className={isEditing ? enabledInputClass : disabledInputClass}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    เบอร์โทรศัพท์
-                                </label>
-                                <input
-                                    type="tel"
-                                    name="tel"
-                                    value={formData.tel}
-                                    onChange={handleInputChange}
-                                    disabled={!isEditing}
-                                    className={isEditing ? enabledInputClass : disabledInputClass}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    มหาวิทยาลัย
-                                </label>
-                                <input
-                                    type="text"
-                                    value={user?.university?.name || ''}
-                                    disabled
-                                    className={disabledInputClass}
-                                />
-                            </div>
-                        </form>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">นามสกุล</label>
+                                    <input
+                                        name="last_name"
+                                        type="text"
+                                        value={formData.last_name}
+                                        readOnly={!isEditing}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${
+                                            isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
+                                        }`}
+                                    />
+                                </div>
+                                <div className="space-y-1.5 md:col-span-2">
+                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">อีเมล</label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            readOnly
+                                            className="w-full pl-10 pr-4 py-3 md:py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-400 text-sm cursor-not-allowed overflow-hidden text-ellipsis"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-1.5 md:col-span-2">
+                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">เบอร์โทรศัพท์</label>
+                                    <div className="relative">
+                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <input
+                                            name="tel"
+                                            type="tel"
+                                            value={formData.tel}
+                                            readOnly={!isEditing}
+                                            onChange={handleInputChange}
+                                            placeholder="08X-XXX-XXXX"
+                                            className={`w-full pl-10 pr-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${
+                                                isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
+                                            }`}
+                                        />
+                                    </div>
+                                </div>
 
-                        <div className="py-8 border-t mt-8"></div>
-
-                       
+                                <div className="md:col-span-2 pt-4">
+                                    <div className="bg-gray-50 rounded-2xl border border-gray-100 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                        <div className="flex items-center gap-3 text-gray-600">
+                                            <School className="w-5 h-5 text-indigo-500" />
+                                            <div className="leading-tight">
+                                                <p className="text-[9px] text-gray-400 font-bold uppercase">มหาวิทยาลัย</p>
+                                                <p className="text-xs font-semibold">{user.university?.name || "ไม่ระบุ"}</p>
+                                            </div>
+                                        </div>
+                                        <div className="h-px w-full bg-gray-200 sm:hidden"></div>
+                                      
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </main>
 
             <Footer />
-        </>
+        </div>
     );
 };
 

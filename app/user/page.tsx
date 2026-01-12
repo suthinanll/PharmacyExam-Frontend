@@ -1,14 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/Navbar_user';
 import Footer from '@/components/Footer';
 import NewsCard from '@/components/์News';
 import SearchBar from "@/components/SearchBar";
 
-// =========================================================================================
-// ข้อมูลมหาวิทยาลัย (ใช้ร่วมกัน)
-// =========================================================================================
+
 const universityLeaderboardData = [
   { rank: 1, name: "มหาวิทยาลัยเชียงใหม่", score: 85.75 },
   { rank: 2, name: "มหาวิทยาลัยมหิดล", score: 84.30 },
@@ -19,9 +17,6 @@ const universityLeaderboardData = [
   { rank: 7, name: "มหาวิทยาลัยธรรมศาสตร์", score: 78.90 },
 ];
 
-// =========================================================================================
-// Component: UniversityLeaderboardCard (สำหรับอันดับ 4 ขึ้นไป)
-// =========================================================================================
 interface UniversityLeaderboardProps {
   rank: number;
   name: string;
@@ -36,7 +31,7 @@ const UniversityLeaderboardCard = ({ rank, name, score }: UniversityLeaderboardP
           {String(rank).padStart(2, '0')}
         </span>
         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
-            {name.substring(0, 1)}
+          {name.substring(0, 1)}
         </div>
         <span className="text-gray-700 font-medium truncate">
           {name}
@@ -104,7 +99,7 @@ const UniversityLeaderboard = () => {
           </h2>
         </div>
         <button className='px-4 py-2 text-sm text-blue-600 hover:text-white hover:bg-blue-600 font-medium rounded-xl border border-blue-600 transition-all duration-200'>
-            ดูทั้งหมด
+          ดูทั้งหมด
         </button>
       </div>
 
@@ -130,7 +125,7 @@ const UniversityLeaderboard = () => {
 
                 {/* University Card (ข้อมูลมหาวิทยาลัย) */}
                 <div className={`${style.bgColor} ${style.borderColor} border-2 ${style.shadow} rounded-2xl p-4 w-28 sm:w-36 md:w-40 mt-12 transition-all duration-300`}>
-                  
+
                   {/* Rank Number */}
                   <div className={`${style.textColor} text-2xl sm:text-3xl font-bold text-center mb-2`}>
                     #{uni.rank}
@@ -219,12 +214,85 @@ const UniversityLeaderboard = () => {
 
 
 const Page = () => {
+  const [targetDate, setTargetDate] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0
+  });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleSearch = (query: string) => {
-    console.log("🔍 ค้นหา:", query);
-    // ตรงนี้สามารถต่อ API หรือ filter ข้อมูลได้เลย
-  };
+  const fetchExamCountdown = useCallback(async () => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("access_token") : null;
+
+      const res = await fetch("http://localhost:5000/schedules", {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+
+      const data = await res.json();
+      console.log("1. ข้อมูลดิบจาก API:", data);
+
+      if (!Array.isArray(data)) {
+        console.warn("ข้อมูลที่ได้รับไม่ใช่ Array:", data);
+        return;
+      }
+      const publicExams = data.filter((item: any) =>
+        item.is_public === true || item.is_public === 1 || item.is_public === "true"
+      );
+      console.log("2. ผ่านเงื่อนไข is_public:", publicExams);
+      const futureExams = publicExams
+        .map((item: any) => ({
+          ...item,
+          targetStamp: new Date(item.start_time).getTime()
+        }))
+        .filter((item: any) => !isNaN(item.targetStamp) && item.targetStamp > Date.now())
+        .sort((a: any, b: any) => a.targetStamp - b.targetStamp);
+
+      console.log("3. เหลือรายการที่เป็นอนาคต (เรียงแล้ว):", futureExams);
+
+      if (futureExams.length > 0) {
+        setTargetDate(futureExams[0].targetStamp);
+      } else {
+        console.log("ไม่มีกำหนดการสอบในอนาคต");
+      }
+
+    } catch (error) {
+      console.error("เกิดข้อผิดพลาดใน fetchExamCountdown:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchExamCountdown();
+  }, [fetchExamCountdown]);
+
+  useEffect(() => {
+    if (!targetDate) return;
+
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
+
+      if (distance <= 0) {
+        clearInterval(timer);
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      } else {
+        setTimeLeft({
+          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
+          seconds: Math.floor((distance % (1000 * 60)) / 1000)
+        });
+      }
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [targetDate]);
 
   const newsData = [
     {
@@ -261,51 +329,10 @@ const Page = () => {
     },
   ];
 
-
-
-  const [timeLeft, setTimeLeft] = useState({
-    days: 21,
-    hours: 15,
-    minutes: 11,
-    seconds: 5
-  });
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        let { days, hours, minutes, seconds } = prev;
-
-        if (seconds > 0) {
-          seconds--;
-        } else if (minutes > 0) {
-          minutes--;
-          seconds = 59;
-        } else if (hours > 0) {
-          hours--;
-          minutes = 59;
-          seconds = 59;
-        } else if (days > 0) {
-          days--;
-          hours = 23;
-          minutes = 59;
-          seconds = 59;
-        }
-
-        return { days, hours, minutes, seconds };
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
   return (
     <>
       <Navbar />
-
       <div className='bg-gray-50 min-h-screen py-4 sm:py-6 md:py-8 px-3 sm:px-4 md:px-6'>
-
-
-
         <div className='max-w-7xl mx-auto'>
           <main className="max-w-7xl mx-auto mb-4 bg-white">
             <SearchBar placeholder="ค้นหาข้อมูล..." onSearch={(q) => console.log(q)} />
@@ -371,7 +398,6 @@ const Page = () => {
             </div>
           </div>
 
-          {/* INSERTED: University Leaderboard Card (The new, redesigned one) */}
           <UniversityLeaderboard />
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -379,13 +405,10 @@ const Page = () => {
               <NewsCard key={news.id} {...news} />
             ))}
           </div>
-
         </div>
       </div>
-
       <Footer />
     </>
   );
 };
-
 export default Page;
