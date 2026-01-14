@@ -1,214 +1,237 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Navbar_admin from "@/components/Navbar_admin";
-import { useState } from "react";
-import { Plus, Search, ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Search, Clock, Loader2, ImageOff, Trash2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 
-
-// Interface สำหรับโครงสร้างข้อมูล Blog แต่ละรายการ
 interface BlogData {
-  id: number;
+  article_id: number;
   title: string;
-  topic: string;
-  createdDate: string;
-  image: string;
-  isLive: boolean;
+  content: string;
+  created_at: string;
+  cover_image_url: string | null;
+  status: string;
 }
 
-// Interface สำหรับ Props ของ BlogCard
 interface BlogCardProps {
   blog: BlogData;
+  onRefresh: () => void;
 }
 
+const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
+  const [isActionLoading, setIsActionLoading] = useState(false);
 
-// ข้อมูลจำลองสำหรับบล็อกข่าวสาร (Placeholder Data)
-const blogData: BlogData[] = [ // กำหนด Type ให้กับ array ด้วย
+  // ตรวจสอบสถานะแบบ Safe Case
+  const isPublished = blog.status?.toUpperCase() === 'PUBLISHED';
 
-  {
-    id: 2,
-    title: "PHARMA LAW EP.02",
-    topic: "Topic: 'เภสัช review ยา/อาหารเสริม ใน social media - รุ่ง หรือ ร่วง?' เภสัชกรไม่ได้มีเวลามาทำอาหารเสริมเดินดินกินได้ไหม?",
-    createdDate: "29 ตุลาคม 2568",
-    image: "/img/news1.jpg",
-    isLive: true,
-  },
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('th-TH', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+  };
 
-  {
-    id: 4,
-    title: "Policy Innovation",
-    topic: "สถาบันเทคโนโลยีเพื่ออนาคต-การเรียนรู้แห่งชาติและนโยบายด้านนวัตกรรม 'Policy Innovation On Demand' เภสัชกรกับภาคธุรกิจนำไปสู่การเปลี่ยนแปลง...",
-    createdDate: "31 กรกฎาคม 2568",
-    image: "/img/news3.jpg",
-    isLive: false,
-  },
-  {
-    id: 5,
-    title: "ขอเชิญชวนเข้าร่วมงานประชุมวิชาการผู้แทนครู/ผู้บริหารในด้านผลิตภัณฑ์สุขภาพและยาแห่งชาติ ประจำปี พ.ศ. 2568",
-    topic: "National Thai FDA Forum 2025 'Digital Economy Challenge for Sustainability...",
-    createdDate: "31 กรกฎาคม 2568",
-    image: "/img/news4.jpg",
-    isLive: true,
-  },
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!confirm(`คุณต้องการลบข่าว "${blog.title}" ใช่หรือไม่?`)) return;
 
-];
+    setIsActionLoading(true);
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`http://localhost:5000/news/${blog.article_id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
 
-interface PageButtonProps {
-  page: number;
-  isActive: boolean;
-  setCurrentPage: (page: number) => void;
-}
+      if (response.ok) {
+        alert("ลบข้อมูลสำเร็จ");
+        onRefresh();
+      }
+    } catch (error) {
+      alert("เกิดข้อผิดพลาดในการลบ");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
 
-const BlogCard = ({ blog }: BlogCardProps) => {
-  // 💡 แก้ไข: ใช้ Link แทน div และกำหนด URL แบบ Dynamic
+  const toggleStatus = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    // ถ้า Live อยู่ให้ส่ง DRAFT ถ้าเป็น Draft อยู่ให้ส่ง PUBLISHED
+    const newStatus = isPublished ? 'DRAFT' : 'PUBLISHED';
+    
+    setIsActionLoading(true);
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(`http://localhost:5000/news/${blog.article_id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      if (response.ok) {
+        onRefresh();
+      } else {
+        alert("ไม่สามารถเปลี่ยนสถานะได้");
+      }
+    } catch (error) {
+      console.error("Update status error:", error);
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
   return (
-    <Link
-      href={`/admin/mnblog/blogdetail/`} // ส่ง ID ไปใน Path
-      className="flex flex-col border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all bg-white cursor-pointer"
-    >
-      {/* Image and Live Tag (โค้ดส่วนนี้เหมือนเดิม) */}
-      <div className="relative h-48 w-full">
-        {/* ... โค้ดรูปภาพและ Live Tag เดิม ... */}
-        <div
-          className="h-full w-full bg-gray-300 flex items-center justify-center text-gray-500 text-sm"
-          style={{ backgroundImage: `url(${blog.image})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
-        >
-          {!blog.image && "Image Placeholder"}
-        </div>
+    <div className="relative group">
+      <Link
+        href={`/admin/mnblog/blogdetail/${blog.article_id}`}
+        className="flex flex-col border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all bg-white cursor-pointer h-full"
+      >
+        <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
+          {blog.cover_image_url ? (
+            <img 
+              src={blog.cover_image_url} 
+              alt={blog.title}
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+            />
+          ) : (
+            <div className="h-full w-full flex flex-col items-center justify-center text-gray-400">
+              <ImageOff className="w-10 h-10 mb-2" />
+              <span className="text-xs">ไม่มีรูปภาพหน้าปก</span>
+            </div>
+          )}
 
-        {blog.isLive && (
-          <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-semibold px-2 py-0.5 rounded uppercase">
-            Live
+          {/* Badge สถานะ - เช็คจากตัวแปร isPublished */}
+          <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded uppercase shadow-sm ${
+            isPublished ? 'bg-green-600 text-white' : 'bg-gray-500 text-white'
+          }`}>
+            {isPublished ? 'Live' : 'Draft'}
           </span>
-        )}
-      </div>
-
-      {/* Content (โค้ดส่วนนี้เหมือนเดิม) */}
-      <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2 min-h-[2.5rem]">
-          {blog.title}
-        </h3>
-        <p className="text-xs text-gray-600 mb-3 line-clamp-3 flex-grow min-h-[3rem]">
-          {blog.topic}
-        </p>
-
-        {/* Footer */}
-        <div className="mt-auto pt-2 border-t border-gray-100 flex items-center text-xs text-gray-500">
-          <Clock className="w-3 h-3 mr-1" />
-          สร้างขึ้นเมื่อวันที่ {blog.createdDate}
         </div>
+
+        <div className="p-4 flex flex-col flex-grow">
+          <h3 className="text-sm font-semibold text-gray-900 mb-1 line-clamp-2 min-h-[2.5rem]">
+            {blog.title}
+          </h3>
+          <p className="text-xs text-gray-600 mb-3 line-clamp-2 flex-grow">
+            {blog.content}
+          </p>
+
+          <div className="mt-auto pt-3 border-t border-gray-100 flex items-center text-[11px] text-gray-500">
+            <Clock className="w-3 h-3 mr-1" />
+            สร้างเมื่อ: {formatDate(blog.created_at)}
+          </div>
+        </div>
+      </Link>
+
+      {/* ปุ่ม Action (ลบ / เผยแพร่) */}
+      <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+        <button
+          disabled={isActionLoading}
+          onClick={toggleStatus}
+          title={isPublished ? "เปลี่ยนเป็นฉบับร่าง" : "เผยแพร่ทันที"}
+          className={`p-2 rounded-full shadow-lg transition-colors ${
+            isPublished ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-500 hover:bg-blue-600'
+          } text-white`}
+        >
+          {isPublished ? <EyeOff size={16}/> : <Eye size={16}/>}
+        </button>
+        <button
+          disabled={isActionLoading}
+          onClick={handleDelete}
+          title="ลบข่าวสาร"
+          className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-colors"
+        >
+          <Trash2 size={16} />
+        </button>
       </div>
-    </Link> 
+
+      {isActionLoading && (
+        <div className="absolute inset-0 bg-white/50 flex items-center justify-center rounded-xl z-20">
+          <Loader2 className="animate-spin text-green-600" />
+        </div>
+      )}
+    </div>
   );
 };
 
 function Page() {
+  const [blogs, setBlogs] = useState<BlogData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = 5;
 
-  // คอมโพเนนต์ Pagination Button
-  const PaginationButton = ({ page, isActive, setCurrentPage }: PageButtonProps) => (
-    <button
-      className={`w-10 h-10 flex items-center justify-center text-sm font-medium border rounded-lg transition-colors ${isActive
-          ? "bg-green-600 text-white border-green-600"
-          : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-        }`}
-      onClick={() => setCurrentPage(page)}
-    >
-      {page}
-    </button>
-  );
+  const fetchBlogs = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch('http://localhost:5000/news', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
 
-  // คอมโพเนนต์ Pagination
-  const Pagination = () => {
-    const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
-
-    return (
-      <div className="flex items-center justify-end space-x-2 mt-8">
-        {/* Previous Button */}
-        <button
-          className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-          disabled={currentPage === 1}
-          onClick={() => setCurrentPage(currentPage - 1)}
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-
-        {/* Page Numbers */}
-        {pages.map((page) => (
-          <PaginationButton
-            key={page}
-            page={page}
-            isActive={page === currentPage}
-            setCurrentPage={setCurrentPage}
-          />
-        ))}
-
-        {/* Next Button */}
-        <button
-          className="w-10 h-10 flex items-center justify-center border border-gray-300 rounded-lg text-gray-500 hover:bg-gray-50 disabled:opacity-50"
-          disabled={currentPage === totalPages}
-          onClick={() => setCurrentPage(currentPage + 1)}
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
-    );
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      // เรียงจากใหม่ไปเก่า
+      setBlogs(data.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  useEffect(() => {
+    fetchBlogs();
+  }, []);
+
+  const filteredBlogs = blogs.filter(blog => 
+    blog.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <Navbar_admin>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="mb-8 pt-4">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">
-                บล็อกข่าวสาร
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600">
-                จัดการบล็อกข่าวสาร เพิ่ม แก้ไข ลบ
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <Link
-                href="/admin/mnblog/addblog"
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
-              >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                เพิ่มบล็อกข่าวสารใหม่
-              </Link>
-            </div>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <div className="mb-8 pt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">บล็อกข่าวสาร</h1>
+            <p className="text-sm text-gray-600">จัดการข่าวสาร ({filteredBlogs.length} รายการ)</p>
           </div>
+          <Link href="/admin/mnblog/addblog" className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-lg shadow-md transition-all active:scale-95 font-medium">
+            <Plus className="w-5 h-5" /> เพิ่มข่าวสารใหม่
+          </Link>
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-8">
-          <div className="relative max-w-lg">
-            <input
-              type="text"
-              placeholder="ค้นหาบล็อกข่าวสาร"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <div className="mb-8 relative max-w-lg">
+          <input
+            type="text"
+            placeholder="ค้นหาตามชื่อหัวข้อ..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 outline-none transition-all shadow-sm"
+          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        </div>
+
+        {isLoading ? (
+          <div className="flex flex-col items-center py-20 text-gray-400">
+            <Loader2 className="w-10 h-10 animate-spin mb-4 text-green-600" />
+            <p>กำลังโหลดข้อมูล...</p>
           </div>
-        </div>
-
-        {/* Blog Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {blogData.map((blog) => (
-            <BlogCard key={blog.id} blog={blog} />
-          ))}
-        </div>
-
-        {/* Pagination */}
-        <Pagination />
-
+        ) : filteredBlogs.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredBlogs.map((blog) => (
+              <BlogCard key={blog.article_id} blog={blog} onRefresh={fetchBlogs} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 text-gray-500 border-2 border-dashed border-gray-200 rounded-2xl">
+             <p>ไม่พบข้อมูลข่าวสารที่คุณกำลังค้นหา</p>
+          </div>
+        )}
       </div>
     </Navbar_admin>
   );

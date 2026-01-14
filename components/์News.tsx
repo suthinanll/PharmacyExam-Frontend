@@ -31,7 +31,9 @@ export default function NewsCard({
             alt={title}
             width={500}
             height={300}
-            className="w-full h-55 object-cover "
+            // เพิ่มบรรทัดนี้ครับ เพื่อบอกให้ Next.js ไม่ต้องไปบีบอัดรูปจากข้างนอก
+            unoptimized
+            className="w-full h-48 object-cover"
           />
         </a>
       </div>
