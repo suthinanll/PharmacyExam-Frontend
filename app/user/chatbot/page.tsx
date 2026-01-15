@@ -46,7 +46,7 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
 
   return (
     <div className="flex items-start gap-3 max-w-3xl group">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 mt-1">
+      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0 mt-1">
         <Sparkles className="w-4 h-4 text-white" />
       </div>
       <div className="relative">
@@ -62,7 +62,7 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
         </div>
         <button
           onClick={handleCopy}
-          className="absolute -top-6 right-0 p-1 text-neutral-400 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-white/80 backdrop-blur rounded px-2 shadow-sm border border-neutral-100"
+          className="absolute -top-6 right-0 p-1 text-neutral-400 hover:text-green-600 transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-white/80 backdrop-blur rounded px-2 shadow-sm border border-neutral-100"
         >
           {isCopied ? <Check className="w-3 h-3" /> : <Clipboard className="w-3 h-3" />}
           <span className="text-[10px]">คัดลอก</span>
@@ -91,6 +91,7 @@ export default function ChatbotPage() {
   const [totalCount, setTotalCount] = useState<number>(0);
   const [userId, setUserId] = useState<any>(null);
 
+  const [userName, setUserName] = useState<string>("");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -116,6 +117,9 @@ export default function ChatbotPage() {
           const data = await res.json();
           if (data?.user_id) {
             setUserId(data.user_id);
+            if (data.first_name) {
+              setUserName(`${data.first_name} ${data.last_name || ''}`.trim());
+            }
           }
         }
       } catch (error) {
@@ -529,7 +533,7 @@ export default function ChatbotPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-blue-50/30 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-green-50/30">
       <Navbar />
 
       <div className="max-w-screen-2xl mx-auto flex h-[calc(100vh-64px)] overflow-hidden">
@@ -557,7 +561,7 @@ export default function ChatbotPage() {
 
             <button
               onClick={handleNewChat}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-sm font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-sm font-medium"
             >
               <Plus size={20} />
               แชทใหม่
@@ -573,11 +577,11 @@ export default function ChatbotPage() {
                 key={session.session_id}
                 onClick={() => handleSelectSession(session.session_id?.toString())}
                 className={`w-full text-left px-3 py-3 rounded-xl transition-all flex items-start gap-3 group relative pr-10 ${currentSessionId?.toString() === session.session_id?.toString()
-                  ? "bg-blue-50 text-blue-700 border border-blue-100 shadow-sm"
+                  ? "bg-green-50 text-green-700 border border-green-100 shadow-sm"
                   : "text-gray-600 hover:bg-gray-50 border border-transparent"
                   }`}
               >
-                <MessageSquare size={18} className={`mt-0.5 flex-shrink-0 ${currentSessionId?.toString() === session.session_id?.toString() ? 'text-blue-500' : 'text-gray-400'}`} />
+                <MessageSquare size={18} className={`mt-0.5 flex-shrink-0 ${currentSessionId?.toString() === session.session_id?.toString() ? 'text-green-500' : 'text-gray-400'}`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
                     {session.title || `Session #${session.session_id}`}
@@ -620,12 +624,12 @@ export default function ChatbotPage() {
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth">
             {!currentSessionId && messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
-                  <Bot size={40} className="text-blue-500" />
+                <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
+                  <Bot size={40} className="text-green-500" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">สวัสดีครับ!</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">ยินดีต้อนรับ! {userName ? `คุณ${userName}` : ''}</h2>
                 <p className="text-gray-500 max-w-md">
-                  เลือกประวัติการแชทด้านซ้าย หรือกด "แชทใหม่" เพื่อปรึกษาเกี่ยวกับการสอบใบประกอบวิชาชีพเภสัชกรรม
+                  เลือกประวัติการแชทด้านซ้าย หรือกด "แชทใหม่" เพื่อปรึกษาเกี่ยวกับการสอบใบประกอบวิชาชีพเภสัชกรรมได้เลย!
                 </p>
               </div>
             ) : (
@@ -639,7 +643,7 @@ export default function ChatbotPage() {
 
                 {isMessageLoading ? (
                   <div className="flex justify-center py-10">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
                   </div>
                 ) : (
                   messages.length === 0 && !fetchError ? (
@@ -654,7 +658,7 @@ export default function ChatbotPage() {
                         ) : (
                           <div className="flex flex-col items-end gap-1 max-w-[85%] sm:max-w-xl w-full">
                             {editingMessageId === msg.id ? (
-                              <div className="bg-white border border-blue-200 p-4 rounded-2xl shadow-sm w-full md:min-w-[300px]">
+                              <div className="px-4 py-3 rounded-2xl shadow-sm text-sm break-words whitespace-pre-wrap bg-green-50 text-gray-900 border border-green-200 rounded-tr-sm">
                                 <textarea
                                   value={editContent}
                                   onChange={(e) => setEditContent(e.target.value)}
@@ -673,7 +677,7 @@ export default function ChatbotPage() {
                                   </button>
                                   <button
                                     onClick={() => saveEdit(msg.id)}
-                                    className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1 disabled:opacity-70"
+                                    className="px-3 py-1 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-1 disabled:opacity-70"
                                     disabled={isEditLoading}
                                   >
                                     {isEditLoading && <span className="animate-spin inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full"></span>}
@@ -682,11 +686,11 @@ export default function ChatbotPage() {
                                 </div>
                               </div>
                             ) : (
-                              <div className="bg-blue-600 text-white px-5 py-3 rounded-2xl rounded-tr-sm shadow-md relative group">
+                              <div className="bg-green-600 text-white px-5 py-3 rounded-2xl rounded-tr-sm shadow-md relative group">
                                 <p className="whitespace-pre-wrap">{msg.text}</p>
                                 <button
                                   onClick={() => startEditing(msg)}
-                                  className="absolute -top-3 -right-3 p-1.5 bg-white text-blue-600 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-50 border border-blue-100 scale-90 hover:scale-100 z-10"
+                                  className="absolute -top-3 -right-3 p-1.5 bg-white text-green-600 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-green-50 border border-green-100 scale-90 hover:scale-100 z-10"
                                   title="แก้ไขข้อความ"
                                 >
                                   <Pencil size={14} />
@@ -705,14 +709,14 @@ export default function ChatbotPage() {
 
                 {isLoading && (
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 mt-1">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0 mt-1">
                       <Sparkles className="w-4 h-4 text-white" />
                     </div>
                     <div className="bg-white p-4 rounded-2xl shadow-sm border border-neutral-200">
                       <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                       </div>
                     </div>
                   </div>
@@ -724,25 +728,30 @@ export default function ChatbotPage() {
 
           {/* Input Area */}
           <div className="p-4 bg-white border-t border-gray-100 px-4 sm:px-6">
-            <div className="max-w-4xl mx-auto relative">
+            <div className="max-w-4xl mx-auto relative flex items-center">
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="พิมพ์ข้อความ..."
-                className="w-full pl-5 pr-14 py-4 bg-gray-50 border-0 rounded-full focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm text-gray-800"
+                className="w-full pl-5 pr-16 py-4 bg-gray-50 border-0 rounded-full focus:ring-2 focus:ring-green-100 focus:bg-white transition-all resize-none shadow-sm text-gray-800"
                 rows={1}
                 style={{ minHeight: '56px' }}
               />
+
               <button
                 onClick={handleSendMessage}
                 disabled={!input.trim() || isLoading}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors shadow-sm"
+                className="absolute right-2 flex items-center justify-center
+                 w-10 h-10 bg-green-600 text-white rounded-full
+                 hover:bg-green-700 disabled:opacity-50
+                 transition-colors shadow-sm"
               >
-                <SendHorizonal size={20} />
+                <SendHorizonal size={18} />
               </button>
             </div>
           </div>
+
         </main>
       </div >
     </div >
