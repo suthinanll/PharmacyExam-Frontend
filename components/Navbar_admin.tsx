@@ -66,12 +66,13 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
 
   const sidebarItems = [
     { title: "คลังข้อสอบ", href: "/admin/manage_examset" },
+    { title: "จัดการหมวดหมู่", href: "/admin/manage_category" },
     { title: "ปฏิทินกำหนดการ", href: "/admin/manage_calendar" },
     { title: "บล็อกข่าวสาร", href: "/admin/mnblog" },
   ];
 
   const settingsItems = [
-    { title: "ประวัติการสนทนาแชตบอต", href: "/admin/chatlog" },
+    { title: "แชตบอต", href: "/admin/chatlog" },
     { title: "การตั้งค่า", href: "/admin/settingp" },
   ];
 
@@ -159,9 +160,9 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
 
         <nav className="flex-1 p-3 sm:p-4 overflow-y-auto navadmin">
           <div className="space-y-1 sm:space-y-2">
-            {sidebarItems.map((item, idx) => (
+            {sidebarItems.map((item) => (
               <Link
-                key={idx}
+                key={item.href}
                 href={item.href}
                 className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
                   ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
@@ -175,9 +176,9 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
 
           <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
             <div className="space-y-1 sm:space-y-2">
-              {settingsItems.map((item, idx) => (
+              {settingsItems.map((item) => (
                 <Link
-                  key={idx}
+                  key={item.href}
                   href={item.href}
                   className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
                     ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
@@ -241,9 +242,9 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
           {isMobileMenuOpen && (
             <div className="border-t border-gray-200 bg-white max-h-[calc(100vh-64px)] overflow-y-auto">
               <div className="px-3 sm:px-4 py-3 sm:py-4 space-y-1">
-                {sidebarItems.map((item, idx) => (
+                {sidebarItems.map((item) => (
                   <Link
-                    key={idx}
+                    key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
@@ -256,9 +257,9 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
                 ))}
 
                 <div className="pt-3 sm:pt-4 border-t border-gray-200 mt-3 sm:mt-4 space-y-1">
-                  {settingsItems.map((item, idx) => (
+                  {settingsItems.map((item) => (
                     <Link
-                      key={idx}
+                      key={item.href}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
