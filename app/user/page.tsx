@@ -6,7 +6,6 @@ import Footer from '@/components/Footer';
 import NewsCard from '@/components/์News';
 import SearchBar from "@/components/SearchBar";
 
-// --- Leaderboard Section (คงเดิม) ---
 const universityLeaderboardData = [
   { rank: 1, name: "มหาวิทยาลัยเชียงใหม่", score: 85.75 },
   { rank: 2, name: "มหาวิทยาลัยมหิดล", score: 84.30 },
@@ -87,24 +86,21 @@ const UniversityLeaderboard = () => {
   );
 }
 
-// --- Page Component ---
 const Page = () => {
   const [targetDate, setTargetDate] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  
-  // 1. เพิ่ม State สำหรับข้อมูลข่าวจริง
   const [realNews, setRealNews] = useState<any[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
+  
+  const [bookmarkIds, setBookmarkIds] = useState<number[]>([]);
 
   const fetchData = useCallback(async () => {
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem("access_token") : null;
-      const headers = { 
+      const headers = {
         "Authorization": `Bearer ${token}`,
         "Content-Type": "application/json"
       };
-
-      // --- ส่วนเคาท์ดาวน์ (ไม่แก้ Logic) ---
       const resSched = await fetch("http://localhost:5000/schedules", { headers });
       if (resSched.ok) {
         const data = await resSched.json();
@@ -115,14 +111,22 @@ const Page = () => {
           .sort((a: any, b: any) => a.targetStamp - b.targetStamp);
         if (futureExams.length > 0) setTargetDate(futureExams[0].targetStamp);
       }
-
-      // --- 2. ส่วนดึงข่าว (Blog) จาก DB ---
       setLoadingNews(true);
-      const resNews = await fetch("http://localhost:5000/news", { headers });
+      
+      const [resNews, resBookmarks] = await Promise.all([
+        fetch("http://localhost:5000/news", { headers }),
+        fetch("http://localhost:5000/bookmark", { headers })
+      ]);
+
       if (resNews.ok) {
         const newsData = await resNews.json();
-        // กรองเฉพาะข่าวที่ไม่ได้ถูกซ่อน (ถ้ามีฟิลด์ status)
-        setRealNews(Array.isArray(newsData) ? newsData.filter((n: any) => n.status !== 'HIDDEN') : []);
+        setRealNews(Array.isArray(newsData) ? newsData.filter((n: any) => n.status === 'PUBLISHED') : []);
+      }
+
+      if (resBookmarks.ok) {
+        const bookmarks = await resBookmarks.json();
+        const ids = bookmarks.map((b: any) => Number(b.news.article_id));
+        setBookmarkIds(ids);
       }
     } catch (error) {
       console.error("Fetch Error:", error);
@@ -131,11 +135,35 @@ const Page = () => {
     }
   }, []);
 
+  const handleBookmarkToggle = async (articleId: number) => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch("http://localhost:5000/bookmark/toggle", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ articleId })
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        if (result.isBookmarked) {
+          setBookmarkIds(prev => [...prev, articleId]);
+        } else {
+          setBookmarkIds(prev => prev.filter(id => id !== articleId));
+        }
+      }
+    } catch (error) {
+      console.error("Bookmark Error:", error);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // --- Logic Countdown (คงเดิม) ---
   useEffect(() => {
     if (!targetDate) return;
     const timer = setInterval(() => {
@@ -164,8 +192,7 @@ const Page = () => {
           <main className="mb-4 bg-white rounded-xl shadow-sm overflow-hidden">
             <SearchBar placeholder="ค้นหาข้อมูล..." onSearch={(q) => console.log(q)} />
           </main>
-
-          {/* Countdown Section (ไม่แก้ดีไซน์) */}
+          
           <div className='bg-white rounded-3xl shadow-xl p-8 mb-6 border border-gray-100'>
             <div className='flex items-center justify-center gap-2 mb-6'>
               <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -193,20 +220,22 @@ const Page = () => {
 
           <UniversityLeaderboard />
 
-          {/* --- 3. News Section (แสดงข่าวจาก DB) --- */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
             {loadingNews ? (
               <div className="col-span-full text-center py-20 text-gray-500">กำลังดึงข่าวสารล่าสุด...</div>
             ) : realNews.length > 0 ? (
               realNews.map((news) => (
-                <NewsCard 
+                <NewsCard
                   key={news.article_id}
-                  id={news.article_id}
+                  id={Number(news.article_id)}
                   title={news.title}
-                  desc={news.content?.replace(/<[^>]*>/g, '').substring(0, 100) + "..."} // ล้างแท็ก HTML และตัดคำ
-                  img={news.cover_image_url || "/img/news1.jpg"} // ถ้าไม่มีรูปใน DB ให้ใช้รูป Default
+                  desc={news.content?.replace(/<[^>]*>/g, '').substring(0, 100) + "..."}
+                  img={news.cover_image_url || "/img/news1.jpg"}
                   badge={new Date(news.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000) ? "ใหม่" : ""}
-                  link={`/news/${news.article_id}`} 
+                  link={`/user/newsdetail/${news.article_id}`}
+                  
+                  initialIsSaved={bookmarkIds.includes(Number(news.article_id))}
+                  onBookmark={handleBookmarkToggle}
                 />
               ))
             ) : (

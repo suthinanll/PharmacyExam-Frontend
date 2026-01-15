@@ -105,8 +105,6 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
               <span className="text-xs">ไม่มีรูปภาพหน้าปก</span>
             </div>
           )}
-
-          {/* Badge สถานะ - เช็คจากตัวแปร isPublished */}
           <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded uppercase shadow-sm ${
             isPublished ? 'bg-green-600 text-white' : 'bg-gray-500 text-white'
           }`}>
