@@ -54,7 +54,6 @@ function Page() {
     );
   };
 
-  // --- ฟังก์ชันหลักในการบันทึกข้อมูล ---
   const saveSchedules = async (isPublished: boolean) => {
     const token = localStorage.getItem("access_token");
 
@@ -115,11 +114,10 @@ function Page() {
       return;
     }
 
-    await saveSchedules(true); // บันทึกแบบเผยแพร่ (is_public: true)
+    await saveSchedules(true);
   };
 
   const handleSaveDraft = async () => {
-    // สำหรับแบบร่าง อนุโลมให้มีแค่ชื่ออย่างเดียวก็ได้
     const hasTitle = events.some(event => event.title.trim() !== "");
     if (!hasTitle) {
       Swal.fire("แจ้งเตือน", "กรุณาระบุชื่อกำหนดการอย่างน้อย 1 รายการเพื่อบันทึกแบบร่าง", "info");

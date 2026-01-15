@@ -199,20 +199,20 @@ function AddBlogPage() {
                         </div>
 
                         {/* ปุ่ม AI ดึงข้อมูลด่วน */}
-                        <div className="lg:col-span-1 bg-gradient-to-br from-green-600 to-green-800 p-8 rounded-xl shadow-lg flex flex-col justify-center items-center text-center text-white">
-                            <div className="bg-white/20 p-4 rounded-full mb-4 backdrop-blur-sm">
+                        <div className="lg:col-span p-8 rounded-xl shadow-lg flex flex-col justify-center items-center text-center text-black">
+                            <div className="bg-gray-100 p-4 rounded-full mb-4 backdrop-blur-sm">
                                 <Zap className="w-10 h-10 text-yellow-300 fill-yellow-300" />
                             </div>
                             <h3 className="text-xl font-bold mb-2">Smart Auto-Fetch</h3>
-                            <p className="text-sm text-green-100 mb-8 leading-relaxed">
+                            <p className="text-sm text-black-100 mb-8 leading-relaxed">
                                 ช่วยคุณเขียนข่าวได้ไวขึ้น 10 เท่า! <br /> ดึงข้อมูลและรูปภาพจากระบบล่าสุดมาให้อัตโนมัติ
                             </p>
                             <button
                                 type="button"
                                 onClick={handleAutoGenerate}
                                 disabled={isGenerating}
-                                className={`flex items-center justify-center gap-2 px-8 py-4 text-sm font-extrabold rounded-full transition-all w-full shadow-2xl ${
-                                    isGenerating ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-white text-green-700 hover:bg-green-50 active:scale-95'
+                                className={`flex items-center justify-center gap-2 px-8 py-4 text-sm font-normal rounded-full transition-all w-full shadow-2xl ${
+                                    isGenerating ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 active:scale-95 cursor-pointer'
                                 }`}
                             >
                                 {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
