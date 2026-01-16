@@ -2,10 +2,11 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import Navbar from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, AlignLeft, X, Info } from 'lucide-react';
 import Link from 'next/link';
 import NoteList from "@/components/note/NoteList";
 
+// ... (Interface และ categoryColors เหมือนเดิม)
 interface ExamSchedule {
   id: string;
   title: string;
@@ -15,21 +16,11 @@ interface ExamSchedule {
   description: string;
   category: 'ทฤษฎี' | 'ปฏิบัติ' | 'ทบทวน' | 'สอบจริง' | 'กำหนดการทั่วไป';
 }
-interface Tag {
-  id: number;
-  name: string;
-}
-interface UserNote {
-  id: string;
-  title: string;
-  content: string;
-  tags: Tag[];
-  files: string[];
-  createdAt: number;
-}
+
+interface Tag { id: number; name: string; }
+interface UserNote { id: string; title: string; content: string; tags: Tag[]; files: string[]; createdAt: number; }
 
 const API_URL = "http://localhost:5000";
-
 const categoryColors = {
   'ทฤษฎี': 'bg-blue-100 text-blue-800 border-blue-200',
   'ปฏิบัติ': 'bg-purple-100 text-purple-800 border-purple-200',
@@ -38,12 +29,18 @@ const categoryColors = {
   'กำหนดการทั่วไป': 'bg-green-100 text-green-800 border-green-200'
 };
 
-const Calender = () => {
+const CalenderPage = () => {
   const [adminSchedules, setAdminSchedules] = useState<ExamSchedule[]>([]);
   const [userNotes, setUserNotes] = useState<UserNote[]>([]);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  
+  // แก้ไข: ใช้ Date Object ตัวเดียวจัดการทั่งเดือนและปี เพื่อป้องกันการหลุดช่วงปี
+  const [viewDate, setViewDate] = useState(new Date());
+  const selectedMonth = viewDate.getMonth();
+  const selectedYear = viewDate.getFullYear();
+
   const [tagFilter, setTagFilter] = useState("");
+  const [selectedEvent, setSelectedEvent] = useState<ExamSchedule | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
   const monthsNames = useMemo(() => ([
     'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
@@ -57,7 +54,6 @@ const Calender = () => {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("ดึงข้อมูลล้มเหลว");
-
       const data = await res.json();
       const formatted: ExamSchedule[] = data
         .filter((item: any) => item.is_public === true || item.is_public === 1)
@@ -74,7 +70,6 @@ const Calender = () => {
             category: 'กำหนดการทั่วไป'
           };
         });
-
       setAdminSchedules(formatted);
     } catch (error) {
       console.error("fetchAdminSchedules error:", error);
@@ -88,20 +83,14 @@ const Calender = () => {
       const res = await fetch(`${API_URL}/notes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("โหลดโน้ตไม่สำเร็จ");
       const data = await res.json();
       const mapped: UserNote[] = data.map((n: any) => ({
-        id: String(n.note_id),
-        title: n.title,
-        content: n.content,
-        tags: n.tags || [],
-        files: n.files || [],
+        id: String(n.note_id), title: n.title, content: n.content,
+        tags: n.tags || [], files: n.files || [],
         createdAt: new Date(n.created_at).getTime(),
       }));
       setUserNotes(mapped);
-    } catch (err) {
-      console.error("fetchNotes error:", err);
-    }
+    } catch (err) { console.error("fetchNotes error:", err); }
   };
 
   useEffect(() => {
@@ -109,16 +98,25 @@ const Calender = () => {
     fetchAdminSchedules();
   }, [fetchAdminSchedules]);
 
+  // ฟังก์ชันเลื่อนเดือนที่รองรับการเปลี่ยนปีแบบ Dynamic
+  const handlePreviousMonth = () => {
+    setViewDate(new Date(selectedYear, selectedMonth - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setViewDate(new Date(selectedYear, selectedMonth + 1, 1));
+  };
+
   const getSchedulesForDate = (date: number) => {
     const currentCalendarDate = new Date(selectedYear, selectedMonth, date);
     currentCalendarDate.setHours(0, 0, 0, 0);
 
     return adminSchedules.filter(s => {
-      const startDate = new Date(s.startDate);
-      startDate.setHours(0, 0, 0, 0);
-      const endDate = new Date(s.endDate);
-      endDate.setHours(0, 0, 0, 0);
-      return currentCalendarDate >= startDate && currentCalendarDate <= endDate;
+      const start = new Date(s.startDate);
+      const end = new Date(s.endDate);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(0, 0, 0, 0);
+      return currentCalendarDate >= start && currentCalendarDate <= end;
     });
   };
 
@@ -127,64 +125,17 @@ const Calender = () => {
     return today.getDate() === date && today.getMonth() === selectedMonth && today.getFullYear() === selectedYear;
   };
 
-  const createNote = async (note: any, files?: File[]) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-    const formData = new FormData();
-    formData.append("title", note.title);
-    formData.append("content", note.content);
-    formData.append("tagIds", JSON.stringify(note.tags));
-    if (files) files.forEach(file => formData.append("files", file));
-    await fetch(`${API_URL}/notes`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData,
-    });
-    fetchNotes();
-  };
-
-  const updateNote = async (note: UserNote, files?: File[], deletedFiles?: string[]) => {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) return;
-      const formData = new FormData();
-      formData.append("title", note.title);
-      formData.append("content", note.content);
-      const tagNames = note.tags.map(t => typeof t === 'object' ? t.name : t);
-      formData.append("tagIds", JSON.stringify(tagNames));
-      formData.append("deletedFiles", JSON.stringify(deletedFiles || []));
-      if (files) files.forEach((f) => formData.append("files", f));
-      await fetch(`${API_URL}/notes/${note.id}`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      fetchNotes();
-      alert("บันทึกการเปลี่ยนแปลงสำเร็จ");
-    } catch (err: any) {
-      alert(err.message);
-    }
-  };
-
-  const deleteNote = async (id: string) => {
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-    await fetch(`${API_URL}/notes/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchNotes();
-  };
-
   const renderCalendar = () => {
     const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
     const firstDay = new Date(selectedYear, selectedMonth, 1).getDay();
     const days = [];
 
+    // เติมช่องว่างเดือนก่อนหน้า
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="min-h-24 border border-gray-100 bg-gray-50/30"></div>);
+      days.push(<div key={`empty-${i}`} className="min-h-[110px] border border-gray-100 bg-gray-50/30"></div>);
     }
 
+    // วาดวันที่ในเดือนนั้นๆ
     for (let date = 1; date <= daysInMonth; date++) {
       const daySchedules = getSchedulesForDate(date);
       const todayClass = isToday(date) ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' : 'bg-white hover:bg-gray-50';
@@ -199,33 +150,54 @@ const Calender = () => {
               <span className="text-[9px] bg-indigo-600 text-white px-1.5 py-0.5 rounded shadow-sm">วันนี้</span>
             )}
           </div>
-
-          <div className="space-y-1.5">
-            {daySchedules.map(schedule => {
-              const fmtDate = (d: Date) => d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
-
-              return (
-                <div
-                  key={schedule.id}
-                  title={`${schedule.title}\nเริ่ม: ${fmtDate(schedule.startDate)}\nสิ้นสุด: ${fmtDate(schedule.endDate)}`}
-                  className={`
-                    group relative cursor-default
-                    text-[10px] p-1.5 rounded border-l-[3px] shadow-sm
-                    ${categoryColors[schedule.category] || 'bg-green-50 text-green-800 border-green-500'}
-                  `}
-                >
-                  <div className="font-bold truncate leading-tight mb-0.5">
-                    {schedule.title}
-                  </div>
-
-                </div>
-              );
-            })}
+          <div className="flex flex-col gap-1">
+            {daySchedules.map(schedule => (
+              <div
+                key={`${schedule.id}-${date}`}
+                onClick={() => { setSelectedEvent(schedule); setIsViewModalOpen(true); }}
+                className={`cursor-pointer truncate text-[10px] p-1.5 rounded border-l-[3px] shadow-sm transition-transform active:scale-95 ${categoryColors[schedule.category] || 'bg-green-50 text-green-800 border-green-500'}`}
+              >
+                <div className="font-bold truncate">{schedule.title}</div>
+              </div>
+            ))}
           </div>
         </div>
       );
     }
     return days;
+  };
+
+  // ... (Note Handlers createNote, updateNote, deleteNote เหมือนเดิม)
+  const createNote = async (note: any, files?: File[]) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+    const formData = new FormData();
+    formData.append("title", note.title);
+    formData.append("content", note.content);
+    formData.append("tagIds", JSON.stringify(note.tags));
+    if (files) files.forEach(file => formData.append("files", file));
+    await fetch(`${API_URL}/notes`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData });
+    fetchNotes();
+  };
+
+  const updateNote = async (note: UserNote, files?: File[], deletedFiles?: string[]) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+    const formData = new FormData();
+    formData.append("title", note.title);
+    formData.append("content", note.content);
+    formData.append("tagIds", JSON.stringify(note.tags.map(t => typeof t === 'object' ? (t as any).name : t)));
+    formData.append("deletedFiles", JSON.stringify(deletedFiles || []));
+    if (files) files.forEach((f) => formData.append("files", f));
+    await fetch(`${API_URL}/notes/${note.id}`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` }, body: formData });
+    fetchNotes();
+  };
+
+  const deleteNote = async (id: string) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+    await fetch(`${API_URL}/notes/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    fetchNotes();
   };
 
   return (
@@ -245,19 +217,30 @@ const Calender = () => {
             <div className="lg:col-span-2">
               <div className="bg-white rounded-xl shadow-xl p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <button onClick={() => { setSelectedMonth(prev => prev === 0 ? 11 : prev - 1); if (selectedMonth === 0) setSelectedYear(y => y - 1); }} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><ChevronLeft className="w-5 h-5" /></button>
-                  <h2 className="text-2xl font-extrabold text-indigo-700">{monthsNames[selectedMonth]} {selectedYear + 543}</h2>
-                  <button onClick={() => { setSelectedMonth(prev => prev === 11 ? 0 : prev + 1); if (selectedMonth === 11) setSelectedYear(y => y + 1); }} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><ChevronRight className="w-5 h-5" /></button>
+                  <button onClick={handlePreviousMonth} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                    <ChevronLeft className="w-5 h-5 text-gray-600" />
+                  </button>
+                  {/* แสดงปี พ.ศ. แบบ Dynamic */}
+                  <h2 className="text-2xl font-extrabold text-indigo-700 tracking-tight">
+                    {monthsNames[selectedMonth]} {selectedYear + 543}
+                  </h2>
+                  <button onClick={handleNextMonth} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
+                    <ChevronRight className="w-5 h-5 text-gray-600" />
+                  </button>
                 </div>
 
-                <div className="grid grid-cols-7 border border-gray-200 rounded-lg overflow-hidden">
+                <div className="grid grid-cols-7 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
                   {['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].map(day => (
-                    <div key={day} className="bg-indigo-600 text-white font-semibold text-center py-3 text-sm">{day}</div>
+                    <div key={day} className="bg-indigo-600 text-white font-semibold text-center py-3 text-sm border-x border-indigo-500">
+                      {day}
+                    </div>
                   ))}
                   {renderCalendar()}
                 </div>
-                <div className="mt-4 flex flex-wrap gap-4 text-xs font-medium">
-                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-green-100 border border-green-300 rounded"></span> กำหนดการจากระบบ (เริ่ม-สิ้นสุด)</div>
+                {/* Legend */}
+                <div className="mt-6 flex flex-wrap gap-4 text-xs font-medium text-gray-500">
+                   <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-green-100 border border-green-400 rounded-sm"></span> กำหนดการทั่วไป</div>
+                   <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-indigo-50 border border-indigo-500 rounded-sm"></span> วันนี้</div>
                 </div>
               </div>
             </div>
@@ -273,9 +256,64 @@ const Calender = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal รายละเอียดกิจกรรม (คงเดิม) */}
+      {isViewModalOpen && selectedEvent && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div className="bg-indigo-600 p-4 flex justify-between items-center text-white">
+              <div className="flex items-center gap-2">
+                <Info className="w-5 h-5" />
+                <h3 className="font-bold text-lg">รายละเอียดกำหนดการ</h3>
+              </div>
+              <button onClick={() => setIsViewModalOpen(false)}><X className="w-6 h-6" /></button>
+            </div>
+            <div className="p-6 space-y-6">
+              <div>
+                <h4 className="text-2xl font-bold text-gray-800 mb-2">{selectedEvent.title}</h4>
+                <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${categoryColors[selectedEvent.category]}`}>
+                  {selectedEvent.category}
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <CalendarIcon className="w-5 h-5 text-indigo-600" />
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase">วันที่</p>
+                    <p className="text-sm font-medium text-gray-700">
+                      {selectedEvent.startDate.toLocaleDateString('th-TH', { dateStyle: 'long' })}
+                      {selectedEvent.startDate.toDateString() !== selectedEvent.endDate.toDateString() && 
+                        ` - ${selectedEvent.endDate.toLocaleDateString('th-TH', { dateStyle: 'long' })}`}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <Clock className="w-5 h-5 text-indigo-600" />
+                  <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase">เวลา</p>
+                    <p className="text-sm font-medium text-gray-700">{selectedEvent.timeRange} น.</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <AlignLeft className="w-5 h-5 text-indigo-600" />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-gray-400 uppercase">รายละเอียด</p>
+                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap mt-1 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      {selectedEvent.description || "ไม่มีรายละเอียดเพิ่มเติมสำหรับกำหนดการนี้"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <button onClick={() => setIsViewModalOpen(false)} className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all">
+                เข้าใจแล้ว
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <Footer />
     </>
   );
 }
 
-export default Calender;
+export default CalenderPage;

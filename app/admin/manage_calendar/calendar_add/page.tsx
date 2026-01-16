@@ -58,7 +58,6 @@ function Page() {
     const token = localStorage.getItem("access_token");
 
     try {
-      // แสดงสถานะกำลังโหลด
       Swal.fire({
         title: isPublished ? 'กำลังบันทึกและเผยแพร่...' : 'กำลังบันทึกแบบร่าง...',
         allowOutsideClick: false,
@@ -77,7 +76,7 @@ function Page() {
             description: event.description,
             start_time: event.startDate,
             end_time: event.endDate,
-            is_public: isPublished // แก้ไข: เปลี่ยนจาก is_published เป็น is_public ให้ตรงกับ Backend
+            is_public: isPublished
           })
         })
       );
@@ -104,7 +103,6 @@ function Page() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ตรวจสอบความถูกต้องสำหรับบันทึกปกติ (ต้องครบทุกช่อง)
     const isValid = events.every(
       (event) => event.title.trim() !== "" && event.startDate !== "" && event.endDate !== ""
     );
@@ -123,18 +121,17 @@ function Page() {
       Swal.fire("แจ้งเตือน", "กรุณาระบุชื่อกำหนดการอย่างน้อย 1 รายการเพื่อบันทึกแบบร่าง", "info");
       return;
     }
-
-    await saveSchedules(false); // บันทึกแบบร่าง (is_public: false)
+    await saveSchedules(false);
   };
-
   const handleGenerateFromPdf = async () => {
     if (!pdfFile) {
       Swal.fire("แจ้งเตือน", "กรุณาเลือกไฟล์ PDF ก่อน", "info");
       return;
     }
+    const token = localStorage.getItem("access_token");
+
     const formData = new FormData();
     formData.append("file", pdfFile);
-
     try {
       Swal.fire({
         title: 'กำลังประมวลผล...',
@@ -142,30 +139,38 @@ function Page() {
         allowOutsideClick: false,
         didOpen: () => { Swal.showLoading(); }
       });
-
-      const res = await fetch("http://localhost:5000/api/calendar/upload", {
+      const res = await fetch("http://localhost:5000/schedules/upload", {
         method: "POST",
-        body: formData,
+        headers: {
+          // 2. แนบ Token เข้าไปเพื่อให้ Guard ยอมให้ผ่าน
+          "Authorization": `Bearer ${token}`
+        },
+        body: formData, // หมายเหตุ: ไม่ต้องใส่ Content-Type: multipart/form-data เพราะ Browser จะจัดการให้เอง
       });
+
       if (!res.ok) throw new Error("Server Error");
       const data = await res.json();
       Swal.close();
 
       if (data.events && Array.isArray(data.events)) {
-        const filteredEvents = events.filter(e => e.title.trim() !== "" || e.startDate !== "");
-        const newEventsFromPdf: CalendarEvent[] = data.events.map((e: any) => ({
+        // กรองรายการที่ว่างอยู่ออก (ถ้ามี)
+        const filteredEvents = events.filter(e => e.title.trim() !== "");
+
+        const newEventsFromPdf = data.events.map((e) => ({
           id: Date.now() + Math.random(),
           title: e.title || "กำหนดการใหม่",
           description: e.description || "",
           startDate: e.startDate || "",
-          endDate: e.endDate || "",
+          endDate: e.endDate || e.startDate || "",
           file: null,
         }));
+
         setEvents([...filteredEvents, ...newEventsFromPdf]);
         setPdfFile(null);
         Swal.fire("สำเร็จ", `ดึงข้อมูลจาก PDF ได้ ${newEventsFromPdf.length} รายการ`, "success");
       }
     } catch (error) {
+      console.error(error);
       Swal.fire("ผิดพลาด", "ไม่สามารถประมวลผล PDF ได้", "error");
     }
   };
