@@ -4,6 +4,7 @@ import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect } from "react";
 import { Plus, Search, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
+import CreateItemBankModal from "./components/CreateItemBankModal";
 
 // Types
 interface Category {
@@ -37,7 +38,8 @@ function Page() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemBanks, setItemBanks] = useState<ItemBank[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc"); // desc = newest first
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [showCreateModal, setShowCreateModal] = useState(false); // desc = newest first
 
   // Fetch item banks
   useEffect(() => {
@@ -189,13 +191,13 @@ function Page() {
               </p>
             </div>
 
-            <Link
-              href="/admin/manage_examset/examadd"
+            <button
+              onClick={() => setShowCreateModal(true)}
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
             >
               <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               สร้างข้อสอบใหม่
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -300,6 +302,12 @@ function Page() {
           </div>
         )}
       </div>
+
+      <CreateItemBankModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={fetchItemBanks}
+      />
     </Navbar_admin>
   );
 }

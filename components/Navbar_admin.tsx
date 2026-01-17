@@ -66,7 +66,9 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
 
   const sidebarItems = [
     { title: "คลังข้อสอบ", href: "/admin/manage_examset" },
-    { title: "จัดการหมวดหมู่", href: "/admin/manage_category" },
+    { title: "จัดการข้อสอบแบบ CAT", href: "/admin/cat_management" },
+    { title: "จัดการประเภทข้อสอบ", href: "/admin/manage_category" },
+    { title: "จัดการหัวข้อ", href: "/admin/manage_topics" },
     { title: "ปฏิทินกำหนดการ", href: "/admin/manage_calendar" },
     { title: "บล็อกข่าวสาร", href: "/admin/mnblog" },
   ];
@@ -220,7 +222,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden lg:ml-64 xl:ml-72">
-        <header className="lg:hidden bg-white shadow-md sticky top-0 z-40">
+        <header className="lg:hidden bg-white shadow-md sticky top-0 z-50">
           <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
             <Link href="/admin" className="hover:opacity-80 transition-opacity">
               <h1 className="text-base sm:text-lg md:text-xl font-semibold text-green-700">

@@ -104,7 +104,7 @@ const Navbar = () => {
       submenu: [
         { href: '/examset/by-year', label: 'ข้อสอบโรคและระบบต่างๆ' },
         { href: '/examset/mock-exam', label: 'ข้อสอบย้อนหลัง' },
-        { href: '/user/examcat', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)' }
+        { href: '/user/cat-exam', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)' }
       ]
     },
     { href: '/user/calendar', label: 'ปฏิทินการสอบ' },

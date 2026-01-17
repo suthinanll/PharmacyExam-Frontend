@@ -28,6 +28,7 @@ interface Situation {
     situation_title: string;
     situation_text: string;
     situation_image_url?: string;
+    display_order?: number;
 }
 
 interface Question {
@@ -99,7 +100,15 @@ function TakeExam() {
 
                 // Sort questions by display_order
                 const sortedQuestions = (data.items || []).sort(
-                    (a: Question, b: Question) => a.display_order - b.display_order
+                    (a: Question, b: Question) => {
+                        // 1. Sort by Situation display_order first if it exists
+                        const sitOrderA = a.situation?.display_order ?? 999999;
+                        const sitOrderB = b.situation?.display_order ?? 999999;
+                        if (sitOrderA !== sitOrderB) return sitOrderA - sitOrderB;
+
+                        // 2. Then sort by question display_order within same situation
+                        return (a.display_order || 0) - (b.display_order || 0);
+                    }
                 );
                 setQuestions(sortedQuestions);
 
@@ -215,8 +224,16 @@ function TakeExam() {
                 // Redirect to result page
                 router.push(`/user/examset/take-exam/summarize-exam?session_id=${sessionId}`);
             } else {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'ไม่สามารถส่งข้อสอบได้');
+                // Try to parse error message
+                let errorMessage = 'ไม่สามารถส่งข้อสอบได้';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.message || errorMessage;
+                } catch (e) {
+                    // If response is not JSON, use status text
+                    errorMessage = `Server Error: ${response.status} ${response.statusText}`;
+                }
+                throw new Error(errorMessage);
             }
         } catch (error: any) {
             console.error('Error submitting exam:', error);
@@ -322,14 +339,6 @@ function TakeExam() {
 
             <div className="min-h-screen bg-gray-50 py-6">
                 <div className="container mx-auto px-4">
-                    {/* Breadcrumb */}
-                    <div className="flex items-center text-sm text-gray-500 mb-4">
-                        <Link href="/user" className="hover:text-blue-600">หน้าหลัก</Link>
-                        <span className="mx-2">›</span>
-                        <Link href="/user/examset" className="hover:text-blue-600">คลังข้อสอบ</Link>
-                        <span className="mx-2">›</span>
-                        <span className="text-gray-700 font-medium">{itemBank.bank_name}</span>
-                    </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Main Content - Left Side */}
@@ -337,11 +346,11 @@ function TakeExam() {
                             <div className="bg-white rounded-lg shadow-md p-6">
                                 {/* Situation (if exists) */}
                                 {currentQuestion.situation && (
-                                    <div className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
-                                        <h3 className="font-bold text-blue-900 mb-2">
+                                    <div className="mb-6 p-4 pt-0 pb-0 border-l-4 border-gray-400">
+                                        <h3 className="font-bold text-gray-800 mb-3 text-lg">
                                             {currentQuestion.situation.situation_title}
                                         </h3>
-                                        <p className="text-blue-800 text-sm whitespace-pre-wrap">
+                                        <p className="text-gray-700 text-base whitespace-pre-wrap leading-relaxed">
                                             {currentQuestion.situation.situation_text}
                                         </p>
                                         {currentQuestion.situation.situation_image_url && (
@@ -358,15 +367,15 @@ function TakeExam() {
                                 <div className="mb-6">
                                     <div className="flex items-start gap-3 mb-4">
                                         <div className="flex-1">
-                                            <h2 className="font-bold text-gray-800 mb-2">
+                                            <h2 className="font-bold text-gray-800">
                                                 คำถามที่ {currentQuestionIndex + 1}
                                             </h2>
                                             {currentQuestion.sub_topics && currentQuestion.sub_topics.length > 0 && (
-                                                <div className="flex flex-wrap gap-2 mb-3">
+                                                <div className="flex flex-wrap gap-2">
                                                     {currentQuestion.sub_topics.map((st) => (
                                                         <span
                                                             key={st.sub_topic_id}
-                                                            className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full"
+                                                            className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full"
                                                         >
                                                             {st.sub_topic_name}
                                                         </span>
