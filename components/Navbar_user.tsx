@@ -1,5 +1,4 @@
 "use client";
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { global } from 'styled-jsx/css';
 import Link from 'next/link';
@@ -40,9 +39,18 @@ const Navbar = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('http://localhost:5000/auth/me', {
-          credentials: 'include',
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          setUser(null);
+          return;
+        }
+
+        const res = await fetch("http://localhost:5000/auth/me", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
+
         if (res.ok) {
           const data = await res.json();
           setUser(data);
@@ -70,10 +78,7 @@ const Navbar = () => {
 
     if (result.isConfirmed) {
       try {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          credentials: 'include',
-        });
+        sessionStorage.removeItem("token");
 
         await Swal.fire({
           icon: 'success',
@@ -93,6 +98,7 @@ const Navbar = () => {
       }
     }
   };
+
 
   const navItems = [
     { href: '/user', label: 'เภสัชพร้อมสอบ' },
@@ -165,6 +171,7 @@ const Navbar = () => {
       setMobileSubmenuOpen(false);
     }
   }, [isMobileMenuOpen]);
+
   return (
     <nav className="shadow-lg sticky top-0 z-50">
       <div className="mx-auto max-w-7xl px-2 sm:px-4 md:px-6 lg:px-8">

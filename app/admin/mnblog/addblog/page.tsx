@@ -3,34 +3,33 @@
 
 import Navbar_admin from "@/components/Navbar_admin";
 import Link from "next/link";
-import { ChevronLeft, Save, Upload, Zap, Trash2, Loader2 } from "lucide-react";
+import { ChevronLeft, Save, Zap, Trash2, Loader2, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { useState } from "react";
-// สมมติว่าคุณมี Text Editor component เช่น Tiptap/Quill/Lexical
+import { useRouter } from "next/navigation";
 
-// Interface สำหรับข้อมูลฟอร์ม
 interface BlogFormData {
     title: string;
-    imageUrl: string | null;
-    content: string; // อาจเป็น HTML/JSON string จาก Editor
+    imageUrl: string;
+    content: string;
+    author_id: number;
+    categoryIds: number[];
 }
 
-// Dummy Text Editor Component (ไม่มีการเปลี่ยนแปลง)
 const DummyTextEditor = ({ content, setContent, isGenerating }: {
     content: string,
     setContent: (c: string) => void,
     isGenerating: boolean
 }) => {
     return (
-        <div className={`border rounded-lg p-4 min-h-[300px] transition-colors ${isGenerating ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'
-            }`}>
+        <div className={`border rounded-lg p-4 min-h-[300px] transition-colors ${isGenerating ? 'bg-yellow-50 border-yellow-300' : 'bg-white border-gray-200'}`}>
             {isGenerating ? (
                 <div className="flex flex-col items-center justify-center h-[200px] text-yellow-600">
                     <Loader2 className="w-6 h-6 animate-spin mb-3" />
-                    <p>กำลังดึงข้อมูลข่าวสาร...</p>
+                    <p>กำลังประมวลผลเนื้อหาข่าว...</p>
                 </div>
             ) : (
                 <textarea
-                    className="w-full h-full p-0 border-none focus:ring-0 resize-none text-gray-700 placeholder-gray-400 min-h-[280px]"
+                    className="w-full h-full p-0 border-none focus:ring-0 resize-none text-gray-700 placeholder-gray-400 min-h-[280px] outline-none"
                     placeholder="ใส่รายละเอียดและเนื้อหาข่าวสารที่นี่..."
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
@@ -40,13 +39,16 @@ const DummyTextEditor = ({ content, setContent, isGenerating }: {
     );
 };
 
-
 function AddBlogPage() {
+    const router = useRouter();
     const [formData, setFormData] = useState<BlogFormData>({
         title: '',
-        imageUrl: null,
+        imageUrl: '',
         content: '',
+        author_id: 10, // กำหนดค่า default ตาม Backend
+        categoryIds: [1],
     });
+    
     const [isSaving, setIsSaving] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -54,244 +56,181 @@ function AddBlogPage() {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleContentChange = (content: string) => {
-        setFormData({ ...formData, content });
-    };
-
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            const file = e.target.files[0];
-            const fakeUrl = URL.createObjectURL(file); 
-            setFormData({ ...formData, imageUrl: fakeUrl });
-        }
-    };
-
-    const handleRemoveImage = () => {
-        setFormData({ ...formData, imageUrl: null });
-    };
-
+    // 🤖 ฟังก์ชันดึงข้อมูลอัตโนมัติ (Mock API Fetch)
     const handleAutoGenerate = async () => {
         setIsGenerating(true);
-        console.log("Calling external API to fetch news content...");
-
         try {
-            const response = await fetch('/api/news/latest', {
-                method: 'GET',
-            });
-
-            if (!response.ok) {
-                throw new Error(`Fetch failed with status: ${response.status}`);
-            }
+            const response = await fetch('http://localhost:5000/news/latest'); // ปรับ Endpoint ตามจริง
+            if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
 
             const data = await response.json();
-
-            // ตรวจสอบโครงสร้างข้อมูลที่ดึงมา
-            if (!data.title || !data.content) {
-                throw new Error("API response is missing required fields (title or content).");
-            }
-
             setFormData({
                 ...formData,
-                title: data.title,
-                content: data.content,
-                // ใช้ data.imageUrl ถ้ามี
-                imageUrl: data.imageUrl || null
+                title: data.title || 'กำลังอัปเดตข่าวสารใหม่...',
+                content: data.content || 'รายละเอียดข่าวสารกำลังถูกจัดเตรียม...',
+                imageUrl: data.cover_image_url || 'https://images.unsplash.com/photo-1587854692152-cbe660dbbb88?q=80&w=2070&auto=format&fit=crop'
             });
-
-            // ใน handleAutoGenerate
         } catch (error) {
-            console.error("Error fetching news:", error);
-
-            // 💡 การแก้ไข: ใช้ Type Assertion เพื่อให้เข้าถึง .message ได้
-            const errorMessage = (error instanceof Error) ? error.message : "Unknown error occurred.";
-
-            alert(`ไม่สามารถดึงข้อมูลข่าวสารอัตโนมัติได้: ${errorMessage}`);
+            console.error(error);
+            alert("ไม่สามารถดึงข้อมูลอัตโนมัติได้ในขณะนี้");
         } finally {
             setIsGenerating(false);
         }
     };
 
+    // 💾 ฟังก์ชันบันทึกข้อมูล
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
         if (!formData.title || !formData.content) {
-            alert("กรุณากรอกชื่อบล็อกและเนื้อหา");
+            alert("กรุณากรอกชื่อหัวข้อและเนื้อหาข่าวสาร");
             return;
         }
 
         setIsSaving(true);
-
         try {
-            const response = await fetch('/api/admin/blog', { // สมมติว่าใช้ API นี้ในการบันทึก
+            const token = localStorage.getItem('access_token');
+            const response = await fetch('http://localhost:5000/news', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify({
+                    title: formData.title,
+                    content: formData.content,
+                    cover_image_url: formData.imageUrl,
+                    author_id: formData.author_id,
+                    categoryIds: formData.categoryIds,
+                    status: 'PUBLISHED'
+                }),
             });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `บันทึกไม่สำเร็จ, สถานะ: ${response.status}`);
-            }
+            if (!response.ok) throw new Error("เกิดข้อผิดพลาดในการบันทึก");
 
-            // การบันทึกสำเร็จ
-            alert("บันทึกบล็อกข่าวสารเรียบร้อย!");
-            // router.push('/admin/mnblog'); 
-
-        } catch (error) {
-            console.error("Error fetching news:", error);
-
-            const errorMessage = (error instanceof Error) ? error.message : "Unknown error occurred.";
-
-            alert(`ไม่สามารถดึงข้อมูลข่าวสารอัตโนมัติได้: ${errorMessage}`);
+            alert("บันทึกข่าวสารเรียบร้อยแล้ว!");
+            router.push('/admin/mnblog');
+        } catch (error: any) {
+            alert(error.message);
         } finally {
-            // ...
             setIsSaving(false);
         }
     };
 
-
     return (
         <Navbar_admin>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
-                <div className="flex justify-between items-center pb-4 mb-6">
-                    <Link
-                        href="/admin/mnblog"
-                        className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors"
-                    >
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-20">
+                {/* Header Action Bar */}
+                <div className="flex justify-between items-center pb-4 mb-6 border-b border-gray-100">
+                    <Link href="/admin/mnblog" className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors">
                         <ChevronLeft className="w-5 h-5" />
                         <span className="text-sm font-medium">กลับ</span>
                     </Link>
 
-                    <h2 className="text-xl font-semibold text-gray-800">
-                        เพิ่มบล็อกข่าวสารใหม่
-                    </h2>
+                    <h2 className="text-xl font-semibold text-gray-800 hidden sm:block">เพิ่มบล็อกข่าวสารใหม่</h2>
 
                     <button
                         onClick={handleSubmit}
-                        disabled={isSaving || isGenerating || !formData.title || !formData.content}
-                        className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg text-white transition-colors shadow-md ${isSaving || isGenerating ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'
-                            }`}
+                        disabled={isSaving || isGenerating || !formData.title}
+                        className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg text-white transition-all shadow-md ${
+                            isSaving || isGenerating ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'
+                        }`}
                     >
-                        {isSaving ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                            <Save className="w-5 h-5" />
-                        )}
-                        <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึก'}</span>
+                        {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                        <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกข่าวสาร'}</span>
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-8">
-                    <div className="bg-white p-6 rounded-xl shadow-lg">
-                        <label htmlFor="blog-title" className="block text-sm font-medium text-gray-700 mb-2">
-                            ชื่อบล็อก
-                        </label>
+                <div className="space-y-6">
+                    {/* หัวข้อข่าว */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">หัวข้อข่าวสาร</label>
                         <input
-                            id="blog-title"
                             name="title"
                             type="text"
                             value={formData.title}
                             onChange={handleInputChange}
-                            placeholder="เช่น บล็อกข่าวสารการสอบใบประกอบวิชาชีพปี 2567"
-                            className="mt-1 block w-full border border-gray-300 rounded-lg shadow-sm p-3 text-base focus:border-green-500 focus:ring-green-500"
-                            required
+                            placeholder="ระบุหัวข้อที่ดึงดูดความสนใจ..."
+                            className="w-full border border-gray-300 rounded-lg p-3.5 focus:ring-2 focus:ring-green-500 outline-none transition-all text-lg font-medium"
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
-                                ภาพข่าวสาร
-                            </label>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* จัดการรูปภาพผ่าน URL */}
+                        <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">ลิงก์รูปภาพหน้าปก (Image URL)</label>
+                            
+                            <div className="relative mb-4">
+                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    name="imageUrl"
+                                    type="text"
+                                    value={formData.imageUrl}
+                                    onChange={handleInputChange}
+                                    placeholder="วางลิงก์รูปภาพ https://..."
+                                    className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                                />
+                            </div>
 
-                            {formData.imageUrl ? (
-                                <div className="relative border border-gray-300 rounded-lg overflow-hidden h-60">
-                                    <img
-                                        src={formData.imageUrl}
-                                        alt="Blog Cover Preview"
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={handleRemoveImage}
-                                        className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors shadow-lg"
-                                        aria-label="ลบรูปภาพ"
-                                    >
-                                        <Trash2 className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50 h-60 flex flex-col items-center justify-center">
-                                    <input
-                                        id="file-upload"
-                                        name="file-upload"
-                                        type="file"
-                                        className="sr-only"
-                                        onChange={handleImageUpload}
-                                        accept="image/*"
-                                    />
-                                    <label
-                                        htmlFor="file-upload"
-                                        className="cursor-pointer flex flex-col items-center justify-center text-gray-600 hover:text-green-600 transition-colors"
-                                    >
-                                        <Upload className="w-8 h-8 mb-2" />
-                                        <span className="text-sm font-medium">เพิ่มรูปภาพข่าวสาร</span>
-                                        <span className="text-xs text-gray-500 mt-1">คลิกเพื่ออัปโหลด (แนะนำ 1200x600px)</span>
-                                    </label>
-                                </div>
-                            )}
+                            {/* Preview Window */}
+                            <div className="relative border-2 border-dashed border-gray-200 rounded-xl overflow-hidden aspect-[16/9] bg-gray-50 flex flex-col items-center justify-center">
+                                {formData.imageUrl ? (
+                                    <>
+                                        <img
+                                            src={formData.imageUrl}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/800x450/eeeeee/999999?text=Invalid+Image+URL"; }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({...formData, imageUrl: ''})}
+                                            className="absolute top-3 right-3 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-xl transition-all"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="text-center text-gray-400">
+                                        <ImageIcon className="w-14 h-14 mx-auto mb-3 opacity-20" />
+                                        <p className="text-sm font-medium">รอการแสดงตัวอย่างรูปภาพจากลิงก์ของคุณ...</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
-                        {/* AI Generator Button (เปลี่ยนข้อความให้สื่อถึงการดึงข้อมูล) */}
-                        <div className="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg flex flex-col justify-center items-center text-center">
-                            <Zap className="w-10 h-10 text-green-600 mb-3" />
-                            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                                ดึงข้อมูลข่าวสารอัตโนมัติ
-                            </h3>
-                            <p className="text-sm text-gray-500 mb-4">
-                                ดึงข้อมูลล่าสุด (หัวข้อ/รายละเอียด/ภาพ) จากระบบข่าวสาร
+                        {/* ปุ่ม AI ดึงข้อมูลด่วน */}
+                        <div className="lg:col-span p-8 rounded-xl shadow-lg flex flex-col justify-center items-center text-center text-black">
+                            <div className="bg-gray-100 p-4 rounded-full mb-4 backdrop-blur-sm">
+                                <Zap className="w-10 h-10 text-yellow-300 fill-yellow-300" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-2">Smart Auto-Fetch</h3>
+                            <p className="text-sm text-black-100 mb-8 leading-relaxed">
+                                ช่วยคุณเขียนข่าวได้ไวขึ้น 10 เท่า! <br /> ดึงข้อมูลและรูปภาพจากระบบล่าสุดมาให้อัตโนมัติ
                             </p>
                             <button
                                 type="button"
                                 onClick={handleAutoGenerate}
                                 disabled={isGenerating}
-                                className={`inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-medium rounded-full transition-colors shadow-md w-full max-w-[200px] ${isGenerating ? 'bg-yellow-400 text-gray-700 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'
-                                    }`}
+                                className={`flex items-center justify-center gap-2 px-8 py-4 text-sm font-normal rounded-full transition-all w-full shadow-2xl ${
+                                    isGenerating ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 active:scale-95 cursor-pointer'
+                                }`}
                             >
-                                {isGenerating ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        <span>กำลังดึง...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Zap className="w-4 h-4" />
-                                        <span>ดึงข่าวสาร</span>
-                                    </>
-                                )}
+                                {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
+                                {isGenerating ? 'กำลังโหลดข่าว...' : 'ดึงข้อมูลอัตโนมัติ'}
                             </button>
                         </div>
                     </div>
 
-                    {/* 3. Blog Content (Text Editor) (เหมือนเดิม) */}
-                    <div className="bg-white p-6 rounded-xl shadow-lg">
-                        <label className="block text-sm font-medium text-gray-700 mb-3">
-                            เนื้อหาบล็อกข่าวสาร
-                        </label>
+                    {/* เนื้อหาข่าว */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">รายละเอียดเนื้อหาข่าวสาร</label>
                         <DummyTextEditor
                             content={formData.content}
-                            setContent={handleContentChange}
+                            setContent={(c) => setFormData({...formData, content: c})}
                             isGenerating={isGenerating}
                         />
-                        <p className="text-xs text-gray-500 mt-2">
-                            *ในโค้ดจริงให้แทนที่ **DummyTextEditor** ด้วย Rich Text Editor (เช่น React-Quill, TipTap)
-                        </p>
                     </div>
-
-                </form>
-
+                </div>
             </div>
         </Navbar_admin>
     );

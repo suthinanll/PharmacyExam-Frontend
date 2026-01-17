@@ -4,6 +4,7 @@ import Navbar_admin from "@/components/Navbar_admin";
 import { useState } from "react";
 import { ChevronLeft, Plus, X, Calendar } from "lucide-react";
 import Link from "next/link";
+import Swal from "sweetalert2";
 
 interface CalendarEvent {
   id: number;
@@ -25,7 +26,6 @@ function Page() {
       file: null,
     },
   ]);
-  // State ใหม่สำหรับเก็บไฟล์ PDF ที่อัปโหลดรอการประมวลผล
   const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   const addNewEvent = () => {
@@ -46,7 +46,6 @@ function Page() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateEvent = (id: number, field: keyof CalendarEvent, value: any) => {
     setEvents(
       events.map((event) =>
@@ -55,88 +54,130 @@ function Page() {
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const saveSchedules = async (isPublished: boolean) => {
+    const token = localStorage.getItem("access_token");
+
+    try {
+      Swal.fire({
+        title: isPublished ? 'กำลังบันทึกและเผยแพร่...' : 'กำลังบันทึกแบบร่าง...',
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      const promises = events.map(event =>
+        fetch("http://localhost:5000/schedules", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            title: event.title,
+            description: event.description,
+            start_time: event.startDate,
+            end_time: event.endDate,
+            is_public: isPublished
+          })
+        })
+      );
+
+      const responses = await Promise.all(promises);
+      const allOk = responses.every(res => res.ok);
+
+      if (allOk) {
+        await Swal.fire({
+          icon: 'success',
+          title: isPublished ? 'บันทึกและเผยแพร่สำเร็จ' : 'บันทึกแบบร่างสำเร็จ',
+          text: `จัดการ ${events.length} รายการเรียบร้อยแล้ว`,
+          confirmButtonColor: '#16a34a'
+        });
+        window.location.href = "/admin/manage_calendar";
+      } else {
+        throw new Error("บางรายการไม่สามารถบันทึกได้");
+      }
+    } catch (error) {
+      console.error("Save Error:", error);
+      Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่", "error");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ตรวจสอบข้อมูล
     const isValid = events.every(
-      (event) =>
-        event.title.trim() !== "" &&
-        event.startDate !== "" &&
-        event.endDate !== ""
+      (event) => event.title.trim() !== "" && event.startDate !== "" && event.endDate !== ""
     );
 
     if (!isValid) {
-      alert("กรุณากรอกข้อมูลให้ครบถ้วน (ชื่อกำหนดการ และวันที่)");
+      Swal.fire("ข้อมูลไม่ครบ", "กรุณากรอกชื่อและวันที่ให้ครบทุกรายการก่อนบันทึกจริง", "warning");
       return;
     }
 
-    // ส่งข้อมูลไปยัง API
-    console.log("Events to submit:", events);
-    alert("บันทึกกำหนดการเรียบร้อยแล้ว");
+    await saveSchedules(true);
   };
 
-  const handleSaveDraft = () => {
-    console.log("Save as draft:", events);
-    alert("บันทึกแบบร่างเรียบร้อยแล้ว");
+  const handleSaveDraft = async () => {
+    const hasTitle = events.some(event => event.title.trim() !== "");
+    if (!hasTitle) {
+      Swal.fire("แจ้งเตือน", "กรุณาระบุชื่อกำหนดการอย่างน้อย 1 รายการเพื่อบันทึกแบบร่าง", "info");
+      return;
+    }
+    await saveSchedules(false);
   };
-
-  // ฟังก์ชันใหม่สำหรับประมวลผล PDF และเพิ่มกำหนดการอัตโนมัติ
   const handleGenerateFromPdf = async () => {
     if (!pdfFile) {
-      alert("กรุณาเลือกไฟล์ PDF ก่อน");
+      Swal.fire("แจ้งเตือน", "กรุณาเลือกไฟล์ PDF ก่อน", "info");
       return;
     }
+    const token = localStorage.getItem("access_token");
 
     const formData = new FormData();
     formData.append("file", pdfFile);
-
     try {
-      // แสดงสถานะกำลังโหลด
-      alert("กำลังประมวลผลไฟล์ PDF...");
-
-      // เรียก API เพื่อประมวลผล
-      const res = await fetch("http://localhost:5000/api/calendar/upload", {
+      Swal.fire({
+        title: 'กำลังประมวลผล...',
+        text: 'AI กำลังอ่านข้อมูลจาก PDF ของคุณ',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+      const res = await fetch("http://localhost:5000/schedules/upload", {
         method: "POST",
-        body: formData,
+        headers: {
+          // 2. แนบ Token เข้าไปเพื่อให้ Guard ยอมให้ผ่าน
+          "Authorization": `Bearer ${token}`
+        },
+        body: formData, // หมายเหตุ: ไม่ต้องใส่ Content-Type: multipart/form-data เพราะ Browser จะจัดการให้เอง
       });
 
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
+      if (!res.ok) throw new Error("Server Error");
       const data = await res.json();
+      Swal.close();
 
       if (data.events && Array.isArray(data.events)) {
-        // กรองกำหนดการแรกออกถ้าว่างเปล่าก่อนเพิ่มรายการใหม่
-        const filteredEvents = events.filter(e => e.title.trim() !== "" || e.startDate !== "");
+        // กรองรายการที่ว่างอยู่ออก (ถ้ามี)
+        const filteredEvents = events.filter(e => e.title.trim() !== "");
 
-        // เพิ่มกำหนดการที่ได้จาก PDF
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const newEventsFromPdf: CalendarEvent[] = data.events.map((e: any) => ({
-          id: Date.now() + Math.random(), // ใช้ ID ที่ไม่ซ้ำกัน
+        const newEventsFromPdf = data.events.map((e) => ({
+          id: Date.now() + Math.random(),
           title: e.title || "กำหนดการใหม่",
           description: e.description || "",
           startDate: e.startDate || "",
-          endDate: e.endDate || "",
+          endDate: e.endDate || e.startDate || "",
           file: null,
         }));
 
         setEvents([...filteredEvents, ...newEventsFromPdf]);
-        setPdfFile(null); // เคลียร์ไฟล์หลังจากประมวลผล
-        alert(`เพิ่มกำหนดการจาก PDF สำเร็จ (${newEventsFromPdf.length} รายการ)`);
-      } else {
-        alert("ไม่พบกำหนดการในไฟล์ PDF หรือข้อมูลไม่ถูกต้อง");
+        setPdfFile(null);
+        Swal.fire("สำเร็จ", `ดึงข้อมูลจาก PDF ได้ ${newEventsFromPdf.length} รายการ`, "success");
       }
     } catch (error) {
-      console.error("Error processing PDF:", error);
-      alert("เกิดข้อผิดพลาดในการประมวลผลไฟล์ PDF");
+      console.error(error);
+      Swal.fire("ผิดพลาด", "ไม่สามารถประมวลผล PDF ได้", "error");
     }
   };
 
-
   return (
     <Navbar_admin>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 pb-20">
         <div className="mb-6">
           <Link
             href="/admin/manage_calendar"
@@ -148,12 +189,8 @@ function Page() {
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-2">
-                เพิ่มกำหนดการณ์
-              </h1>
-              <p className="text-sm sm:text-base text-gray-600">
-                จัดการเพิ่มกำหนดการณ์ เพิ่ม แก้ไข ลบ
-              </p>
+              <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-2">เพิ่มกำหนดการ</h1>
+              <p className="text-sm sm:text-base text-gray-600">จัดการเพิ่ม แก้ไข หรือบันทึกแบบร่างกำหนดการสอบ</p>
             </div>
 
             <div className="flex gap-2">
@@ -170,94 +207,45 @@ function Page() {
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm"
               >
                 <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                เพิ่มกำหนดการ
+                เพิ่มช่องใหม่
               </button>
             </div>
           </div>
         </div>
 
+        {/* ส่วน PDF Upload */}
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            อัปโหลดปฏิทิน PDF เพื่อสร้างกำหนดการอัตโนมัติ
-          </h3>
-
-          <div className="sm:flex-row gap-4 items-end">
-            {/* Input & File Info */}
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">อัปโหลดปฏิทิน PDF เพื่อสร้างกำหนดการอัตโนมัติ</h3>
+          <div className="flex flex-col sm:flex-row gap-4 items-end">
             <div className="flex-grow w-full">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                เลือกไฟล์ปฏิทิน PDF
-              </label>
-
-              {/* กล่องอัปโหลดแบบ label + input hidden */}
               <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all">
                 <div className="text-center">
                   <Calendar className="mx-auto h-10 w-10 text-green-500 mb-2" />
                   <p className="text-sm text-gray-700">
-                    {pdfFile ? (
-                      <>
-                        📄 <span className="font-medium text-green-700">{pdfFile.name}</span>
-                        <span className="text-gray-500 ml-1">
-                          ({(pdfFile.size / 1024).toFixed(1)} KB)
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        คลิกเพื่อเลือกไฟล์
-                      </>
-                    )}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1">
-                    รองรับเฉพาะ PDF (สูงสุด 10MB)
+                    {pdfFile ? <span className="font-medium text-green-700">{pdfFile.name}</span> : "คลิกเพื่อเลือกไฟล์ PDF"}
                   </p>
                 </div>
-                <input
-                  type="file"
-                  accept=".pdf"
-                  onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
-                  className="hidden"
-                />
+                <input type="file" accept=".pdf" onChange={(e) => setPdfFile(e.target.files?.[0] || null)} className="hidden" />
               </label>
             </div>
-
             <button
               type="button"
               onClick={handleGenerateFromPdf}
               disabled={!pdfFile}
-              className={`mt-5 ml-auto flex-shrink-0 flex items-center  gap-2 px-6 py-3 rounded-lg font-medium text-sm sm:text-base w-full sm:w-auto transition-colors ${pdfFile
-                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-                : "bg-gray-300 text-gray-600 cursor-not-allowed"
-                }`}
+              className={`flex-shrink-0 flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-colors w-full sm:w-auto ${pdfFile ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm" : "bg-gray-200 text-gray-400 cursor-not-allowed"}`}
             >
-              <Calendar className="w-5 h-5" />
-              สร้างกำหนดการอัตโนมัติ
+              ประมวลผล PDF
             </button>
-
-
           </div>
         </div>
 
-
-        {/* ------------------------------------------------------------- */}
-
-
-        {/* Form Section */}
         <form onSubmit={handleSubmit} className="space-y-6">
           {events.map((event, index) => (
-            <div
-              key={event.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6"
-            >
+            <div key={event.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 relative group">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  กำหนดการที่ {index + 1}
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900">กำหนดการที่ {index + 1}</h3>
                 {events.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeEvent(event.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                    aria-label="ลบกำหนดการ"
-                  >
+                  <button type="button" onClick={() => removeEvent(event.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
                     <X className="w-5 h-5" />
                   </button>
                 )}
@@ -265,97 +253,45 @@ function Page() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ชื่อกำหนดการณ์ <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อกำหนดการ <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     value={event.title}
-                    onChange={(e) =>
-                      updateEvent(event.id, "title", e.target.value)
-                    }
-                    placeholder="เช่น ทำแบบทดสอบหน้าแรก"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm sm:text-base"
-                    required
+                    onChange={(e) => updateEvent(event.id, "title", e.target.value)}
+                    placeholder="เช่น สอบกลางภาควิชาคณิตศาสตร์"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition-all"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    รายละเอียด
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">รายละเอียด</label>
                   <textarea
                     value={event.description}
-                    onChange={(e) =>
-                      updateEvent(event.id, "description", e.target.value)
-                    }
-                    placeholder="รายละเอียดเกี่ยวกับกำหนดการณ์"
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm sm:text-base resize-none"
+                    onChange={(e) => updateEvent(event.id, "description", e.target.value)}
+                    placeholder="รายละเอียดเพิ่มเติม..."
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none transition-all resize-none"
                   />
-                  <div className="text-right mt-1">
-                    <span className="text-xs text-gray-500">
-                      {event.description.length}/500
-                    </span>
-                  </div>
                 </div>
-
-                {/* Date Fields */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      วันที่เริ่มต้น <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={event.startDate}
-                        onChange={(e) =>
-                          updateEvent(event.id, "startDate", e.target.value)
-                        }
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm sm:text-base"
-                        required
-                      />
-                      <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                    </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">วันที่เริ่มต้น</label>
+                    <input type="date" value={event.startDate} onChange={(e) => updateEvent(event.id, "startDate", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500" />
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      วันที่สิ้นสุด <span className="text-red-500">*</span>
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="date"
-                        value={event.endDate}
-                        onChange={(e) =>
-                          updateEvent(event.id, "endDate", e.target.value)
-                        }
-                        min={event.startDate}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all text-sm sm:text-base"
-                        required
-                      />
-                      <Calendar className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                    </div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">วันที่สิ้นสุด</label>
+                    <input type="date" min={event.startDate} value={event.endDate} onChange={(e) => updateEvent(event.id, "endDate", e.target.value)} className="w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:ring-2 focus:ring-green-500" />
                   </div>
                 </div>
               </div>
             </div>
           ))}
 
-          {/* Submit Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-end sticky bottom-0 bg-gray-50 py-4 border-t border-gray-200">
-            <Link
-              href="/admin/manage_calendar"
-              className="px-6 py-3 border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium text-center"
-            >
+          <div className="p-4 z-10 flex justify-end gap-3">
+            <Link href="/admin/manage_calendar" className="px-6 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg font-medium transition-colors">
               ยกเลิก
             </Link>
-            <button
-              type="submit"
-              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-medium shadow-sm"
-            >
-              บันทึกกำหนดการ ({events.length} รายการ)
+            <button type="submit" className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium shadow-md transition-all active:scale-95">
+              บันทึกและเผยแพร่ ({events.length} รายการ)
             </button>
           </div>
         </form>
