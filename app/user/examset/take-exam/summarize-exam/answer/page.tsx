@@ -5,6 +5,7 @@ import Navbar_user from "@/components/Navbar_user"
 import Footer from "@/components/Footer"
 import Link from "next/link"
 import { CheckCircle, XCircle, BookOpen, ChevronRight, Loader2, AlertCircle, BarChart3, TrendingUp, X, List } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Types
 interface AnswerOption {
@@ -57,6 +58,7 @@ const API_URL = 'http://localhost:5000';
 
 const AnswerPage = () => {
     const searchParams = useSearchParams();
+    const { getToken } = useAuth();
     const sessionId = searchParams.get('session_id');
 
     const [examResult, setExamResult] = useState<ExamResult | null>(null);
@@ -115,8 +117,11 @@ const AnswerPage = () => {
     const fetchExamResult = async () => {
         setLoading(true);
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/exam/${sessionId}/result`, {
-                credentials: 'include'
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             if (response.ok) {
@@ -136,8 +141,11 @@ const AnswerPage = () => {
     const fetchQuestionStats = async (itemId: number) => {
         setLoadingStats(true);
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/mastery/${itemId}`, {
-                credentials: 'include'
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             if (response.ok) {

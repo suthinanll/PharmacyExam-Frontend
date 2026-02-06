@@ -8,6 +8,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Loader2, BookOpen, Clock } from "lucide-react"
 import Swal from "sweetalert2"
+import { useAuth } from '@/contexts/AuthContext'
 
 // Types
 interface Category {
@@ -30,6 +31,7 @@ const API_URL = 'http://localhost:5000';
 
 const examset = () => {
   const router = useRouter();
+  const { getToken } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [itemBanks, setItemBanks] = useState<ItemBank[]>([]);
   const [filteredBanks, setFilteredBanks] = useState<ItemBank[]>([]);
@@ -65,8 +67,11 @@ const examset = () => {
 
   const fetchCategories = async () => {
     try {
+      const token = getToken();
       const response = await fetch(`${API_URL}/categories`, {
-        credentials: 'include'
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       if (response.ok) {
         const data = await response.json();
@@ -79,8 +84,11 @@ const examset = () => {
 
   const fetchItemBanks = async () => {
     try {
+      const token = getToken();
       const response = await fetch(`${API_URL}/items-bank`, {
-        credentials: 'include'
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       if (response.ok) {
         const data = await response.json();
@@ -120,8 +128,11 @@ const examset = () => {
 
     setSearching(true);
     try {
+      const token = getToken();
       const response = await fetch(`${API_URL}/items-bank/search?q=${encodeURIComponent(query)}`, {
-        credentials: 'include'
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
 
       if (response.ok) {
@@ -168,10 +179,13 @@ const examset = () => {
     setStartingExam(itemBankId);
 
     try {
+      const token = getToken();
       const response = await fetch(`${API_URL}/items-bank/exam/start`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           item_bank_id: itemBankId
         })

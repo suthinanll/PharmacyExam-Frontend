@@ -6,6 +6,7 @@ import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import Swal from 'sweetalert2';
 import { Loader2, BookOpen, Clock, AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Types
 interface AnswerOption {
@@ -58,6 +59,7 @@ const API_URL = 'http://localhost:5000';
 function TakeExam() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { getToken } = useAuth();
     const sessionId = searchParams.get('session_id');
     const itemBankId = searchParams.get('id');
 
@@ -90,8 +92,11 @@ function TakeExam() {
     const fetchExamData = async () => {
         setLoading(true);
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/${itemBankId}/items`, {
-                credentials: 'include'
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             if (response.ok) {
@@ -201,10 +206,13 @@ function TakeExam() {
             });
 
             // Submit to API
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/exam/${sessionId}/submit`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ answers: answersArray })
             });
 

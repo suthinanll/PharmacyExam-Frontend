@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import { ChevronRight, Loader2, AlertCircle, ChevronDown, ChevronUp, BarChart3, TrendingUp, Target, Award, AlertTriangle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import {
     Radar,
     RadarChart,
@@ -59,6 +60,7 @@ const API_URL = 'http://localhost:5000';
 function Summarize() {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { getToken } = useAuth();
     const sessionId = searchParams.get('session_id');
 
     const [examResult, setExamResult] = useState<ExamResult | null>(null);
@@ -78,8 +80,11 @@ function Summarize() {
     const fetchExamResult = async () => {
         setLoading(true);
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/exam/${sessionId}/result`, {
-                credentials: 'include'
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
 
             if (response.ok) {
