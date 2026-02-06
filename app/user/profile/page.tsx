@@ -6,8 +6,10 @@ import { User, Mail, Phone, Loader2, Edit3, Save, X, School } from "lucide-react
 import { useState, useEffect } from 'react';
 import Swal from "sweetalert2";
 import Link from "next/link";
+import { useAuth } from '@/contexts/AuthContext';
 
 const Profile = () => {
+    const { getToken } = useAuth();
     const [user, setUser] = useState<{
         first_name: string,
         last_name: string,
@@ -30,7 +32,7 @@ const Profile = () => {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const token = localStorage.getItem("access_token");
+                const token = getToken();
                 if (!token) return;
                 const res = await fetch("http://localhost:5000/auth/me", {
                     headers: { Authorization: `Bearer ${token}` },
@@ -44,7 +46,7 @@ const Profile = () => {
             }
         };
         fetchUser();
-    }, []);
+    }, [getToken]);
 
     useEffect(() => {
         if (user) {
@@ -80,7 +82,7 @@ const Profile = () => {
         setIsLoading(true);
 
         try {
-            const token = localStorage.getItem("access_token");
+            const token = getToken();
             const res = await fetch('http://localhost:5000/users/profile', {
                 method: 'PATCH',
                 headers: {
@@ -134,7 +136,7 @@ const Profile = () => {
                     </div>
 
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-                        
+
                         <div className="px-5 py-6 md:px-8 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-white">
                             <div className="flex items-center gap-4">
                                 <div className="hidden xs:flex w-12 h-12 bg-indigo-50 rounded-full items-center justify-center flex-shrink-0">
@@ -184,9 +186,8 @@ const Profile = () => {
                                         value={formData.first_name}
                                         readOnly={!isEditing}
                                         onChange={handleInputChange}
-                                        className={`w-full px-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${
-                                            isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
-                                        }`}
+                                        className={`w-full px-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
+                                            }`}
                                     />
                                 </div>
                                 <div className="space-y-1.5">
@@ -197,9 +198,8 @@ const Profile = () => {
                                         value={formData.last_name}
                                         readOnly={!isEditing}
                                         onChange={handleInputChange}
-                                        className={`w-full px-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${
-                                            isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
-                                        }`}
+                                        className={`w-full px-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
+                                            }`}
                                     />
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
@@ -225,9 +225,8 @@ const Profile = () => {
                                             readOnly={!isEditing}
                                             onChange={handleInputChange}
                                             placeholder="08X-XXX-XXXX"
-                                            className={`w-full pl-10 pr-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${
-                                                isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
-                                            }`}
+                                            className={`w-full pl-10 pr-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
+                                                }`}
                                         />
                                     </div>
                                 </div>
@@ -242,7 +241,7 @@ const Profile = () => {
                                             </div>
                                         </div>
                                         <div className="h-px w-full bg-gray-200 sm:hidden"></div>
-                                      
+
                                     </div>
                                 </div>
                             </form>

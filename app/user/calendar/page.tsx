@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, AlignLeft, X, Info } from 'lucide-react';
 import Link from 'next/link';
 import NoteList from "@/components/note/NoteList";
+import { useAuth } from '@/contexts/AuthContext';
 
 // ... (Interface และ categoryColors เหมือนเดิม)
 interface ExamSchedule {
@@ -30,9 +31,10 @@ const categoryColors = {
 };
 
 const CalenderPage = () => {
+  const { getToken } = useAuth();
   const [adminSchedules, setAdminSchedules] = useState<ExamSchedule[]>([]);
   const [userNotes, setUserNotes] = useState<UserNote[]>([]);
-  
+
   // แก้ไข: ใช้ Date Object ตัวเดียวจัดการทั่งเดือนและปี เพื่อป้องกันการหลุดช่วงปี
   const [viewDate, setViewDate] = useState(new Date());
   const selectedMonth = viewDate.getMonth();
@@ -49,7 +51,7 @@ const CalenderPage = () => {
 
   const fetchAdminSchedules = useCallback(async () => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
       const res = await fetch(`${API_URL}/schedules`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -74,11 +76,11 @@ const CalenderPage = () => {
     } catch (error) {
       console.error("fetchAdminSchedules error:", error);
     }
-  }, []);
+  }, [getToken]);
 
   const fetchNotes = async () => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
       if (!token) return;
       const res = await fetch(`${API_URL}/notes`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -169,7 +171,7 @@ const CalenderPage = () => {
 
   // ... (Note Handlers createNote, updateNote, deleteNote เหมือนเดิม)
   const createNote = async (note: any, files?: File[]) => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) return;
     const formData = new FormData();
     formData.append("title", note.title);
@@ -181,7 +183,7 @@ const CalenderPage = () => {
   };
 
   const updateNote = async (note: UserNote, files?: File[], deletedFiles?: string[]) => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) return;
     const formData = new FormData();
     formData.append("title", note.title);
@@ -194,7 +196,7 @@ const CalenderPage = () => {
   };
 
   const deleteNote = async (id: string) => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) return;
     await fetch(`${API_URL}/notes/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     fetchNotes();
@@ -239,8 +241,8 @@ const CalenderPage = () => {
                 </div>
                 {/* Legend */}
                 <div className="mt-6 flex flex-wrap gap-4 text-xs font-medium text-gray-500">
-                   <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-green-100 border border-green-400 rounded-sm"></span> กำหนดการทั่วไป</div>
-                   <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-indigo-50 border border-indigo-500 rounded-sm"></span> วันนี้</div>
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-green-100 border border-green-400 rounded-sm"></span> กำหนดการทั่วไป</div>
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-indigo-50 border border-indigo-500 rounded-sm"></span> วันนี้</div>
                 </div>
               </div>
             </div>
@@ -282,7 +284,7 @@ const CalenderPage = () => {
                     <p className="text-xs font-bold text-gray-400 uppercase">วันที่</p>
                     <p className="text-sm font-medium text-gray-700">
                       {selectedEvent.startDate.toLocaleDateString('th-TH', { dateStyle: 'long' })}
-                      {selectedEvent.startDate.toDateString() !== selectedEvent.endDate.toDateString() && 
+                      {selectedEvent.startDate.toDateString() !== selectedEvent.endDate.toDateString() &&
                         ` - ${selectedEvent.endDate.toLocaleDateString('th-TH', { dateStyle: 'long' })}`}
                     </p>
                   </div>

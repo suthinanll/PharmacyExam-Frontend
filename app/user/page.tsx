@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import NewsCard from '@/components/์News';
 import SearchBar from "@/components/SearchBar";
 import { ChevronRight, AlarmClock, Flame, Info, Calendar } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 // --- Components ย่อย (University Leaderboard) ---
 const universityLeaderboardData = [
@@ -80,6 +81,7 @@ const UniversityLeaderboard = () => {
 
 // --- Main Page Component ---
 const Page = () => {
+  const { getToken } = useAuth(); // 1. Use useAuth
   const [targetDate, setTargetDate] = useState<number | null>(null);
   const [targetTitle, setTargetTitle] = useState<string>("");
   const [targetDesc, setTargetDesc] = useState<string>("");
@@ -91,7 +93,7 @@ const Page = () => {
 
   const handleBookmarkToggle = async (articleId: number) => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getToken(); // 2. Use getToken()
       const res = await fetch("http://localhost:5000/bookmark/toggle", {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
@@ -107,7 +109,7 @@ const Page = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem("access_token") : null;
+      const token = getToken(); // 3. Use getToken()
       const headers = { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
       const now = Date.now();
       const todayStr = new Date().toDateString();
@@ -126,10 +128,10 @@ const Page = () => {
           setTargetDate(examToday.targetStamp);
           setTargetTitle(examToday.title);
           setTargetDesc(examToday.description || "เข้าร่วมการทดสอบตามกำหนดการวันนี้");
-          const remaining = allExams.filter(e => e.id !== examToday.id && e.targetStamp > now);
+          const remaining = allExams.filter((e: any) => e.id !== examToday.id && e.targetStamp > now);
           setUpcomingExams(remaining.slice(0, 4));
         } else {
-          const futureExams = allExams.filter(exam => exam.targetStamp > now);
+          const futureExams = allExams.filter((exam: any) => exam.targetStamp > now);
           if (futureExams.length > 0) {
             setTargetDate(futureExams[0].targetStamp);
             setTargetTitle(futureExams[0].title);
@@ -153,7 +155,7 @@ const Page = () => {
         setBookmarkIds(bookmarks.map((b: any) => Number(b.news.article_id)));
       }
     } catch (error) { console.error("Fetch Error:", error); } finally { setLoadingNews(false); }
-  }, []);
+  }, [getToken]); // Add getToken to dependency
 
   useEffect(() => {
     if (!targetDate) return;

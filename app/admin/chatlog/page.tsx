@@ -4,6 +4,7 @@ import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect } from "react";
 import { Search, ChevronLeft, ChevronRight, MessageSquare, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ChatSession {
     session_id: number;
@@ -34,8 +35,8 @@ interface PageButtonProps {
 const PaginationButton = ({ page, isActive, setCurrentPage }: PageButtonProps) => (
     <button
         className={`w-10 h-10 flex items-center justify-center text-sm font-medium border rounded-lg transition-colors ${isActive
-                ? "bg-green-600 text-white border-green-600"
-                : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+            ? "bg-green-600 text-white border-green-600"
+            : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
             }`}
         onClick={() => setCurrentPage(page)}
     >
@@ -44,6 +45,7 @@ const PaginationButton = ({ page, isActive, setCurrentPage }: PageButtonProps) =
 );
 
 function Page() {
+    const { getToken } = useAuth();
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [logs, setLogs] = useState<ChatLogDisplay[]>([]);
@@ -61,7 +63,11 @@ function Page() {
 
     const fetchChatLogs = async () => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/chat/sessions`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include'
             });
 
@@ -180,7 +186,7 @@ function Page() {
 
     return (
         <Navbar_admin>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-12" suppressHydrationWarning>
                 {/* Header Section */}
                 <div className="mb-8">
                     <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
@@ -272,6 +278,7 @@ function Page() {
                             type="text"
                             placeholder="ค้นหา..."
                             value={searchTerm}
+                            suppressHydrationWarning
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
                                 setCurrentPage(1);

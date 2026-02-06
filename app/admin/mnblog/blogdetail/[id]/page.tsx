@@ -5,8 +5,10 @@ import { useEffect, useState } from "react";
 import Navbar_admin from "@/components/Navbar_admin";
 import { ChevronLeft, Save, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function EditBlogDetail() {
+    const { getToken } = useAuth();
     const params = useParams();
     const router = useRouter();
     // ✅ ต้องใช้ชื่อ params.id ให้ตรงกับชื่อโฟลเดอร์ [id]
@@ -25,7 +27,7 @@ export default function EditBlogDetail() {
 
             try {
                 // ✅ 1. ดึง Token ออกมาเตรียมไว้
-                const token = localStorage.getItem('access_token');
+                const token = getToken();
 
                 // ✅ 2. แนบ Authorization Header ในการเรียก GET
                 const response = await fetch(`http://localhost:5000/news/${blogId}`, {
@@ -63,7 +65,7 @@ export default function EditBlogDetail() {
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
-        const token = localStorage.getItem('access_token');
+        const token = getToken();
 
         try {
             const response = await fetch(`http://localhost:5000/news/${blogId}`, {

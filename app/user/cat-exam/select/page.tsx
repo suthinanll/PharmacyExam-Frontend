@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import { useRouter } from "next/navigation";
+import { useAuth } from '@/contexts/AuthContext';
 
 // ==================== TYPES ====================
 interface ItemBank {
@@ -29,6 +30,7 @@ interface CATReadiness {
 // ==================== MAIN COMPONENT ====================
 export default function SelectCATExamPage() {
     const router = useRouter();
+    const { getToken } = useAuth();
     const [loading, setLoading] = useState(true);
     const [itemBanks, setItemBanks] = useState<ItemBank[]>([]);
     const [readiness, setReadiness] = useState<Record<number, CATReadiness>>({});
@@ -40,7 +42,7 @@ export default function SelectCATExamPage() {
 
     async function fetchItemBanks() {
         try {
-            const token = localStorage.getItem("token");
+            const token = getToken();
             const response = await fetch("http://localhost:3001/items-bank", {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -60,7 +62,7 @@ export default function SelectCATExamPage() {
 
     async function fetchCATReadiness() {
         try {
-            const token = localStorage.getItem("token");
+            const token = getToken();
             const response = await fetch(
                 "http://localhost:3001/items-bank/cat/readiness-summary",
                 {
@@ -153,8 +155,8 @@ export default function SelectCATExamPage() {
                                     {/* Status Badge */}
                                     <div
                                         className={`px-6 py-3 ${isReady
-                                                ? "bg-gradient-to-r from-green-500 to-green-600"
-                                                : "bg-gradient-to-r from-gray-400 to-gray-500"
+                                            ? "bg-gradient-to-r from-green-500 to-green-600"
+                                            : "bg-gradient-to-r from-gray-400 to-gray-500"
                                             }`}
                                     >
                                         <div className="flex items-center justify-between text-white">
@@ -229,8 +231,8 @@ export default function SelectCATExamPage() {
                                             onClick={() => startExam(bank.item_bank_id)}
                                             disabled={!isReady}
                                             className={`w-full py-3 px-4 rounded-xl font-semibold transition-all duration-200 ${isReady
-                                                    ? "bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl"
-                                                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                                ? "bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl"
+                                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
                                                 }`}
                                         >
                                             {isReady ? "🚀 เริ่มสอบ CAT" : "⚠️ ยังไม่พร้อม"}

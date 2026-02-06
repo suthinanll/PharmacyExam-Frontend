@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronLeft, Save, Zap, Trash2, Loader2, Link as LinkIcon, Image as ImageIcon } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from '@/contexts/AuthContext';
 
 
 interface BlogFormData {
@@ -40,6 +41,7 @@ const DummyTextEditor = ({ content, setContent, isGenerating }: {
 };
 
 function AddBlogPage() {
+    const { getToken } = useAuth();
     const router = useRouter();
     const [formData, setFormData] = useState<BlogFormData>({
         title: '',
@@ -59,7 +61,12 @@ function AddBlogPage() {
     const handleAutoGenerate = async () => {
         setIsGenerating(true);
         try {
-            const response = await fetch('http://localhost:5000/news/latest'); // ปรับ Endpoint ตามจริง
+            const token = getToken();
+            const response = await fetch('http://localhost:5000/news/latest', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }); // ปรับ Endpoint ตามจริง
             if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
 
             const data = await response.json();
@@ -87,7 +94,7 @@ function AddBlogPage() {
 
         setIsSaving(true);
         try {
-            const token = localStorage.getItem('access_token');
+            const token = getToken();
             const response = await fetch('http://localhost:5000/news', {
                 method: 'POST',
                 headers: {

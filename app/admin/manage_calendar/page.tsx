@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from "react";
 import { ChevronLeft, ChevronRight, Plus, X, Calendar, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import Swal from "sweetalert2";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CalendarEvent {
   id: number;
@@ -20,8 +21,9 @@ interface CalendarEvent {
 }
 
 function Page() {
+  const { getToken } = useAuth();
   // เริ่มต้นด้วยเดือนปัจจุบันและปีปัจจุบัน (ค.ศ.)
-  const [viewDate, setViewDate] = useState(new Date()); 
+  const [viewDate, setViewDate] = useState(new Date());
   const currentMonth = viewDate.getMonth();
   const currentYearAD = viewDate.getFullYear();
 
@@ -44,7 +46,7 @@ function Page() {
 
   const fetchEvents = useCallback(async () => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
       const res = await fetch("http://localhost:5000/schedules", {
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -72,7 +74,7 @@ function Page() {
     } catch (error) {
       console.error(error);
     }
-  }, []);
+  }, [getToken]);
 
   useEffect(() => {
     fetchEvents();
@@ -113,7 +115,7 @@ function Page() {
 
     if (result.isConfirmed) {
       try {
-        const token = localStorage.getItem("access_token");
+        const token = getToken();
         const res = await fetch("http://localhost:5000/schedules/bulk/all", {
           method: "DELETE",
           headers: { "Authorization": `Bearer ${token}` }
@@ -146,7 +148,7 @@ function Page() {
 
     if (result.isConfirmed) {
       try {
-        const token = localStorage.getItem("access_token");
+        const token = getToken();
         const res = await fetch("http://localhost:5000/schedules/bulk/status", {
           method: "PATCH",
           headers: {
@@ -168,7 +170,7 @@ function Page() {
 
   const handleToggleStatus = async (event: CalendarEvent) => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
       const newStatus = !event.is_published;
       const res = await fetch(`http://localhost:5000/schedules/${event.id}`, {
         method: "PATCH",
@@ -198,7 +200,7 @@ function Page() {
     e.preventDefault();
     if (!selectedEvent) return;
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
       const res = await fetch(`http://localhost:5000/schedules/${selectedEvent.id}`, {
         method: "PATCH",
         headers: {
@@ -232,7 +234,7 @@ function Page() {
   const handleDeleteConfirm = async () => {
     if (!selectedEvent) return;
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
       const res = await fetch(`http://localhost:5000/schedules/${selectedEvent.id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
@@ -262,7 +264,7 @@ function Page() {
     for (let day = 1; day <= daysInCurrentMonth; day++) {
       const currentDate = new Date(currentYearAD, currentMonth, day);
       currentDate.setHours(0, 0, 0, 0);
-      
+
       const dayEvents = events.filter(event => {
         const eventStart = new Date(event.raw_start!);
         const eventEnd = new Date(event.raw_end!);
@@ -394,7 +396,7 @@ function Page() {
                     </div>
                   </div>
                 )
-              ))}
+                ))}
             </div>
           </div>
         )}

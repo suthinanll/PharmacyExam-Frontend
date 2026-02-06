@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar_admin from "@/components/Navbar_admin";
 import { Plus, Search, ChevronLeft, ChevronRight, ArrowUpDown, Edit, Trash2, X, Loader2 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { useAuth } from "@/contexts/AuthContext";
 
 // Types
 interface Category {
@@ -24,6 +25,7 @@ const API_URL = 'http://localhost:5000/categories';
 const ITEMS_PER_PAGE = 10;
 
 export default function CategoriesManagement() {
+    const { getToken } = useAuth();
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -41,11 +43,23 @@ export default function CategoriesManagement() {
     const fetchCategories = async () => {
         try {
             setLoading(true);
+            const token = getToken();
             const response = await fetch(API_URL, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include'
             });
+            if (!response.ok) {
+                throw new Error('Failed to fetch categories');
+            }
             const data = await response.json();
-            setCategories(data);
+            if (Array.isArray(data)) {
+                setCategories(data);
+            } else {
+                console.error('Received non-array data:', data);
+                setCategories([]);
+            }
         } catch (error) {
             console.error('Error fetching categories:', error);
             Swal.fire({
@@ -85,8 +99,12 @@ export default function CategoriesManagement() {
         if (!result.isConfirmed) return;
 
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/${categoryId}`, {
                 method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include'
             });
 
@@ -139,15 +157,20 @@ export default function CategoriesManagement() {
 
         setSubmitting(true);
         try {
+            // Note logic below: we're creating or updating, and url/id changes accordingly.
             const url = editingCategory
                 ? `${API_URL}/${editingCategory.category_id}`
                 : API_URL;
 
             const method = editingCategory ? 'PATCH' : 'POST';
 
+            const token = getToken();
             const response = await fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include',
                 body: JSON.stringify({
                     category_name: categoryName,
@@ -283,6 +306,7 @@ export default function CategoriesManagement() {
 
                         <button
                             onClick={handleCreateCategory}
+                            suppressHydrationWarning
                             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
                         >
                             <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -298,6 +322,7 @@ export default function CategoriesManagement() {
                             type="text"
                             placeholder="ค้นหาหมวดหมู่"
                             value={searchTerm}
+                            suppressHydrationWarning
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm"
                         />
@@ -306,6 +331,7 @@ export default function CategoriesManagement() {
 
                     <button
                         onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
+                        suppressHydrationWarning
                         className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium"
                     >
                         <ArrowUpDown className="w-4 h-4" />

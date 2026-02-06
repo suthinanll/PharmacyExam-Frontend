@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { Plus, Search, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
 import CreateItemBankModal from "./components/CreateItemBankModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Types
 interface Category {
@@ -34,6 +35,7 @@ const API_URL = 'http://localhost:5000';
 const ITEMS_PER_PAGE = 5;
 
 function Page() {
+  const { getToken } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemBanks, setItemBanks] = useState<ItemBank[]>([]);
@@ -54,7 +56,11 @@ function Page() {
   const fetchItemBanks = async () => {
     try {
       setLoading(true);
+      const token = getToken();
       const response = await fetch(`${API_URL}/items-bank`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         credentials: 'include'
       });
 
@@ -63,11 +69,11 @@ function Page() {
         setItemBanks(data);
       } else {
         console.error('Failed to fetch item banks');
-        alert('ไม่สามารถดึงข้อมูลคลังข้อสอบได้');
+        // alert('ไม่สามารถดึงข้อมูลคลังข้อสอบได้');
       }
     } catch (error) {
       console.error('Error fetching item banks:', error);
-      alert('เกิดข้อผิดพลาดในการดึงข้อมูล');
+      // alert('เกิดข้อผิดพลาดในการดึงข้อมูล');
     } finally {
       setLoading(false);
     }
@@ -178,7 +184,7 @@ function Page() {
 
   return (
     <Navbar_admin>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4" suppressHydrationWarning>
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -193,6 +199,7 @@ function Page() {
 
             <button
               onClick={() => setShowCreateModal(true)}
+              suppressHydrationWarning
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
             >
               <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -207,6 +214,7 @@ function Page() {
               type="text"
               placeholder="ค้นหาข้อสอบ"
               value={searchTerm}
+              suppressHydrationWarning
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm"
             />
@@ -215,6 +223,7 @@ function Page() {
 
           <button
             onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
+            suppressHydrationWarning
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium"
           >
             <ArrowUpDown className="w-4 h-4" />

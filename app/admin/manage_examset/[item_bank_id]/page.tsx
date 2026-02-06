@@ -12,6 +12,7 @@ import AddSubTopicModal from './components/AddSubTopicModal';
 import SettingsModal from './components/SettingsModal';
 import SituationViewer from './components/SituationViewer';
 import CATGuideModal from '../../cat_management/components/CATGuideModal';
+import { useAuth } from "@/contexts/AuthContext";
 
 // Types
 interface AnswerOption {
@@ -68,6 +69,7 @@ const API_URL = 'http://localhost:5000';
 export default function ItemBankEditPage() {
     const params = useParams();
     const router = useRouter();
+    const { getToken } = useAuth();
     const itemBankId = params.item_bank_id as string;
 
     const [situations, setSituations] = useState<Situation[]>([]);
@@ -118,7 +120,11 @@ export default function ItemBankEditPage() {
 
     const fetchItemBankInfo = async () => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/${itemBankId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include'
             });
             if (response.ok) {
@@ -132,7 +138,11 @@ export default function ItemBankEditPage() {
 
     const fetchSubTopics = async () => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/topics/sub-topics`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include'
             });
             if (response.ok) {
@@ -147,7 +157,11 @@ export default function ItemBankEditPage() {
 
     const fetchExistingItems = async () => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/${itemBankId}/items`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include'
             });
 
@@ -219,8 +233,12 @@ export default function ItemBankEditPage() {
 
         if (situation.situation_id) {
             try {
+                const token = getToken();
                 const response = await fetch(`${API_URL}/items-bank/situation/${situation.situation_id}`, {
                     method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
                     credentials: 'include'
                 });
 
@@ -294,11 +312,12 @@ export default function ItemBankEditPage() {
         try {
             // ถ้าคำถามมี item_id แสดงว่าเป็นคำถามที่บันทึกแล้ว ต้องลบจากฐานข้อมูล
             if (question.item_id) {
+                const token = getToken();
                 const response = await fetch(`${API_URL}/items-bank/item/${question.item_id}`, {
                     method: 'DELETE',
                     credentials: 'include',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -449,6 +468,7 @@ export default function ItemBankEditPage() {
         setSubmitting(true);
 
         try {
+            const token = getToken();
             let updatedSituationCount = 0;
             let createdSituationCount = 0;
             let addedQuestionCount = 0;
@@ -460,7 +480,10 @@ export default function ItemBankEditPage() {
                     // อัพเดท situation ที่มีอยู่แล้ว
                     await fetch(`${API_URL}/items-bank/situation/${situation.situation_id}`, {
                         method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         credentials: 'include',
                         body: JSON.stringify({
                             situation_text: situation.situation_text,
@@ -476,7 +499,10 @@ export default function ItemBankEditPage() {
                     for (const question of existingQuestions) {
                         await fetch(`${API_URL}/items-bank/item/${question.item_id}`, {
                             method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
                             credentials: 'include',
                             body: JSON.stringify({
                                 question_text: question.question_text,
@@ -495,7 +521,10 @@ export default function ItemBankEditPage() {
                     if (newQuestions.length > 0) {
                         const response = await fetch(`${API_URL}/items-bank/situation/${situation.situation_id}/questions`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
                             credentials: 'include',
                             body: JSON.stringify({
                                 item_bank_id: Number(itemBankId),
@@ -557,7 +586,10 @@ export default function ItemBankEditPage() {
 
                     const response = await fetch(`${API_URL}/items-bank/bulk-questions`, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         credentials: 'include',
                         body: JSON.stringify(data)
                     });
@@ -627,6 +659,7 @@ export default function ItemBankEditPage() {
     // ฟังก์ชันบันทึกลำดับสถานการณ์และคำถาม
     const saveOrdering = async () => {
         try {
+            const token = getToken();
             // 1. บันทึกลำดับสถานการณ์
             const situationIds = situations
                 .filter(s => s.situation_id) // เอาเฉพาะที่มี ID (บันทึกแล้ว)
@@ -635,7 +668,10 @@ export default function ItemBankEditPage() {
             if (situationIds.length > 0) {
                 await fetch(`${API_URL}/items-bank/reorder-situations`, {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     credentials: 'include',
                     body: JSON.stringify({
                         item_bank_id: Number(itemBankId),
@@ -657,7 +693,10 @@ export default function ItemBankEditPage() {
             if (allQuestionIds.length > 0) {
                 await fetch(`${API_URL}/items-bank/reorder`, {
                     method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
                     credentials: 'include',
                     body: JSON.stringify({
                         item_bank_id: Number(itemBankId),
@@ -686,9 +725,13 @@ export default function ItemBankEditPage() {
 
         setAddingSubTopic(true);
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/topics/${newSubTopicTopicId}/sub-topics`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include',
                 body: JSON.stringify({ sub_topic_name: newSubTopicName })
             });
@@ -745,7 +788,7 @@ export default function ItemBankEditPage() {
 
     return (
         <Navbar_admin>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 relative">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 relative" suppressHydrationWarning>
                 <ItemBankHeader
                     itemBankInfo={itemBankInfo}
                     situations={situations}

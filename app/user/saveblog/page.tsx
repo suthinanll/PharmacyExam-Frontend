@@ -6,6 +6,7 @@ import Footer from '@/components/Footer';
 import Search from '@/components/SearchBar';
 import Image from 'next/image';
 import axios from 'axios';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface BookmarkItem {
   bookmark_id: number;
@@ -22,11 +23,12 @@ interface BookmarkItem {
 const API_BASE_URL = 'http://localhost:5000';
 
 function SaveBlog() {
+  const { getToken } = useAuth();
   const [savedNews, setSavedNews] = useState<BookmarkItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchBookmarks = useCallback(async () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    const token = getToken();
     if (!token) {
       setLoading(false);
       return;
@@ -45,14 +47,14 @@ function SaveBlog() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getToken]);
 
   useEffect(() => {
     fetchBookmarks();
   }, [fetchBookmarks]);
 
   const removeNews = async (articleId: number) => {
-    const token = localStorage.getItem('access_token');
+    const token = getToken();
     if (!token) return alert("กรุณาเข้าสู่ระบบก่อน");
 
     try {

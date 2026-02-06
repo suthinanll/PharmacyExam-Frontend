@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import CATGuideModal from './components/CATGuideModal';
+import { useAuth } from "@/contexts/AuthContext";
 
 // Types
 interface AnswerOption {
@@ -75,6 +76,7 @@ const API_URL = 'http://localhost:5000';
 const ITEMS_PER_PAGE = 9;
 
 export default function CATManagement() {
+    const { getToken } = useAuth();
     const [summary, setSummary] = useState<ReadinessSummary | null>(null);
     const [itemsWithIRT, setItemsWithIRT] = useState<ItemWithIRT[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -100,7 +102,11 @@ export default function CATManagement() {
 
     const fetchSummary = async () => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/cat/readiness-summary`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include'
             });
 
@@ -122,7 +128,11 @@ export default function CATManagement() {
     const fetchItemsWithIRT = async () => {
         try {
             setLoading(true);
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/cat/items-with-irt`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include'
             });
 
@@ -160,10 +170,14 @@ export default function CATManagement() {
 
         try {
             setIsSaving(true);
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/cat/batch-update-irt`, {
                 method: 'PATCH',
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     updates: [{
                         item_id: selectedItem.item_id,
@@ -298,6 +312,7 @@ export default function CATManagement() {
                         </div>
                         <button
                             onClick={() => setShowHelpModal(true)}
+                            suppressHydrationWarning
                             className="flex items-center gap-2 bg-green-50 text-green-700 hover:bg-green-100 px-4 py-2 rounded-lg transition-colors font-medium border border-green-200"
                         >
                             <HelpCircle className="w-5 h-5" />
@@ -306,8 +321,6 @@ export default function CATManagement() {
                     </div>
                 </div>
 
-
-
                 {/* Search and Filter Bar */}
                 <div className="mb-6 flex flex-col sm:flex-row gap-4">
                     <div className="relative flex-1 max-w-md">
@@ -315,6 +328,7 @@ export default function CATManagement() {
                             type="text"
                             placeholder="ค้นหาข้อสอบ..."
                             value={searchTerm}
+                            suppressHydrationWarning
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm"
                         />
@@ -324,6 +338,7 @@ export default function CATManagement() {
                     <div className="relative min-w-[200px]">
                         <select
                             value={selectedBankId || ''}
+                            suppressHydrationWarning
                             onChange={(e) => setSelectedBankId(e.target.value ? Number(e.target.value) : null)}
                             className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm appearance-none bg-white"
                         >

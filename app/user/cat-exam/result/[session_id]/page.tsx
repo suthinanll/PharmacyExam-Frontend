@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import { useParams, useRouter } from "next/navigation";
+import { useAuth } from '@/contexts/AuthContext';
 import {
     LineChart,
     Line,
@@ -41,6 +42,7 @@ interface CATResult {
 export default function CATResultPage() {
     const params = useParams();
     const router = useRouter();
+    const { getToken } = useAuth();
     const sessionId = params?.session_id as string;
 
     const [loading, setLoading] = useState(true);
@@ -55,7 +57,7 @@ export default function CATResultPage() {
     async function fetchResult() {
         try {
             setLoading(true);
-            const token = localStorage.getItem("token");
+            const token = getToken();
 
             const response = await fetch(
                 `http://localhost:3001/cat/session/${sessionId}/result`,
@@ -137,8 +139,8 @@ export default function CATResultPage() {
                 {/* Result Header */}
                 <div
                     className={`rounded-2xl shadow-2xl p-8 mb-8 ${result.passed
-                            ? "bg-gradient-to-r from-green-500 to-green-600"
-                            : "bg-gradient-to-r from-red-500 to-red-600"
+                        ? "bg-gradient-to-r from-green-500 to-green-600"
+                        : "bg-gradient-to-r from-red-500 to-red-600"
                         }`}
                 >
                     <div className="text-center text-white">

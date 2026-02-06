@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, User, Bot, AlertCircle, Trash2, Pencil, Shield } from "lucide-react";
 import Navbar from "@/components/Navbar_user";
 import Swal from "sweetalert2";
+import { useAuth } from '@/contexts/AuthContext';
 
 // Utility for typing effect
 const useTypewriter = (text: string, speed: number = 20) => {
@@ -73,6 +74,7 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
 };
 
 export default function ChatbotPage() {
+  const { getToken } = useAuth();
   type Message = {
     id: string;
     sender: "user" | "bot";
@@ -110,8 +112,9 @@ export default function ChatbotPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        const token = getToken();
         const res = await fetch('http://localhost:5000/auth/me', {
-          credentials: 'include',
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         if (res.ok) {
@@ -168,8 +171,9 @@ export default function ChatbotPage() {
   const fetchSessions = async () => {
     if (!userId) return;
     try {
+      const token = getToken();
       const response = await fetch(`http://localhost:5000/chat/session/${userId}`, {
-        credentials: 'include'
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!response.ok) {
@@ -200,8 +204,9 @@ export default function ChatbotPage() {
       setMessages([]);
 
       // GET /chat/message/:session_id (Singular based on user hint)
+      const token = getToken();
       const response = await fetch(`http://localhost:5000/chat/message/${sessionId}`, {
-        credentials: 'include'
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!response.ok) {
@@ -303,11 +308,12 @@ export default function ChatbotPage() {
       // Assuming backend accepts '/chat/send/new' or similar for creating a session.
       // If 'currentSessionId' is null, interpolating it directly results in ".../null" which likely causes 500.
       const endpointSessionId = currentSessionId || 'new';
+      const token = getToken();
       const response = await fetch(`http://localhost:5000/chat/send/${endpointSessionId}`, {
         method: "POST",
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
           user_id: userId,
@@ -378,9 +384,10 @@ export default function ChatbotPage() {
     if (!result.isConfirmed) return;
 
     try {
+      const token = getToken();
       const response = await fetch(`http://localhost:5000/chat/session/${sessionId}`, {
         method: "DELETE",
-        credentials: 'include'
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (response.ok) {
@@ -468,11 +475,12 @@ export default function ChatbotPage() {
     setIsLoading(true);
 
     try {
+      const token = getToken();
       const response = await fetch(`http://localhost:5000/chat/message/${messageId}`, {
         method: 'PUT',
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
           message: editContent,

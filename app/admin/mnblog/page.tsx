@@ -5,6 +5,7 @@ import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect } from "react";
 import { Plus, Search, Clock, Loader2, ImageOff, Trash2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from '@/contexts/AuthContext';
 
 interface BlogData {
   article_id: number;
@@ -21,6 +22,7 @@ interface BlogCardProps {
 }
 
 const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
+  const { getToken } = useAuth();
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   // ตรวจสอบสถานะแบบ Safe Case
@@ -40,7 +42,7 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
 
     setIsActionLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
+      const token = getToken();
       const response = await fetch(`http://localhost:5000/news/${blog.article_id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
@@ -61,10 +63,10 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
     e.preventDefault();
     // ถ้า Live อยู่ให้ส่ง DRAFT ถ้าเป็น Draft อยู่ให้ส่ง PUBLISHED
     const newStatus = isPublished ? 'DRAFT' : 'PUBLISHED';
-    
+
     setIsActionLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
+      const token = getToken();
       const response = await fetch(`http://localhost:5000/news/${blog.article_id}`, {
         method: 'PATCH',
         headers: {
@@ -94,8 +96,8 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
       >
         <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
           {blog.cover_image_url ? (
-            <img 
-              src={blog.cover_image_url} 
+            <img
+              src={blog.cover_image_url}
               alt={blog.title}
               className="w-full h-full object-cover transition-transform group-hover:scale-105"
             />
@@ -105,9 +107,8 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
               <span className="text-xs">ไม่มีรูปภาพหน้าปก</span>
             </div>
           )}
-          <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded uppercase shadow-sm ${
-            isPublished ? 'bg-green-600 text-white' : 'bg-gray-500 text-white'
-          }`}>
+          <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded uppercase shadow-sm ${isPublished ? 'bg-green-600 text-white' : 'bg-gray-500 text-white'
+            }`}>
             {isPublished ? 'Live' : 'Draft'}
           </span>
         </div>
@@ -133,11 +134,10 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
           disabled={isActionLoading}
           onClick={toggleStatus}
           title={isPublished ? "เปลี่ยนเป็นฉบับร่าง" : "เผยแพร่ทันที"}
-          className={`p-2 rounded-full shadow-lg transition-colors ${
-            isPublished ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-500 hover:bg-blue-600'
-          } text-white`}
+          className={`p-2 rounded-full shadow-lg transition-colors ${isPublished ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-500 hover:bg-blue-600'
+            } text-white`}
         >
-          {isPublished ? <EyeOff size={16}/> : <Eye size={16}/>}
+          {isPublished ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
         <button
           disabled={isActionLoading}
@@ -159,6 +159,7 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
 };
 
 function Page() {
+  const { getToken } = useAuth();
   const [blogs, setBlogs] = useState<BlogData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -166,7 +167,7 @@ function Page() {
   const fetchBlogs = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
+      const token = getToken();
       const response = await fetch('http://localhost:5000/news', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -186,7 +187,7 @@ function Page() {
     fetchBlogs();
   }, []);
 
-  const filteredBlogs = blogs.filter(blog => 
+  const filteredBlogs = blogs.filter(blog =>
     blog.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -227,7 +228,7 @@ function Page() {
           </div>
         ) : (
           <div className="text-center py-20 text-gray-500 border-2 border-dashed border-gray-200 rounded-2xl">
-             <p>ไม่พบข้อมูลข่าวสารที่คุณกำลังค้นหา</p>
+            <p>ไม่พบข้อมูลข่าวสารที่คุณกำลังค้นหา</p>
           </div>
         )}
       </div>

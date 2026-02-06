@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import { useRouter } from "next/navigation";
+import { useAuth } from '@/contexts/AuthContext';
 
 // ==================== TYPES ====================
 interface CATItem {
@@ -34,6 +35,7 @@ interface CATSession {
 // ==================== MAIN COMPONENT ====================
 export default function CATExamPage() {
     const router = useRouter();
+    const { getToken } = useAuth();
     const [loading, setLoading] = useState(true);
     const [session, setSession] = useState<CATSession | null>(null);
     const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
@@ -59,7 +61,7 @@ export default function CATExamPage() {
     async function startCATExam() {
         try {
             setLoading(true);
-            const token = localStorage.getItem("token");
+            const token = getToken();
 
             const response = await fetch("http://localhost:5000/cat/start", {
                 method: "POST",
@@ -102,7 +104,7 @@ export default function CATExamPage() {
 
         try {
             setLoading(true);
-            const token = localStorage.getItem("token");
+            const token = getToken();
 
             const response = await fetch("http://localhost:5000/cat/submit-answer", {
                 method: "POST",

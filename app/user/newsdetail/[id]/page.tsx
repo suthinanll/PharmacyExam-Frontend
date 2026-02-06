@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar_user';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface NewsDetail {
     article_id: number;
@@ -18,12 +19,13 @@ interface NewsDetail {
 const NewsDetailPage = () => {
     const { id } = useParams();
     const router = useRouter();
+    const { getToken } = useAuth();
     const [news, setNews] = useState<NewsDetail | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchNewsDetail = useCallback(async () => {
         try {
-            const token = typeof window !== 'undefined' ? localStorage.getItem("access_token") : null;
+            const token = getToken();
             const res = await fetch(`http://localhost:5000/news/${id}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
@@ -41,7 +43,7 @@ const NewsDetailPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [id, router]);
+    }, [id, router, getToken]);
 
     useEffect(() => {
         if (id) fetchNewsDetail();

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Navbar_admin from "@/components/Navbar_admin";
 import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, BookOpen, List, Loader2, X } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SubTopic {
     sub_topic_id: number;
@@ -22,6 +23,7 @@ interface Topic {
 const API_URL = 'http://localhost:5000';
 
 export default function ManageTopicsPage() {
+    const { isAuthenticated, isLoading: authLoading, getToken } = useAuth();
     const [topics, setTopics] = useState<Topic[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedTopics, setExpandedTopics] = useState<Set<number>>(new Set());
@@ -41,13 +43,21 @@ export default function ManageTopicsPage() {
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
-        fetchTopics();
-    }, []);
+        if (!authLoading && isAuthenticated) {
+            fetchTopics();
+        } else if (!authLoading && !isAuthenticated) {
+            setLoading(false);
+        }
+    }, [authLoading, isAuthenticated]);
 
     const fetchTopics = async () => {
         try {
             setLoading(true);
+            const token = getToken();
             const response = await fetch(`${API_URL}/topics`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include'
             });
 
@@ -127,7 +137,10 @@ export default function ManageTopicsPage() {
 
             const response = await fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getToken()}`
+                },
                 credentials: 'include',
                 body: JSON.stringify({
                     topic_name: topicName,
@@ -180,7 +193,10 @@ export default function ManageTopicsPage() {
 
             const response = await fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getToken()}`
+                },
                 credentials: 'include',
                 body: JSON.stringify({
                     sub_topic_name: subTopicName,
@@ -231,6 +247,9 @@ export default function ManageTopicsPage() {
         try {
             const response = await fetch(`${API_URL}/topics/${topic.topic_id}`, {
                 method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
                 credentials: 'include'
             });
 
@@ -274,6 +293,9 @@ export default function ManageTopicsPage() {
         try {
             const response = await fetch(`${API_URL}/topics/sub-topic/${subTopic.sub_topic_id}`, {
                 method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                },
                 credentials: 'include'
             });
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { Loader2, Save, X, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Category {
     category_id: number;
@@ -26,6 +27,7 @@ export default function SettingsModal({
     onUpdate
 }: SettingsModalProps) {
     const router = useRouter();
+    const { getToken } = useAuth();
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -67,7 +69,11 @@ export default function SettingsModal({
     };
 
     const fetchCategories = async () => {
+        const token = getToken();
         const response = await fetch(`${API_URL}/categories`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
             credentials: 'include'
         });
         if (response.ok) {
@@ -77,7 +83,11 @@ export default function SettingsModal({
     };
 
     const fetchItemBankData = async () => {
+        const token = getToken();
         const response = await fetch(`${API_URL}/items-bank/${itemBankId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
             credentials: 'include'
         });
 
@@ -165,10 +175,12 @@ export default function SettingsModal({
         };
 
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/${itemBankId}`, {
                 method: 'PATCH',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 credentials: 'include',
                 body: JSON.stringify(payload)
@@ -214,8 +226,12 @@ export default function SettingsModal({
 
         if (result.isConfirmed) {
             try {
+                const token = getToken();
                 const response = await fetch(`${API_URL}/items-bank/${itemBankId}`, {
                     method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
                     credentials: 'include'
                 });
 
@@ -242,7 +258,7 @@ export default function SettingsModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4 bg-black/30 animate-in fade-in duration-200">
+        <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4 bg-black/30 animate-in fade-in duration-200" suppressHydrationWarning>
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-200">
                 {fetching ? (
                     <div className="flex items-center justify-center h-64">
