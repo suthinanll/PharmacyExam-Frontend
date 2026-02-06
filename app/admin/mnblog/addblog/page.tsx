@@ -7,11 +7,11 @@ import { ChevronLeft, Save, Zap, Trash2, Loader2, Link as LinkIcon, Image as Ima
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+
 interface BlogFormData {
     title: string;
     imageUrl: string;
     content: string;
-    author_id: number;
     categoryIds: number[];
 }
 
@@ -45,10 +45,9 @@ function AddBlogPage() {
         title: '',
         imageUrl: '',
         content: '',
-        author_id: 10, // กำหนดค่า default ตาม Backend
         categoryIds: [1],
     });
-    
+
     const [isSaving, setIsSaving] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -99,7 +98,6 @@ function AddBlogPage() {
                     title: formData.title,
                     content: formData.content,
                     cover_image_url: formData.imageUrl,
-                    author_id: formData.author_id,
                     categoryIds: formData.categoryIds,
                     status: 'PUBLISHED'
                 }),
@@ -131,9 +129,8 @@ function AddBlogPage() {
                     <button
                         onClick={handleSubmit}
                         disabled={isSaving || isGenerating || !formData.title}
-                        className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg text-white transition-all shadow-md ${
-                            isSaving || isGenerating ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'
-                        }`}
+                        className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg text-white transition-all shadow-md ${isSaving || isGenerating ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'
+                            }`}
                     >
                         {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                         <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกข่าวสาร'}</span>
@@ -158,7 +155,7 @@ function AddBlogPage() {
                         {/* จัดการรูปภาพผ่าน URL */}
                         <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                             <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">ลิงก์รูปภาพหน้าปก (Image URL)</label>
-                            
+
                             <div className="relative mb-4">
                                 <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
@@ -183,7 +180,7 @@ function AddBlogPage() {
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => setFormData({...formData, imageUrl: ''})}
+                                            onClick={() => setFormData({ ...formData, imageUrl: '' })}
                                             className="absolute top-3 right-3 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-xl transition-all"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -211,9 +208,8 @@ function AddBlogPage() {
                                 type="button"
                                 onClick={handleAutoGenerate}
                                 disabled={isGenerating}
-                                className={`flex items-center justify-center gap-2 px-8 py-4 text-sm font-normal rounded-full transition-all w-full shadow-2xl ${
-                                    isGenerating ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 active:scale-95 cursor-pointer'
-                                }`}
+                                className={`flex items-center justify-center gap-2 px-8 py-4 text-sm font-normal rounded-full transition-all w-full shadow-2xl ${isGenerating ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 active:scale-95 cursor-pointer'
+                                    }`}
                             >
                                 {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
                                 {isGenerating ? 'กำลังโหลดข่าว...' : 'ดึงข้อมูลอัตโนมัติ'}
@@ -226,7 +222,7 @@ function AddBlogPage() {
                         <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">รายละเอียดเนื้อหาข่าวสาร</label>
                         <DummyTextEditor
                             content={formData.content}
-                            setContent={(c) => setFormData({...formData, content: c})}
+                            setContent={(c) => setFormData({ ...formData, content: c })}
                             isGenerating={isGenerating}
                         />
                     </div>
