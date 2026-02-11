@@ -1,5 +1,6 @@
 "use client"
 import { useState, useEffect } from 'react';
+import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import Link from 'next/link';
@@ -26,6 +27,7 @@ interface ExamHistory {
 const API_URL = 'http://localhost:5000';
 
 function ExamHistory() {
+    const { getToken } = useAuth();
     const [examHistory, setExamHistory] = useState<ExamHistory[]>([]);
     const [filteredHistory, setFilteredHistory] = useState<ExamHistory[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -35,7 +37,6 @@ function ExamHistory() {
     // Filter states
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
-    const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
     const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
@@ -45,13 +46,16 @@ function ExamHistory() {
 
     useEffect(() => {
         applyFilters();
-    }, [examHistory, searchQuery, selectedCategories, selectedStatus]);
+    }, [examHistory, searchQuery, selectedCategories]);
 
     const fetchExamHistory = async () => {
         setLoading(true);
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/exam/history`, {
-                credentials: 'include'
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
 
             if (response.ok) {
@@ -74,8 +78,11 @@ function ExamHistory() {
 
     const fetchCategories = async () => {
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank/exam/categories`, {
-                credentials: 'include'
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
 
             if (response.ok) {
@@ -97,10 +104,6 @@ function ExamHistory() {
             );
         }
 
-        // Filter by status
-        if (selectedStatus !== 'ALL') {
-            filtered = filtered.filter(exam => exam.status === selectedStatus);
-        }
 
         // Filter by categories
         if (selectedCategories.length > 0) {
@@ -125,10 +128,9 @@ function ExamHistory() {
     const clearFilters = () => {
         setSearchQuery('');
         setSelectedCategories([]);
-        setSelectedStatus('ALL');
     };
 
-    const hasActiveFilters = searchQuery || selectedCategories.length > 0 || selectedStatus !== 'ALL';
+    const hasActiveFilters = searchQuery || selectedCategories.length > 0;
 
     // ฟังก์ชันแปลงวันที่เป็นภาษาไทย
     const formatDateThai = (dateString: string) => {
@@ -248,15 +250,15 @@ function ExamHistory() {
                             <button
                                 onClick={() => setShowFilters(!showFilters)}
                                 className={`px-4 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${showFilters || hasActiveFilters
-                                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
                                 <Filter className="w-5 h-5" />
                                 <span className="hidden sm:inline">ตัวกรอง</span>
                                 {hasActiveFilters && (
                                     <span className="bg-white text-blue-600 text-xs px-2 py-0.5 rounded-full font-bold">
-                                        {(selectedCategories.length > 0 ? 1 : 0) + (selectedStatus !== 'ALL' ? 1 : 0)}
+                                        {selectedCategories.length > 0 ? 1 : 0}
                                     </span>
                                 )}
                             </button>
@@ -265,24 +267,6 @@ function ExamHistory() {
                         {/* Filter Panel */}
                         {showFilters && (
                             <div className="mt-4 pt-4 border-t border-gray-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                                {/* Status Filter */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">สถานะ</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {['ALL', 'COMPLETED', 'IN_PROGRESS'].map((status) => (
-                                            <button
-                                                key={status}
-                                                onClick={() => setSelectedStatus(status)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedStatus === status
-                                                        ? 'bg-blue-600 text-white shadow-md'
-                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                    }`}
-                                            >
-                                                {status === 'ALL' ? 'ทั้งหมด' : status === 'COMPLETED' ? 'เสร็จสิ้น' : 'กำลังทำ'}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
 
                                 {/* Category Filter */}
                                 {categories.length > 0 && (
@@ -294,8 +278,8 @@ function ExamHistory() {
                                                     key={category.category_id}
                                                     onClick={() => toggleCategory(category.category_id)}
                                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selectedCategories.includes(category.category_id)
-                                                            ? 'bg-purple-600 text-white shadow-md'
-                                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                        ? 'bg-purple-600 text-white shadow-md'
+                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                         }`}
                                                 >
                                                     {category.category_name}
@@ -332,14 +316,6 @@ function ExamHistory() {
                                         </button>
                                     </span>
                                 )}
-                                {selectedStatus !== 'ALL' && (
-                                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full flex items-center gap-1">
-                                        {selectedStatus === 'COMPLETED' ? 'เสร็จสิ้น' : 'กำลังทำ'}
-                                        <button onClick={() => setSelectedStatus('ALL')} className="hover:bg-green-200 rounded-full p-0.5">
-                                            <X className="w-3 h-3" />
-                                        </button>
-                                    </span>
-                                )}
                                 {selectedCategories.map((catId) => {
                                     const cat = categories.find(c => c.category_id === catId);
                                     return cat ? (
@@ -372,12 +348,6 @@ function ExamHistory() {
                                                     <div className="flex-1">
                                                         <h3 className="text-lg font-bold text-gray-900 mb-1">{exam.item_bank_name}</h3>
                                                         <div className="flex flex-wrap gap-2 mb-2">
-                                                            <div className={`inline-block px-2 py-1 rounded text-xs font-medium ${exam.status === 'COMPLETED'
-                                                                ? 'bg-green-100 text-green-700'
-                                                                : 'bg-yellow-100 text-yellow-700'
-                                                                }`}>
-                                                                {exam.status === 'COMPLETED' ? 'เสร็จสิ้น' : 'กำลังทำ'}
-                                                            </div>
                                                             {exam.categories && exam.categories.map((cat) => (
                                                                 <span
                                                                     key={cat.category_id}
@@ -394,14 +364,12 @@ function ExamHistory() {
                                                                 </svg>
                                                                 {formatDateThai(exam.start_time)} เวลา {formatTime(exam.start_time)} น.
                                                             </span>
-                                                            {exam.status === 'COMPLETED' && (
-                                                                <span className="flex items-center gap-1">
-                                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                                    </svg>
-                                                                    {timeUsed}
-                                                                </span>
-                                                            )}
+                                                            <span className="flex items-center gap-1">
+                                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                                {timeUsed}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -409,13 +377,11 @@ function ExamHistory() {
 
                                             {/* Right Section */}
                                             <div className="flex items-center gap-6">
-                                                {exam.status === 'COMPLETED' && (
-                                                    <div className="text-center">
-                                                        <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${getScoreColor(percentage)}`}>
-                                                            {percentage}%
-                                                        </div>
+                                                <div className="text-center">
+                                                    <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${getScoreColor(percentage)}`}>
+                                                        {percentage}%
                                                     </div>
-                                                )}
+                                                </div>
                                                 <Link
                                                     href={`/user/examset/take-exam/summarize-exam?session_id=${exam.session_id}`}
                                                     className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-md hover:shadow-lg inline-block whitespace-nowrap"
