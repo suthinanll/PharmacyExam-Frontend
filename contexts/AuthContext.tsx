@@ -17,7 +17,7 @@ interface AuthContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (token: string) => Promise<void>;
-    logout: () => void;
+    logout: () => Promise<void>;
     getToken: () => string | null;
     refreshUser: () => Promise<void>;
 }
@@ -73,8 +73,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchUser();
     };
 
-    const logout = () => {
+    const logout = async () => {
+        const token = getToken();
+
+        // Call backend logout API if token exists (for session cleanup)
+        if (token) {
+            try {
+                await fetch(`${API_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include'
+                });
+            } catch (error) {
+                console.error('Error calling logout API:', error);
+                // Continue with local cleanup even if API call fails
+            }
+        }
+
+        // Clear all auth-related localStorage keys
         localStorage.removeItem('access_token');
+        localStorage.removeItem('user'); // Remove old/stale user key if exists
+        localStorage.removeItem('last_active_session_id'); // Clear chatbot session
+
         setUser(null);
         router.push('/login');
     };
