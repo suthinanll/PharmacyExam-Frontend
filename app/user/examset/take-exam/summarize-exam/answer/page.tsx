@@ -218,7 +218,8 @@ const AnswerPage = () => {
                         <h6 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">ตัวเลือก</h6>
                         <div className="grid grid-cols-1 gap-3">
                             {question.answer_options.map((option, oIdx) => {
-                                const isUserAnswer = option.option_id === question.selected_option_id;
+                                const isUserAnswer = question.selected_option_id != null &&
+                                    String(option.option_id) === String(question.selected_option_id);
                                 const isCorrectAnswer = option.is_correct;
 
                                 let variantClass = "bg-white border-gray-200";
@@ -242,7 +243,12 @@ const AnswerPage = () => {
                                                 {option.option_text}
                                             </span>
                                             {isUserAnswer && (
-                                                <span className="ml-2 py-0.5 px-1.5 rounded bg-gray-100 text-[10px] text-gray-500 font-medium">คำตอบของคุณ</span>
+                                                <span className={`ml-2 py-0.5 px-1.5 rounded text-[10px] font-medium ${isCorrectAnswer
+                                                        ? 'bg-green-200 text-green-800'
+                                                        : 'bg-red-200 text-red-800'
+                                                    }`}>
+                                                    คำตอบของคุณ
+                                                </span>
                                             )}
                                         </div>
                                     </div>
