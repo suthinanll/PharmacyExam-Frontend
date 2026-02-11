@@ -250,7 +250,7 @@ function Page() {
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-32">ระยะเวลา</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-32">สถานะ</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-40">วัน-เวลาที่สร้าง</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-40">หมวดหมู่</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-40">ประเภทข้อสอบ</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-20 rounded-tr-xl">จัดการ</th>
                   </tr>
                 </thead>
@@ -265,7 +265,7 @@ function Page() {
                     currentItems.map((bank, index) => {
                       const categoryNames = bank.categories && bank.categories.length > 0
                         ? bank.categories.map(cat => cat.category_name).join(', ')
-                        : 'ไม่มีหมวดหมู่';
+                        : 'ไม่มีประเภทข้อสอบ';
 
                       return (
                         <tr key={`bank-${bank.item_bank_id}-${index}`} className="hover:bg-gray-50">

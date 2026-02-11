@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { List, ChevronRight, ChevronDown } from 'lucide-react';
+import { List, ChevronRight, ChevronDown, GripVertical } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface Situation {
     questions: any[];
@@ -48,16 +49,26 @@ export default function TableOfContents({
     if (situations.length === 0) return null;
 
     return (
-        <div className="fixed right-4 top-28 z-50 flex flex-col items-end gap-2 transition-all">
-            {/* Toggle Button */}
-            <button
-                type="button"
-                onClick={() => setShowTOC(!showTOC)}
-                className={`bg-white p-2.5 rounded-full shadow-lg border border-gray-200 text-gray-600 hover:text-green-600 hover:border-green-200 transition-all active:scale-95`}
-                title={showTOC ? "ซ่อนสารบัญ" : "แสดงสารบัญ"}
-            >
-                {showTOC ? <ChevronRight className="w-5 h-5" /> : <List className="w-5 h-5" />}
-            </button>
+        <motion.div
+            drag
+            dragMomentum={false}
+            className="fixed right-4 top-28 z-50 flex flex-col items-end gap-2 transition-shadow"
+            whileDrag={{ scale: 1.02, zIndex: 60 }}
+        >
+            {/* Toggle Button / Drag Handle */}
+            <div className="flex items-center gap-2">
+                <div className="cursor-grab active:cursor-grabbing p-1.5 bg-white rounded-full shadow-lg border border-gray-200 text-gray-400 hover:text-gray-600 transition-colors">
+                    <GripVertical className="w-4 h-4" />
+                </div>
+                <button
+                    type="button"
+                    onClick={() => setShowTOC(!showTOC)}
+                    className={`bg-white p-2.5 rounded-full shadow-lg border border-gray-200 text-gray-600 hover:text-green-600 hover:border-green-200 transition-all active:scale-95`}
+                    title={showTOC ? "ซ่อนสารบัญ" : "แสดงสารบัญ"}
+                >
+                    {showTOC ? <ChevronRight className="w-5 h-5" /> : <List className="w-5 h-5" />}
+                </button>
+            </div>
 
             {/* Content List */}
             {showTOC && (
@@ -121,6 +132,6 @@ export default function TableOfContents({
                     </div>
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 }

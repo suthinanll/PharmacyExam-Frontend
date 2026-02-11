@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { Loader2, Save, X } from 'lucide-react';
+import { Loader2, Save, X, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Category {
@@ -252,15 +252,15 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                         </p>
                     </div>
 
-                    {/* หมวดหมู่ */}
+                    {/* ประเภทข้อสอบ */}
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-3">
-                            หมวดหมู่
+                            ประเภทข้อสอบ
                         </label>
                         {loadingCategories ? (
                             <div className="flex items-center justify-center py-8">
                                 <Loader2 className="w-6 h-6 animate-spin text-green-600" />
-                                <span className="ml-2 text-gray-600">กำลังโหลดหมวดหมู่...</span>
+                                <span className="ml-2 text-gray-600">กำลังโหลดประเภทข้อสอบ...</span>
                             </div>
                         ) : categories.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2">
@@ -291,30 +291,20 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                             </div>
                         ) : (
                             <div className="text-center py-8 text-gray-500">
-                                ไม่มีหมวดหมู่
+                                ไม่มีประเภทข้อสอบ
                             </div>
                         )}
                     </div>
 
-                    {/* สถานะ */}
-                    <div>
-                        <label className="flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                name="is_active"
-                                checked={formData.is_active}
-                                onChange={handleInputChange}
-                                className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                            />
-                            <span className="ml-3 text-sm font-medium text-gray-700">
-                                เปิดใช้งานชุดข้อสอบนี้
-                            </span>
-                        </label>
-                        <p className="text-sm text-gray-500 mt-1 ml-8">
-                            {formData.is_active
-                                ? 'ผู้ใช้สามารถเห็นและทำข้อสอบนี้ได้'
-                                : 'ชุดข้อสอบนี้จะถูกซ่อนจากผู้ใช้'}
-                        </p>
+                    {/* Status Note */}
+                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div>
+                            <p className="text-sm font-semibold text-amber-900">บันทึกเป็นแบบร่าง</p>
+                            <p className="text-xs text-amber-700 mt-1">
+                                ชุดข้อสอบที่สร้างใหม่จะถูกตั้งเป็น "แบบร่าง" (ปิดการใช้งาน) โดยอัตโนมัติ คุณสามารถเปิดใช้งานได้ภายหลังจากการเพิ่มข้อสอบครบถ้วนแล้ว
+                            </p>
+                        </div>
                     </div>
                 </form>
 

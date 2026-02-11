@@ -254,7 +254,7 @@ export default function ItemBankSettingsPage() {
         <Navbar_admin>
             <div className="min-h-screen bg-gray-50 py-8">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                  
+
                     {/* Header */}
                     <div className="flex justify-between items-start mb-8">
                         <div>
@@ -316,10 +316,10 @@ export default function ItemBankSettingsPage() {
                             />
                         </div>
 
-                        {/* หมวดหมู่ */}
+                        {/* ประเภทข้อสอบ */}
                         <div className="mb-6">
                             <label className="block text-sm font-semibold text-gray-700 mb-3">
-                                หมวดหมู่
+                                ประเภทข้อสอบ
                             </label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {categories.map((category) => (

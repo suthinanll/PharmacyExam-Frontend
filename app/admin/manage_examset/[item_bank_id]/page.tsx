@@ -9,10 +9,10 @@ import { div } from 'framer-motion/client';
 import TableOfContents from './components/TableOfContents';
 import ItemBankHeader from './components/ItemBankHeader';
 import AddSubTopicModal from './components/AddSubTopicModal';
-import SettingsModal from './components/SettingsModal';
 import SituationViewer from './components/SituationViewer';
 import CATGuideModal from '../../cat_management/components/CATGuideModal';
 import DashboardView from './components/DashboardView';
+import SettingsModal from './components/SettingsModal';
 import { useAuth } from "@/contexts/AuthContext";
 
 // Types
@@ -92,10 +92,9 @@ export default function ItemBankEditPage() {
 
     // Editing State
     const [viewMode, setViewMode] = useState<'dashboard' | 'editor'>('dashboard');
-    const [isEditing, setIsEditing] = useState(false); // Default to View mode
+    const [isEditing, setIsEditing] = useState(true); // Default to editing when in editor mode
 
-    // States for Settings Modal
-    const [showSettingsModal, setShowSettingsModal] = useState(false);
+
 
     // States for TOC
     const [activeSituationIndex, setActiveSituationIndex] = useState<number>(0);
@@ -105,21 +104,123 @@ export default function ItemBankEditPage() {
     // State for CAT Guide Modal
     const [showCATGuide, setShowCATGuide] = useState(false);
 
+    // State for Settings Modal
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+    // Ref to track if data has been initially loaded to avoid autosaving initial fetch
+    const isInitialLoad = useRef(true);
+    const hasUnsavedChanges = useRef(false);
+    const hasInitialized = useRef(false);
+
 
     useEffect(() => {
         if (itemBankId) {
             initData();
         }
+
+        // Beforeunload listener
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (hasUnsavedChanges.current) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [itemBankId]);
 
+    // Cleanup draft on success is handled in handleSubmit
+    // Save draft when situations change
+    useEffect(() => {
+        if (!loading && !isInitialLoad.current && itemBankId) {
+            const draftKey = `item_bank_draft_${itemBankId}`;
+            localStorage.setItem(draftKey, JSON.stringify(situations));
+            hasUnsavedChanges.current = true;
+        }
+    }, [situations, loading, itemBankId]);
+
     const initData = async () => {
+        if (hasInitialized.current) return;
+        hasInitialized.current = true;
+
         setLoading(true);
         await Promise.all([
             fetchItemBankInfo(),
             fetchSubTopics(),
             fetchExistingItems()
         ]);
+
+        // Check for local draft
+        const draftKey = `item_bank_draft_${itemBankId}`;
+        const savedDraft = localStorage.getItem(draftKey);
+
+        if (savedDraft) {
+            try {
+                const parsedDraft = JSON.parse(savedDraft);
+                if (parsedDraft && parsedDraft.length > 0) {
+                    const result = await Swal.fire({
+                        title: 'พบข้อมูลที่ยังไม่ได้บันทึก',
+                        text: 'คุณต้องการกู้คืนข้อมูลล่าสุดที่แก้ไขค้างไว้หรือไม่?',
+                        icon: 'info',
+                        showCancelButton: true,
+                        confirmButtonColor: '#22c55e',
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: 'กู้คืนข้อมูล',
+                        cancelButtonText: 'ละทิ้งฉบับร่าง'
+                    });
+
+                    if (result.isConfirmed) {
+                        setSituations(parsedDraft);
+                        hasUnsavedChanges.current = true;
+                        setViewMode('editor');
+
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: 'กู้คืนข้อมูลสำเร็จ',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+
+                        // Scroll to the top of the editor after values are set
+                        setTimeout(() => {
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }, 500);
+                    } else if (result.dismiss === Swal.DismissReason.cancel as any) {
+                        localStorage.removeItem(draftKey);
+                        hasUnsavedChanges.current = false;
+
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'info',
+                            title: 'ละทิ้งฉบับร่างแล้ว',
+                            showConfirmButton: false,
+                            timer: 2000,
+                            timerProgressBar: true
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing draft:', e);
+                localStorage.removeItem(draftKey);
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'error',
+                    title: 'กู้คืนข้อมูลไม่สำเร็จ',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+            }
+        }
+
         setLoading(false);
+        isInitialLoad.current = false;
     };
 
     const fetchItemBankInfo = async () => {
@@ -225,7 +326,17 @@ export default function ItemBankEditPage() {
             situation_image_url: '',
             questions: []
         };
-        setSituations([...situations, newSituation]);
+        const newSituations = [...situations, newSituation];
+        setSituations(newSituations);
+
+        // Scroll to the new situation
+        setTimeout(() => {
+            const index = newSituations.length - 1;
+            const element = situationRefs.current[index];
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
     };
 
     const removeSituation = async (index: number) => {
@@ -298,11 +409,22 @@ export default function ItemBankEditPage() {
                 { option_text: '', is_correct: false },
                 { option_text: '', is_correct: false },
                 { option_text: '', is_correct: false },
-            ]
+            ],
+            irt_a_discrimination: 1,
+            irt_c_guessing: 0.25
         };
         const newSituations = [...situations];
         newSituations[situationIndex].questions.push(newQuestion);
         setSituations(newSituations);
+
+        // Scroll to the new question
+        setTimeout(() => {
+            const qIdx = newSituations[situationIndex].questions.length - 1;
+            const element = document.getElementById(`question-${situationIndex}-${qIdx}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
     };
 
     const removeQuestion = async (situationIndex: number, questionIndex: number) => {
@@ -428,6 +550,52 @@ export default function ItemBankEditPage() {
             newCollapsed.add(key);
         }
         setCollapsedQuestions(newCollapsed);
+    };
+
+    const handleCancel = async () => {
+        if (hasUnsavedChanges.current) {
+            const result = await Swal.fire({
+                title: 'ยืนยันการยกเลิก?',
+                text: 'การเปลี่ยนแปลงที่ยังไม่ได้บันทึกจะสูญหาย คุณแน่ใจหรือไม่?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#6b7280',
+                cancelButtonColor: '#ef4444',
+                confirmButtonText: 'ใช่, ทิ้งการแก้ไข',
+                cancelButtonText: 'กลับไปแก้ไข',
+                reverseButtons: true
+            });
+
+            if (!result.isConfirmed) return;
+        }
+
+        // 1. Disable autosave and set loading
+        isInitialLoad.current = true;
+        setLoading(true);
+
+        // 2. Clear local draft
+        const draftKey = `item_bank_draft_${itemBankId}`;
+        localStorage.removeItem(draftKey);
+        hasUnsavedChanges.current = false;
+
+        // 3. Re-fetch data to revert state
+        try {
+            await Promise.all([
+                fetchItemBankInfo(),
+                fetchExistingItems()
+            ]);
+
+            // 4. Exit edit mode
+            setIsEditing(false);
+        } catch (error) {
+            console.error('Error reverting changes:', error);
+        } finally {
+            setLoading(false);
+            // 5. Re-enable autosave after a short delay
+            setTimeout(() => {
+                isInitialLoad.current = false;
+            }, 500);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -641,6 +809,10 @@ export default function ItemBankEditPage() {
 
             // อัพเดท state ด้วยข้อมูลใหม่
             console.log('📝 Updating state with:', updatedSituations);
+
+            // Disable autosave before state updates
+            isInitialLoad.current = true;
+
             setSituations(updatedSituations);
 
             // สร้างข้อความแสดงผลที่ละเอียดขึ้น
@@ -669,6 +841,16 @@ export default function ItemBankEditPage() {
             // รีเฟรชข้อมูลเพื่ออัพเดท situation_id และ item_id
             await fetchExistingItems();
             await fetchItemBankInfo();
+
+            // Clear local draft and unsaved changes flag
+            const draftKey = `item_bank_draft_${itemBankId}`;
+            localStorage.removeItem(draftKey);
+            hasUnsavedChanges.current = false;
+
+            // Re-enable autosave after a small delay to ensure all state updates are finished
+            setTimeout(() => {
+                isInitialLoad.current = false;
+            }, 500);
 
         } catch (error: any) {
             console.error('Error:', error);
@@ -818,24 +1000,22 @@ export default function ItemBankEditPage() {
             <Navbar_admin>
                 <DashboardView
                     itemBankId={itemBankId}
-                    onManageExams={() => setViewMode('editor')}
+                    onManageExams={() => {
+                        setViewMode('editor');
+                        setIsEditing(true);
+                    }}
+                    onUpdate={fetchItemBankInfo}
                 />
             </Navbar_admin>
         );
     }
 
+
+
     return (
         <Navbar_admin>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 relative" suppressHydrationWarning>
-                <div className="mb-6">
-                    <button
-                        onClick={() => setViewMode('dashboard')}
-                        className="flex items-center gap-2 px-4 py-2 bg-white text-gray-600 hover:text-gray-900 font-medium rounded-lg border border-gray-200 shadow-sm hover:shadow transition-all group"
-                    >
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        กลับสู่ Dashboard
-                    </button>
-                </div>
+
                 <ItemBankHeader
                     itemBankInfo={itemBankInfo}
                     situations={situations}
@@ -846,6 +1026,41 @@ export default function ItemBankEditPage() {
                     isEditing={isEditing}
                     onToggleEdit={() => setIsEditing(!isEditing)}
                     onSave={handleSubmit}
+                    onBack={async () => {
+                        if (hasUnsavedChanges.current) {
+                            const result = await Swal.fire({
+                                title: 'มีข้อมูลยังไม่ได้บันทึก',
+                                text: 'คุณต้องการบันทึกการเปลี่ยนแปลงก่อนกลับหรือไม่?',
+                                icon: 'question',
+                                showCancelButton: true,
+                                showDenyButton: true,
+                                confirmButtonColor: '#22c55e',
+                                denyButtonColor: '#ef4444',
+                                cancelButtonColor: '#6b7280',
+                                confirmButtonText: 'บันทึก',
+                                denyButtonText: 'ไม่บันทึก (ทิ้งการแก้ไข)',
+                                cancelButtonText: 'ยกเลิก',
+                                reverseButtons: true
+                            });
+
+                            if (result.isConfirmed) {
+                                await handleSubmit(new Event('submit') as any);
+                                setViewMode('dashboard');
+                            } else if (result.isDenied) {
+                                // Discard changes
+                                isInitialLoad.current = true;
+                                const draftKey = `item_bank_draft_${itemBankId}`;
+                                localStorage.removeItem(draftKey);
+                                hasUnsavedChanges.current = false;
+                                await fetchExistingItems();
+                                setViewMode('dashboard');
+                                setTimeout(() => { isInitialLoad.current = false; }, 500);
+                            }
+                            // if cancelled, do nothing
+                        } else {
+                            setViewMode('dashboard');
+                        }
+                    }}
                 />
 
                 <TableOfContents
@@ -891,60 +1106,62 @@ export default function ItemBankEditPage() {
                                             className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden scroll-mt-32"
                                         >
                                             {/* Situation Header */}
-                                            <div className={`px-4 sm:px-6 py-4 sm:py-5 ${situation.situation_id ? 'bg-emerald-600' : 'bg-slate-700'} transition-colors duration-200`}>
-                                                <div className="flex items-start justify-between gap-3 sm:gap-4">
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => toggleSituationCollapse(sitIdx)}
-                                                            className="p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-                                                            title={isCollapsed ? "ขยาย" : "หุบ"}
-                                                        >
-                                                            {isCollapsed ? <ChevronDown className="w-5 h-5 text-white" /> : <ChevronUp className="w-5 h-5 text-white" />}
-                                                        </button>
-                                                        <div className="flex flex-col gap-0.5">
+                                            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-white border-b border-gray-100 transition-colors duration-200">
+                                                <div className="flex items-center justify-between gap-3 sm:gap-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-1.5 h-6 rounded-full ${situation.situation_id ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
+                                                        <h5 className="font-bold text-gray-800 text-base sm:text-lg">สถานการณ์ที่ {sitIdx + 1}</h5>
+
+                                                        <div className="hidden sm:flex items-center gap-1 ml-4 py-1 px-2 bg-gray-50 rounded-lg border border-gray-100">
                                                             <button
                                                                 type="button"
                                                                 onClick={() => moveSituation(sitIdx, 'up')}
                                                                 disabled={sitIdx === 0}
-                                                                className="p-0.5 bg-white/20 hover:bg-white/30 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                                className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                 title="ย้ายขึ้น"
                                                             >
-                                                                <ArrowUp className="w-3.5 h-3.5 text-white" />
+                                                                <ArrowUp className="w-4 h-4" />
                                                             </button>
+                                                            <div className="w-[1px] h-3 bg-gray-200"></div>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => moveSituation(sitIdx, 'down')}
                                                                 disabled={sitIdx === situations.length - 1}
-                                                                className="p-0.5 bg-white/20 hover:bg-white/30 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                                className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                 title="ย้ายลง"
                                                             >
-                                                                <ArrowDown className="w-3.5 h-3.5 text-white" />
+                                                                <ArrowDown className="w-4 h-4" />
                                                             </button>
                                                         </div>
-                                                        <h5 className="font-bold text-white text-base sm:text-lg ml-2">สถานการณ์ที่ {sitIdx + 1}</h5>
                                                     </div>
 
-                                                    <div className="flex-1"></div>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeSituation(sitIdx)}
-                                                        className="p-2 bg-white/20 hover:bg-red-500 rounded-lg transition-colors flex-shrink-0"
-                                                        title="ลบสถานการณ์"
-                                                    >
-                                                        <Trash2 className="w-5 h-5 text-white" />
-                                                    </button>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeSituation(sitIdx)}
+                                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                            title="ลบสถานการณ์"
+                                                        >
+                                                            <Trash2 className="w-5 h-5" />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => toggleSituationCollapse(sitIdx)}
+                                                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+                                                        >
+                                                            {isCollapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             {/* Questions */}
                                             {!isCollapsed && (
-                                                <div className="p-4 sm:p-6 space-y-4 bg-gray-50">
+                                                <div className="p-4 sm:p-6 space-y-4 bg-gray-50/30">
                                                     {/* Situation Details */}
                                                     <div className="space-y-3 mb-6">
                                                         <div className="space-y-2">
-                                                            <label className="text-base font-medium text-gray-700">รายละเอียดสถานการณ์ <span className="text-red-500">*</span></label>
+                                                            <label className="text-base text-gray-700">รายละเอียดสถานการณ์ <span className="text-red-500">*</span></label>
                                                             <textarea
                                                                 value={situation.situation_text}
                                                                 onChange={(e) => updateSituation(sitIdx, 'situation_text', e.target.value)}
@@ -990,50 +1207,54 @@ export default function ItemBankEditPage() {
                                                             {situation.questions.map((question, qIdx) => {
                                                                 const isQCollapsed = collapsedQuestions.has(`${sitIdx}-${qIdx}`);
                                                                 return (
-                                                                    <div id={`question-${sitIdx}-${qIdx}`} key={qIdx} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden scroll-mt-32">
+                                                                    <div id={`question-${sitIdx}-${qIdx}`} key={qIdx} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden scroll-mt-32">
                                                                         {/* Question Header */}
-                                                                        <div className="bg-gray-100 px-4 py-3 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
-                                                                            <div className="flex items-center gap-2">
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
-                                                                                    className="p-1 hover:bg-gray-200 rounded transition-colors"
-                                                                                    title={isQCollapsed ? "ขยาย" : "หุบ"}
-                                                                                >
-                                                                                    {isQCollapsed ? <ChevronDown className="w-4 h-4 text-gray-600" /> : <ChevronUp className="w-4 h-4 text-gray-600" />}
-                                                                                </button>
+                                                                        <div className="bg-white px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                                                                            <div className="flex items-center gap-3">
+                                                                                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-sm border border-blue-100">
+                                                                                    {questionStartIndex + qIdx + 1}
+                                                                                </div>
+                                                                                <h5 className="font-bold text-gray-700 text-sm sm:text-base">ข้อที่ {questionStartIndex + qIdx + 1}</h5>
 
-                                                                                <div className="flex flex-col gap-0.5">
+                                                                                <div className="flex items-center gap-1 ml-2 py-0.5 px-1 bg-gray-50 rounded border border-gray-100">
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => moveQuestion(sitIdx, qIdx, 'up')}
                                                                                         disabled={qIdx === 0}
-                                                                                        className="p-0.5 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                                                        className="p-1 text-gray-400 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                                         title="ย้ายขึ้น"
                                                                                     >
-                                                                                        <ArrowUp className="w-3 h-3 text-gray-600" />
+                                                                                        <ArrowUp className="w-3.5 h-3.5" />
                                                                                     </button>
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => moveQuestion(sitIdx, qIdx, 'down')}
                                                                                         disabled={qIdx === situation.questions.length - 1}
-                                                                                        className="p-0.5 hover:bg-gray-200 rounded disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                                                        className="p-1 text-gray-400 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                                         title="ย้ายลง"
                                                                                     >
-                                                                                        <ArrowDown className="w-3 h-3 text-gray-600" />
+                                                                                        <ArrowDown className="w-3.5 h-3.5" />
                                                                                     </button>
                                                                                 </div>
-
-                                                                                <h5 className="font-bold text-gray-800 text-sm sm:text-base">คำถามข้อที่ {questionStartIndex + qIdx + 1}</h5>
                                                                             </div>
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={() => removeQuestion(sitIdx, qIdx)}
-                                                                                className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
-                                                                                title="ลบคำถาม"
-                                                                            >
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
+
+                                                                            <div className="flex items-center gap-1">
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => removeQuestion(sitIdx, qIdx)}
+                                                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                                                    title="ลบคำถาม"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
+                                                                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
+                                                                                >
+                                                                                    {isQCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                                                                                </button>
+                                                                            </div>
                                                                         </div>
 
                                                                         {/* Question Content */}
@@ -1193,15 +1414,54 @@ export default function ItemBankEditPage() {
 
                                 {/* Submit Button */}
                                 {/* Submit Button (Only in Edit Mode) */}
-                                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-30 lg:ml-64 xl:ml-72">
+                                <div
+                                    className="fixed bottom-0 right-0 bg-white/80 backdrop-blur-md border-t border-gray-100 p-4 z-30 transition-all duration-300"
+                                    style={{ left: 'var(--sidebar-width)' }}
+                                >
                                     <div className="max-w-7xl mx-auto flex justify-end gap-3 px-4 sm:px-6 lg:px-8">
                                         <button
                                             type="button"
-                                            onClick={() => setIsEditing(false)}
+                                            onClick={handleCancel}
                                             className="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                                         >
                                             ยกเลิก
                                         </button>
+
+                                        {/* Save as Draft Button (if currently published) */}
+                                        {itemBankInfo?.is_active && (
+                                            <button
+                                                type="button"
+                                                disabled={submitting}
+                                                onClick={async () => {
+                                                    // This will save content AND set is_active to false
+                                                    const token = getToken();
+                                                    setSubmitting(true);
+                                                    try {
+                                                        // 1. Update item bank to draft
+                                                        await fetch(`${API_URL}/items-bank/${itemBankId}`, {
+                                                            method: 'PATCH',
+                                                            headers: {
+                                                                'Content-Type': 'application/json',
+                                                                'Authorization': `Bearer ${token}`
+                                                            },
+                                                            credentials: 'include',
+                                                            body: JSON.stringify({ is_active: false })
+                                                        });
+                                                        // 2. Submit situational data
+                                                        await handleSubmit(new Event('submit') as any);
+                                                    } catch (error) {
+                                                        console.error(error);
+                                                    } finally {
+                                                        setSubmitting(false);
+                                                    }
+                                                }}
+                                                className="px-6 py-2.5 rounded-lg border border-amber-300 text-amber-700 font-medium hover:bg-amber-50 transition-colors flex items-center gap-2"
+                                            >
+                                                <FileText className="w-4 h-4" />
+                                                บันทึกเป็นแบบร่าง
+                                            </button>
+                                        )}
+
                                         <button
                                             type="submit"
                                             disabled={submitting}
@@ -1215,7 +1475,7 @@ export default function ItemBankEditPage() {
                                             ) : (
                                                 <>
                                                     <Save className="w-5 h-5" />
-                                                    บันทึกข้อมูล
+                                                    {itemBankInfo?.is_active ? 'บันทึกการแก้ไข' : 'บันทึกร่าง'}
                                                 </>
                                             )}
                                         </button>
@@ -1244,16 +1504,21 @@ export default function ItemBankEditPage() {
                 setNewSubTopicTopicId={setNewSubTopicTopicId}
             />
 
-            <SettingsModal
-                isOpen={showSettingsModal}
-                onClose={() => setShowSettingsModal(false)}
-                itemBankId={itemBankId}
-                onUpdate={fetchItemBankInfo}
-            />
+
 
             <CATGuideModal
                 isOpen={showCATGuide}
                 onClose={() => setShowCATGuide(false)}
+            />
+
+            <SettingsModal
+                isOpen={showSettingsModal}
+                onClose={() => setShowSettingsModal(false)}
+                itemBankId={itemBankId}
+                onUpdate={() => {
+                    fetchItemBankInfo();
+                    initData();
+                }}
             />
         </Navbar_admin>
     );

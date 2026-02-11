@@ -64,21 +64,23 @@ export default function SituationViewer({
                         className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden scroll-mt-32"
                     >
                         {/* Situation Header (View Mode) */}
-                        <div className={`px-4 sm:px-6 py-4 sm:py-5 ${situation.situation_id ? 'bg-emerald-600' : 'bg-slate-700'} transition-colors duration-200 text-white`}>
+                        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-white border-b border-gray-100 transition-colors duration-200">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => toggleSituationCollapse(sitIdx)}
-                                        className="p-1 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-                                    >
-                                        {isCollapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
-                                    </button>
-                                    <h5 className="font-bold text-lg">สถานการณ์ที่ {sitIdx + 1}</h5>
+                                    <div className={`w-1.5 h-6 rounded-full ${situation.situation_id ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
+                                    <h5 className="font-bold text-gray-800 text-lg">สถานการณ์ที่ {sitIdx + 1}</h5>
+
+                                    <div className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full border border-gray-200 ml-2">
+                                        {situation.questions.length} คำถาม
+                                    </div>
                                 </div>
-                                <div className="text-sm bg-white/20 px-3 py-1 rounded-full">
-                                    {situation.questions.length} คำถาม
-                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => toggleSituationCollapse(sitIdx)}
+                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+                                >
+                                    {isCollapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
+                                </button>
                             </div>
                         </div>
 
@@ -103,20 +105,20 @@ export default function SituationViewer({
                                         const isQCollapsed = collapsedQuestions.has(`${sitIdx}-${qIdx}`);
 
                                         return (
-                                            <div id={`question-${sitIdx}-${qIdx}`} key={qIdx} className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden scroll-mt-32">
+                                            <div id={`question-${sitIdx}-${qIdx}`} key={qIdx} className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden scroll-mt-32">
                                                 <div
-                                                    className="p-4 bg-gray-100 border-b border-gray-200 flex justify-between items-center cursor-pointer hover:bg-gray-200 transition-colors"
+                                                    className="p-4 bg-white border-b border-gray-50 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors"
                                                     onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
                                                 >
-                                                    <div className="flex items-start gap-3 flex-1">
-                                                        <span className="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-md flex-shrink-0 mt-0.5">
-                                                            ข้อที่ {questionStartIndex + qIdx + 1}
-                                                        </span>
-                                                        <span className="font-medium text-gray-700 break-words pr-2">
+                                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs border border-blue-100 flex-shrink-0">
+                                                            {questionStartIndex + qIdx + 1}
+                                                        </div>
+                                                        <span className="font-medium text-gray-700 truncate pr-4">
                                                             {question.question_text || 'คำถามใหม่'}
                                                         </span>
                                                     </div>
-                                                    {isQCollapsed ? <ChevronDown className="w-5 h-5 text-gray-500" /> : <ChevronUp className="w-5 h-5 text-gray-500" />}
+                                                    {isQCollapsed ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronUp className="w-4 h-4 text-gray-400" />}
                                                 </div>
 
                                                 {!isQCollapsed && (
