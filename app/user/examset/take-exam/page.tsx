@@ -103,16 +103,28 @@ function TakeExam() {
                 const data = await response.json();
                 setItemBank(data);
 
-                // Sort questions by display_order
+                // Sort questions strictly by Situation Order and then Question Order
                 const sortedQuestions = (data.items || []).sort(
                     (a: Question, b: Question) => {
-                        // 1. Sort by Situation display_order first if it exists
-                        const sitOrderA = a.situation?.display_order ?? 999999;
-                        const sitOrderB = b.situation?.display_order ?? 999999;
-                        if (sitOrderA !== sitOrderB) return sitOrderA - sitOrderB;
+                        // 1. Get numeric orders
+                        const sitOrderA = Number(a.situation?.display_order ?? 0);
+                        const sitOrderB = Number(b.situation?.display_order ?? 0);
 
-                        // 2. Then sort by question display_order within same situation
-                        return (a.display_order || 0) - (b.display_order || 0);
+                        // 2. Compare Situation display_order
+                        if (sitOrderA !== sitOrderB) {
+                            return sitOrderA - sitOrderB;
+                        }
+
+                        // 3. If situation display_order is same, MUST group by situation_id
+                        // to prevent questions from different situations with same order from interleaving
+                        const sitIdA = a.situation?.situation_id ?? 0;
+                        const sitIdB = b.situation?.situation_id ?? 0;
+                        if (sitIdA !== sitIdB) {
+                            return sitIdA - sitIdB;
+                        }
+
+                        // 4. Finally sort by question display_order within that group
+                        return Number(a.display_order || 0) - Number(b.display_order || 0);
                     }
                 );
                 setQuestions(sortedQuestions);
