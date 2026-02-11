@@ -32,7 +32,7 @@ export default function AddCategory() {
         if (!formData.category_name.trim()) {
             Swal.fire({
                 title: 'กรุณากรอกข้อมูล',
-                text: 'กรุณากรอกชื่อหมวดหมู่',
+                text: 'กรุณากรอกชื่อประเภทข้อสอบ',
                 icon: 'warning',
                 confirmButtonColor: '#3b82f6'
             });
@@ -64,7 +64,7 @@ export default function AddCategory() {
             if (response.ok) {
                 await Swal.fire({
                     title: 'สำเร็จ!',
-                    text: 'สร้างหมวดหมู่สำเร็จ',
+                    text: 'สร้างประเภทข้อสอบสำเร็จ',
                     icon: 'success',
                     confirmButtonColor: '#22c55e'
                 });
@@ -73,13 +73,13 @@ export default function AddCategory() {
                 router.push('/admin/manage_category');
             } else {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'ไม่สามารถสร้างหมวดหมู่ได้');
+                throw new Error(errorData.message || 'ไม่สามารถสร้างประเภทข้อสอบได้');
             }
         } catch (error: any) {
             console.error('Error creating category:', error);
             Swal.fire({
                 title: 'เกิดข้อผิดพลาด',
-                text: error.message || 'ไม่สามารถสร้างหมวดหมู่ได้ กรุณาลองใหม่อีกครั้ง',
+                text: error.message || 'ไม่สามารถสร้างประเภทข้อสอบได้ กรุณาลองใหม่อีกครั้ง',
                 icon: 'error',
                 confirmButtonColor: '#ef4444'
             });
@@ -101,16 +101,16 @@ export default function AddCategory() {
                 <div className="container mx-auto px-4 max-w-4xl">
                     {/* Header */}
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">เพิ่มหมวดหมู่ใหม่</h1>
-                        <p className="text-gray-600">กรอกข้อมูลเพื่อสร้างหมวดหมู่ใหม่</p>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">เพิ่มประเภทข้อสอบใหม่</h1>
+                        <p className="text-gray-600">กรอกข้อมูลเพื่อสร้างประเภทข้อสอบใหม่</p>
                     </div>
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-8">
-                        {/* ชื่อหมวดหมู่ */}
+                        {/* ชื่อประเภทข้อสอบ */}
                         <div className="mb-6">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                ชื่อหมวดหมู่ <span className="text-red-500">*</span>
+                                ชื่อประเภทข้อสอบ <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
@@ -134,7 +134,7 @@ export default function AddCategory() {
                                 onChange={handleInputChange}
                                 rows={4}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-                                placeholder="รายละเอียดของหมวดหมู่..."
+                                placeholder="รายละเอียดของประเภทข้อสอบ..."
                                 required
                             />
                         </div>
@@ -154,7 +154,7 @@ export default function AddCategory() {
                                 ) : (
                                     <>
                                         <Save className="w-5 h-5" />
-                                        สร้างหมวดหมู่
+                                        สร้างประเภทข้อสอบ
                                     </>
                                 )}
                             </button>

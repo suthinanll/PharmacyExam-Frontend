@@ -86,7 +86,7 @@ export default function CategoriesManagement() {
     const handleDelete = async (categoryId: number, categoryName: string) => {
         const result = await Swal.fire({
             title: 'คุณแน่ใจหรือไม่?',
-            text: `ต้องการลบหมวดหมู่ "${categoryName}" หรือไม่?`,
+            text: `ต้องการลบประเภทข้อสอบ "${categoryName}" หรือไม่?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
@@ -111,7 +111,7 @@ export default function CategoriesManagement() {
             if (response.ok) {
                 await Swal.fire({
                     title: 'สำเร็จ!',
-                    text: 'ลบหมวดหมู่สำเร็จ',
+                    text: 'ลบประเภทข้อสอบสำเร็จ',
                     icon: 'success',
                     confirmButtonColor: '#22c55e'
                 });
@@ -150,7 +150,7 @@ export default function CategoriesManagement() {
             Swal.fire({
                 icon: 'warning',
                 title: 'กรุณากรอกข้อมูล',
-                text: 'กรุณากรอกชื่อหมวดหมู่'
+                text: 'กรุณากรอกชื่อประเภทข้อสอบ'
             });
             return;
         }
@@ -182,7 +182,7 @@ export default function CategoriesManagement() {
                 await Swal.fire({
                     icon: 'success',
                     title: 'สำเร็จ!',
-                    text: editingCategory ? 'แก้ไขหมวดหมู่เรียบร้อย' : 'สร้างหมวดหมู่เรียบร้อย',
+                    text: editingCategory ? 'แก้ไขประเภทข้อสอบเรียบร้อย' : 'สร้างประเภทข้อสอบเรียบร้อย',
                     timer: 1500,
                     showConfirmButton: false
                 });
@@ -196,7 +196,7 @@ export default function CategoriesManagement() {
             Swal.fire({
                 icon: 'error',
                 title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถบันทึกหมวดหมู่ได้'
+                text: 'ไม่สามารถบันทึกประเภทข้อสอบได้'
             });
         } finally {
             setSubmitting(false);
@@ -310,7 +310,7 @@ export default function CategoriesManagement() {
                             className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
                         >
                             <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                            เพิ่มหมวดหมู่ใหม่
+                            เพิ่มประเภทข้อสอบใหม่
                         </button>
                     </div>
                 </div>
@@ -320,7 +320,7 @@ export default function CategoriesManagement() {
                     <div className="relative w-full max-w-sm">
                         <input
                             type="text"
-                            placeholder="ค้นหาหมวดหมู่"
+                            placeholder="ค้นหาประเภทข้อสอบ"
                             value={searchTerm}
                             suppressHydrationWarning
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -364,7 +364,7 @@ export default function CategoriesManagement() {
                                     {currentItems.length === 0 ? (
                                         <tr>
                                             <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                                                {searchTerm ? 'ไม่พบข้อมูลที่ค้นหา' : 'ยังไม่มีหมวดหมู่'}
+                                                {searchTerm ? 'ไม่พบข้อมูลที่ค้นหา' : 'ยังไม่มีประเภทข้อสอบ'}
                                             </td>
                                         </tr>
                                     ) : (
@@ -421,7 +421,7 @@ export default function CategoriesManagement() {
                         <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
                             <div className="bg-green-600 px-4 sm:px-6 py-3 sm:py-4 rounded-t-xl flex items-center justify-between">
                                 <h3 className="text-lg sm:text-xl font-bold text-white">
-                                    {editingCategory ? 'แก้ไขหมวดหมู่' : 'เพิ่มหมวดหมู่ใหม่'}
+                                    {editingCategory ? 'แก้ไขประเภทข้อสอบ' : 'เพิ่มประเภทข้อสอบใหม่'}
                                 </h3>
                                 <button
                                     onClick={() => setShowModal(false)}
@@ -433,7 +433,7 @@ export default function CategoriesManagement() {
                             <div className="p-4 sm:p-6 space-y-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        ชื่อหมวดหมู่ <span className="text-red-500">*</span>
+                                        ชื่อประเภทข้อสอบ <span className="text-red-500">*</span>
                                     </label>
                                     <input
                                         type="text"
@@ -452,7 +452,7 @@ export default function CategoriesManagement() {
                                         onChange={(e) => setCategoryDescription(e.target.value)}
                                         className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none text-sm sm:text-base"
                                         rows={3}
-                                        placeholder="อธิบายเกี่ยวกับหมวดหมู่นี้"
+                                        placeholder="อธิบายเกี่ยวกับประเภทข้อสอบนี้"
                                     />
                                 </div>
                             </div>
