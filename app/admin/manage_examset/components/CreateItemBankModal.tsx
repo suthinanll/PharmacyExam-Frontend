@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { Loader2, Save, X } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Category {
     category_id: number;
@@ -19,6 +20,7 @@ interface CreateItemBankModalProps {
 const API_URL = 'http://localhost:5000';
 
 export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: CreateItemBankModalProps) {
+    const { getToken } = useAuth();
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
@@ -28,7 +30,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
         bank_name: '',
         description: '',
         duration: 3600, // seconds (1 hour default)
-        is_active: true,
+        is_active: false,
         category_ids: [] as number[]
     });
 
@@ -41,7 +43,11 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
     const fetchCategories = async () => {
         setLoadingCategories(true);
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/categories`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
                 credentials: 'include'
             });
             if (response.ok) {
@@ -116,10 +122,12 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
         setLoading(true);
 
         try {
+            const token = getToken();
             const response = await fetch(`${API_URL}/items-bank`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 credentials: 'include',
                 body: JSON.stringify(formData)
@@ -160,7 +168,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
             bank_name: '',
             description: '',
             duration: 3600,
-            is_active: true,
+            is_active: false,
             category_ids: []
         });
     };

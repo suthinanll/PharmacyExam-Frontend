@@ -12,6 +12,7 @@ import AddSubTopicModal from './components/AddSubTopicModal';
 import SettingsModal from './components/SettingsModal';
 import SituationViewer from './components/SituationViewer';
 import CATGuideModal from '../../cat_management/components/CATGuideModal';
+import DashboardView from './components/DashboardView';
 import { useAuth } from "@/contexts/AuthContext";
 
 // Types
@@ -24,19 +25,21 @@ interface AnswerOption {
 interface Question {
     item_id?: number;
     question_text: string;
-    question_type: string;
     explanation: string;
     sub_topic_id?: number;
     irt_a_discrimination?: number;
     irt_b_difficulty?: number;
     irt_c_guessing?: number;
     answer_options: AnswerOption[];
+    display_order?: number;
 }
 
 interface Situation {
     situation_id?: number;
+    temporary_id?: string; // Unique ID for React key management
     situation_text: string;
     situation_image_url?: string;
+    display_order?: number;
     questions: Question[];
 }
 
@@ -88,6 +91,7 @@ export default function ItemBankEditPage() {
     const [addingSubTopic, setAddingSubTopic] = useState(false);
 
     // Editing State
+    const [viewMode, setViewMode] = useState<'dashboard' | 'editor'>('dashboard');
     const [isEditing, setIsEditing] = useState(false); // Default to View mode
 
     // States for Settings Modal
@@ -177,28 +181,37 @@ export default function ItemBankEditPage() {
                             if (!situationsMap.has(sitId)) {
                                 situationsMap.set(sitId, {
                                     situation_id: sitId,
+                                    temporary_id: `existing_${sitId}`,
                                     situation_text: item.situation.situation_text,
                                     situation_image_url: item.situation.situation_image_url,
-                                    questions: []
+                                    questions: [],
+                                    display_order: item.situation.display_order || 0 // เก็บ display_order ไว้ด้วย
                                 });
                             }
 
                             situationsMap.get(sitId)!.questions.push({
                                 item_id: item.item_id,
                                 question_text: item.question_text,
-                                question_type: item.question_type,
                                 explanation: item.explanation,
                                 sub_topic_id: item.sub_topics?.[0]?.sub_topic_id,
                                 irt_a_discrimination: item.irt_a_discrimination,
                                 irt_b_difficulty: item.irt_b_difficulty,
                                 irt_c_guessing: item.irt_c_guessing,
-                                answer_options: item.answer_options || []
+                                answer_options: item.answer_options || [],
+                                display_order: item.display_order
                             });
                         }
                     });
                 }
 
-                setSituations(Array.from(situationsMap.values()));
+                // เรียงสถานการณ์ตาม display_order
+                const sortedSituations = Array.from(situationsMap.values()).sort((a, b) => {
+                    const orderA = a.display_order || 0;
+                    const orderB = b.display_order || 0;
+                    return orderA - orderB;
+                });
+
+                setSituations(sortedSituations);
             }
         } catch (error) {
             console.error('Error fetching existing items:', error);
@@ -207,6 +220,7 @@ export default function ItemBankEditPage() {
 
     const addSituation = () => {
         const newSituation: Situation = {
+            temporary_id: `temp_${Date.now()}_${Math.random()}`, // Unique temporary ID
             situation_text: '',
             situation_image_url: '',
             questions: []
@@ -277,7 +291,6 @@ export default function ItemBankEditPage() {
     const addQuestion = (situationIndex: number) => {
         const newQuestion: Question = {
             question_text: '',
-            question_type: 'multiple_choice',
             explanation: '',
             answer_options: [
                 { option_text: '', is_correct: true },
@@ -472,12 +485,17 @@ export default function ItemBankEditPage() {
             let updatedSituationCount = 0;
             let createdSituationCount = 0;
             let addedQuestionCount = 0;
-            const updatedSituations = [...situations];
+            // สร้าง copy ของ situations เพื่ออัพเดต
+            const updatedSituations: Situation[] = JSON.parse(JSON.stringify(situations));
 
             for (let sitIdx = 0; sitIdx < situations.length; sitIdx++) {
                 const situation = situations[sitIdx];
                 if (situation.situation_id) {
-                    // อัพเดท situation ที่มีอยู่แล้ว
+                    // แยกคำถามที่มีอยู่แล้ว และคำถามใหม่
+                    const existingQuestions = situation.questions.filter(q => q.item_id);
+                    const newQuestions = situation.questions.filter(q => !q.item_id);
+
+                    // อัพเดท situation ที่มีอยู่แล้ว (ทำเสมอเพื่อให้แน่ใจว่าข้อมูลถูกต้อง)
                     await fetch(`${API_URL}/items-bank/situation/${situation.situation_id}`, {
                         method: 'PATCH',
                         headers: {
@@ -491,10 +509,6 @@ export default function ItemBankEditPage() {
                         })
                     });
 
-                    // แยกคำถามที่มีอยู่แล้ว และคำถามใหม่
-                    const existingQuestions = situation.questions.filter(q => q.item_id);
-                    const newQuestions = situation.questions.filter(q => !q.item_id);
-
                     // อัพเดทคำถามที่มีอยู่แล้ว
                     for (const question of existingQuestions) {
                         await fetch(`${API_URL}/items-bank/item/${question.item_id}`, {
@@ -506,7 +520,6 @@ export default function ItemBankEditPage() {
                             credentials: 'include',
                             body: JSON.stringify({
                                 question_text: question.question_text,
-                                question_type: question.question_type,
                                 explanation: question.explanation,
                                 sub_topic_id: question.sub_topic_id ? Number(question.sub_topic_id) : undefined,
                                 irt_a_discrimination: question.irt_a_discrimination ? Number(question.irt_a_discrimination) : 0,
@@ -515,6 +528,11 @@ export default function ItemBankEditPage() {
                                 answer_options: question.answer_options
                             })
                         });
+                    }
+
+                    // นับเฉพาะเมื่อมีคำถามใหม่
+                    if (newQuestions.length > 0) {
+                        updatedSituationCount++;
                     }
 
                     // เพิ่มคำถามใหม่เข้าใน situation ที่มีอยู่แล้ว
@@ -530,7 +548,6 @@ export default function ItemBankEditPage() {
                                 item_bank_id: Number(itemBankId),
                                 questions: newQuestions.map(q => ({
                                     question_text: q.question_text,
-                                    question_type: q.question_type,
                                     explanation: q.explanation,
                                     sub_topic_id: q.sub_topic_id ? Number(q.sub_topic_id) : undefined,
                                     irt_a_discrimination: q.irt_a_discrimination ? Number(q.irt_a_discrimination) : 0,
@@ -568,13 +585,13 @@ export default function ItemBankEditPage() {
                     updatedSituationCount++;
                 } else {
                     // สร้าง situation ใหม่พร้อมคำถาม
+                    console.log(`🆕 Creating new situation ${sitIdx + 1}...`);
                     const data = {
                         item_bank_id: Number(itemBankId),
                         situation_text: situation.situation_text,
                         situation_image_url: situation.situation_image_url || '',
                         questions: situation.questions.map(q => ({
                             question_text: q.question_text,
-                            question_type: q.question_type,
                             explanation: q.explanation,
                             sub_topic_id: q.sub_topic_id ? Number(q.sub_topic_id) : undefined,
                             irt_a_discrimination: q.irt_a_discrimination ? Number(q.irt_a_discrimination) : 0,
@@ -601,13 +618,18 @@ export default function ItemBankEditPage() {
 
                     // อัพเดท state ด้วย situation_id และ item_ids ที่ได้จาก backend
                     const createdData = await response.json();
+                    console.log(`✅ Created situation with ID: ${createdData.situation_id}`);
+
                     if (createdData.situation_id) {
                         updatedSituations[sitIdx].situation_id = createdData.situation_id;
+                        // อัพเดท temporary_id ให้ตรงกับ situation_id เพื่อความ consistent
+                        updatedSituations[sitIdx].temporary_id = `existing_${createdData.situation_id}`;
                         // อัพเดท item_ids ของคำถามด้วย
                         if (createdData.items && Array.isArray(createdData.items)) {
                             createdData.items.forEach((item: any, qIdx: number) => {
                                 if (updatedSituations[sitIdx].questions[qIdx]) {
                                     updatedSituations[sitIdx].questions[qIdx].item_id = item.item_id;
+                                    console.log(`  ✅ Question ${qIdx + 1} assigned item_id: ${item.item_id}`);
                                 }
                             });
                         }
@@ -618,6 +640,7 @@ export default function ItemBankEditPage() {
             }
 
             // อัพเดท state ด้วยข้อมูลใหม่
+            console.log('📝 Updating state with:', updatedSituations);
             setSituations(updatedSituations);
 
             // สร้างข้อความแสดงผลที่ละเอียดขึ้น
@@ -642,6 +665,10 @@ export default function ItemBankEditPage() {
 
             // บันทึกลำดับของสถานการณ์และคำถาม
             await saveOrdering();
+
+            // รีเฟรชข้อมูลเพื่ออัพเดท situation_id และ item_id
+            await fetchExistingItems();
+            await fetchItemBankInfo();
 
         } catch (error: any) {
             console.error('Error:', error);
@@ -786,9 +813,29 @@ export default function ItemBankEditPage() {
         );
     }
 
+    if (viewMode === 'dashboard') {
+        return (
+            <Navbar_admin>
+                <DashboardView
+                    itemBankId={itemBankId}
+                    onManageExams={() => setViewMode('editor')}
+                />
+            </Navbar_admin>
+        );
+    }
+
     return (
         <Navbar_admin>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 relative" suppressHydrationWarning>
+                <div className="mb-6">
+                    <button
+                        onClick={() => setViewMode('dashboard')}
+                        className="flex items-center gap-2 px-4 py-2 bg-white text-gray-600 hover:text-gray-900 font-medium rounded-lg border border-gray-200 shadow-sm hover:shadow transition-all group"
+                    >
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        กลับสู่ Dashboard
+                    </button>
+                </div>
                 <ItemBankHeader
                     itemBankInfo={itemBankInfo}
                     situations={situations}
@@ -839,7 +886,7 @@ export default function ItemBankEditPage() {
                                     const questionStartIndex = situations.slice(0, sitIdx).reduce((acc, s) => acc + s.questions.length, 0);
                                     return (
                                         <div
-                                            key={sitIdx}
+                                            key={situation.temporary_id || situation.situation_id || sitIdx}
                                             ref={(el) => { situationRefs.current[sitIdx] = el; }}
                                             className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden scroll-mt-32"
                                         >

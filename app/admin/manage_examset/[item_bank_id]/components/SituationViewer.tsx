@@ -11,7 +11,6 @@ interface AnswerOption {
 interface Question {
     item_id?: number;
     question_text: string;
-    question_type: string;
     explanation: string;
     sub_topic_id?: number;
     answer_options: AnswerOption[];
@@ -22,6 +21,7 @@ interface Situation {
     situation_text: string;
     situation_image_url?: string;
     questions: Question[];
+    display_order?: number;
 }
 
 interface SituationViewerProps {
