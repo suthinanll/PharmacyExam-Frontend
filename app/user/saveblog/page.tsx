@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/Navbar_user';
@@ -20,18 +19,15 @@ interface BookmarkItem {
 }
 
 const API_BASE_URL = 'http://localhost:5000';
-
 function SaveBlog() {
   const [savedNews, setSavedNews] = useState<BookmarkItem[]>([]);
   const [loading, setLoading] = useState(true);
-
   const fetchBookmarks = useCallback(async () => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
     if (!token) {
       setLoading(false);
       return;
     }
-
     try {
       const response = await axios.get(`${API_BASE_URL}/bookmark`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -46,31 +42,25 @@ function SaveBlog() {
       setLoading(false);
     }
   }, []);
-
   useEffect(() => {
     fetchBookmarks();
   }, [fetchBookmarks]);
-
   const removeNews = async (articleId: number) => {
     const token = localStorage.getItem('access_token');
     if (!token) return alert("กรุณาเข้าสู่ระบบก่อน");
-
     try {
       const numericId = Number(articleId);
       const res = await axios.post(`${API_BASE_URL}/bookmark/toggle`,
         { articleId: numericId },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       setSavedNews(prev => prev.filter(item => item.news.article_id !== articleId));
-
     } catch (error: any) {
       console.error("Debug Error 400:", error.response?.data);
       const backendMessage = error.response?.data?.message;
       alert("ลบไม่สำเร็จ: " + (Array.isArray(backendMessage) ? backendMessage[0] : backendMessage || "ข้อมูลไม่ถูกต้อง"));
     }
   };
-
   const clearAll = async () => {
     if (confirm('คุณต้องการลบข่าวที่บันทึกทั้งหมดหรือไม่?')) {
       for (const item of savedNews) {
@@ -78,15 +68,12 @@ function SaveBlog() {
       }
     }
   };
-
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <Search onSearch={(q) => console.log(q)} /><br />
-
-          {/* Header */}
           <div className="mb-8">
             <div className="text-sm text-gray-500 mb-2">หน้าหลัก › ข่าวที่บันทึกไว้</div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -103,8 +90,6 @@ function SaveBlog() {
               )}
             </div>
           </div>
-
-          {/* Main Content Area */}
           <div className="relative min-h-[400px]">
             {loading ? (
               <div key="loading-state" className="flex justify-center items-center h-64">
@@ -126,7 +111,6 @@ function SaveBlog() {
                         className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>
-
                     <div className="p-5 flex flex-col flex-1">
                       <div className="flex items-center justify-between mb-3">
                         <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">
@@ -136,15 +120,12 @@ function SaveBlog() {
                           {new Date(item.created_at).toLocaleDateString('th-TH')}
                         </span>
                       </div>
-
                       <h5 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
                         {item.news.title}
                       </h5>
-
                       <p className="text-sm text-gray-600 leading-relaxed mb-4 flex-1 line-clamp-3">
                         {item.news.content?.replace(/<[^>]*>?/gm, '')}
                       </p>
-
                       <div className="flex gap-2 mt-auto">
                         <a href={`/news/${item.news.article_id}`} className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium text-center shadow-lg hover:bg-blue-700 transition">
                           อ่านเพิ่มเติม

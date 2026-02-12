@@ -3,11 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/Navbar_user';
 import Footer from '@/components/Footer';
-import NewsCard from '@/components/์News';
-import SearchBar from "@/components/SearchBar";
-import { ChevronRight, AlarmClock, Flame, Info, Calendar } from 'lucide-react';
+import NewsCard from '@/components/์News'; // ตรวจสอบชื่อไฟล์ว่าสะกดถูกไหม (์News)
+import { ChevronRight, AlarmClock, Info, Calendar, Bookmark, LayoutGrid } from 'lucide-react';
 
-// --- Components ย่อย (University Leaderboard) ---
+// --- Data & Sub-components (University Leaderboard) ---
 const universityLeaderboardData = [
   { rank: 1, name: "มหาวิทยาลัยเชียงใหม่", score: 85.75 },
   { rank: 2, name: "มหาวิทยาลัยมหิดล", score: 84.30 },
@@ -41,12 +40,10 @@ const UniversityLeaderboard = () => {
   };
 
   return (
-    <div className='bg-white rounded-3xl shadow-lg p-6 sm:p-8 md:p-10 mb-6 border border-gray-200'>
-      <div className='flex items-center justify-between gap-2 mb-8'>
-        <div className='flex items-center gap-3'>
-          <div className='bg-yellow-50 p-3 rounded-xl'><span className='text-2xl'>🏆</span></div>
-          <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-gray-800'>อันดับคะแนนเฉลี่ยสูงสุด <span className='block text-sm font-normal text-gray-500 mt-1'>มหาวิทยาลัย</span></h2>
-        </div>
+    <div className='bg-white rounded-3xl shadow-lg p-6 sm:p-8 md:p-10 mb-10 border border-gray-200'>
+      <div className='flex items-center gap-3 mb-8'>
+        <div className='bg-yellow-50 p-3 rounded-xl'><span className='text-2xl'>🏆</span></div>
+        <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-gray-800'>อันดับคะแนนเฉลี่ยสูงสุด <span className='block text-sm font-normal text-gray-500 mt-1'>มหาวิทยาลัย</span></h2>
       </div>
       <div className="relative bg-gray-50 rounded-2xl p-6 mb-8 overflow-hidden">
         <div className="flex justify-center items-end gap-3 sm:gap-6">
@@ -83,15 +80,19 @@ const Page = () => {
   const [targetDate, setTargetDate] = useState<number | null>(null);
   const [targetTitle, setTargetTitle] = useState<string>("");
   const [targetDesc, setTargetDesc] = useState<string>("");
-  const [upcomingExams, setUpcomingExams] = useState<any[]>([]);
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [realNews, setRealNews] = useState<any[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
   const [bookmarkIds, setBookmarkIds] = useState<number[]>([]);
 
+  // ✅ ปรับปรุงการ Toggle Bookmark ให้ทำงานลื่นไหล
   const handleBookmarkToggle = async (articleId: number) => {
     try {
       const token = localStorage.getItem("access_token");
+      if (!token) {
+        alert("กรุณาเข้าสู่ระบบเพื่อบันทึกข่าวสาร");
+        return;
+      }
       const res = await fetch("http://localhost:5000/bookmark/toggle", {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
@@ -99,8 +100,10 @@ const Page = () => {
       });
       if (res.ok) {
         const result = await res.json();
-        if (result.isBookmarked) setBookmarkIds(prev => [...prev, articleId]);
-        else setBookmarkIds(prev => prev.filter(id => id !== articleId));
+        // อัปเดต State ทันทีเพื่อให้สีปุ่มใน NewsCard เปลี่ยน
+        setBookmarkIds(prev => 
+          result.isBookmarked ? [...prev, articleId] : prev.filter(id => id !== articleId)
+        );
       }
     } catch (error) { console.error("Bookmark Error:", error); }
   };
@@ -110,8 +113,8 @@ const Page = () => {
       const token = typeof window !== 'undefined' ? localStorage.getItem("access_token") : null;
       const headers = { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
       const now = Date.now();
-      const todayStr = new Date().toDateString();
 
+      // 1. โหลดข้อมูลตารางสอบ
       const resSched = await fetch("http://localhost:5000/schedules", { headers });
       if (resSched.ok) {
         const data = await resSched.json();
@@ -119,41 +122,34 @@ const Page = () => {
           .filter((item: any) => item.is_public === true || item.is_public === 1)
           .map((item: any) => ({ ...item, targetStamp: new Date(item.start_time).getTime() }))
           .sort((a: any, b: any) => a.targetStamp - b.targetStamp);
-
-        const examToday = allExams.find((exam: { targetStamp: string | number | Date; }) => new Date(exam.targetStamp).toDateString() === todayStr);
-
-        if (examToday) {
-          setTargetDate(examToday.targetStamp);
-          setTargetTitle(examToday.title);
-          setTargetDesc(examToday.description || "เข้าร่วมการทดสอบตามกำหนดการวันนี้");
-          const remaining = allExams.filter(e => e.id !== examToday.id && e.targetStamp > now);
-          setUpcomingExams(remaining.slice(0, 4));
-        } else {
-          const futureExams = allExams.filter(exam => exam.targetStamp > now);
-          if (futureExams.length > 0) {
-            setTargetDate(futureExams[0].targetStamp);
-            setTargetTitle(futureExams[0].title);
-            setTargetDesc(futureExams[0].description || "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง");
-            setUpcomingExams(futureExams.slice(1, 5));
-          }
+        
+        const upcoming = allExams.find((exam: any) => exam.targetStamp > now - (1000 * 60 * 60)); // รวมที่เพิ่งเริ่มไปไม่เกิน 1 ชม.
+        if (upcoming) {
+          setTargetDate(upcoming.targetStamp);
+          setTargetTitle(upcoming.title);
+          setTargetDesc(upcoming.description || "เข้าร่วมการทดสอบตามกำหนดการ");
         }
       }
 
+      // 2. โหลดข่าวและรายการ Bookmark พร้อมกัน
       setLoadingNews(true);
       const [resNews, resBookmarks] = await Promise.all([
         fetch("http://localhost:5000/news", { headers }),
-        fetch("http://localhost:5000/bookmark", { headers })
+        token ? fetch("http://localhost:5000/bookmark", { headers }) : Promise.resolve(null)
       ]);
+
       if (resNews.ok) {
         const newsData = await resNews.json();
         setRealNews(Array.isArray(newsData) ? newsData.filter((n: any) => n.status === 'PUBLISHED') : []);
       }
-      if (resBookmarks.ok) {
+      if (resBookmarks && resBookmarks.ok) {
         const bookmarks = await resBookmarks.json();
         setBookmarkIds(bookmarks.map((b: any) => Number(b.news.article_id)));
       }
     } catch (error) { console.error("Fetch Error:", error); } finally { setLoadingNews(false); }
   }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   useEffect(() => {
     if (!targetDate) return;
@@ -173,8 +169,6 @@ const Page = () => {
     return () => clearInterval(timer);
   }, [targetDate]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
-
   const isExamStarted = targetDate && Date.now() >= targetDate;
 
   return (
@@ -182,22 +176,22 @@ const Page = () => {
       <Navbar />
       <div className='bg-gray-50 min-h-screen py-8 px-4 sm:px-6'>
         <div className='max-w-7xl mx-auto'>
-          {/* <main className="mb-6 bg-white rounded-xl shadow-sm overflow-hidden border">
-            <SearchBar placeholder="ค้นหาข้อมูล..." onSearch={(q) => console.log(q)} />
-          </main> */}
+          
+          {/* Countdown Hero Section */}
           <div className={`relative overflow-hidden rounded-[2.5rem] shadow-xl mb-12 border-2 transition-all duration-700 bg-white ${isExamStarted ? 'border-red-500 shadow-red-50' : 'border-blue-600 shadow-blue-50'}`}>
-            <div className="flex flex-col items-center justify-center  md:p-10 text-center">
-              <div className={`inline-flex items-center gap-1 mb-4 px-4 py-1.5 rounded-full font-medium text-[15px] ${isExamStarted ? 'bg-red-600 text-white animate-bounce' : 'bg-blue-50 text-blue-600'}`}>
-                <AlarmClock size={14} className={isExamStarted ? 'animate-spin' : ''} />
+            <div className="flex flex-col items-center justify-center p-8 md:p-12 text-center">
+              <div className={`inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full font-bold text-sm ${isExamStarted ? 'bg-red-600 text-white animate-pulse' : 'bg-blue-50 text-blue-600'}`}>
+                <AlarmClock size={16} />
                 {isExamStarted ? 'กำลังดำเนินการสอบขณะนี้' : 'เป้าหมายที่กำลังจะมาถึง'}
               </div>
               <h1 className={`text-3xl md:text-5xl font-black mb-3 leading-tight ${isExamStarted ? 'text-red-700' : 'text-gray-900'}`}>
                 {targetTitle || "พร้อมรับมือทุกการสอบ"}
               </h1>
-              <p className="text-gray-400 text-sm flex items-center justify-center gap-2 mb-8 font-bold">
+              <p className="text-gray-400 text-sm flex items-center justify-center gap-2 mb-8 font-bold uppercase tracking-wider">
                 <Calendar size={18} className="text-blue-500" />
                 {targetDate ? new Date(targetDate).toLocaleDateString('th-TH', { dateStyle: 'long' }) : '-'}
               </p>
+              
               <div className='flex items-center justify-center gap-4 md:gap-10 mb-10 flex-wrap'>
                 {[
                   { label: 'วัน', val: timeLeft.days },
@@ -206,23 +200,20 @@ const Page = () => {
                   { label: 'วินาที', val: timeLeft.seconds }
                 ].map((item, idx) => (
                   <div key={idx} className="flex flex-col items-center min-w-[70px]">
-                    <div className={`text-5xl md:text-7xl font-black tabular-nums leading-none tracking-tighter ${isExamStarted ? 'text-red-600' : 'text-blue-600'}`}>
+                    <div className={`text-5xl md:text-7xl font-black tabular-nums leading-none ${isExamStarted ? 'text-red-600' : 'text-blue-600'}`}>
                       {String(item.val).padStart(2, '0')}
                     </div>
-                    <div className="text-[20px] font-medium u text-gray-600 mt-3 ml-1">
-                      {item.label}
-                    </div>
+                    <div className="text-sm font-bold text-gray-500 mt-2 uppercase">{item.label}</div>
                   </div>
                 ))}
               </div>
-              <div className={`max-w-2xl w-full p-4 rounded-2xl flex items-center justify-center gap-3 border-l-4 mb-8 ${isExamStarted ? 'bg-red-50 border-red-500 text-red-700' : 'bg-gray-50 border-blue-600 text-gray-600'}`}>
-                <Info className="flex-shrink-0 text-blue-500" size={18} />
-                <p className="text-sm md:text-base italic font-medium leading-relaxed">"{targetDesc}"</p>
+
+              <div className={`max-w-2xl w-full p-5 rounded-2xl flex items-center gap-4 border-l-8 mb-8 ${isExamStarted ? 'bg-red-50 border-red-500 text-red-700' : 'bg-gray-50 border-blue-600 text-gray-600'}`}>
+                <Info className="flex-shrink-0 text-blue-500" size={24} />
+                <p className="text-left text-sm md:text-base italic font-medium leading-relaxed">"{targetDesc}"</p>
               </div>
-              <a
-                href="/user/calendar"
-                className="inline-flex items-center justify-center px-10 py-3.5 bg-gray-900 hover:bg-blue-700 text-white rounded-2xl font-black text-sm transition-all gap-2 group shadow-lg hover:scale-105 active:scale-95"
-              >
+
+              <a href="/user/calendar" className="inline-flex items-center justify-center px-10 py-4 bg-gray-900 hover:bg-blue-700 text-white rounded-2xl font-black text-sm transition-all gap-2 group shadow-lg hover:scale-105">
                 เปิดดูปฏิทินกิจกรรม <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </a>
             </div>
@@ -230,10 +221,20 @@ const Page = () => {
 
           <UniversityLeaderboard />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* News Section Header */}
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
+              <LayoutGrid className="text-blue-600" size={28} /> ข่าวสารและประกาศ
+            </h2>
+          </div>
+
+          {/* News Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {loadingNews ? (
-              <div className="col-span-full text-center py-20 text-gray-500 font-bold">กำลังเตรียมข้อมูลข่าวสาร...</div>
-            ) : (
+              Array(4).fill(0).map((_, i) => (
+                <div key={i} className="h-80 bg-white rounded-3xl animate-pulse border border-gray-100" />
+              ))
+            ) : realNews.length > 0 ? (
               realNews.map((news) => (
                 <NewsCard
                   key={news.article_id}
@@ -244,9 +245,14 @@ const Page = () => {
                   badge={new Date(news.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000) ? "ใหม่" : ""}
                   link={`/user/newsdetail/${news.article_id}`}
                   initialIsSaved={bookmarkIds.includes(Number(news.article_id))}
-                  onBookmark={handleBookmarkToggle}
+                  onBookmark={() => handleBookmarkToggle(Number(news.article_id))}
                 />
               ))
+            ) : (
+              <div className="col-span-full py-20 bg-white rounded-[3rem] text-center border-2 border-dashed border-gray-200">
+                <Bookmark className="mx-auto text-gray-200 mb-4" size={60} />
+                <p className="text-gray-400 font-bold text-xl">ไม่พบข้อมูลข่าวสารในขณะนี้</p>
+              </div>
             )}
           </div>
         </div>

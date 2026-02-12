@@ -1,5 +1,4 @@
 "use client"
-
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import { User, Mail, Phone, Loader2, Edit3, Save, X, School } from "lucide-react";
@@ -38,6 +37,10 @@ const Profile = () => {
                 if (res.ok) {
                     const data = await res.json();
                     setUser(data);
+                } else if (res.status === 401) {
+                    // ถ้า Token หมดอายุให้เตะออกไปหน้า Login
+                    localStorage.removeItem("access_token");
+                    window.location.href = "/login";
                 }
             } catch (err) {
                 console.error("Fetch Error:", err);
@@ -64,6 +67,7 @@ const Profile = () => {
 
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
+        
         const confirm = await Swal.fire({
             title: "บันทึกการเปลี่ยนแปลง?",
             text: "ข้อมูลโปรไฟล์ของคุณจะถูกอัปเดต",
@@ -78,16 +82,19 @@ const Profile = () => {
         if (!confirm.isConfirmed) return;
 
         setIsLoading(true);
-
         try {
             const token = localStorage.getItem("access_token");
+            
+            // --- แก้ไขจุดนี้: แยก email ออก ไม่ส่งไปซ้ำเพื่อเลี่ยง 409 Conflict ---
+            const { email, ...updateData } = formData; 
+
             const res = await fetch('http://localhost:5000/users/profile', {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(updateData), // ส่งแค่ชื่อ นามสกุล และเบอร์โทร
             });
 
             if (res.ok) {
@@ -98,16 +105,18 @@ const Profile = () => {
                     timer: 1500,
                     showConfirmButton: false
                 });
-                window.location.reload();
+                setIsEditing(false); // ปิดโหมดแก้ไข
+                // อัปเดต State user ในหน้าปัจจุบันโดยไม่ต้อง reload ทั้งหน้า (เพื่อความลื่นไหล)
+                setUser(prev => prev ? { ...prev, ...updateData } : null);
             } else {
                 const errorData = await res.json();
                 throw new Error(errorData.message || "ล้มเหลว");
             }
-        } catch (err) {
+        } catch (err: any) {
             Swal.fire({
                 icon: "error",
                 title: "เกิดข้อผิดพลาด",
-                text: "ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง"
+                text: err.message || "ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง"
             });
         } finally {
             setIsLoading(false);
@@ -149,6 +158,7 @@ const Profile = () => {
                             <div className="w-full sm:w-auto flex flex-row gap-2">
                                 {!isEditing ? (
                                     <button
+                                        type="button"
                                         onClick={() => setIsEditing(true)}
                                         className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition shadow-sm"
                                     >
@@ -157,12 +167,23 @@ const Profile = () => {
                                 ) : (
                                     <>
                                         <button
-                                            onClick={() => setIsEditing(false)}
+                                            type="button"
+                                            onClick={() => {
+                                                setIsEditing(false);
+                                                // คืนค่า formData เป็นค่าล่าสุดจาก user state
+                                                setFormData({
+                                                    first_name: user.first_name,
+                                                    last_name: user.last_name,
+                                                    email: user.email,
+                                                    tel: user.tel,
+                                                });
+                                            }}
                                             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-50 transition"
                                         >
                                             <X className="w-4 h-4" /> ยกเลิก
                                         </button>
                                         <button
+                                            type="button"
                                             onClick={handleSaveProfile}
                                             disabled={isLoading}
                                             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition shadow-sm disabled:opacity-50"
@@ -174,8 +195,9 @@ const Profile = () => {
                                 )}
                             </div>
                         </div>
+
                         <div className="p-5 md:p-8">
-                            <form className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                            <form className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6" onSubmit={(e) => e.preventDefault()}>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">ชื่อจริง</label>
                                     <input
@@ -203,7 +225,7 @@ const Profile = () => {
                                     />
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">อีเมล</label>
+                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">อีเมล (ไม่สามารถแก้ไขได้)</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
@@ -241,8 +263,6 @@ const Profile = () => {
                                                 <p className="text-xs font-semibold">{user.university?.name || "ไม่ระบุ"}</p>
                                             </div>
                                         </div>
-                                        <div className="h-px w-full bg-gray-200 sm:hidden"></div>
-                                      
                                     </div>
                                 </div>
                             </form>

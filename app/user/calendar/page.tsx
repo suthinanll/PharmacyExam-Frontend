@@ -166,8 +166,6 @@ const CalenderPage = () => {
     }
     return days;
   };
-
-  // ... (Note Handlers createNote, updateNote, deleteNote เหมือนเดิม)
   const createNote = async (note: any, files?: File[]) => {
     const token = localStorage.getItem("access_token");
     if (!token) return;
@@ -239,8 +237,8 @@ const CalenderPage = () => {
                 </div>
                 {/* Legend */}
                 <div className="mt-6 flex flex-wrap gap-4 text-xs font-medium text-gray-500">
-                   <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-green-100 border border-green-400 rounded-sm"></span> กำหนดการทั่วไป</div>
-                   <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-indigo-50 border border-indigo-500 rounded-sm"></span> วันนี้</div>
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-green-100 border border-green-400 rounded-sm"></span> กำหนดการทั่วไป</div>
+                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-indigo-50 border border-indigo-500 rounded-sm"></span> วันนี้</div>
                 </div>
               </div>
             </div>
