@@ -11,7 +11,7 @@ function CreateExamPage() {
   const [duration, setDuration] = useState(""); // เป็น string เพื่อรองรับ input
   const [numQuestions, setNumQuestions] = useState(""); // เป็น string เพื่อรองรับ input
   const [examFile, setExamFile] = useState<File | null>(null); // สำหรับไฟล์ที่เลือก
-  
+
   const [categories, setCategories] = useState(["PLE-CCI D 2566", "OSCE", "Final"]);
   const [selected, setSelected] = useState("");
   const [editIndex, setEditIndex] = useState<number | null>(null);
@@ -24,6 +24,7 @@ function CreateExamPage() {
   };
 
   const handleUpdate = () => {
+    if (editIndex === null) return;
     const updated = [...categories];
     if (!newValue.trim()) return;
     updated[editIndex] = newValue;

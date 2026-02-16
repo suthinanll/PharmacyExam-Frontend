@@ -30,6 +30,7 @@ function CreateExamPage() {
   const handleUpdate = () => {
     const updated = [...categories];
     if (!newValue.trim()) return;
+    if (editIndex === null) return;
     updated[editIndex] = newValue;
     setCategories(updated);
     setEditIndex(null);
