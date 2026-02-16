@@ -19,6 +19,11 @@ interface CATItem {
         option_text: string;
         is_correct: boolean;
     }>;
+    situation?: {
+        situation_id: number;
+        situation_text: string;
+        situation_image_url?: string;
+    };
 }
 
 interface CATSession {
@@ -38,6 +43,7 @@ export default function CATExamPage() {
     const searchParams = useSearchParams();
     const { getToken } = useAuth();
     const itemBankId = searchParams?.get("item_bank_id");
+    const urlSessionId = searchParams?.get("session_id");
 
     const [loading, setLoading] = useState(true);
     const [session, setSession] = useState<CATSession | null>(null);
@@ -58,13 +64,41 @@ export default function CATExamPage() {
 
     // เริ่มการสอบ CAT
     useEffect(() => {
-        if (!itemBankId) {
-            alert("กรุณาเลือกชุดข้อสอบก่อน");
+        if (urlSessionId) {
+            resumeCATSession(parseInt(urlSessionId));
+        } else if (itemBankId) {
+            startCATExam();
+        } else {
+            alert("ชื่อเซสชันไม่ถูกต้อง กรุณาเลือกการสอบใหม่");
             router.push("/user/cat-exam/select");
-            return;
         }
-        startCATExam();
-    }, [itemBankId]);
+    }, [itemBankId, urlSessionId]);
+
+    async function resumeCATSession(sessionId: number) {
+        try {
+            setLoading(true);
+            const token = getToken();
+            const response = await fetch(`http://localhost:5000/cat/session/${sessionId}/next-item`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to resume CAT session");
+            }
+
+            const data = await response.json();
+            setSession(data);
+            setExamStartTime(Date.now());
+        } catch (error: any) {
+            console.error("Error resuming CAT session:", error);
+            alert("ไม่สามารถโหลดเซสชันการสอบเดิมได้");
+            router.push("/user/cat-exam/select");
+        } finally {
+            setLoading(false);
+        }
+    }
 
     async function startCATExam() {
         if (!itemBankId) return;
@@ -282,6 +316,27 @@ export default function CATExamPage() {
 
                 {/* Question Card */}
                 <div className="bg-white rounded-b-2xl shadow-xl p-8">
+                    {/* Situation Display */}
+                    {session.current_item.situation && (
+                        <div className="mb-8 p-6 bg-blue-50 rounded-xl border-l-4 border-blue-500">
+                            <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-2">สถานการณ์:</h3>
+                            <div className="text-gray-800 text-lg leading-relaxed whitespace-pre-wrap mb-4">
+                                {session.current_item.situation.situation_text}
+                            </div>
+                            {session.current_item.situation.situation_image_url && (
+                                <div className="mt-4 flex justify-center">
+                                    <img
+                                        src={session.current_item.situation.situation_image_url.startsWith('http')
+                                            ? session.current_item.situation.situation_image_url
+                                            : `http://localhost:5000${session.current_item.situation.situation_image_url}`}
+                                        alt="Situation"
+                                        className="max-h-96 rounded-lg shadow-sm object-contain"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     <div className="mb-6">
                         <h2 className="text-xl font-semibold text-gray-800 mb-4">
                             {session.current_item.question_text}

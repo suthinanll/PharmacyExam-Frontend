@@ -18,6 +18,15 @@ import {
     AreaChart,
     ReferenceLine,
 } from "recharts";
+import {
+    CheckCircle2,
+    XCircle,
+    ChevronDown,
+    ChevronUp,
+    HelpCircle,
+    BookOpen,
+    Info
+} from "lucide-react";
 
 // ==================== TYPES ====================
 interface CATResult {
@@ -60,7 +69,7 @@ export default function CATResultPage() {
             const token = getToken();
 
             const response = await fetch(
-                `http://localhost:3001/cat/session/${sessionId}/result`,
+                `http://localhost:5000/cat/session/${sessionId}/result`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -150,7 +159,7 @@ export default function CATResultPage() {
                         <h1 className="text-4xl font-bold mb-2">
                             {result.passed ? "ยินดีด้วย! คุณสอบผ่าน" : "ยังไม่ผ่านการสอบ"}
                         </h1>
-                        <p className="text-xl opacity-90">{result.item_bank_name}</p>
+                        <p className="text-xl opacity-90">{result.item_bank_name || "คลังข้อสอบรวม (Global Pool)"}</p>
                         <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
                             <div className="bg-white/20 rounded-xl p-4">
                                 <div className="text-sm opacity-80">ความสามารถ (θ)</div>
@@ -300,6 +309,103 @@ export default function CATResultPage() {
                     >
                         🔄 สอบใหม่อีกครั้ง
                     </button>
+                </div>
+
+                {/* Answer Review Section */}
+                <div className="mt-12">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                        <BookOpen className="text-green-600" />
+                        รีวิวคำตอบและคำอธิบาย
+                    </h2>
+                    <div className="space-y-6">
+                        {result.responses.map((resp, index) => (
+                            <div key={index} className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                                {/* Question Header */}
+                                <div className={`px-6 py-4 flex items-center justify-between ${resp.is_correct ? 'bg-green-50' : 'bg-red-50'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${resp.is_correct ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                                            }`}>
+                                            {index + 1}
+                                        </div>
+                                        <span className={`font-bold ${resp.is_correct ? 'text-green-700' : 'text-red-700'}`}>
+                                            {resp.is_correct ? 'ถูกต้อง' : 'ไม่ถูกต้อง'}
+                                        </span>
+                                    </div>
+                                    <div className="text-sm font-medium text-gray-500">
+                                        ระดับความยากข้อนี้: {resp.theta_before?.toFixed(2) || 'N/A'}
+                                    </div>
+                                </div>
+
+                                <div className="p-6">
+                                    {/* Situation (if any) */}
+                                    {resp.situation && (
+                                        <div className="mb-4 p-4 bg-gray-50 rounded-xl border-l-4 border-blue-400">
+                                            <div className="flex items-center gap-2 text-blue-600 font-bold mb-2">
+                                                <Info size={18} />
+                                                สถานการณ์
+                                            </div>
+                                            <div className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+                                                {resp.situation.situation_text}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <h3 className="text-lg font-bold text-gray-800 mb-6 leading-relaxed">
+                                        {resp.question_text}
+                                    </h3>
+
+                                    {/* Options */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
+                                        {resp.answer_options?.map((option: any) => {
+                                            const isSelected = option.option_id === resp.selected_option_id;
+                                            const isCorrect = option.is_correct;
+
+                                            let borderClass = "border-gray-200";
+                                            let bgClass = "bg-white";
+                                            let icon = null;
+
+                                            if (isSelected && isCorrect) {
+                                                borderClass = "border-green-500 ring-2 ring-green-100";
+                                                bgClass = "bg-green-50";
+                                                icon = <CheckCircle2 className="text-green-500" size={20} />;
+                                            } else if (isSelected && !isCorrect) {
+                                                borderClass = "border-red-500 ring-2 ring-red-100";
+                                                bgClass = "bg-red-50";
+                                                icon = <XCircle className="text-red-500" size={20} />;
+                                            } else if (isCorrect) {
+                                                borderClass = "border-green-500";
+                                                bgClass = "bg-green-50/30";
+                                                icon = <CheckCircle2 className="text-green-400" size={20} />;
+                                            }
+
+                                            return (
+                                                <div
+                                                    key={option.option_id}
+                                                    className={`p-4 rounded-xl border-2 transition-all flex items-center justify-between ${borderClass} ${bgClass}`}
+                                                >
+                                                    <span className={`flex-1 ${isSelected ? 'font-bold' : ''}`}>
+                                                        {option.option_text}
+                                                    </span>
+                                                    {icon}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+
+                                    {/* Explanation */}
+                                    <div className="p-5 bg-blue-50/50 rounded-2xl border border-blue-100">
+                                        <div className="flex items-center gap-2 text-blue-700 font-bold mb-3">
+                                            <HelpCircle size={20} />
+                                            คำอธิบาย
+                                        </div>
+                                        <p className="text-gray-700 leading-relaxed">
+                                            {resp.explanation || 'ไม่มีคำอธิบายเพิ่มเติมสำหรับข้อนี้'}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
 
