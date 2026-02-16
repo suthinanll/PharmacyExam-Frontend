@@ -91,7 +91,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('http://localhost:5000/auth/me', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
           credentials: 'include',
         });
         if (res.ok) {
@@ -111,7 +111,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
   const handleConfirmLogout = async () => {
     setLoadingLogout(true);
     try {
-      const res = await fetch("http://localhost:5000/auth/logout", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

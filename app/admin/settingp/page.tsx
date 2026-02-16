@@ -72,7 +72,7 @@ function Page() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost:5000/auth/me", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
           method: "GET",
           credentials: "include",
         });
@@ -109,7 +109,7 @@ function Page() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:5000/users/profile", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -147,7 +147,7 @@ function Page() {
     }
 
     try {
-      const res = await fetch("http://localhost:5000/users/change-password", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/change-password`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -182,7 +182,7 @@ function Page() {
     <Navbar_admin>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-12">
         <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8 md:p-10 max-w-3xl mx-auto">
-          
+
           {/* Header */}
           <div className="flex justify-between items-start mb-8 border-b pb-6">
             <div className="flex space-x-3">
@@ -224,9 +224,8 @@ function Page() {
                   onChange={(e) =>
                     setFormData({ ...formData, first_name: e.target.value })
                   }
-                  className={`w-full border rounded-lg p-3 ${
-                    !isEditing ? "bg-gray-100 cursor-not-allowed" : "bg-white"
-                  }`}
+                  className={`w-full border rounded-lg p-3 ${!isEditing ? "bg-gray-100 cursor-not-allowed" : "bg-white"
+                    }`}
                 />
               </div>
 
@@ -239,9 +238,8 @@ function Page() {
                   onChange={(e) =>
                     setFormData({ ...formData, last_name: e.target.value })
                   }
-                  className={`w-full border rounded-lg p-3 ${
-                    !isEditing ? "bg-gray-100 cursor-not-allowed" : "bg-white"
-                  }`}
+                  className={`w-full border rounded-lg p-3 ${!isEditing ? "bg-gray-100 cursor-not-allowed" : "bg-white"
+                    }`}
                 />
               </div>
             </div>
@@ -265,9 +263,8 @@ function Page() {
                 onChange={(e) =>
                   setFormData({ ...formData, tel: e.target.value })
                 }
-                className={`w-full border rounded-lg p-3 ${
-                  !isEditing ? "bg-gray-100 cursor-not-allowed" : "bg-white"
-                }`}
+                className={`w-full border rounded-lg p-3 ${!isEditing ? "bg-gray-100 cursor-not-allowed" : "bg-white"
+                  }`}
               />
             </div>
           </form>

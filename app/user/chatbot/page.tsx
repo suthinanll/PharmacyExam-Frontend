@@ -108,7 +108,7 @@ export default function ChatbotPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('http://localhost:5000/auth/me', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
           credentials: 'include',
         });
 
@@ -158,7 +158,7 @@ export default function ChatbotPage() {
   const fetchSessions = async () => {
     if (!userId) return;
     try {
-      const response = await fetch(`http://localhost:5000/chat/session/${userId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/session/${userId}`, {
         credentials: 'include'
       });
 
@@ -190,7 +190,7 @@ export default function ChatbotPage() {
       setMessages([]);
 
       // GET /chat/message/:session_id (Singular based on user hint)
-      const response = await fetch(`http://localhost:5000/chat/message/${sessionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/message/${sessionId}`, {
         credentials: 'include'
       });
 
@@ -294,7 +294,7 @@ export default function ChatbotPage() {
       // Assuming backend accepts '/chat/send/new' or similar for creating a session.
       // If 'currentSessionId' is null, interpolating it directly results in ".../null" which likely causes 500.
       const endpointSessionId = currentSessionId || 'new';
-      const response = await fetch(`http://localhost:5000/chat/send/${endpointSessionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/send/${endpointSessionId}`, {
         method: "POST",
         credentials: 'include',
         headers: {
@@ -369,7 +369,7 @@ export default function ChatbotPage() {
     if (!result.isConfirmed) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/chat/session/${sessionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/session/${sessionId}`, {
         method: "DELETE",
         credentials: 'include'
       });
@@ -459,7 +459,7 @@ export default function ChatbotPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/chat/message/${messageId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/message/${messageId}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {

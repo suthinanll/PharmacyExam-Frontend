@@ -51,7 +51,7 @@ const Profile = () => {
         const fetchUser = async () => {
             try {
                 const token = localStorage.getItem("token");
-                const res = await fetch("http://localhost:5000/auth/me", {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
                     method: "GET",
                     credentials: "include",
                     headers: token ? { 'Authorization': `Bearer ${token}` } : {},
@@ -109,7 +109,7 @@ const Profile = () => {
         setSuccessMessage('');
 
         try {
-            const res = await fetch('http://localhost:5000/users/profile', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ const Profile = () => {
         }
 
         try {
-            const res = await fetch('http://localhost:5000/users/change-password', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/change-password`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

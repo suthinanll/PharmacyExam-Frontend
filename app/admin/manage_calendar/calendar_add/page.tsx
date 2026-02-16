@@ -95,7 +95,7 @@ function Page() {
       alert("กำลังประมวลผลไฟล์ PDF...");
 
       // เรียก API เพื่อประมวลผล
-      const res = await fetch("http://localhost:5000/api/calendar/upload", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/calendar/upload`, {
         method: "POST",
         body: formData,
       });

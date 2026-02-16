@@ -19,7 +19,7 @@ export default function RegisterPage() {
   useEffect(() => {
     const fetchUniversities = async () => {
       try {
-        const res = await fetch("http://localhost:5000/universities");
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/universities`);
         if (!res.ok) throw new Error("Network response was not ok " + res.status);
         const data = await res.json();
         setUniversities(data);
@@ -59,7 +59,7 @@ export default function RegisterPage() {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/users/register", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newUser),
