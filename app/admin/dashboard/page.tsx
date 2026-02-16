@@ -1,21 +1,18 @@
 "use client"
 import React, { useState } from 'react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { 
-  Home, 
-  FileText, 
-  Calendar, 
-  Newspaper, 
-  MessageSquare, 
-  Settings, 
+import {
+  Home,
+  FileText,
+  Calendar,
+  Newspaper,
+  MessageSquare,
+  Settings,
   LogOut,
   Users,
   ClipboardCheck,
   TrendingUp,
   Award,
-  Clock,
-  Target,
-  Activity,
   AlertCircle
 } from 'lucide-react';
 
@@ -136,11 +133,10 @@ export default function AdminDashboard() {
                 <button
                   key={item.id}
                   onClick={() => setActiveMenu(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-                    isActive
-                      ? 'text-white shadow-md'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isActive
+                    ? 'text-white shadow-md'
+                    : 'text-gray-600 hover:bg-gray-100'
+                    }`}
                   style={isActive ? { backgroundColor: '#76b25a' } : {}}
                 >
                   <Icon size={20} />
@@ -200,11 +196,10 @@ export default function AdminDashboard() {
                 <button
                   key={range.value}
                   onClick={() => setTimeRange(range.value)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                    timeRange === range.value
-                      ? 'text-white shadow-md'
-                      : 'bg-white text-gray-600 hover:bg-gray-100'
-                  }`}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all ${timeRange === range.value
+                    ? 'text-white shadow-md'
+                    : 'bg-white text-gray-600 hover:bg-gray-100'
+                    }`}
                   style={timeRange === range.value ? { backgroundColor: '#76b25a' } : {}}
                 >
                   {range.label}
@@ -252,8 +247,8 @@ export default function AdminDashboard() {
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={getChartData()}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey={timeRange === 'daily' ? 'date' : timeRange === 'weekly' ? 'week' : 'month'} 
+                    <XAxis
+                      dataKey={timeRange === 'daily' ? 'date' : timeRange === 'weekly' ? 'week' : 'month'}
                       tick={{ fontSize: 12 }}
                     />
                     <YAxis tick={{ fontSize: 12 }} />
@@ -271,7 +266,7 @@ export default function AdminDashboard() {
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={getChartData()}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
+                    <XAxis
                       dataKey={timeRange === 'daily' ? 'date' : timeRange === 'weekly' ? 'week' : 'month'}
                       tick={{ fontSize: 12 }}
                     />
@@ -298,9 +293,9 @@ export default function AdminDashboard() {
                         <span className="text-gray-600">{area.avgScore}% ({area.exams} ครั้ง)</span>
                       </div>
                       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className="h-full rounded-full transition-all duration-500"
-                          style={{ 
+                          style={{
                             width: `${area.avgScore}%`,
                             backgroundColor: '#76b25a'
                           }}
@@ -321,7 +316,7 @@ export default function AdminDashboard() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      label={({ name, percent }: { name: string; percent: number }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
@@ -360,11 +355,10 @@ export default function AdminDashboard() {
                           <td className="py-3 px-4 text-sm font-medium">{exam.name}</td>
                           <td className="py-3 px-4 text-sm text-center font-mono">{exam.score.toFixed(2)}</td>
                           <td className="py-3 px-4 text-center">
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                              exam.result === 'ผ่าน' 
-                                ? 'bg-green-100 text-green-700' 
-                                : 'bg-red-100 text-red-700'
-                            }`}>
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${exam.result === 'ผ่าน'
+                              ? 'bg-green-100 text-green-700'
+                              : 'bg-red-100 text-red-700'
+                              }`}>
                               {exam.result}
                             </span>
                           </td>
@@ -382,16 +376,15 @@ export default function AdminDashboard() {
                 <h2 className="text-lg font-bold text-gray-800 mb-4">🔔 แจ้งเตือนระบบ</h2>
                 <div className="space-y-3">
                   {mockSystemAlerts.map((alert, i) => (
-                    <div key={i} className={`p-4 rounded-lg border-l-4 ${
-                      alert.type === 'warning' ? 'bg-yellow-50 border-yellow-500' :
+                    <div key={i} className={`p-4 rounded-lg border-l-4 ${alert.type === 'warning' ? 'bg-yellow-50 border-yellow-500' :
                       alert.type === 'info' ? 'bg-blue-50 border-blue-500' :
-                      'bg-green-50 border-green-500'
-                    }`}>
+                        'bg-green-50 border-green-500'
+                      }`}>
                       <div className="flex items-start gap-2">
                         <AlertCircle size={16} className={
                           alert.type === 'warning' ? 'text-yellow-600' :
-                          alert.type === 'info' ? 'text-blue-600' :
-                          'text-green-600'
+                            alert.type === 'info' ? 'text-blue-600' :
+                              'text-green-600'
                         } />
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-800">{alert.message}</p>
@@ -425,7 +418,7 @@ export default function AdminDashboard() {
 
 // ==================== STAT CARD COMPONENT ====================
 function StatCard({ icon: Icon, title, value, change, positive }: {
-  icon: any;
+  icon: React.ElementType;
   title: string;
   value: string;
   change: string;
