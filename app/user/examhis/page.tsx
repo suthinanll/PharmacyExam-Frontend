@@ -21,9 +21,6 @@ interface ExamHistory {
     start_time: string;
     end_time: string;
     final_score: number;
-    exam_type: 'NORMAL' | 'CAT';
-    theta?: number;
-    passed?: boolean;
     categories?: Category[];
 }
 
@@ -41,7 +38,6 @@ function ExamHistory() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
     const [statusFilter, setStatusFilter] = useState<'ALL' | 'PASSED' | 'FAILED'>('ALL');
-    const [typeFilter, setTypeFilter] = useState<'ALL' | 'NORMAL' | 'CAT'>('ALL');
     const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
@@ -51,7 +47,7 @@ function ExamHistory() {
 
     useEffect(() => {
         applyFilters();
-    }, [examHistory, searchQuery, selectedCategories, statusFilter, typeFilter]);
+    }, [examHistory, searchQuery, selectedCategories, statusFilter]);
 
     const fetchExamHistory = async () => {
         setLoading(true);
@@ -102,11 +98,6 @@ function ExamHistory() {
     const applyFilters = () => {
         let filtered = [...examHistory];
 
-        // Filter by type
-        if (typeFilter !== 'ALL') {
-            filtered = filtered.filter(exam => exam.exam_type === typeFilter);
-        }
-
         // Filter by search query
         if (searchQuery.trim()) {
             filtered = filtered.filter(exam =>
@@ -127,9 +118,6 @@ function ExamHistory() {
         // Filter by status
         if (statusFilter !== 'ALL') {
             filtered = filtered.filter(exam => {
-                if (exam.exam_type === 'CAT') {
-                    return statusFilter === 'PASSED' ? exam.passed : !exam.passed;
-                }
                 const isPassed = exam.final_score >= 50;
                 return statusFilter === 'PASSED' ? isPassed : !isPassed;
             });
@@ -150,10 +138,9 @@ function ExamHistory() {
         setSearchQuery('');
         setSelectedCategories([]);
         setStatusFilter('ALL');
-        setTypeFilter('ALL');
     };
 
-    const hasActiveFilters = searchQuery || selectedCategories.length > 0 || statusFilter !== 'ALL' || typeFilter !== 'ALL';
+    const hasActiveFilters = searchQuery || selectedCategories.length > 0 || statusFilter !== 'ALL';
 
     // ฟังก์ชันแปลงวันที่เป็นภาษาไทย
     const formatDateThai = (dateString: string) => {
@@ -169,7 +156,6 @@ function ExamHistory() {
     };
 
     const calculateTimeUsed = (startTime: string, endTime: string) => {
-        if (!endTime) return "-";
         const start = new Date(startTime);
         const end = new Date(endTime);
         const diffMs = end.getTime() - start.getTime();
@@ -182,21 +168,19 @@ function ExamHistory() {
     };
 
     // ฟังก์ชันกำหนดสีตามเปอร์เซ็นต์
-    const getScoreColor = (exam: ExamHistory) => {
-        if (exam.exam_type === 'CAT') {
-            return exam.passed ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50";
-        }
-        const percentage = Math.round(exam.final_score);
+    const getScoreColor = (percentage: number) => {
         if (percentage >= 61) return "text-green-600 bg-green-50";
         if (percentage >= 50) return "text-yellow-600 bg-yellow-50";
         return "text-red-600 bg-red-50";
     };
 
-    const getScoreBorderColor = (exam: ExamHistory) => {
-        if (exam.exam_type === 'CAT') {
-            return exam.passed ? "border-green-500" : "border-red-500";
-        }
-        const percentage = Math.round(exam.final_score);
+    const getScoreBadgeColor = (percentage: number) => {
+        if (percentage >= 61) return "bg-green-500";
+        if (percentage >= 50) return "bg-yellow-500";
+        return "bg-red-500";
+    };
+
+    const getScoreBorderColor = (percentage: number) => {
         if (percentage >= 61) return "border-green-500";
         if (percentage >= 50) return "border-yellow-500";
         return "border-red-500";
@@ -290,7 +274,7 @@ function ExamHistory() {
                                 <span className="hidden sm:inline">ตัวกรอง</span>
                                 {hasActiveFilters && (
                                     <span className="bg-white text-blue-600 text-xs px-2 py-0.5 rounded-full font-bold">
-                                        {(selectedCategories.length > 0 ? 1 : 0) + (statusFilter !== 'ALL' ? 1 : 0) + (typeFilter !== 'ALL' ? 1 : 0)}
+                                        {(selectedCategories.length > 0 ? 1 : 0) + (statusFilter !== 'ALL' ? 1 : 0)}
                                     </span>
                                 )}
                             </button>
@@ -299,40 +283,6 @@ function ExamHistory() {
                         {/* Filter Panel */}
                         {showFilters && (
                             <div className="mt-4 pt-4 border-t border-gray-200 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                                {/* Type Filter */}
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">รูปแบบการสอบ</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        <button
-                                            onClick={() => setTypeFilter('ALL')}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${typeFilter === 'ALL'
-                                                ? 'bg-blue-600 text-white shadow-md'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                }`}
-                                        >
-                                            ทั้งหมด
-                                        </button>
-                                        <button
-                                            onClick={() => setTypeFilter('NORMAL')}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${typeFilter === 'NORMAL'
-                                                ? 'bg-blue-600 text-white shadow-md'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                }`}
-                                        >
-                                            แบบปกติ
-                                        </button>
-                                        <button
-                                            onClick={() => setTypeFilter('CAT')}
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${typeFilter === 'CAT'
-                                                ? 'bg-blue-600 text-white shadow-md'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                }`}
-                                        >
-                                            แบบ CAT
-                                        </button>
-                                    </div>
-                                </div>
-
                                 {/* Status Filter */}
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">สถานะการสอบ</label>
@@ -340,7 +290,7 @@ function ExamHistory() {
                                         <button
                                             onClick={() => setStatusFilter('ALL')}
                                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${statusFilter === 'ALL'
-                                                ? 'bg-blue-600 text-white shadow-md'
+                                                ? 'bg-gray-800 text-white shadow-md'
                                                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                                 }`}
                                         >
@@ -353,7 +303,7 @@ function ExamHistory() {
                                                 : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
                                                 }`}
                                         >
-                                            ผ่าน
+                                            ผ่าน (≥50%)
                                         </button>
                                         <button
                                             onClick={() => setStatusFilter('FAILED')}
@@ -362,7 +312,7 @@ function ExamHistory() {
                                                 : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
                                                 }`}
                                         >
-                                            ไม่ผ่าน
+                                            ไม่ผ่าน (&lt;50%)
                                         </button>
                                     </div>
                                 </div>
@@ -370,7 +320,7 @@ function ExamHistory() {
                                 {/* Category Filter */}
                                 {categories.length > 0 && (
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2">หมวดหมู่</label>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">ประเภทข้อสอบ</label>
                                         <div className="flex flex-wrap gap-2">
                                             {categories.map((category) => (
                                                 <button
@@ -389,7 +339,7 @@ function ExamHistory() {
                                 )}
 
                                 {/* Clear Filters */}
-                                {/* {hasActiveFilters && (
+                                {hasActiveFilters && (
                                     <div className="flex justify-end pt-2">
                                         <button
                                             onClick={clearFilters}
@@ -399,7 +349,7 @@ function ExamHistory() {
                                             ล้างตัวกรอง
                                         </button>
                                     </div>
-                                )} */}
+                                )}
                             </div>
                         )}
 
@@ -407,14 +357,6 @@ function ExamHistory() {
                         {hasActiveFilters && (
                             <div className="mt-3 flex flex-wrap gap-2 items-center text-sm">
                                 <span className="text-gray-600 font-medium">กรองโดย:</span>
-                                {typeFilter !== 'ALL' && (
-                                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full flex items-center gap-1">
-                                        ประเภท: {typeFilter === 'NORMAL' ? 'แบบปกติ' : 'แบบ CAT'}
-                                        <button onClick={() => setTypeFilter('ALL')} className="hover:bg-blue-200 rounded-full p-0.5">
-                                            <X className="w-3 h-3" />
-                                        </button>
-                                    </span>
-                                )}
                                 {searchQuery && (
                                     <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full flex items-center gap-1">
                                         ค้นหา: "{searchQuery}"
@@ -460,26 +402,19 @@ function ExamHistory() {
                                 const timeUsed = calculateTimeUsed(exam.start_time, exam.end_time);
 
                                 return (
-                                    <div key={`${exam.exam_type}-${exam.session_id}`} className={`bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow border-l-[6px] ${getScoreBorderColor(exam)}`}>
+                                    <div key={exam.session_id} className={`bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow border-l-[6px] ${getScoreBorderColor(percentage)}`}>
                                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                             {/* Left Section */}
                                             <div className="flex-1">
                                                 <div className="flex items-start gap-3">
+                                                    {/* Removed dot */}
                                                     <div className="flex-1">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className={`px-2 py-0.5 text-[10px] font-bold rounded uppercase ${exam.exam_type === 'CAT'
-                                                                ? 'bg-purple-100 text-purple-700 border border-purple-200'
-                                                                : 'bg-blue-100 text-blue-700 border border-blue-200'
-                                                                }`}>
-                                                                {exam.exam_type}
-                                                            </span>
-                                                            <h3 className="text-lg font-bold text-gray-900">{exam.item_bank_name}</h3>
-                                                        </div>
+                                                        <h3 className="text-lg font-bold text-gray-900 mb-1">{exam.item_bank_name}</h3>
                                                         <div className="flex flex-wrap gap-2 mb-2">
                                                             {exam.categories && exam.categories.map((cat) => (
                                                                 <span
                                                                     key={cat.category_id}
-                                                                    className="px-2 py-0.5 bg-gray-50 text-gray-600 text-[11px] font-semibold rounded-md border border-gray-100"
+                                                                    className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] font-semibold rounded-md border border-blue-100"
                                                                 >
                                                                     {cat.category_name}
                                                                 </span>
@@ -505,28 +440,19 @@ function ExamHistory() {
 
                                             {/* Right Section */}
                                             <div className="flex items-center gap-6">
-                                                <div className="text-center min-w-[80px]">
-                                                    <div className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${getScoreColor(exam)}`}>
-                                                        {exam.exam_type === 'CAT'
-                                                            ? (exam.theta !== undefined ? `θ: ${exam.theta.toFixed(2)}` : "-")
-                                                            : `${percentage}%`
-                                                        }
+                                                <div className="text-center">
+                                                    <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${getScoreColor(percentage)}`}>
+                                                        {percentage}%
                                                     </div>
-                                                    <div className={`text-xs mt-1 font-medium ${exam.exam_type === 'CAT'
-                                                        ? (exam.passed ? 'text-green-600' : 'text-red-500')
-                                                        : (percentage >= 50 ? 'text-green-600' : 'text-red-500')
+                                                    <div className={`text-xs mt-1 font-medium ${percentage >= 61 ? 'text-green-600' :
+                                                            percentage >= 50 ? 'text-yellow-600' :
+                                                                'text-red-500'
                                                         }`}>
-                                                        {exam.exam_type === 'CAT'
-                                                            ? (exam.passed ? 'ผ่าน' : 'ไม่ผ่าน')
-                                                            : (percentage >= 50 ? 'ผ่าน' : 'ไม่ผ่าน')
-                                                        }
+                                                        {percentage >= 50 ? 'ผ่าน' : 'ไม่ผ่าน'}
                                                     </div>
                                                 </div>
                                                 <Link
-                                                    href={exam.exam_type === 'CAT'
-                                                        ? `/user/cat-exam/result/${exam.session_id}`
-                                                        : `/user/examset/take-exam/summarize-exam?session_id=${exam.session_id}`
-                                                    }
+                                                    href={`/user/examset/take-exam/summarize-exam?session_id=${exam.session_id}`}
                                                     className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-md hover:shadow-lg inline-block whitespace-nowrap"
                                                 >
                                                     ดูรายละเอียด

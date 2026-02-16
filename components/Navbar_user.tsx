@@ -15,8 +15,7 @@ import {
   CheckCircle,
   AlertCircle,
   ChevronDown,
-  Bookmark,
-  Info
+  Bookmark
 
 } from 'lucide-react';
 import Swal from 'sweetalert2';
@@ -111,7 +110,7 @@ const Navbar = () => {
       submenu: [
         { href: '/examset/by-year', label: 'ข้อสอบโรคและระบบต่างๆ' },
         { href: '/examset/mock-exam', label: 'ข้อสอบย้อนหลัง' },
-        { href: '/user/cat-exam/select', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)' }
+        { href: '/user/cat-exam', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)' }
       ]
     },
     { href: '/user/calendar', label: 'ปฏิทินการสอบ' },
@@ -119,80 +118,30 @@ const Navbar = () => {
     { href: '/user/followup', label: 'ติดตามความคืบหน้า' },
   ];
 
-  // notifications
-  const [notifications, setNotifications] = useState<any[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  const fetchNotifications = async () => {
-    try {
-      const token = localStorage.getItem("access_token") || sessionStorage.getItem("token");
-      if (!token) return;
-
-      const res = await fetch("http://localhost:5000/notifications", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data.slice(0, 5)); // Show only latest 5 in dropdown
-      }
-
-      const countRes = await fetch("http://localhost:5000/notifications/unread-count", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (countRes.ok) {
-        const countData = await countRes.json();
-        setUnreadCount(countData);
-      }
-    } catch (err) {
-      console.error("Error fetching notifications:", err);
+  const notifications = [
+    {
+      id: 1, type: 'exam', icon: Calendar, iconColor: 'text-red-500', bgColor: 'bg-red-50', title: 'ใกล้ถึงกำหนดการสอบแล้ว!',
+      message: 'การสอบเภสัชวิทยา 1 จะเริ่มในวันพรุ่งนี้ เวลา 09:00 น.', time: '1 ชั่วโมงที่แล้ว', unread: true, link: '/calender'
+    },
+    {
+      id: 2, type: 'exam', icon: Clock, iconColor: 'text-orange-500', bgColor: 'bg-orange-50',
+      title: 'เตือนการสอบ', message: 'อีก 3 วันจะถึงการสอบเภสัชเคมี ควรทบทวนบทที่ 5-8', time: '3 ชั่วโมงที่แล้ว', unread: true, link: '/calender'
+    },
+    {
+      id: 4, type: 'update', icon: BookOpen, iconColor: 'text-blue-500', bgColor: 'bg-blue-50',
+      title: 'ข้อสอบใหม่', message: 'เพิ่มข้อสอบชุดใหม่ "เภสัชศาสตร์คลินิก" 50 ข้อ', time: '1 วันที่แล้ว', unread: false, link: '/examset'
+    },
+    {
+      id: 5, type: 'achievement', icon: CheckCircle, iconColor: 'text-purple-500', bgColor: 'bg-purple-50',
+      title: 'ความสำเร็จใหม่', message: 'ยินดีด้วย! คุณทำข้อสอบครบ 100 ชุดแล้ว', time: '2 วันที่แล้ว', unread: false, link: '/followup'
+    },
+    {
+      id: 6, type: 'reminder', icon: AlertCircle, iconColor: 'text-yellow-500', bgColor: 'bg-yellow-50',
+      title: 'แนะนำการเรียน', message: 'คุณยังไม่ได้ทำข้อสอบในหมวด "เภสัชกรรมคลินิก" ควรฝึกฝนเพิ่มเติม', time: '3 วันที่แล้ว', unread: false, link: '/followup'
     }
-  };
+  ];
 
-  useEffect(() => {
-    fetchNotifications();
-    // Refresh notifications every 1 minute
-    const interval = setInterval(fetchNotifications, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const markAsRead = async (id: number) => {
-    try {
-      const token = localStorage.getItem("access_token") || sessionStorage.getItem("token");
-      await fetch(`http://localhost:5000/notifications/${id}/read`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      fetchNotifications();
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const getTimeAgo = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
-
-    if (diffInMinutes < 1) return 'เมื่อกี้';
-    if (diffInMinutes < 60) return `${diffInMinutes} นาทีที่แล้ว`;
-
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${diffInHours} ชั่วโมงที่แล้ว`;
-
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 30) return `${diffInDays} วันที่แล้ว`;
-
-    return date.toLocaleDateString('th-TH');
-  };
-
-  const getNotificationIcon = (typeId: number | null) => {
-    switch (typeId) {
-      case 2: return { icon: CheckCircle, color: 'text-green-500', bg: 'bg-green-50' };
-      case 3: return { icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-50' };
-      case 4: return { icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-50' };
-      default: return { icon: Info, color: 'text-blue-500', bg: 'bg-blue-50' };
-    }
-  };
+  const unreadCount = notifications.filter(n => n.unread).length;
 
   const isActive = (path: string, hasSubmenu = false) => {
     if (hasSubmenu) {
@@ -360,33 +309,30 @@ const Navbar = () => {
                   <div className="overflow-y-auto max-h-80 sm:max-h-96 flex-1">
                     {notifications.length > 0 ? (
                       notifications.map((notification) => {
-                        const { icon: IconComponent, color: iconColor, bg: bgColor } = getNotificationIcon(notification.notification_type_id);
+                        const IconComponent = notification.icon;
                         return (
                           <Link
-                            key={notification.notification_id}
-                            href={notification.link_url || '#'}
-                            onClick={() => {
-                              setIsNotificationOpen(false);
-                              if (!notification.is_read) markAsRead(notification.notification_id);
-                            }}
-                            className={`block border-b border-gray-100  hover:bg-gray-50 transition-colors ${!notification.is_read ? 'bg-blue-50/50' : ''}`}
+                            key={notification.id}
+                            href={notification.link}
+                            onClick={() => setIsNotificationOpen(false)}
+                            className={`block border-b border-gray-100  hover:bg-gray-50 transition-colors ${notification.unread ? 'bg-blue-50/50' : ''}`}
                           >
                             <div className="px-3 sm:px-4 py-2.5 sm:py-3">
                               <div className="flex items-start space-x-2 sm:space-x-3">
                                 {/* ไอคอน */}
-                                <div className={`flex-shrink-0 w-8 sm:w-10 h-8 sm:h-10 ${bgColor} rounded-lg flex items-center justify-center`}>
-                                  <IconComponent className={`w-4 sm:w-5 h-4 sm:h-5 ${iconColor}`} />
+                                <div className={`flex-shrink-0 w-8 sm:w-10 h-8 sm:h-10 ${notification.bgColor} rounded-lg flex items-center justify-center`}>
+                                  <IconComponent className={`w-4 sm:w-5 h-4 sm:h-5 ${notification.iconColor}`} />
                                 </div>
                                 {/* เนื้อหา */}
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-start justify-between">
-                                    <p className={`font-medium text-gray-900 text-xs sm:text-sm ${!notification.is_read ? 'font-bold' : ''}`}>{notification.title}</p>
-                                    {!notification.is_read && <span className="ml-2 w-1.5 sm:w-2 h-1.5 sm:h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></span>}
+                                    <p className="font-medium text-gray-900 text-xs sm:text-sm">{notification.title}</p>
+                                    {notification.unread && <span className="ml-2 w-1.5 sm:w-2 h-1.5 sm:h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></span>}
                                   </div>
                                   <p className="text-xs sm:text-sm text-gray-600 mt-0.5 sm:mt-1 line-clamp-2">{notification.message}</p>
                                   <p className="text-[10px] sm:text-xs text-gray-400 mt-1 sm:mt-2 flex items-center">
                                     <Clock className="w-2.5 sm:w-3 h-2.5 sm:h-3 mr-0.5 sm:mr-1" />
-                                    {getTimeAgo(notification.created_at)}
+                                    {notification.time}
                                   </p>
                                 </div>
                               </div>
@@ -405,13 +351,7 @@ const Navbar = () => {
 
                   {/* Footer ของ Dropdown */}
                   <div className="bg-gray-50 px-3 sm:px-4 py-2 sm:py-3 rounded-b-xl border-t border-gray-100">
-                    <button
-                      className="w-full text-center text-xs sm:text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
-                      onClick={() => {
-                        setIsNotificationOpen(false);
-                        router.push('/user/notifications');
-                      }}
-                    >
+                    <button className="w-full text-center text-xs sm:text-sm text-green-600 hover:text-green-700 font-medium transition-colors" onClick={() => setIsNotificationOpen(false)}>
                       ดูการแจ้งเตือนทั้งหมด
                     </button>
                   </div>
