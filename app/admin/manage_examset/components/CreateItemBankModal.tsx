@@ -297,7 +297,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                     </div>
 
                     {/* Status Note */}
-                    <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg flex items-start gap-3">
+                    {/* <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg flex items-start gap-3">
                         <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
                         <div>
                             <p className="text-sm font-semibold text-amber-900">บันทึกเป็นแบบร่าง</p>
@@ -305,7 +305,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                                 ชุดข้อสอบที่สร้างใหม่จะถูกตั้งเป็น "แบบร่าง" (ปิดการใช้งาน) โดยอัตโนมัติ คุณสามารถเปิดใช้งานได้ภายหลังจากการเพิ่มข้อสอบครบถ้วนแล้ว
                             </p>
                         </div>
-                    </div>
+                    </div> */}
                 </form>
 
                 {/* Footer */}

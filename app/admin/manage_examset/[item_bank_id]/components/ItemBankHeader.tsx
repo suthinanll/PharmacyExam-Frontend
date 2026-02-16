@@ -99,13 +99,13 @@ export default function ItemBankHeader({
                     <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto mt-2 sm:mt-0">
                         {!isEditing ? (
                             <>
-                                <button
+                                {/* <button
                                     onClick={onSettingsClick}
                                     className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
                                 >
                                     <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
                                     <span className="hidden sm:inline">ตั้งค่า</span>
-                                </button>
+                                </button> */}
 
                                 <button
                                     onClick={onCATGuideClick}

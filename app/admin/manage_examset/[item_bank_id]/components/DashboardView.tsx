@@ -446,7 +446,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                     </div>
 
                     {/* Quick Actions Card */}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                    {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <h3 className="text-lg font-bold text-gray-800 mb-6">เมนูจัดการด่วน</h3>
                         <div className="space-y-3">
                             <button
@@ -461,7 +461,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                 ตัวอย่างข้อสอบ
                             </button>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
 

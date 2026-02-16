@@ -284,7 +284,7 @@ function Page() {
                           <td className="px-6 py-4 whitespace-nowrap w-32">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${bank.is_active
                               ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
+                              : 'bg-gray-100 text-gray-700'
                               }`}>
                               {bank.is_active ? 'เปิดให้ทำข้อสอบ' : 'ปิดการใช้งาน'}
                             </span>
