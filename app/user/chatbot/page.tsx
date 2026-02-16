@@ -113,7 +113,7 @@ export default function ChatbotPage() {
     const fetchUser = async () => {
       try {
         const token = getToken();
-        const res = await fetch('http://localhost:5000/auth/me', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -172,7 +172,7 @@ export default function ChatbotPage() {
     if (!userId) return;
     try {
       const token = getToken();
-      const response = await fetch(`http://localhost:5000/chat/session/${userId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/session/${userId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -205,7 +205,7 @@ export default function ChatbotPage() {
 
       // GET /chat/message/:session_id (Singular based on user hint)
       const token = getToken();
-      const response = await fetch(`http://localhost:5000/chat/message/${sessionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/message/${sessionId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -309,7 +309,7 @@ export default function ChatbotPage() {
       // If 'currentSessionId' is null, interpolating it directly results in ".../null" which likely causes 500.
       const endpointSessionId = currentSessionId || 'new';
       const token = getToken();
-      const response = await fetch(`http://localhost:5000/chat/send/${endpointSessionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/send/${endpointSessionId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -385,7 +385,7 @@ export default function ChatbotPage() {
 
     try {
       const token = getToken();
-      const response = await fetch(`http://localhost:5000/chat/session/${sessionId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/session/${sessionId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -476,7 +476,7 @@ export default function ChatbotPage() {
 
     try {
       const token = getToken();
-      const response = await fetch(`http://localhost:5000/chat/message/${messageId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/message/${messageId}`, {
         method: 'PUT',
         headers: {
           "Content-Type": "application/json",

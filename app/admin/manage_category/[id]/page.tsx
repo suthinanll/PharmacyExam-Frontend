@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import { Loader2, Save, X, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
-const API_URL = 'http://localhost:5000/categories';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/categories`;
 
 interface Category {
     category_id: number;

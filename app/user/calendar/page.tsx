@@ -21,7 +21,7 @@ interface ExamSchedule {
 interface Tag { id: number; name: string; }
 interface UserNote { id: string; title: string; content: string; tags: Tag[]; files: string[]; createdAt: number; }
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 const categoryColors = {
   'ทฤษฎี': 'bg-blue-100 text-blue-800 border-blue-200',
   'ปฏิบัติ': 'bg-purple-100 text-purple-800 border-purple-200',

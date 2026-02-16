@@ -45,7 +45,7 @@ const Navbar = () => {
           return;
         }
 
-        const res = await fetch("http://localhost:5000/auth/me", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

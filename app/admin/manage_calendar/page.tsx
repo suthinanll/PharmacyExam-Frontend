@@ -47,7 +47,7 @@ function Page() {
   const fetchEvents = useCallback(async () => {
     try {
       const token = getToken();
-      const res = await fetch("http://localhost:5000/schedules", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("ดึงข้อมูลล้มเหลว");
@@ -116,7 +116,7 @@ function Page() {
     if (result.isConfirmed) {
       try {
         const token = getToken();
-        const res = await fetch("http://localhost:5000/schedules/bulk/all", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules/bulk/all`, {
           method: "DELETE",
           headers: { "Authorization": `Bearer ${token}` }
         });
@@ -149,7 +149,7 @@ function Page() {
     if (result.isConfirmed) {
       try {
         const token = getToken();
-        const res = await fetch("http://localhost:5000/schedules/bulk/status", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules/bulk/status`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
@@ -172,7 +172,7 @@ function Page() {
     try {
       const token = getToken();
       const newStatus = !event.is_published;
-      const res = await fetch(`http://localhost:5000/schedules/${event.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules/${event.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -201,7 +201,7 @@ function Page() {
     if (!selectedEvent) return;
     try {
       const token = getToken();
-      const res = await fetch(`http://localhost:5000/schedules/${selectedEvent.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules/${selectedEvent.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -235,7 +235,7 @@ function Page() {
     if (!selectedEvent) return;
     try {
       const token = getToken();
-      const res = await fetch(`http://localhost:5000/schedules/${selectedEvent.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules/${selectedEvent.id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });

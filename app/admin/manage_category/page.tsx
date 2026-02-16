@@ -21,7 +21,7 @@ interface PageButtonProps {
     setCurrentPage: (page: number) => void;
 }
 
-const API_URL = 'http://localhost:5000/categories';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/categories`;
 const ITEMS_PER_PAGE = 10;
 
 export default function CategoriesManagement() {

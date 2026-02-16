@@ -67,7 +67,7 @@ function Page() {
       });
 
       const promises = events.map(event =>
-        fetch("http://localhost:5000/schedules", {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -141,7 +141,7 @@ function Page() {
         allowOutsideClick: false,
         didOpen: () => { Swal.showLoading(); }
       });
-      const res = await fetch("http://localhost:5000/schedules/upload", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules/upload`, {
         method: "POST",
         headers: {
           // 2. แนบ Token เข้าไปเพื่อให้ Guard ยอมให้ผ่าน

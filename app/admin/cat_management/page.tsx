@@ -72,7 +72,7 @@ interface ReadinessSummary {
     item_banks: ItemBankReadiness[];
 }
 
-const API_URL = 'http://localhost:5000';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 const ITEMS_PER_PAGE = 9;
 
 export default function CATManagement() {

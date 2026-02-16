@@ -69,7 +69,7 @@ export default function CATResultPage() {
             const token = getToken();
 
             const response = await fetch(
-                `http://localhost:5000/cat/session/${sessionId}/result`,
+                `${process.env.NEXT_PUBLIC_API_URL}/cat/session/${sessionId}/result`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

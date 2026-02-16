@@ -63,7 +63,7 @@ export default function CATSetupPage() {
             const token = getToken();
             try {
                 // Fetch Topics
-                const topicRes = await fetch("http://localhost:5000/topics", {
+                const topicRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/topics`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const topicsData = await topicRes.json();
@@ -77,7 +77,7 @@ export default function CATSetupPage() {
                 setTopicWeights(initialWeights);
 
                 // Fetch Latest Ability
-                const abilityRes = await fetch("http://localhost:5000/cat/latest-ability", {
+                const abilityRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cat/latest-ability`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 const ability = await abilityRes.json();
@@ -127,7 +127,7 @@ export default function CATSetupPage() {
                 topic_proportions: Object.values(topicWeights).some(w => w > 0) ? topicWeights : undefined,
             };
 
-            const response = await fetch("http://localhost:5000/cat/start", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cat/start`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

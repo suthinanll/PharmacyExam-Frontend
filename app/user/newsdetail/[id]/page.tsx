@@ -26,7 +26,7 @@ const NewsDetailPage = () => {
     const fetchNewsDetail = useCallback(async () => {
         try {
             const token = getToken();
-            const res = await fetch(`http://localhost:5000/news/${id}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/${id}`, {
                 headers: {
                     "Authorization": `Bearer ${token}`,
                     "Content-Type": "application/json"

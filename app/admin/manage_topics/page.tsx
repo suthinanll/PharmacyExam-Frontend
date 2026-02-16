@@ -20,7 +20,7 @@ interface Topic {
     sub_topics: SubTopic[];
 }
 
-const API_URL = 'http://localhost:5000';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 export default function ManageTopicsPage() {
     const { isAuthenticated, isLoading: authLoading, getToken } = useAuth();

@@ -34,7 +34,7 @@ const Profile = () => {
             try {
                 const token = getToken();
                 if (!token) return;
-                const res = await fetch("http://localhost:5000/auth/me", {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 if (res.ok) {
@@ -83,7 +83,7 @@ const Profile = () => {
 
         try {
             const token = getToken();
-            const res = await fetch('http://localhost:5000/users/profile', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

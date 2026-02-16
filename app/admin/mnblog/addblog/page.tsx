@@ -62,7 +62,7 @@ function AddBlogPage() {
         setIsGenerating(true);
         try {
             const token = getToken();
-            const response = await fetch('http://localhost:5000/news/latest', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/latest`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -95,7 +95,7 @@ function AddBlogPage() {
         setIsSaving(true);
         try {
             const token = getToken();
-            const response = await fetch('http://localhost:5000/news', {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

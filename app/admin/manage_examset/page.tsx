@@ -31,7 +31,7 @@ interface PageButtonProps {
   setCurrentPage: (page: number) => void;
 }
 
-const API_URL = 'http://localhost:5000';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 const ITEMS_PER_PAGE = 5;
 
 function Page() {

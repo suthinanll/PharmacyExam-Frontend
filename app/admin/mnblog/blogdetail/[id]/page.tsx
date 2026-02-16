@@ -30,7 +30,7 @@ export default function EditBlogDetail() {
                 const token = getToken();
 
                 // ✅ 2. แนบ Authorization Header ในการเรียก GET
-                const response = await fetch(`http://localhost:5000/news/${blogId}`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/${blogId}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ export default function EditBlogDetail() {
         const token = getToken();
 
         try {
-            const response = await fetch(`http://localhost:5000/news/${blogId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/${blogId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

@@ -43,7 +43,7 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
     setIsActionLoading(true);
     try {
       const token = getToken();
-      const response = await fetch(`http://localhost:5000/news/${blog.article_id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/${blog.article_id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -67,7 +67,7 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
     setIsActionLoading(true);
     try {
       const token = getToken();
-      const response = await fetch(`http://localhost:5000/news/${blog.article_id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/${blog.article_id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ function Page() {
     setIsLoading(true);
     try {
       const token = getToken();
-      const response = await fetch('http://localhost:5000/news', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 

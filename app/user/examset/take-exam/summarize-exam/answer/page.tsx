@@ -54,7 +54,7 @@ interface MasteryData {
     last_answered_at: string;
 }
 
-const API_URL = 'http://localhost:5000';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 const AnswerPage = () => {
     const searchParams = useSearchParams();

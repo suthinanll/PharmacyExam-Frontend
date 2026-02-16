@@ -5,7 +5,7 @@ import Navbar_admin from "@/components/Navbar_admin";
 import Swal from 'sweetalert2';
 import { Loader2, Save, X } from 'lucide-react';
 
-const API_URL = 'http://localhost:5000/categories';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/categories`;
 
 export default function AddCategory() {
     const router = useRouter();

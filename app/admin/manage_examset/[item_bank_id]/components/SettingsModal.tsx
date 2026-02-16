@@ -11,7 +11,7 @@ interface Category {
     description?: string;
 }
 
-const API_URL = 'http://localhost:5000';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 interface SettingsModalProps {
     isOpen: boolean;

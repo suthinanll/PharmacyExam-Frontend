@@ -78,7 +78,7 @@ export default function CATExamPage() {
         try {
             setLoading(true);
             const token = getToken();
-            const response = await fetch(`http://localhost:5000/cat/session/${sessionId}/next-item`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cat/session/${sessionId}/next-item`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
@@ -107,7 +107,7 @@ export default function CATExamPage() {
             setLoading(true);
             const token = getToken();
 
-            const response = await fetch("http://localhost:5000/cat/start", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cat/start`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -153,7 +153,7 @@ export default function CATExamPage() {
             setLoading(true);
             const token = getToken();
 
-            const response = await fetch("http://localhost:5000/cat/submit-answer", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cat/submit-answer`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -328,7 +328,7 @@ export default function CATExamPage() {
                                     <img
                                         src={session.current_item.situation.situation_image_url.startsWith('http')
                                             ? session.current_item.situation.situation_image_url
-                                            : `http://localhost:5000${session.current_item.situation.situation_image_url}`}
+                                            : `${process.env.NEXT_PUBLIC_API_URL}${session.current_item.situation.situation_image_url}`}
                                         alt="Situation"
                                         className="max-h-96 rounded-lg shadow-sm object-contain"
                                     />

@@ -94,7 +94,7 @@ const Page = () => {
   const handleBookmarkToggle = async (articleId: number) => {
     try {
       const token = getToken(); // 2. Use getToken()
-      const res = await fetch("http://localhost:5000/bookmark/toggle", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookmark/toggle`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ articleId })
@@ -114,7 +114,7 @@ const Page = () => {
       const now = Date.now();
       const todayStr = new Date().toDateString();
 
-      const resSched = await fetch("http://localhost:5000/schedules", { headers });
+      const resSched = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules`, { headers });
       if (resSched.ok) {
         const data = await resSched.json();
         const allExams = data
@@ -143,8 +143,8 @@ const Page = () => {
 
       setLoadingNews(true);
       const [resNews, resBookmarks] = await Promise.all([
-        fetch("http://localhost:5000/news", { headers }),
-        fetch("http://localhost:5000/bookmark", { headers })
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, { headers }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookmark`, { headers })
       ]);
       if (resNews.ok) {
         const newsData = await resNews.json();
