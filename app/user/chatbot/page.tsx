@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
-import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, User, Bot, AlertCircle, Trash2, Pencil } from "lucide-react";
+import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, Bot, AlertCircle, Trash2, Pencil } from "lucide-react";
 import Navbar from "@/components/Navbar_user";
 import Swal from "sweetalert2";
 
@@ -89,7 +89,7 @@ export default function ChatbotPage() {
 
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const [userId, setUserId] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
 
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -100,7 +100,7 @@ export default function ChatbotPage() {
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
-  const [isEditLoading, setIsEditLoading] = useState(false);
+  const [_isEditLoading, setIsEditLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
 
@@ -131,6 +131,7 @@ export default function ChatbotPage() {
     if (userId) {
       fetchSessions();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   // Scroll to bottom when messages change
@@ -208,7 +209,7 @@ export default function ChatbotPage() {
 
       const msgs = Array.isArray(data) ? data : (data.messages || []);
 
-      const mappedMessages: Message[] = msgs.map((m: any) => ({
+      const mappedMessages: Message[] = msgs.map((m: { message_id?: number; sender_type?: string; message_text?: string; sent_at?: string }) => ({
         id: m.message_id ? m.message_id.toString() : `msg-${Math.random()}`,
         sender: (m.sender_type === "USER" ? "user" : "bot"),
         text: m.message_text || "",
@@ -224,9 +225,9 @@ export default function ChatbotPage() {
 
       setMessages(mappedMessages);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error fetching messages:", error);
-      setFetchError(error.message);
+      setFetchError(error instanceof Error ? error.message : "Unknown error");
       // Removed `if (!isBackground)` as `isBackground` is not defined in the original code.
       // Assuming the intent was to always set loading to false on error.
       setIsMessageLoading(false);
@@ -242,6 +243,7 @@ export default function ChatbotPage() {
       setCurrentSessionId(savedSessionId);
       fetchMessages(savedSessionId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Save session to localStorage
@@ -661,22 +663,22 @@ export default function ChatbotPage() {
                                   className="w-full text-gray-700 focus:outline-none resize-none bg-transparent disabled:opacity-50"
                                   rows={2}
                                   autoFocus
-                                  disabled={isEditLoading}
+                                  disabled={_isEditLoading}
                                 />
                                 <div className="flex justify-end gap-2 mt-2">
                                   <button
                                     onClick={cancelEditing}
                                     className="px-3 py-1 text-xs text-gray-500 hover:bg-gray-100 rounded-md transition-colors"
-                                    disabled={isEditLoading}
+                                    disabled={_isEditLoading}
                                   >
                                     ยกเลิก
                                   </button>
                                   <button
                                     onClick={() => saveEdit(msg.id)}
                                     className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1 disabled:opacity-70"
-                                    disabled={isEditLoading}
+                                    disabled={_isEditLoading}
                                   >
-                                    {isEditLoading && <span className="animate-spin inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full"></span>}
+                                    {_isEditLoading && <span className="animate-spin inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full"></span>}
                                     บันทึก
                                   </button>
                                 </div>

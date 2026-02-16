@@ -1,10 +1,5 @@
 "use client"
-import { NextPage } from 'next'
 
-interface Props {}
-
-const Page: NextPage<Props> = ({}) => {
+export default function RegisterPage() {
   return <div>Register</div>
 }
-
-export default Page
