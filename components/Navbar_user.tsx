@@ -1,5 +1,4 @@
 "use client";
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { global } from 'styled-jsx/css';
 import Link from 'next/link';
@@ -40,9 +39,18 @@ const Navbar = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          setUser(null);
+          return;
+        }
+
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-          credentials: 'include',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
+
         if (res.ok) {
           const data = await res.json();
           setUser(data);
@@ -70,10 +78,7 @@ const Navbar = () => {
 
     if (result.isConfirmed) {
       try {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          credentials: 'include',
-        });
+        sessionStorage.removeItem("token");
 
         await Swal.fire({
           icon: 'success',
@@ -94,6 +99,7 @@ const Navbar = () => {
     }
   };
 
+
   const navItems = [
     { href: '/user', label: 'เภสัชพร้อมสอบ' },
     { href: '/user', label: 'หน้าหลัก' },
@@ -104,7 +110,7 @@ const Navbar = () => {
       submenu: [
         { href: '/examset/by-year', label: 'ข้อสอบโรคและระบบต่างๆ' },
         { href: '/examset/mock-exam', label: 'ข้อสอบย้อนหลัง' },
-        { href: '/user/examcat', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)' }
+        { href: '/user/cat-exam', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)' }
       ]
     },
     { href: '/user/calendar', label: 'ปฏิทินการสอบ' },
@@ -165,9 +171,10 @@ const Navbar = () => {
       setMobileSubmenuOpen(false);
     }
   }, [isMobileMenuOpen]);
+
   return (
-    <nav className="shadow-lg sticky top-0 z-50">
-      <div className="mx-auto max-w-7xl px-2 sm:px-4 md:px-6 lg:px-8">
+    <nav className="shadow-lg bg-[rgba(118,178,90,1)] sticky top-0 z-50">
+      <div className="mx-auto max-w-7xl px-2 sm:px-4 md:px-6 lg:px-8 ">
         <div className="relative flex h-14 sm:h-16 items-center justify-between">
 
           <div className="absolute inset-y-0 left-0 flex items-center lg:hidden">

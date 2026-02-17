@@ -4,23 +4,24 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css'
 import localFont from 'next/font/local';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 
 const myFont = localFont({
   src: [
     {
-      path: './fonts/Kanit-Regular.ttf', 
-      weight: '400',                     
+      path: './fonts/Kanit-Regular.ttf',
+      weight: '400',
       style: 'normal',
     },
     {
       path: './fonts/Kanit-Medium.ttf',
-      weight: '500',                     
+      weight: '500',
       style: 'normal',
     },
     {
       path: './fonts/Kanit-Bold.ttf',
-      weight: '700',                    
+      weight: '700',
       style: 'normal',
     },
   ],
@@ -37,16 +38,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="th" className={`${myFont.variable}`}>
       <body>
-        <header>
-         
-        </header>
+        <AuthProvider>
+          <header>
 
-        <main>
-          {children}
-        </main>
+          </header>
 
-        <footer>
-        </footer>
+          <main>
+            {children}
+          </main>
+
+          <footer>
+          </footer>
+        </AuthProvider>
       </body>
     </html>
   );

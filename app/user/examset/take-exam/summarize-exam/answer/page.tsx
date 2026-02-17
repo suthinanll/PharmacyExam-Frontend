@@ -1,127 +1,341 @@
-
 "use client"
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Navbar_user from "@/components/Navbar_user"
 import Footer from "@/components/Footer"
 import Link from "next/link"
-import { CheckCircle, XCircle, BookOpen, ChevronRight } from 'lucide-react';
+import { CheckCircle, XCircle, BookOpen, ChevronRight, Loader2, AlertCircle, BarChart3, TrendingUp, X, List } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
-const examset = () => {
+// Types
+interface AnswerOption {
+    option_id: number;
+    option_text: string;
+    is_correct: boolean;
+}
 
-    const examData = {
-        title: "MCQ ปี 2554 ชุดที่ 1",
-        subtitle: "MCQ ปี 2554 ชุดที่ 1 จำนวน 110 ข้อ",
-        totalQuestions: 110,
-        // เพิ่มข้อมูลคำตอบที่ถูกและคำอธิบาย
-        questions: [
-            {
-                id: 1, // เปลี่ยน ID เป็น 1 เพื่อใช้เป็น key ได้ง่าย
-                text: "หญิงไทยคู่ อายุ 40 ปี มีลักษณะซีด อ่อนเพลีย น้ำหนักลด มาพบแพทย์ พบผลการตรวจห้องปฏิบัติการ Hb 9, Hct 27 %, MCV 67,TIBC 480, Serum ferritin 12 ผลการตรวจ smear เม็ดเลือดพบmicrocytic anemia แพทย์จึงวินิจฉัยว่าเป็นโลหิตจาง ผู้ป่วยรายนี้เป็น anemia แบบไหน",
-                options: [
-                    "ก.Iron deficiency",
-                    "ข.Hemolytic anemia",
-                    "ค.Megaloblastic anemia",
-                    "ง.Sickle cell",
-                    "จ.B12 deficiency"
-                ],
-                correctAnswerIndex: 0, // ก. (Iron deficiency)
-                userAnswerIndex: 2, // สมมติว่าผู้ใช้ตอบ ค. (ตอบผิด)
-                explanation: "จากผลการตรวจห้องปฏิบัติการ: MCV 67 (ต่ำ, microcytic), TIBC 480 (สูง), Serum ferritin 12 (ต่ำ) ซึ่งเป็นลักษณะเฉพาะของภาวะโลหิตจางจากการขาดธาตุเหล็ก (Iron deficiency anemia) ซึ่งเป็นภาวะโลหิตจางแบบ Microcytic hypochromic ที่พบบ่อยที่สุด"
-            },
-            {
-                id: 2, // คำถามที่ 2 (สมมติว่ามี)
-                text: "ยา Metformin ออกฤทธิ์หลักในการลดระดับน้ำตาลในเลือดได้อย่างไร?",
-                options: [
-                    "ก.เพิ่มการหลั่งอินซูลินจากตับอ่อน",
-                    "ข.ลดการสร้างกลูโคสจากตับ",
-                    "ค.เพิ่มการดูดซึมกลูโคสที่ลำไส้",
-                    "ง.ปิดกั้นการทำงานของ Glucagon"
-                ],
-                correctAnswerIndex: 1, // ข. (ลดการสร้างกลูโคสจากตับ)
-                userAnswerIndex: 1, // สมมติว่าผู้ใช้ตอบ ข. (ตอบถูก)
-                explanation: "Metformin (ยาในกลุ่ม Biguanides) ออกฤทธิ์หลักโดยการลดการสร้างกลูโคสจากตับ (Hepatic Gluconeogenesis) และเพิ่มความไวของอินซูลินในเนื้อเยื่อส่วนปลาย"
-            }
-        ]
+interface Situation {
+    situation_id: number;
+    situation_title: string;
+    situation_text: string;
+    situation_image_url?: string;
+}
+
+interface QuestionResponse {
+    item_id: number;
+    question_text: string;
+    explanation: string;
+    selected_option_id: number | null;
+    is_correct: boolean;
+    response_time_ms: number;
+    answer_options: AnswerOption[];
+    situation?: Situation;
+}
+
+interface ExamResult {
+    session_id: number;
+    item_bank_name: string;
+    status: string;
+    start_time: string;
+    end_time: string;
+    total_questions: number;
+    correct_count: number;
+    final_score: number;
+    responses: QuestionResponse[];
+}
+
+interface MasteryData {
+    user_id: number;
+    item_id: number;
+    total_attempts: number;
+    total_correct: number;
+    total_incorrect: number;
+    correct_streak: number;
+    last_answered_at: string;
+}
+
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
+
+const AnswerPage = () => {
+    const searchParams = useSearchParams();
+    const { getToken } = useAuth();
+    const sessionId = searchParams.get('session_id');
+
+    const [examResult, setExamResult] = useState<ExamResult | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [showStatsModal, setShowStatsModal] = useState(false);
+    const [selectedQuestionStats, setSelectedQuestionStats] = useState<MasteryData | null>(null);
+    const [loadingStats, setLoadingStats] = useState(false);
+    const [showTOC, setShowTOC] = useState(true);
+    const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+    const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
+
+    const scrollToSection = (id: string) => {
+        const element = document.getElementById(id);
+        if (element) {
+            const offset = 80; // height of navbar
+            const bodyRect = document.body.getBoundingClientRect().top;
+            const elementRect = element.getBoundingClientRect().top;
+            const elementPosition = elementRect - bodyRect;
+            const offsetPosition = elementPosition - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
     };
 
-    const QuestionCard = ({ question, index }: { question: typeof examData.questions[0], index: number }) => {
-        const isCorrect = question.userAnswerIndex === question.correctAnswerIndex;
+    const toggleGroupExpand = (idx: number) => {
+        setExpandedGroups(prev => {
+            const next = new Set(prev);
+            if (next.has(idx)) next.delete(idx);
+            else next.add(idx);
+            return next;
+        });
+    };
+
+    const toggleGroupCollapse = (idx: number) => {
+        setCollapsedGroups(prev => {
+            const next = new Set(prev);
+            if (next.has(idx)) next.delete(idx);
+            else next.add(idx);
+            return next;
+        });
+    };
+
+    useEffect(() => {
+        if (sessionId) {
+            fetchExamResult();
+        } else {
+            setError('ไม่พบรหัส session');
+            setLoading(false);
+        }
+    }, [sessionId]);
+
+    const fetchExamResult = async () => {
+        setLoading(true);
+        try {
+            const token = getToken();
+            const response = await fetch(`${API_URL}/items-bank/exam/${sessionId}/result`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setExamResult(data);
+            } else {
+                throw new Error('ไม่สามารถโหลดเฉลยคำตอบได้');
+            }
+        } catch (error) {
+            console.error('Error fetching exam result:', error);
+            setError('เกิดข้อผิดพลาดในการโหลดเฉลยคำตอบ');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchQuestionStats = async (itemId: number) => {
+        setLoadingStats(true);
+        try {
+            const token = getToken();
+            const response = await fetch(`${API_URL}/items-bank/mastery/${itemId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setSelectedQuestionStats(data);
+                setShowStatsModal(true);
+            } else {
+                setSelectedQuestionStats(null);
+                setShowStatsModal(true);
+            }
+        } catch (error) {
+            console.error('Error fetching stats:', error);
+            setSelectedQuestionStats(null);
+            setShowStatsModal(true);
+        } finally {
+            setLoadingStats(false);
+        }
+    };
+
+
+    const QuestionCard = ({ question, index, showSituation = true }: { question: QuestionResponse, index: number, showSituation?: boolean }) => {
+        const isCorrect = question.is_correct;
 
         return (
-            <div
-                key={question.id} // ใช้ ID ของคำถามเป็น key
-                className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden"
-            >
-                <div className={`p-4 sm:p-5 flex items-center justify-between ${isCorrect ? 'bg-green-50 border-l-4 border-green-600' : 'bg-red-50 border-l-4 border-red-600'}`}>
-                    <h3 className="text-lg font-bold text-gray-800">
-                        คำถามข้อที่ {index + 1}
-                    </h3>
-                    <div className={`flex items-center text-sm font-medium ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                        {isCorrect ? (
-                            <CheckCircle className="w-5 h-5 mr-1" />
-                        ) : (
-                            <XCircle className="w-5 h-5 mr-1" />
-                        )}
-                        {isCorrect ? 'ตอบถูก' : 'ตอบผิด'}
-                    </div>
-                </div>
-
-                {/* Question Text */}
-                <div className="p-4 sm:p-5 border-b border-gray-100">
-                    <p className="text-gray-800 whitespace-pre-line">
-                        {question.text}
-                    </p>
-                </div>
-
-                {/* Options and Answers */}
-                <div className="p-4 sm:p-5 space-y-2">
-                    {question.options.map((option, optIndex) => {
-                        const isUserAnswer = optIndex === question.userAnswerIndex;
-                        const isCorrectAnswer = optIndex === question.correctAnswerIndex;
-
-                        let className = "py-2 px-3 rounded-lg border text-gray-700";
-
-                        if (isCorrectAnswer) {
-                            // คำตอบที่ถูกต้อง
-                            className = "py-2 px-3 rounded-lg border-2 border-green-600 bg-green-100 font-semibold text-green-800 relative";
-                        } else if (isUserAnswer && !isCorrectAnswer) {
-                            // คำตอบที่ผู้ใช้เลือกและผิด
-                            className = "py-2 px-3 rounded-lg border-2 border-red-600 bg-red-100 font-semibold text-red-800 relative";
-                        } else {
-                            // ตัวเลือกอื่นๆ
-                            className = "py-2 px-3 rounded-lg border border-gray-200 text-gray-700 hover:bg-gray-50 transition";
-                        }
-
-                        return (
-                            <div key={optIndex} className={className}>
-                                {option}
-                                {isCorrectAnswer && (
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-green-600 font-bold">
-                                        <CheckCircle className="w-5 h-5" />
-                                    </span>
+            <div id={`question-${index}`} className={`bg-white rounded-lg border shadow-sm overflow-hidden scroll-mt-32 transition-all ${isCorrect ? 'border-gray-200' : 'border-red-200 shadow-red-50'}`}>
+                {/* Question Header */}
+                <div className={`p-4 border-b flex justify-between items-center transition-colors ${isCorrect ? 'bg-gray-50 border-gray-200' : 'bg-red-50 border-red-100'}`}>
+                    <div className="flex items-start gap-3 flex-1">
+                        <span className={`${isCorrect ? 'bg-blue-600' : 'bg-red-600'} text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-md flex-shrink-0 mt-0.5 whitespace-nowrap`}>
+                            ข้อที่ {index + 1}
+                        </span>
+                        <div className="flex flex-col gap-1">
+                            <span className={`font-semibold break-words pr-2 text-sm sm:text-base ${isCorrect ? 'text-gray-700' : 'text-red-900'}`}>
+                                {question.question_text.substring(0, 100)}{question.question_text.length > 100 ? '...' : ''}
+                            </span>
+                            <div className={`flex items-center text-[10px] sm:text-xs font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                                {isCorrect ? (
+                                    <CheckCircle className="w-3.5 h-3.5 mr-1" />
+                                ) : (
+                                    <XCircle className="w-3.5 h-3.5 mr-1" />
                                 )}
-                                {isUserAnswer && !isCorrectAnswer && (
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-red-600 font-bold">
-                                        <XCircle className="w-5 h-5" />
-                                    </span>
-                                )}
+                                {isCorrect ? 'ตอบถูก' : 'ตอบผิด'}
                             </div>
-                        );
-                    })}
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => fetchQuestionStats(question.item_id)}
+                        disabled={loadingStats}
+                        className={`flex items-center gap-1 px-2 py-1 text-[10px] sm:text-xs rounded-md font-medium transition-colors disabled:opacity-50 ${isCorrect
+                            ? 'text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-600'
+                            : 'text-red-600 hover:text-white hover:bg-red-600 border border-red-600'
+                            }`}
+                    >
+                        <BarChart3 className="w-4 h-4" />
+                        สถิติ
+                    </button>
                 </div>
 
-                {/* Explanation / เฉลย */}
-                <div className="p-4 sm:p-5 bg-gray-100/70 border-t border-gray-200">
-                    <div className="flex items-center text-lg font-semibold text-gray-800 mb-2">
-                        <BookOpen className="w-5 h-5 mr-2 text-blue-600" />
-                        คำอธิบาย
+                <div className="p-5 space-y-6">
+                    {/* Question Content */}
+                    <div>
+                        <h6 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">คำถาม</h6>
+                        <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+                            {question.question_text}
+                        </p>
                     </div>
-                    <p className="text-gray-700 whitespace-pre-line">
-                        {question.explanation}
-                    </p>
+
+                    {/* Options */}
+                    <div>
+                        <h6 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">ตัวเลือก</h6>
+                        <div className="grid grid-cols-1 gap-3">
+                            {question.answer_options.map((option, oIdx) => {
+                                const isUserAnswer = question.selected_option_id != null &&
+                                    String(option.option_id) === String(question.selected_option_id);
+                                const isCorrectAnswer = option.is_correct;
+
+                                let variantClass = "bg-white border-gray-200";
+                                if (isCorrectAnswer) variantClass = "bg-green-50 border-green-200 text-green-800";
+                                else if (isUserAnswer && !isCorrectAnswer) variantClass = "bg-red-50 border-red-200 text-red-800";
+
+                                return (
+                                    <div
+                                        key={oIdx}
+                                        className={`p-3 rounded-xl border flex items-start gap-3 transition-all ${variantClass}`}
+                                    >
+                                        <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center border flex-shrink-0 ${isCorrectAnswer ? 'border-green-500 bg-green-500 text-white' :
+                                            (isUserAnswer && !isCorrectAnswer) ? 'border-red-500 bg-red-500 text-white' :
+                                                'border-gray-300'
+                                            }`}>
+                                            {isCorrectAnswer && <CheckCircle className="w-3.5 h-3.5" />}
+                                            {isUserAnswer && !isCorrectAnswer && <XCircle className="w-3.5 h-3.5" />}
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className={`text-sm break-words ${isCorrectAnswer || (isUserAnswer && !isCorrectAnswer) ? 'font-semibold' : 'text-gray-600'}`}>
+                                                {option.option_text}
+                                            </span>
+                                            {isUserAnswer && (
+                                                <span className={`ml-2 py-0.5 px-1.5 rounded text-[10px] font-medium ${isCorrectAnswer
+                                                        ? 'bg-green-200 text-green-800'
+                                                        : 'bg-red-200 text-red-800'
+                                                    }`}>
+                                                    คำตอบของคุณ
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Explanation */}
+                    {question.explanation && (
+                        <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                            <div className="flex items-center gap-2 mb-2">
+                                <BookOpen className="w-4 h-4 text-blue-600" />
+                                <h6 className="text-xs font-bold text-blue-800 uppercase tracking-widest">คำอธิบายเฉลย</h6>
+                            </div>
+                            <p className="text-blue-700 text-sm whitespace-pre-wrap leading-relaxed">{question.explanation}</p>
+                        </div>
+                    )}
                 </div>
             </div>
         );
     };
+
+    // Group questions by situation
+    const groupQuestionsBySituation = () => {
+        const groups: { situation: Situation | null, questions: { question: QuestionResponse, originalIndex: number }[] }[] = [];
+
+        examResult?.responses.forEach((question, index) => {
+            const situationId = question.situation?.situation_id;
+
+            // Find existing group with same situation
+            const existingGroup = groups.find(g =>
+                g.situation?.situation_id === situationId && situationId !== undefined
+            );
+
+            if (existingGroup && situationId) {
+                // Add to existing group
+                existingGroup.questions.push({ question, originalIndex: index });
+            } else {
+                // Create new group
+                groups.push({
+                    situation: question.situation || null,
+                    questions: [{ question, originalIndex: index }]
+                });
+            }
+        });
+
+        return groups;
+    };
+
+
+    if (loading) {
+        return (
+            <>
+                <Navbar_user />
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                    <div className="text-center">
+                        <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+                        <p className="text-gray-600 font-medium">กำลังโหลดเฉลยคำตอบ...</p>
+                    </div>
+                </div>
+                <Footer />
+            </>
+        );
+    }
+
+    if (error || !examResult) {
+        return (
+            <>
+                <Navbar_user />
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                    <div className="text-center max-w-md">
+                        <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">เกิดข้อผิดพลาด</h2>
+                        <p className="text-gray-600 mb-6">{error || 'ไม่พบเฉลยคำตอบ'}</p>
+                        <Link
+                            href="/user/examset"
+                            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
+                        >
+                            กลับไปหน้าคลังข้อสอบ
+                        </Link>
+                    </div>
+                </div>
+                <Footer />
+            </>
+        );
+    }
 
     return (
         <>
@@ -129,69 +343,315 @@ const examset = () => {
             <div className="min-h-screen bg-gray-50 py-8">
                 <div className="container mx-auto px-4 mb-4">
                     <div className="max-w-7xl mx-auto">
-
-                        <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-6 ">
+                        {/* Breadcrumb */}
+                        <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-6">
                             <Link href="/user" className="hover:text-blue-600 transition">หน้าหลัก</Link>
-
                             <span className="mx-1 sm:mx-2 flex items-center">
                                 <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             </span>
-
                             <Link href="/user/examset" className="hover:text-blue-600 transition">คลังข้อสอบ</Link>
-
                             <span className="mx-1 sm:mx-2 flex items-center">
                                 <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             </span>
                             <span className="hidden sm:inline-flex items-center">
-                                <Link href="/user/examset/take-exam" className="hover:text-blue-600 transition truncate max-w-[100px] md:max-w-none">
-                                    {examData.title}
-                                </Link>
-                                <span className="mx-2 flex items-center">
-                                    <ChevronRight className="w-3 h-3" />
-                                </span>
+                                {examResult.item_bank_name}
                             </span>
-
-                            <span className="inline-flex sm:hidden text-gray-400">
-                                ...
-                            </span>
-
-                            <span className="hidden sm:inline-flex items-center">
+                            <span className="mx-1 sm:mx-2 flex items-center">
                                 <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             </span>
-                            <Link href="/user/examset/take-exam/summarize-exam" className="hover:text-blue-600 transition whitespace-nowrap">สรุปผลการสอบ</Link>
-
+                            <Link
+                                href={`/user/examset/take-exam/summarize-exam?session_id=${sessionId}`}
+                                className="hover:text-blue-600 transition whitespace-nowrap"
+                            >
+                                สรุปผลการสอบ
+                            </Link>
                             <span className="mx-1 sm:mx-2 flex items-center">
                                 <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             </span>
                             <span className="text-gray-700 font-medium whitespace-nowrap">เฉลยคำตอบ</span>
                         </div>
 
-
+                        {/* Header */}
                         <div className="mb-8">
                             <h1 className="text-3xl font-medium text-gray-800 mb-1">
-                                เฉลยคำตอบ: {examData.title}
+                                เฉลยคำตอบ: {examResult.item_bank_name}
                             </h1>
-
                             <div className="mt-3 text-sm text-gray-500">
-                                <span>จำนวนทั้งหมด: {examData.totalQuestions} ข้อ</span>
+                                <span>จำนวนทั้งหมด: {examResult.total_questions} ข้อ</span>
                                 <span className="mx-3">|</span>
-
+                                <span className="text-green-600 font-medium">ตอบถูก: {examResult.correct_count} ข้อ</span>
+                                <span className="mx-3">|</span>
+                                <span className="text-red-600 font-medium">
+                                    ตอบผิด: {examResult.total_questions - examResult.correct_count} ข้อ
+                                </span>
                             </div>
                         </div>
 
-                        <div className="space-y-6">
-                            {examData.questions.map((question, index) => (
-                                <QuestionCard key={question.id} question={question} index={index} />
+                        {/* Questions */}
+                        <div className="space-y-8">
+                            {groupQuestionsBySituation().map((group, groupIndex) => (
+                                <div key={groupIndex} id={`group-${groupIndex}`} className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+                                    {/* Situation Header */}
+                                    <div className="px-6 py-5 bg-emerald-600 text-white">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={() => toggleGroupCollapse(groupIndex)}
+                                                    className="p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                                                >
+                                                    {collapsedGroups.has(groupIndex) ? (
+                                                        <ChevronRight className="w-5 h-5 rotate-90 transition-transform" />
+                                                    ) : (
+                                                        <ChevronRight className="w-5 h-5 rotate-[-90deg] transition-transform" />
+                                                    )}
+                                                </button>
+
+                                                <h3 className="text-lg font-bold">
+                                                    {group.situation ? `สถานการณ์ที่ ${groupIndex + 1}` : 'คำถามทั่วไป'}
+                                                </h3>
+                                            </div>
+                                            <div className="text-xs font-bold bg-white/20 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                                                {group.questions.length} คำถาม
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {!collapsedGroups.has(groupIndex) && (
+                                        <div className="p-6 bg-gray-50 space-y-6">
+                                            {/* Situation Detail (if exists) */}
+                                            {group.situation && (
+                                                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+                                                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
+                                                    <h6 className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-3">รายละเอียดสถานการณ์</h6>
+                                                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed font-medium">
+                                                        {group.situation.situation_text}
+                                                    </p>
+                                                    {group.situation.situation_image_url && (
+                                                        <img
+                                                            src={group.situation.situation_image_url}
+                                                            alt="Situation"
+                                                            className="mt-6 rounded-xl border border-gray-100 shadow-sm max-h-80 object-contain"
+                                                        />
+                                                    )}
+                                                </div>
+                                            )}
+
+                                            {/* Questions Loop */}
+                                            <div className="space-y-6">
+                                                {group.questions.map(({ question, originalIndex }) => (
+                                                    <QuestionCard
+                                                        key={originalIndex}
+                                                        question={question}
+                                                        index={originalIndex}
+                                                        showSituation={false}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             ))}
                         </div>
 
-
+                        {/* Back Button */}
+                        <div className="mt-8 flex justify-center">
+                            <Link
+                                href={`/user/examset/take-exam/summarize-exam?session_id=${sessionId}`}
+                                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                            >
+                                กลับไปหน้าสรุปผล
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            {/* Floating Table of Contents */}
+            <div className="fixed right-4 top-28 z-40 hidden lg:flex flex-col items-end gap-2 transition-all">
+                {/* Toggle Button */}
+                <button
+                    type="button"
+                    onClick={() => setShowTOC(!showTOC)}
+                    className={`bg-white p-2.5 rounded-full shadow-lg border border-gray-200 text-gray-600 hover:text-emerald-600 hover:border-emerald-200 transition-all active:scale-95`}
+                    title={showTOC ? "ซ่อนสารบัญ" : "แสดงสารบัญ"}
+                >
+                    {showTOC ? <ChevronRight className="w-5 h-5" /> : <List className="w-5 h-5" />}
+                </button>
+
+                {showTOC && (
+                    <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-64 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300">
+                        <div className="p-3 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 text-sm flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <List className="w-4 h-4" />
+                                <span>สารบัญคำตอบ</span>
+                            </div>
+                        </div>
+                        <div className="max-h-[60vh] overflow-y-auto p-2 space-y-1 custom-scrollbar">
+                            {groupQuestionsBySituation().map((group, gIdx) => {
+                                const isExpanded = expandedGroups.has(gIdx);
+                                const situationTitle = group.situation?.situation_title || (group.situation ? `สถานการณ์ที่ ${gIdx + 1}` : 'คำถามทั่วไป');
+                                const correctCount = group.questions.filter(q => q.question.is_correct).length;
+
+                                return (
+                                    <div key={gIdx} className="space-y-1">
+                                        <div className={`flex items-center w-full rounded-lg transition-colors pr-2 ${expandedGroups.has(gIdx) ? 'bg-emerald-50/50' : ''}`}>
+                                            <button
+                                                onClick={() => toggleGroupExpand(gIdx)}
+                                                className="p-2 hover:bg-black/5 rounded-l-lg text-gray-400 hover:text-emerald-600 transition-colors"
+                                            >
+                                                {isExpanded ? (
+                                                    <ChevronRight className="w-4 h-4 rotate-90" />
+                                                ) : (
+                                                    <ChevronRight className="w-4 h-4" />
+                                                )}
+                                            </button>
+                                            <button
+                                                onClick={() => scrollToSection(`group-${gIdx}`)}
+                                                className="flex-1 text-left py-2 text-xs font-bold text-gray-700 hover:text-emerald-700 transition-all truncate flex items-center justify-between"
+                                                title={situationTitle}
+                                            >
+                                                <span className="truncate">{situationTitle}</span>
+                                                <span className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full whitespace-nowrap">
+                                                    {correctCount}/{group.questions.length}
+                                                </span>
+                                            </button>
+                                        </div>
+
+                                        {isExpanded && (
+                                            <div className="ml-4 pl-2 border-l-2 border-emerald-50 space-y-0.5 mb-2 animate-in slide-in-from-top-1 duration-200">
+                                                {group.questions.map((q, qIdx) => (
+                                                    <button
+                                                        key={qIdx}
+                                                        onClick={() => scrollToSection(`question-${q.originalIndex}`)}
+                                                        className={`w-full text-left px-2 py-1.5 rounded text-[10px] flex items-center justify-between transition-all ${q.question.is_correct
+                                                            ? 'text-green-600 hover:bg-green-50'
+                                                            : 'text-red-600 hover:bg-red-50'
+                                                            }`}
+                                                        title={q.question.question_text}
+                                                    >
+                                                        <span className="truncate flex-1">ข้อที่ {q.originalIndex + 1}: {q.question.question_text.substring(0, 25)}...</span>
+                                                        {q.question.is_correct ? (
+                                                            <CheckCircle className="w-3 h-3 flex-shrink-0 ml-1" />
+                                                        ) : (
+                                                            <XCircle className="w-3 h-3 flex-shrink-0 ml-1" />
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Stats Modal */}
+            {showStatsModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowStatsModal(false)}>
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+                        <div className="p-6">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-2">
+                                    <BarChart3 className="w-6 h-6 text-blue-600" />
+                                    <h2 className="text-xl font-bold text-gray-800">สถิติการทำข้อสอบ</h2>
+                                </div>
+                                <button
+                                    onClick={() => setShowStatsModal(false)}
+                                    className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                                >
+                                    <X className="w-5 h-5 text-gray-500" />
+                                </button>
+                            </div>
+
+                            {selectedQuestionStats ? (
+                                <div className="space-y-4">
+                                    {/* Main Stats Grid */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="bg-blue-50 rounded-xl p-4 text-center">
+                                            <p className="text-sm text-blue-600 font-medium mb-1">จำนวนครั้ง</p>
+                                            <p className="text-3xl font-bold text-blue-700">{selectedQuestionStats.total_attempts}</p>
+                                        </div>
+                                        <div className="bg-green-50 rounded-xl p-4 text-center">
+                                            <p className="text-sm text-green-600 font-medium mb-1">ตอบถูก</p>
+                                            <p className="text-3xl font-bold text-green-700">{selectedQuestionStats.total_correct}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Accuracy */}
+                                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-sm font-medium text-gray-700">ความแม่นยำ</span>
+                                            <span className="text-2xl font-bold text-purple-700">
+                                                {selectedQuestionStats.total_attempts > 0
+                                                    ? Math.round((selectedQuestionStats.total_correct / selectedQuestionStats.total_attempts) * 100)
+                                                    : 0}%
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-white rounded-full h-3 overflow-hidden">
+                                            <div
+                                                className="bg-gradient-to-r from-purple-500 to-pink-500 h-full transition-all duration-500"
+                                                style={{
+                                                    width: `${selectedQuestionStats.total_attempts > 0
+                                                        ? (selectedQuestionStats.total_correct / selectedQuestionStats.total_attempts) * 100
+                                                        : 0}%`
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Streak & Incorrect */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="border-2 border-orange-200 rounded-xl p-4">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <TrendingUp className="w-4 h-4 text-orange-600" />
+                                                <p className="text-xs text-orange-600 font-medium">ถูกติดกัน</p>
+                                            </div>
+                                            <p className="text-2xl font-bold text-orange-700">{selectedQuestionStats.correct_streak}</p>
+                                        </div>
+                                        <div className="border-2 border-red-200 rounded-xl p-4">
+                                            <p className="text-xs text-red-600 font-medium mb-1">ตอบผิด</p>
+                                            <p className="text-2xl font-bold text-red-700">{selectedQuestionStats.total_incorrect}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Last Attempt */}
+                                    <div className="text-center pt-4 border-t border-gray-200">
+                                        <p className="text-xs text-gray-500">ทำล่าสุด</p>
+                                        <p className="text-sm font-medium text-gray-700 mt-1">
+                                            {new Date(selectedQuestionStats.last_answered_at).toLocaleDateString('th-TH', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8">
+                                    <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                                    <p className="text-gray-600 font-medium">ยังไม่มีประวัติการทำข้อนี้</p>
+                                    <p className="text-sm text-gray-500 mt-1">นี่เป็นครั้งแรกที่คุณทำข้อนี้</p>
+                                </div>
+                            )}
+
+                            <button
+                                onClick={() => setShowStatsModal(false)}
+                                className="w-full mt-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors"
+                            >
+                                ปิด
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <Footer />
         </>
     )
 }
 
-export default examset
+export default AnswerPage;
