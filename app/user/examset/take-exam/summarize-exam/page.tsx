@@ -1,50 +1,214 @@
 "use client"
+import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Loader2, AlertCircle, ChevronDown, ChevronUp, BarChart3, TrendingUp, Target, Award, AlertTriangle } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+    Radar,
+    RadarChart,
+    PolarGrid,
+    PolarAngleAxis,
+    PolarRadiusAxis,
+    ResponsiveContainer,
+    Tooltip
+} from 'recharts';
+
+// Types
+interface ExamResult {
+    session_id: number;
+    item_bank_name: string;
+    status: string;
+    start_time: string;
+    end_time: string;
+    total_questions: number;
+    correct_count: number;
+    final_score: number;
+    responses?: QuestionResponse[];
+}
+
+interface SubTopic {
+    sub_topic_id: number;
+    sub_topic_name: string;
+    topic?: {
+        topic_id: number;
+        topic_name: string;
+    };
+}
+
+interface QuestionResponse {
+    item_id: number;
+    question_text: string;
+    is_correct: boolean;
+    sub_topics?: SubTopic[];
+}
+
+interface MasteryData {
+    user_id: number;
+    item_id: number;
+    total_attempts: number;
+    total_correct: number;
+    total_incorrect: number;
+    correct_streak: number;
+    last_answered_at: string;
+}
+
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 function Summarize() {
-    const examData = {
-        title: "MCQ ปี 2554 ชุดที่ 1",
-        subtitle: "MCQ ปี 2554 ชุดที่ 1 จำนวน 110 ข้อ",
-        totalQuestions: 110,
-        questions: [
-            {
-                id: 54,
-                text: "หญิงไทยคู่ อายุ 40 ปี มีลักษณะซีด อ่อนเพลีย น้ำหนักลด มาพบแพทย์ พบผลการตรวจห้องปฏิบัติการ Hb 9, Hct 27 %, MCV 67,TIBC 480, Serum ferritin 12 ผลการตรวจ smear เม็ดเลือดพบmicrocytic anemia แพทย์จึงวินิจฉัยว่าเป็นโลหิตจาง ผู้ป่วยรายนี้เป็น anemia แบบไหน",
-                options: [
-                    "ก.Iron deficiency",
-                    "ข.Hemolytic anemia",
-                    "ค.Megaloblastic anemia",
-                    "ง.Sickle cell",
-                    "จ.B12 deficiency"
-                ]
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const { getToken } = useAuth();
+    const sessionId = searchParams.get('session_id');
+
+    const [examResult, setExamResult] = useState<ExamResult | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [showAnalysis, setShowAnalysis] = useState(false);
+
+    useEffect(() => {
+        if (sessionId) {
+            fetchExamResult();
+        } else {
+            setError('ไม่พบรหัส session');
+            setLoading(false);
+        }
+    }, [sessionId]);
+
+    const fetchExamResult = async () => {
+        setLoading(true);
+        try {
+            const token = getToken();
+            const response = await fetch(`${API_URL}/items-bank/exam/${sessionId}/result`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setExamResult(data);
+            } else {
+                throw new Error('ไม่สามารถโหลดผลสอบได้');
             }
-        ]
+        } catch (error) {
+            console.error('Error fetching exam result:', error);
+            setError('เกิดข้อผิดพลาดในการโหลดผลสอบ');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const examResult = {
-        title: "MCQ ปี 2554 ชุดที่ 1",
-        subtitle: "จำนวน 110 ข้อ",
-        score: 110,
-        total: 110,
-        percentage: 100,
-        timeUsed: "01:00:51",
-        correctAnswers: [
-            "ภาพรวมการทำคะแนนของคุณมีแนวโน้มที่ดีมากขึ้นเรื่อยๆครับ"
-        ],
-        incorrectAnswers: [
-            "ทบทวนเรื่องโรคหลอดเลือดหัวใจมากขึ้น"
-        ],
-        chartData: [
-            { attempt: "1", score: 45, color: "#3b82f6" },
-            { attempt: "2", score: 55, color: "#3b82f6" },
-            { attempt: "3", score: 70, color: "#3b82f6" },
-            { attempt: "4", score: 80, color: "#3b82f6" },
-            { attempt: "5", score: 100, color: "#22c55e" }
-        ]
+
+    // Analyze strengths and weaknesses by topic
+    const analyzeTopicPerformance = () => {
+        if (!examResult?.responses) return [];
+
+        const topicStats: { [key: string]: { total: number, correct: number, topicName: string, subTopics: { [key: string]: { total: number, correct: number, name: string } } } } = {};
+
+        examResult.responses.forEach(response => {
+            if (response.sub_topics && response.sub_topics.length > 0) {
+                response.sub_topics.forEach(subTopic => {
+                    const topicId = subTopic.topic?.topic_id;
+                    const topicName = subTopic.topic?.topic_name || 'ไม่ระบุหัวข้อ';
+                    const subTopicId = subTopic.sub_topic_id;
+                    const subTopicName = subTopic.sub_topic_name;
+
+                    if (!topicId) return;
+
+                    // Initialize topic if not exists
+                    if (!topicStats[topicId]) {
+                        topicStats[topicId] = { total: 0, correct: 0, topicName, subTopics: {} };
+                    }
+
+                    // Update topic stats
+                    topicStats[topicId].total++;
+                    if (response.is_correct) topicStats[topicId].correct++;
+
+                    // Initialize sub-topic if not exists
+                    if (!topicStats[topicId].subTopics[subTopicId]) {
+                        topicStats[topicId].subTopics[subTopicId] = { total: 0, correct: 0, name: subTopicName };
+                    }
+
+                    // Update sub-topic stats
+                    topicStats[topicId].subTopics[subTopicId].total++;
+                    if (response.is_correct) topicStats[topicId].subTopics[subTopicId].correct++;
+                });
+            }
+        });
+
+        // Convert to array and calculate percentages
+        return Object.entries(topicStats).map(([topicId, stats]) => ({
+            topicId,
+            topicName: stats.topicName,
+            total: stats.total,
+            correct: stats.correct,
+            percentage: stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0,
+            subTopics: Object.entries(stats.subTopics).map(([subTopicId, subStats]) => ({
+                subTopicId,
+                name: subStats.name,
+                total: subStats.total,
+                correct: subStats.correct,
+                percentage: subStats.total > 0 ? Math.round((subStats.correct / subStats.total) * 100) : 0
+            })).sort((a, b) => a.percentage - b.percentage) // Sort by percentage ascending (weakest first)
+        })).sort((a, b) => b.percentage - a.percentage); // Sort by percentage descending (strongest first)
     };
+
+    const calculateTimeUsed = () => {
+        if (!examResult) return '00:00:00';
+
+        const start = new Date(examResult.start_time);
+        const end = new Date(examResult.end_time);
+        const diffMs = end.getTime() - start.getTime();
+
+        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    };
+
+    if (loading) {
+        return (
+            <>
+                <Navbar_user />
+                <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                    <div className="text-center">
+                        <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+                        <p className="text-gray-600 font-medium">กำลังโหลดผลสอบ...</p>
+                    </div>
+                </div>
+                <Footer />
+            </>
+        );
+    }
+
+    if (error || !examResult) {
+        return (
+            <>
+                <Navbar_user />
+                <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                    <div className="text-center max-w-md">
+                        <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">เกิดข้อผิดพลาด</h2>
+                        <p className="text-gray-600 mb-6">{error || 'ไม่พบผลสอบ'}</p>
+                        <Link
+                            href="/user/examset"
+                            className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
+                        >
+                            กลับไปหน้าคลังข้อสอบ
+                        </Link>
+                    </div>
+                </div>
+                <Footer />
+            </>
+        );
+    }
+
+    const percentage = Math.round((examResult.correct_count / examResult.total_questions) * 100);
+    const timeUsed = calculateTimeUsed();
 
     return (
         <>
@@ -52,21 +216,18 @@ function Summarize() {
 
             <div className="min-h-screen bg-gray-100 py-8">
                 <div className="container mx-auto px-4 max-w-6xl">
-
-
-                    <div className="flex items-center text-xs  text-gray-500 mb-6 ">
+                    {/* Breadcrumb */}
+                    <div className="flex items-center text-xs text-gray-500 mb-6">
                         <Link href="/user" className="hover:text-blue-600 transition">หน้าหลัก</Link>
                         <span className="mx-1 sm:mx-2 flex items-center">
                             <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         </span>
-
                         <Link href="/user/examset" className="hover:text-blue-600 transition">คลังข้อสอบ</Link>
-
                         <span className="mx-1 sm:mx-2 flex items-center">
                             <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                         </span>
                         <span className="hidden sm:inline-flex items-center">
-                                {examData.title}
+                            {examResult.item_bank_name}
                         </span>
                         <span className="mx-1 sm:mx-2 flex items-center">
                             <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -74,151 +235,220 @@ function Summarize() {
                         <span className="text-gray-700 font-medium whitespace-nowrap">สรุปผลการสอบ</span>
                     </div>
 
-
+                    {/* Header */}
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">{examResult.title}</h1>
-                        <p className="text-gray-600">{examResult.subtitle}</p>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">{examResult.item_bank_name}</h1>
+                        <p className="text-gray-600">จำนวน {examResult.total_questions} ข้อ</p>
                     </div>
 
                     {/* Main Content Grid */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                        {/* Left Column - Score and Time */}
-                        <div className="space-y-6">
-                            {/* Score Card */}
-                            <div className="bg-white rounded-2xl shadow-sm p-8">
-                                <h2 className="text-lg font-bold text-gray-900 mb-6">ผลการทดสอบ</h2>
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-gray-600 mb-2">{examResult.title}</p>
-                                        <p className="text-gray-500 text-sm mb-4">{examResult.subtitle}</p>
-                                        <div className="text-5xl font-bold text-gray-900">
-                                            {examResult.score} <span className="text-gray-400">/ {examResult.total}</span>
-                                        </div>
-                                    </div>
-                                    <div className="relative">
-                                        <svg className="w-32 h-32 transform -rotate-90">
-                                            <circle
-                                                cx="64"
-                                                cy="64"
-                                                r="56"
-                                                stroke="#e5e7eb"
-                                                strokeWidth="12"
-                                                fill="none"
-                                            />
-                                            <circle
-                                                cx="64"
-                                                cy="64"
-                                                r="56"
-                                                stroke="#22c55e"
-                                                strokeWidth="12"
-                                                fill="none"
-                                                strokeDasharray={`${2 * Math.PI * 56}`}
-                                                strokeDashoffset={`${2 * Math.PI * 56 * (1 - examResult.percentage / 100)}`}
-                                                strokeLinecap="round"
-                                            />
-                                        </svg>
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <span className="text-2xl font-bold text-green-600">{examResult.percentage}%</span>
-                                        </div>
+                        {/* Left Column - Score */}
+                        <div className="bg-white rounded-2xl shadow-sm p-8">
+                            <h2 className="text-lg font-bold text-gray-900 mb-6">ผลการทดสอบ</h2>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-gray-600 mb-2">{examResult.item_bank_name}</p>
+                                    <p className="text-gray-500 text-sm mb-4">จำนวน {examResult.total_questions} ข้อ</p>
+                                    <div className="text-5xl font-bold text-gray-900">
+                                        {examResult.correct_count} <span className="text-gray-400">/ {examResult.total_questions}</span>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Time Card */}
-                            <div className="bg-white rounded-2xl shadow-sm p-8">
-                                <h2 className="text-lg font-bold text-gray-900 mb-6">เวลาที่ใช้ในการสอบ</h2>
-                                <div className="flex items-center gap-4">
-                                    <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
-                                        <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
+                                <div className="relative">
+                                    <svg className="w-32 h-32 transform -rotate-90">
+                                        <circle
+                                            cx="64"
+                                            cy="64"
+                                            r="56"
+                                            stroke="#e5e7eb"
+                                            strokeWidth="12"
+                                            fill="none"
+                                        />
+                                        <circle
+                                            cx="64"
+                                            cy="64"
+                                            r="56"
+                                            stroke={percentage >= 80 ? "#22c55e" : percentage >= 60 ? "#eab308" : "#ef4444"}
+                                            strokeWidth="12"
+                                            fill="none"
+                                            strokeDasharray={`${2 * Math.PI * 56}`}
+                                            strokeDashoffset={`${2 * Math.PI * 56 * (1 - percentage / 100)}`}
+                                            strokeLinecap="round"
+                                        />
+                                    </svg>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className={`text-2xl font-bold ${percentage >= 80 ? 'text-green-600' :
+                                            percentage >= 60 ? 'text-yellow-600' :
+                                                'text-red-600'
+                                            }`}>
+                                            {percentage}%
+                                        </span>
                                     </div>
-                                    <div className="text-4xl font-bold text-gray-900">{examResult.timeUsed}</div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Right Column - Chart */}
+                        {/* Right Column - Time */}
                         <div className="bg-white rounded-2xl shadow-sm p-8">
-                            <h2 className="text-lg font-bold text-gray-900 mb-6">เปรียบเทียบคะแนนแต่ละครั้ง</h2>
-                            <div className="bg-gray-50 rounded-xl p-6">
-                                {/* Y-axis labels */}
-                                <div className="flex justify-between text-xs text-gray-400 mb-2 px-2">
-                                    <span>0</span>
-                                    <span>20</span>
-                                    <span>40</span>
-                                    <span>60</span>
-                                    <span>80</span>
-                                    <span>100</span>
+                            <h2 className="text-lg font-bold text-gray-900 mb-6">เวลาที่ใช้ในการสอบ</h2>
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
                                 </div>
+                                <div className="text-4xl font-bold text-gray-900">{timeUsed}</div>
+                            </div>
 
-                                {/* Chart */}
-                                <div className="h-64 flex items-end justify-around gap-4 relative">
-                                    {examResult.chartData.map((data, index) => (
-                                        <div key={index} className="flex flex-col items-center gap-3" style={{ height: '100%' }}>
-                                            <div className="flex flex-col justify-end items-center" style={{ height: '100%', width: '60px' }}>
-                                                <div
-                                                    className="rounded-t-lg transition-all duration-500 hover:opacity-80 cursor-pointer flex items-end justify-center pb-2"
-                                                    style={{
-                                                        height: `${data.score}%`,
-                                                        width: '100%',
-                                                        backgroundColor: data.color
-                                                    }}
-                                                >
-                                                    <span className="text-white font-bold text-sm">{data.score}</span>
-                                                </div>
-                                            </div>
-                                            <span className="text-sm text-gray-600 font-medium">ครั้งที่ {data.attempt}</span>
-                                        </div>
-                                    ))}
+                            {/* Additional Stats */}
+                            <div className="mt-8 pt-6 border-t border-gray-200">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-sm text-gray-600 mb-1">ตอบถูก</p>
+                                        <p className="text-2xl font-bold text-green-600">{examResult.correct_count}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-600 mb-1">ตอบผิด</p>
+                                        <p className="text-2xl font-bold text-red-600">
+                                            {examResult.total_questions - examResult.correct_count}
+                                        </p>
+                                    </div>
                                 </div>
-
                             </div>
                         </div>
                     </div>
 
-                    {/* Strengths & Weaknesses */}
-                    <div className="bg-white rounded-2xl shadow-sm p-8 mb-6">
-                        <h2 className="text-lg font-bold text-gray-900 mb-6">จุดเด่น และ จุดที่ต้องพัฒนา</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Strengths */}
-                            <div>
-                                <h3 className="text-base font-bold text-gray-900 mb-4">จุดเด่น</h3>
-                                <ul className="space-y-3">
-                                    {examResult.correctAnswers.map((answer, index) => (
-                                        <li key={index} className="flex gap-2 text-sm text-gray-700">
-                                            <span className="text-green-600 font-bold">•</span>
-                                            <span>{answer}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
 
-                            {/* Weaknesses */}
-                            <div>
-                                <h3 className="text-base font-bold text-gray-900 mb-4">จุดที่ต้องพัฒนา</h3>
-                                <ul className="space-y-3">
-                                    {examResult.incorrectAnswers.map((answer, index) => (
-                                        <li key={index} className="flex gap-2 text-sm text-gray-700">
-                                            <span className="text-red-600 font-bold">•</span>
-                                            <span>{answer}</span>
-                                        </li>
-                                    ))}
-                                </ul>
+                    {/* Topic Analysis Section */}
+                    <div className="mb-6">
+                        <button
+                            onClick={() => setShowAnalysis(!showAnalysis)}
+                            className="w-full bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow flex items-center justify-between group"
+                        >
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                                    <Target className="w-6 h-6 text-green-600" />
+                                </div>
+                                <div className="text-left">
+                                    <h2 className="text-lg font-bold text-gray-800">วิเคราะห์จุดแข็ง - จุดอ่อน</h2>
+                                    <p className="text-sm text-gray-500">ตามหัวข้อและหัวข้อย่อย</p>
+                                </div>
                             </div>
-                        </div>
+                            {showAnalysis ? (
+                                <ChevronUp className="w-5 h-5 text-gray-400" />
+                            ) : (
+                                <ChevronDown className="w-5 h-5 text-gray-400" />
+                            )}
+                        </button>
+
+                        {/* Analysis Content */}
+                        {showAnalysis && (() => {
+                            const topicPerformance = analyzeTopicPerformance();
+                            const hasData = topicPerformance.length > 0;
+
+                            return (
+                                <div className="mt-4 bg-white rounded-2xl shadow-sm p-6 space-y-8 min-h-[400px]">
+                                    {hasData ? (
+                                        <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-start">
+                                            {/* Radar Chart */}
+                                            <div className="w-full lg:w-1/2 h-[350px]">
+                                                <ResponsiveContainer width="100%" height="100%">
+                                                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={topicPerformance.map(t => ({
+                                                        subject: t.topicName.length > 15 ? t.topicName.substring(0, 15) + '...' : t.topicName,
+                                                        fullName: t.topicName,
+                                                        Performance: t.percentage,
+                                                        fullMark: 100
+                                                    }))}>
+                                                        <PolarGrid stroke="#e5e7eb" />
+                                                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 12 }} />
+                                                        <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                                                        <Tooltip
+                                                            content={({ active, payload }) => {
+                                                                if (active && payload && payload.length) {
+                                                                    const data = payload[0].payload;
+                                                                    return (
+                                                                        <div className="bg-white p-3 shadow-xl border border-gray-100 rounded-xl">
+                                                                            <p className="font-bold text-gray-800 mb-1">{data.fullName}</p>
+                                                                            <p className="text-blue-600 font-bold">ความแม่นยำ: {data.Performance}%</p>
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                                return null;
+                                                            }}
+                                                        />
+                                                        <Radar
+                                                            name="Performance"
+                                                            dataKey="Performance"
+                                                            stroke="#3b82f6"
+                                                            fill="#3b82f6"
+                                                            fillOpacity={0.4}
+                                                            dot={{ r: 4, fill: '#3b82f6' }}
+                                                        />
+                                                    </RadarChart>
+                                                </ResponsiveContainer>
+                                            </div>
+
+                                            {/* Details List */}
+                                            <div className="w-full lg:w-1/2 space-y-4">
+                                                <h3 className="font-bold text-gray-800 mb-4 border-b pb-2">คะแนนรายหัวข้อ</h3>
+                                                <div className="max-h-[300px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+                                                    {topicPerformance.map((topic) => {
+                                                        const isStrength = topic.percentage >= 70;
+                                                        const isWeakness = topic.percentage < 50;
+
+                                                        return (
+                                                            <div key={topic.topicId} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isStrength ? 'bg-green-100 text-green-600' :
+                                                                    isWeakness ? 'bg-red-100 text-red-600' :
+                                                                        'bg-yellow-100 text-yellow-600'
+                                                                    }`}>
+                                                                    {isStrength ? <Award className="w-5 h-5" /> :
+                                                                        isWeakness ? <AlertTriangle className="w-5 h-5" /> :
+                                                                            <Target className="w-5 h-5" />}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="font-bold text-gray-800 text-sm truncate">{topic.topicName}</p>
+                                                                    <p className="text-xs text-gray-500">{topic.correct}/{topic.total} ข้อ</p>
+                                                                </div>
+                                                                <div className={`font-bold ${isStrength ? 'text-green-600' :
+                                                                    isWeakness ? 'text-red-600' :
+                                                                        'text-yellow-600'
+                                                                    }`}>
+                                                                    {topic.percentage}%
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                                            <p className="text-gray-600 font-medium">ไม่มีข้อมูลหัวข้อ</p>
+                                            <p className="text-sm text-gray-500 mt-1">ข้อสอบนี้ไม่ได้แท็กหัวข้อไว้</p>
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     {/* Action Buttons */}
                     <div className="flex flex-wrap gap-3 justify-center">
-                        <Link href="/user/examset/take-exam" className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors inline-block text-center">
-                            ทำข้อสอบอีกครั้ง
-                        </Link>
-                        <Link href="/user/examset/take-exam/summarize-exam/answer" className="px-8 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors inline-block text-center">
+                        <Link
+                            href={`/user/examset/take-exam/summarize-exam/answer?session_id=${sessionId}`}
+                            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors inline-block text-center"
+                        >
                             ดูเฉลยคำตอบ
                         </Link>
+                        <Link
+                            href="/user/examset"
+                            className="px-8 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-lg border border-gray-300 transition-colors inline-block text-center"
+                        >
+                            กลับไปคลังข้อสอบ
+                        </Link>
                     </div>
-
                 </div>
             </div>
 

@@ -6,7 +6,7 @@ import { global } from 'styled-jsx/css';
 
 const Footer = () => {
     return (
-        <footer className="w-full  text-white mt-auto">
+        <footer className="w-full bg-[rgba(118,178,90,1)] text-white mt-auto">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 {/* Main Footer Content */}
                 <div className="py-6 sm:py-8 lg:py-10">

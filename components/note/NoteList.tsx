@@ -5,12 +5,12 @@ import NoteItem from "./NoteItem";
 import NoteModal from "./NoteModal";
 import AddNoteButton from "./AddNoteButton";
 
-
 export interface UserNote {
   id: string;
   content: string;
-  tags: string[];
-  files: string[];
+  title: string;
+  tags: any[];
+  files: any[];
   createdAt: number;
 }
 
@@ -23,8 +23,9 @@ export default function NoteList({
   setTagFilter,
 }: {
   notes: UserNote[];
-  onSaveNote: (note: UserNote) => void;
-  onUpdateNote: (note: UserNote) => void;
+  onSaveNote: (note: UserNote, files?: File[]) => void;
+  // เพิ่ม deletedFiles พารามิเตอร์ที่ 3 เพื่อรองรับการลบไฟล์จาก Modal
+  onUpdateNote: (note: UserNote, files?: File[], deletedFiles?: string[]) => void;
   onDeleteNote: (id: string) => void;
   tagFilter: string;
   setTagFilter: (val: string) => void;
@@ -35,16 +36,32 @@ export default function NoteList({
   const filteredNotes = useMemo(() => {
     if (!tagFilter) return notes;
     const lower = tagFilter.toLowerCase();
-    return notes.filter(
-      (note) =>
-        note.tags.some((t) => t.toLowerCase().includes(lower)) ||
-        note.content.toLowerCase().includes(lower) ||
-        note.files.some((f) => f.toLowerCase().includes(lower))
-    );
+
+    return notes.filter((note) => {
+      // 1. ค้นหาใน Tags (รองรับความสัมพันธ์ที่ซ้อนกันจาก Backend)
+      const matchesTags = note.tags?.some((t) => {
+        const tagName = typeof t === "object" ? (t.tag?.tag_name || t.tag_name || t.name) : t;
+        return tagName?.toLowerCase().includes(lower);
+      });
+
+      // 2. ค้นหาใน Title
+      const matchesTitle = note.title?.toLowerCase().includes(lower);
+
+      // 3. ค้นหาใน Content
+      const matchesContent = note.content?.toLowerCase().includes(lower);
+
+      // 4. ค้นหาในชื่อไฟล์ (ตรวจสอบทั้ง original_filename และ string ปกติ)
+      const matchesFiles = note.files?.some((f) => {
+        const fileName = typeof f === "object" ? f.original_filename : f;
+        return fileName?.toLowerCase().includes(lower);
+      });
+
+      return matchesTags || matchesTitle || matchesContent || matchesFiles;
+    });
   }, [notes, tagFilter]);
 
   return (
-    <div className="bg-white rounded-xl shadow-xl p-4">
+    <div className="bg-white rounded-xl shadow-xl p-4 border border-slate-100">
       <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center gap-2">
         <Bookmark className="w-6 h-6 text-indigo-600" /> บันทึกสรุป
       </h2>
@@ -53,15 +70,15 @@ export default function NoteList({
       <div className="mb-4 flex items-center relative">
         <Search className="w-5 h-5 text-gray-400 absolute left-3" />
         <input
-          value={tagFilter}
+          value={tagFilter || ""} 
           onChange={(e) => setTagFilter(e.target.value)}
-          placeholder="กรองโน้ตด้วย Tags หรือชื่อไฟล์..."
-          className="w-full p-2 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-500 text-sm"
+          placeholder="ค้นหาด้วยหัวข้อ, Tags หรือเนื้อหา..."
+          className="w-full p-2.5 pl-10 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-all"
         />
         {tagFilter && (
           <button
             onClick={() => setTagFilter("")}
-            className="absolute right-2 p-1 text-gray-500 hover:text-gray-700"
+            className="absolute right-3 p-1 text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -69,15 +86,17 @@ export default function NoteList({
       </div>
 
       {/* Add Button */}
-      <AddNoteButton
-        onClick={() => {
-          setEditingNote(null);
-          setIsModalOpen(true);
-        }}
-      />
+      <div className="mb-4">
+        <AddNoteButton
+          onClick={() => {
+            setEditingNote(null);
+            setIsModalOpen(true);
+          }}
+        />
+      </div>
 
-      {/* Note List */}
-      <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+      {/* Note List Container */}
+      <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
         {filteredNotes.length > 0 ? (
           filteredNotes.map((note) => (
             <NoteItem
@@ -92,23 +111,32 @@ export default function NoteList({
             />
           ))
         ) : (
-          <p className="text-gray-500 text-center py-4">
-            ไม่พบโน้ตที่ตรงกับคำค้นหา
-          </p>
+          <div className="text-center py-10">
+            <p className="text-slate-400 text-sm italic">
+              {tagFilter ? "ไม่พบโน้ตที่ตรงกับการค้นหา" : "ยังไม่มีบันทึกในขณะนี้"}
+            </p>
+          </div>
         )}
       </div>
 
-      {/* Modal */}
+      {/* Modal สำหรับ Create/Update */}
       {isModalOpen && (
         <NoteModal
           note={editingNote}
-          onSave={(note: UserNote) => {
-            // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-            editingNote ? onUpdateNote(note) : onSaveNote(note);
+          // ปรับพารามิเตอร์ onSave ให้สอดคล้องกับ NoteModal ที่ส่ง deletedFiles กลับมา
+          onSave={(noteData: UserNote, files?: File[], deletedFiles?: string[]) => {
+            if (editingNote) {
+              onUpdateNote(noteData, files, deletedFiles);
+            } else {
+              onSaveNote(noteData, files);
+            }
             setIsModalOpen(false);
           }}
           onClose={() => setIsModalOpen(false)}
-          onDelete={onDeleteNote}
+          onDelete={(id) => {
+            onDeleteNote(id);
+            setIsModalOpen(false);
+          }}
         />
       )}
     </div>

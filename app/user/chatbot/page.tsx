@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
-import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, User, Bot, AlertCircle, Trash2, Pencil } from "lucide-react";
+import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, User, Bot, AlertCircle, Trash2, Pencil, Shield } from "lucide-react";
 import Navbar from "@/components/Navbar_user";
 import Swal from "sweetalert2";
+import { useAuth } from '@/contexts/AuthContext';
 
 // Utility for typing effect
 const useTypewriter = (text: string, speed: number = 20) => {
@@ -46,7 +47,7 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
 
   return (
     <div className="flex items-start gap-3 max-w-3xl group">
-      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 mt-1">
+      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0 mt-1">
         <Sparkles className="w-4 h-4 text-white" />
       </div>
       <div className="relative">
@@ -62,7 +63,7 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
         </div>
         <button
           onClick={handleCopy}
-          className="absolute -top-6 right-0 p-1 text-neutral-400 hover:text-blue-600 transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-white/80 backdrop-blur rounded px-2 shadow-sm border border-neutral-100"
+          className="absolute -top-6 right-0 p-1 text-neutral-400 hover:text-green-600 transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-white/80 backdrop-blur rounded px-2 shadow-sm border border-neutral-100"
         >
           {isCopied ? <Check className="w-3 h-3" /> : <Clipboard className="w-3 h-3" />}
           <span className="text-[10px]">คัดลอก</span>
@@ -73,6 +74,7 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
 };
 
 export default function ChatbotPage() {
+  const { getToken } = useAuth();
   type Message = {
     id: string;
     sender: "user" | "bot";
@@ -91,6 +93,7 @@ export default function ChatbotPage() {
   const [totalCount, setTotalCount] = useState<number>(0);
   const [userId, setUserId] = useState<any>(null);
 
+  const [userName, setUserName] = useState<string>("");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -101,6 +104,7 @@ export default function ChatbotPage() {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [isEditLoading, setIsEditLoading] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
 
@@ -108,14 +112,18 @@ export default function ChatbotPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('http://localhost:5000/auth/me', {
-          credentials: 'include',
+        const token = getToken();
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         if (res.ok) {
           const data = await res.json();
           if (data?.user_id) {
             setUserId(data.user_id);
+            if (data.first_name) {
+              setUserName(`${data.first_name} ${data.last_name || ''}`.trim());
+            }
           }
         }
       } catch (error) {
@@ -124,6 +132,12 @@ export default function ChatbotPage() {
     };
 
     fetchUser();
+
+    // Check if user has accepted privacy policy
+    const hasAccepted = localStorage.getItem('chatbot_privacy_accepted');
+    if (!hasAccepted) {
+      setShowPrivacyModal(true);
+    }
   }, []);
 
   // 2. Fetch sessions when userId is available
@@ -157,8 +171,9 @@ export default function ChatbotPage() {
   const fetchSessions = async () => {
     if (!userId) return;
     try {
-      const response = await fetch(`http://localhost:5000/chat/session/${userId}`, {
-        credentials: 'include'
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/session/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!response.ok) {
@@ -189,8 +204,9 @@ export default function ChatbotPage() {
       setMessages([]);
 
       // GET /chat/message/:session_id (Singular based on user hint)
-      const response = await fetch(`http://localhost:5000/chat/message/${sessionId}`, {
-        credentials: 'include'
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/message/${sessionId}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!response.ok) {
@@ -292,11 +308,12 @@ export default function ChatbotPage() {
       // Assuming backend accepts '/chat/send/new' or similar for creating a session.
       // If 'currentSessionId' is null, interpolating it directly results in ".../null" which likely causes 500.
       const endpointSessionId = currentSessionId || 'new';
-      const response = await fetch(`http://localhost:5000/chat/send/${endpointSessionId}`, {
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/send/${endpointSessionId}`, {
         method: "POST",
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
           user_id: userId,
@@ -367,9 +384,10 @@ export default function ChatbotPage() {
     if (!result.isConfirmed) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/chat/session/${sessionId}`, {
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/session/${sessionId}`, {
         method: "DELETE",
-        credentials: 'include'
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (response.ok) {
@@ -457,11 +475,12 @@ export default function ChatbotPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/chat/message/${messageId}`, {
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/message/${messageId}`, {
         method: 'PUT',
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
           message: editContent,
@@ -528,9 +547,117 @@ export default function ChatbotPage() {
     }
   };
 
+  const handleAcceptPrivacy = () => {
+    localStorage.setItem('chatbot_privacy_accepted', 'true');
+    setShowPrivacyModal(false);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-blue-50/30 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-green-50/30">
       <Navbar />
+
+      {/* Privacy Policy Modal */}
+      {showPrivacyModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-300">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-5 text-white flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <Shield className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">นโยบายความเป็นส่วนตัว</h2>
+                <p className="text-green-100 text-sm">เกี่ยวกับการใช้งานแชตบอต</p>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-semibold mb-1">ข้อมูลที่เราเก็บรวบรวม</p>
+                    <p>เพื่อปรับปรุงคุณภาพการให้บริการ เราจะเก็บบันทึกการสนทนาระหว่างคุณกับแชตบอต</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                  <div className="w-1.5 h-5 bg-green-600 rounded-full"></div>
+                  ข้อมูลที่จะถูกบันทึก
+                </h3>
+                <ul className="space-y-2 text-gray-700 text-sm">
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>คำถามและข้อความที่คุณส่งถึงแชตบอต</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>คำตอบและคำแนะนำที่แชตบอตให้กับคุณ</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>วันที่และเวลาของการสนทนา</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                  <div className="w-1.5 h-5 bg-green-600 rounded-full"></div>
+                  วัตถุประสงค์ในการใช้ข้อมูล
+                </h3>
+                <ul className="space-y-2 text-gray-700 text-sm">
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>ปรับปรุงและพัฒนาความแม่นยำของแชตบอต</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>วิเคราะห์และเข้าใจคำถามที่ผู้ใช้สนใจ</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>ให้บริการที่ดีขึ้นและตรงกับความต้องการ</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <Shield className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-green-800">
+                    <p className="font-semibold mb-1">ความปลอดภัยของข้อมูล</p>
+                    <p>เราให้ความสำคัญกับความเป็นส่วนตัวของคุณ ข้อมูลทั้งหมดจะถูกเก็บรักษาอย่างปลอดภัยและจะไม่ถูกนำไปเผยแพร่หรือขายให้กับบุคคลที่สาม</p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500 italic">
+                หมายเหตุ: คุณสามารถลบประวัติการสนทนาของคุณได้ตลอดเวลาผ่านเมนูด้านซ้าย
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handleAcceptPrivacy}
+                  className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                >
+                  <Check className="w-5 h-5" />
+                  ยอมรับและเริ่มใช้งาน
+                </button>
+              </div>
+              <p className="text-center text-xs text-gray-500 mt-3">
+                การกดปุ่ม "ยอมรับและเริ่มใช้งาน" ถือว่าคุณยอมรับนโยบายความเป็นส่วนตัวของเรา
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-screen-2xl mx-auto flex h-[calc(100vh-64px)] overflow-hidden">
         {/* Mobile Sidebar Overlay */}
@@ -557,7 +684,7 @@ export default function ChatbotPage() {
 
             <button
               onClick={handleNewChat}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-sm font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-sm font-medium"
             >
               <Plus size={20} />
               แชทใหม่
@@ -573,11 +700,11 @@ export default function ChatbotPage() {
                 key={session.session_id}
                 onClick={() => handleSelectSession(session.session_id?.toString())}
                 className={`w-full text-left px-3 py-3 rounded-xl transition-all flex items-start gap-3 group relative pr-10 ${currentSessionId?.toString() === session.session_id?.toString()
-                  ? "bg-blue-50 text-blue-700 border border-blue-100 shadow-sm"
+                  ? "bg-green-50 text-green-700 border border-green-100 shadow-sm"
                   : "text-gray-600 hover:bg-gray-50 border border-transparent"
                   }`}
               >
-                <MessageSquare size={18} className={`mt-0.5 flex-shrink-0 ${currentSessionId?.toString() === session.session_id?.toString() ? 'text-blue-500' : 'text-gray-400'}`} />
+                <MessageSquare size={18} className={`mt-0.5 flex-shrink-0 ${currentSessionId?.toString() === session.session_id?.toString() ? 'text-green-500' : 'text-gray-400'}`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">
                     {session.title || `Session #${session.session_id}`}
@@ -620,12 +747,12 @@ export default function ChatbotPage() {
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth">
             {!currentSessionId && messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6">
-                  <Bot size={40} className="text-blue-500" />
+                <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
+                  <Bot size={40} className="text-green-500" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">สวัสดีครับ!</h2>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">ยินดีต้อนรับ! {userName ? `คุณ${userName}` : ''}</h2>
                 <p className="text-gray-500 max-w-md">
-                  เลือกประวัติการแชทด้านซ้าย หรือกด "แชทใหม่" เพื่อปรึกษาเกี่ยวกับการสอบใบประกอบวิชาชีพเภสัชกรรม
+                  เลือกประวัติการแชทด้านซ้าย หรือกด "แชทใหม่" เพื่อปรึกษาเกี่ยวกับการสอบใบประกอบวิชาชีพเภสัชกรรมได้เลย!
                 </p>
               </div>
             ) : (
@@ -639,7 +766,7 @@ export default function ChatbotPage() {
 
                 {isMessageLoading ? (
                   <div className="flex justify-center py-10">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
                   </div>
                 ) : (
                   messages.length === 0 && !fetchError ? (
@@ -654,7 +781,7 @@ export default function ChatbotPage() {
                         ) : (
                           <div className="flex flex-col items-end gap-1 max-w-[85%] sm:max-w-xl w-full">
                             {editingMessageId === msg.id ? (
-                              <div className="bg-white border border-blue-200 p-4 rounded-2xl shadow-sm w-full md:min-w-[300px]">
+                              <div className="px-4 py-3 rounded-2xl shadow-sm text-sm break-words whitespace-pre-wrap bg-green-50 text-gray-900 border border-green-200 rounded-tr-sm">
                                 <textarea
                                   value={editContent}
                                   onChange={(e) => setEditContent(e.target.value)}
@@ -673,7 +800,7 @@ export default function ChatbotPage() {
                                   </button>
                                   <button
                                     onClick={() => saveEdit(msg.id)}
-                                    className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center gap-1 disabled:opacity-70"
+                                    className="px-3 py-1 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-1 disabled:opacity-70"
                                     disabled={isEditLoading}
                                   >
                                     {isEditLoading && <span className="animate-spin inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full"></span>}
@@ -682,11 +809,11 @@ export default function ChatbotPage() {
                                 </div>
                               </div>
                             ) : (
-                              <div className="bg-blue-600 text-white px-5 py-3 rounded-2xl rounded-tr-sm shadow-md relative group">
+                              <div className="bg-green-600 text-white px-5 py-3 rounded-2xl rounded-tr-sm shadow-md relative group">
                                 <p className="whitespace-pre-wrap">{msg.text}</p>
                                 <button
                                   onClick={() => startEditing(msg)}
-                                  className="absolute -top-3 -right-3 p-1.5 bg-white text-blue-600 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-50 border border-blue-100 scale-90 hover:scale-100 z-10"
+                                  className="absolute -top-3 -right-3 p-1.5 bg-white text-green-600 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-green-50 border border-green-100 scale-90 hover:scale-100 z-10"
                                   title="แก้ไขข้อความ"
                                 >
                                   <Pencil size={14} />
@@ -705,14 +832,14 @@ export default function ChatbotPage() {
 
                 {isLoading && (
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 mt-1">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0 mt-1">
                       <Sparkles className="w-4 h-4 text-white" />
                     </div>
                     <div className="bg-white p-4 rounded-2xl shadow-sm border border-neutral-200">
                       <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                        <span className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                        <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
                       </div>
                     </div>
                   </div>
@@ -724,25 +851,30 @@ export default function ChatbotPage() {
 
           {/* Input Area */}
           <div className="p-4 bg-white border-t border-gray-100 px-4 sm:px-6">
-            <div className="max-w-4xl mx-auto relative">
+            <div className="max-w-4xl mx-auto relative flex items-center">
               <textarea
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyPress}
                 placeholder="พิมพ์ข้อความ..."
-                className="w-full pl-5 pr-14 py-4 bg-gray-50 border-0 rounded-full focus:ring-2 focus:ring-blue-100 focus:bg-white transition-all resize-none shadow-sm text-gray-800"
+                className="w-full pl-5 pr-16 py-4 bg-gray-50 border-0 rounded-full focus:ring-2 focus:ring-green-100 focus:bg-white transition-all resize-none shadow-sm text-gray-800"
                 rows={1}
                 style={{ minHeight: '56px' }}
               />
+
               <button
                 onClick={handleSendMessage}
                 disabled={!input.trim() || isLoading}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:opacity-50 disabled:hover:bg-blue-600 transition-colors shadow-sm"
+                className="absolute right-2 flex items-center justify-center
+                 w-10 h-10 bg-green-600 text-white rounded-full
+                 hover:bg-green-700 disabled:opacity-50
+                 transition-colors shadow-sm"
               >
-                <SendHorizonal size={20} />
+                <SendHorizonal size={18} />
               </button>
             </div>
           </div>
+
         </main>
       </div >
     </div >

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, User, LogOut } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronLeft, ChevronRight, FileText, Zap, Layers, List, Calendar, Newspaper, MessageSquare, Settings } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import Swal from "sweetalert2";
@@ -59,20 +59,39 @@ const LogoutConfirmationModal = ({
 
 export default function Navbar_admin({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [loadingLogout, setLoadingLogout] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
+  // Load initial collapse state from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem("admin_sidebar_collapsed");
+    if (savedState !== null) {
+      setIsCollapsed(savedState === "true");
+    }
+  }, []);
+
+  // Save collapse state to localStorage
+  const toggleCollapse = () => {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    localStorage.setItem("admin_sidebar_collapsed", String(newState));
+  };
+
   const sidebarItems = [
-    { title: "คลังข้อสอบ", href: "/admin/manage_examset" },
-    { title: "ปฏิทินกำหนดการ", href: "/admin/manage_calendar" },
-    { title: "บล็อกข่าวสาร", href: "/admin/mnblog" },
+    { title: "คลังข้อสอบ", href: "/admin/manage_examset", icon: FileText },
+    { title: "ข้อสอบแบบ (CAT)", href: "/admin/cat_management", icon: Zap },
+    { title: "จัดการประเภทข้อสอบ", href: "/admin/manage_category", icon: Layers },
+    { title: "จัดการหัวข้อ", href: "/admin/manage_topics", icon: List },
+    { title: "ปฏิทินกำหนดการ", href: "/admin/manage_calendar", icon: Calendar },
+    { title: "บล็อกข่าวสาร", href: "/admin/mnblog", icon: Newspaper },
   ];
 
   const settingsItems = [
-    { title: "ประวัติการสนทนาแชตบอต", href: "/admin/chatlog" },
-    { title: "การตั้งค่า", href: "/admin/settingp" },
+    { title: "แชตบอต", href: "/admin/chatlog", icon: MessageSquare },
+    { title: "การตั้งค่า", href: "/admin/settingp", icon: Settings },
   ];
 
   const isActive = (href: string) => {
@@ -81,19 +100,27 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
     return pathname.startsWith(href);
   };
 
-  const handleLogoutClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+  const handleLogoutClick = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
     setIsLogoutModalOpen(true);
     if (isMobileMenuOpen) setIsMobileMenuOpen(false);
   };
 
-  const [user, setUser] = useState<{ first_name: string, email: string } | null>(null);
+  const [user, setUser] = useState<{ first_name: string, email: string, last_name: string } | null>(null);
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('http://localhost:5000/auth/me', {
-          credentials: 'include',
+        const token = localStorage.getItem("access_token"); if (!token) {
+          setUser(null);
+          return;
+        }
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
+
         if (res.ok) {
           const data = await res.json();
           setUser(data);
@@ -108,118 +135,141 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
 
     fetchUser();
   }, []);
+
   const handleConfirmLogout = async () => {
     setLoadingLogout(true);
     try {
-      const res = await fetch("http://localhost:5000/auth/logout", {
-        method: "POST",
-        credentials: "include",
+      sessionStorage.removeItem("token");
+
+      await Swal.fire({
+        icon: "success",
+        title: "ออกจากระบบเรียบร้อย",
+        showConfirmButton: false,
+        timer: 1500,
       });
 
-      if (res.ok) {
-        setIsLogoutModalOpen(false);
-        setLoadingLogout(false);
-        await Swal.fire({
-          icon: "success",
-          title: "ออกจากระบบเรียบร้อย",
-          showConfirmButton: false,
-          timer: 1500,
-        });
-        router.push("/login");
-      } else {
-        setLoadingLogout(false);
-        Swal.fire({
-          icon: "error",
-          title: "เกิดข้อผิดพลาด",
-          text: "ไม่สามารถออกจากระบบได้",
-        });
-      }
+      setIsLogoutModalOpen(false);
+      setLoadingLogout(false);
+      router.push("/login");
     } catch (err) {
       console.error(err);
       setLoadingLogout(false);
       Swal.fire({
         icon: "error",
         title: "เกิดข้อผิดพลาด",
-        text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
       });
     }
   };
 
+
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div
+      className={`flex h-screen bg-gray-50 overflow-hidden ${isCollapsed ? 'sidebar-collapsed' : ''}`}
+    >
       {/* Sidebar - Desktop */}
-      <aside className="hidden lg:flex lg:flex-col w-64 xl:w-72 bg-white border-r border-gray-200 fixed h-full">
-        <div className="p-4 sm:p-5 lg:p-6 border-b border-gray-200">
-          <Link href="/admin" className="block hover:opacity-80 transition-opacity">
-            <h1 className="text-lg sm:text-xl font-semibold text-green-700">
-              เภสัชพร้อมสอบ
-            </h1>
-          </Link>
+      <aside
+        className={`hidden lg:flex lg:flex-col bg-white border-r border-gray-200 fixed h-full transition-all duration-300 z-30 ${isCollapsed ? "w-20" : "w-64 xl:w-72"
+          }`}
+      >
+        <div className={`p-4 h-20 border-b border-gray-200 flex items-center ${isCollapsed ? "justify-center" : "justify-between"}`}>
+          {!isCollapsed && (
+            <Link href="/admin" className="block hover:opacity-80 transition-opacity truncate">
+              <h1 className="text-lg font-semibold text-green-700 whitespace-nowrap">
+                เภสัชพร้อมสอบ
+              </h1>
+            </Link>
+          )}
+          <button
+            onClick={toggleCollapse}
+            className={`p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-green-700 transition-colors ${isCollapsed ? "" : "ml-2"}`}
+            title={isCollapsed ? "ขยายแถบเมนู" : "หุบแถบเมนู"}
+          >
+            {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          </button>
         </div>
 
-        <nav className="flex-1 p-3 sm:p-4 overflow-y-auto navadmin">
-          <div className="space-y-1 sm:space-y-2">
-            {sidebarItems.map((item, idx) => (
-              <Link
-                key={idx}
-                href={item.href}
-                className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
-                  ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
-                  : "text-green-600 hover:bg-gray-50 hover:text-green-700"
-                  }`}
-              >
-                {item.title}
-              </Link>
-            ))}
+        <nav className="flex-1 p-3 overflow-y-auto no-scrollbar">
+          <div className="space-y-1">
+            {sidebarItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg group ${isActive(item.href)
+                    ? "bg-gray-100 text-green-700 font-bold"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
+                    } ${isCollapsed ? "justify-center" : ""}`}
+                  title={isCollapsed ? item.title : ""}
+                >
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${isActive(item.href) ? "text-green-700" : "text-gray-400 group-hover:text-green-700"}`} />
+                  {!isCollapsed && <span className="text-sm truncate">{item.title}</span>}
+                </Link>
+              );
+            })}
           </div>
 
-          <div className="mt-6 sm:mt-8 pt-6 sm:pt-8 border-t border-gray-200">
-            <div className="space-y-1 sm:space-y-2">
-              {settingsItems.map((item, idx) => (
-                <Link
-                  key={idx}
-                  href={item.href}
-                  className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
-                    ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
-                    : "text-green-600 hover:bg-gray-50 hover:text-green-700"
-                    }`}
-                >
-                  {item.title}
-                </Link>
-              ))}
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <div className="space-y-1">
+              {settingsItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg group ${isActive(item.href)
+                      ? "bg-gray-100 text-green-700 font-bold"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
+                      } ${isCollapsed ? "justify-center" : ""}`}
+                    title={isCollapsed ? item.title : ""}
+                  >
+                    <Icon className={`w-5 h-5 flex-shrink-0 ${isActive(item.href) ? "text-green-700" : "text-gray-400 group-hover:text-green-700"}`} />
+                    {!isCollapsed && <span className="text-sm truncate">{item.title}</span>}
+                  </Link>
+                );
+              })}
 
-              <a
-                href="#"
+              <button
                 onClick={handleLogoutClick}
-                className="flex items-center space-x-2 w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base text-red-600 hover:bg-red-50 hover:text-red-700"
+                className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 ${isCollapsed ? "justify-center" : ""
+                  }`}
+                title={isCollapsed ? "ออกจากระบบ" : ""}
               >
-                <LogOut className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span>ออกจากระบบ</span>
-              </a>
+                <LogOut className="w-5 h-5 flex-shrink-0" />
+                {!isCollapsed && <span className="text-sm font-medium">ออกจากระบบ</span>}
+              </button>
             </div>
           </div>
         </nav>
 
-        <div className="p-3 sm:p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 bg-white">
           <Link
             href="/admin/settingp"
-            className={`flex items-center space-x-3 px-2 py-2 rounded-lg transition-all duration-200 ${isActive("/profile") ? "bg-green-50" : "hover:bg-gray-50"
-              }`}
+            className={`flex items-center gap-3 p-2 rounded-xl transition-all duration-200 ${isActive("/admin/settingp") ? "bg-gray-100" : "hover:bg-gray-50"
+              } ${isCollapsed ? "justify-center" : ""}`}
+            title={isCollapsed ? `${user?.first_name} ${user?.last_name}` : ""}
           >
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-              <User className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200">
+              <User className="w-6 h-6 text-green-700" />
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium text-green-700 truncate">{user?.first_name}</p>
-              <p className="text-[10px] sm:text-xs text-green-600 truncate">{user?.email}</p>
-            </div>
+            {!isCollapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-green-800 truncate">
+                  {user?.first_name} {user?.last_name}
+                </p>
+                <p className="text-xs text-green-600 truncate">{user?.email}</p>
+              </div>
+            )}
           </Link>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden lg:ml-64 xl:ml-72">
-        <header className="lg:hidden bg-white shadow-md sticky top-0 z-40">
+      <div
+        className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${isCollapsed ? "lg:ml-20" : "lg:ml-64 xl:ml-72"
+          }`}
+      >
+        <header className="lg:hidden bg-white shadow-md sticky top-0 z-50">
           <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
             <Link href="/admin" className="hover:opacity-80 transition-opacity">
               <h1 className="text-base sm:text-lg md:text-xl font-semibold text-green-700">
@@ -241,9 +291,9 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
           {isMobileMenuOpen && (
             <div className="border-t border-gray-200 bg-white max-h-[calc(100vh-64px)] overflow-y-auto">
               <div className="px-3 sm:px-4 py-3 sm:py-4 space-y-1">
-                {sidebarItems.map((item, idx) => (
+                {sidebarItems.map((item) => (
                   <Link
-                    key={idx}
+                    key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
@@ -256,13 +306,13 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
                 ))}
 
                 <div className="pt-3 sm:pt-4 border-t border-gray-200 mt-3 sm:mt-4 space-y-1">
-                  {settingsItems.map((item, idx) => (
+                  {settingsItems.map((item) => (
                     <Link
-                      key={idx}
+                      key={item.href}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
-                        ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
+                        ? "bg-gray-100 text-green-700 font-bold border-l-4 border-green-700"
                         : "text-green-600 hover:bg-gray-50 hover:text-green-700"
                         }`}
                     >
@@ -278,6 +328,23 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
                     <LogOut className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                     <span>ออกจากระบบ</span>
                   </a>
+
+                  {/* 📍 ส่วนที่เพิ่มเข้ามา: แสดงข้อมูลโปรไฟล์ในหน้า Mobile */}
+                  <div className="pt-3 sm:pt-4 border-t border-gray-200 mt-3 sm:mt-4">
+                    <Link
+                      href="/admin/settingp"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-200 ${isActive("/admin/settingp") ? "bg-gray-100" : "bg-gray-50"}`}
+                    >
+                      <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center border border-gray-200 shadow-sm">
+                        <User className="w-6 h-6 text-green-600" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-green-700 truncate">{user?.first_name} {user?.last_name}</p>
+                        <p className="text-xs text-green-600 truncate">{user?.email}</p>
+                      </div>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -287,7 +354,6 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-7 lg:p-8">{children}</main>
       </div>
 
-      {/* Logout Modal */}
       <LogoutConfirmationModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}
