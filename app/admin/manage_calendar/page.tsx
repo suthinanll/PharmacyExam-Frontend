@@ -5,7 +5,6 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Plus, X, Calendar, AlertTriangle, Eye, EyeOff, Search, Filter } from "lucide-react";
 import Link from "next/link";
 import Swal from "sweetalert2";
-import { useAuth } from "@/contexts/AuthContext";
 
 interface CalendarEvent {
   id: number;
@@ -21,7 +20,11 @@ interface CalendarEvent {
 }
 
 function Page() {
-  // เริ่มต้นด้วยเดือนปัจจุบันและปีปัจจุบัน (ค.ศ.)
+  // Helper สำหรับดึง Token
+  const getToken = useCallback(() => {
+    return typeof window !== 'undefined' ? localStorage.getItem("access_token") : null;
+  }, []);
+
   const [viewDate, setViewDate] = useState(new Date()); 
   const currentMonth = viewDate.getMonth();
   const currentYearAD = viewDate.getFullYear();
@@ -32,9 +35,8 @@ function Page() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   
-  // --- New Search & Filter States ---
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // all, published, draft
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const [editFormData, setEditFormData] = useState({
     title: "",
@@ -81,7 +83,6 @@ function Page() {
     fetchEvents();
   }, [fetchEvents]);
 
-  // --- Search & Filter Logic ---
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
       const matchesSearch = 
@@ -110,73 +111,6 @@ function Page() {
       is_published: event.is_published
     });
     setIsEditModalOpen(true);
-  };
-
-  // ... (handleDeleteAll, handleToggleAllStatus, handleToggleStatus, handleEditSubmit, handleDeleteClick เหมือนเดิม)
-  const handleDeleteAll = async () => {
-    const result = await Swal.fire({
-      title: 'ยืนยันการลบทั้งหมด?',
-      text: "ข้อมูลกำหนดการทั้งหมดของคุณจะถูกลบถาวร",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      confirmButtonText: 'ใช่, ลบทั้งหมด',
-      cancelButtonText: 'ยกเลิก'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const token = localStorage.getItem("access_token");
-        const res = await fetch("http://localhost:5000/schedules/bulk/all", {
-          method: "DELETE",
-          headers: { "Authorization": `Bearer ${token}` }
-        });
-
-        if (res.ok) {
-          fetchEvents();
-          Swal.fire("สำเร็จ", "ลบข้อมูลทั้งหมดเรียบร้อย", "success");
-        }
-      } catch (error) {
-        Swal.fire("ผิดพลาด", "ไม่สามารถลบข้อมูลได้", "error");
-      }
-    }
-  };
-
-  const handleToggleAllStatus = async () => {
-    if (events.length === 0) return;
-    const currentStatus = events[0].is_published;
-    const newStatus = !currentStatus;
-
-    const result = await Swal.fire({
-      title: `ยืนยันการ${newStatus ? 'เปิด' : 'ปิด'}ใช้งานทั้งหมด?`,
-      text: `กำหนดการทั้งหมดจะถูกเปลี่ยนสถานะเป็น ${newStatus ? 'เผยแพร่' : 'แบบร่าง'}`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#059669',
-      confirmButtonText: 'ยืนยัน',
-      cancelButtonText: 'ยกเลิก'
-    });
-
-    if (result.isConfirmed) {
-      try {
-        const token = localStorage.getItem("access_token");
-        const res = await fetch("http://localhost:5000/schedules/bulk/status", {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ is_public: newStatus })
-        });
-
-        if (res.ok) {
-          fetchEvents();
-          Swal.fire("สำเร็จ", "อัปเดตสถานะทั้งหมดเรียบร้อย", "success");
-        }
-      } catch (error) {
-        Swal.fire("ผิดพลาด", "ไม่สามารถอัปเดตสถานะได้", "error");
-      }
-    }
   };
 
   const handleToggleStatus = async (event: CalendarEvent) => {
@@ -422,11 +356,12 @@ function Page() {
                       <button onClick={() => { setSelectedEvent(event); setIsDeleteModalOpen(true); }} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><X className="w-5 h-5" /></button>
                     </div>
                   </div>
-                )
-              ))}
-            </div>
+                </div>
+              ))
+            )}
           </div>
         )}
+
         {/* Edit Modal */}
         {isEditModalOpen && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
