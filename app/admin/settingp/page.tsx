@@ -5,15 +5,10 @@ import { useState, useEffect } from "react";
 import React from "react";
 import { User, Mail, Phone, ShieldCheck, Loader2, Edit3, Save, X } from "lucide-react";
 import Swal from "sweetalert2";
+import { useAuth } from '@/contexts/AuthContext';
 
 function Page() {
-  const [user, setUser] = useState<{
-    first_name: string;
-    last_name: string;
-    email: string;
-    tel: string;
-    role_id?: number;
-  } | null>(null);
+  const { user, getToken } = useAuth();
 
   const [formData, setFormData] = useState({
     first_name: "",
@@ -25,24 +20,7 @@ function Page() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem("access_token");
-        if (!token) return;
-        const res = await fetch("http://localhost:5000/auth/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetchUser();
-  }, []);
+
 
   useEffect(() => {
     if (user) {
@@ -73,8 +51,8 @@ function Page() {
     setIsLoading(true);
 
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch("http://localhost:5000/users/profile", {
+      const token = getToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

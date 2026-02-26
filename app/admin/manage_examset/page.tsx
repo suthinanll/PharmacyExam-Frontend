@@ -4,6 +4,8 @@ import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect } from "react";
 import { Plus, Search, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
 import Link from "next/link";
+import CreateItemBankModal from "./components/CreateItemBankModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Types
 interface Category {
@@ -29,15 +31,17 @@ interface PageButtonProps {
   setCurrentPage: (page: number) => void;
 }
 
-const API_URL = 'http://localhost:5000';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 const ITEMS_PER_PAGE = 5;
 
 function Page() {
+  const { getToken } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemBanks, setItemBanks] = useState<ItemBank[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc"); // desc = newest first
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
+  const [showCreateModal, setShowCreateModal] = useState(false); // desc = newest first
 
   // Fetch item banks
   useEffect(() => {
@@ -52,7 +56,11 @@ function Page() {
   const fetchItemBanks = async () => {
     try {
       setLoading(true);
+      const token = getToken();
       const response = await fetch(`${API_URL}/items-bank`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         credentials: 'include'
       });
 
@@ -61,11 +69,11 @@ function Page() {
         setItemBanks(data);
       } else {
         console.error('Failed to fetch item banks');
-        alert('ไม่สามารถดึงข้อมูลคลังข้อสอบได้');
+        // alert('ไม่สามารถดึงข้อมูลคลังข้อสอบได้');
       }
     } catch (error) {
       console.error('Error fetching item banks:', error);
-      alert('เกิดข้อผิดพลาดในการดึงข้อมูล');
+      // alert('เกิดข้อผิดพลาดในการดึงข้อมูล');
     } finally {
       setLoading(false);
     }
@@ -176,7 +184,7 @@ function Page() {
 
   return (
     <Navbar_admin>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4" suppressHydrationWarning>
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -189,13 +197,14 @@ function Page() {
               </p>
             </div>
 
-            <Link
-              href="/admin/manage_examset/examadd"
+            <button
+              onClick={() => setShowCreateModal(true)}
+              suppressHydrationWarning
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
             >
               <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               สร้างข้อสอบใหม่
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -205,6 +214,7 @@ function Page() {
               type="text"
               placeholder="ค้นหาข้อสอบ"
               value={searchTerm}
+              suppressHydrationWarning
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 text-sm"
             />
@@ -213,6 +223,7 @@ function Page() {
 
           <button
             onClick={() => setSortOrder(sortOrder === "desc" ? "asc" : "desc")}
+            suppressHydrationWarning
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium"
           >
             <ArrowUpDown className="w-4 h-4" />
@@ -239,7 +250,7 @@ function Page() {
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-32">ระยะเวลา</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-32">สถานะ</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-40">วัน-เวลาที่สร้าง</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-40">หมวดหมู่</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-40">ประเภทข้อสอบ</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium tracking-wider w-20 rounded-tr-xl">จัดการ</th>
                   </tr>
                 </thead>
@@ -254,7 +265,7 @@ function Page() {
                     currentItems.map((bank, index) => {
                       const categoryNames = bank.categories && bank.categories.length > 0
                         ? bank.categories.map(cat => cat.category_name).join(', ')
-                        : 'ไม่มีหมวดหมู่';
+                        : 'ไม่มีประเภทข้อสอบ';
 
                       return (
                         <tr key={`bank-${bank.item_bank_id}-${index}`} className="hover:bg-gray-50">
@@ -273,7 +284,7 @@ function Page() {
                           <td className="px-6 py-4 whitespace-nowrap w-32">
                             <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${bank.is_active
                               ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
+                              : 'bg-gray-100 text-gray-700'
                               }`}>
                               {bank.is_active ? 'เปิดให้ทำข้อสอบ' : 'ปิดการใช้งาน'}
                             </span>
@@ -300,6 +311,12 @@ function Page() {
           </div>
         )}
       </div>
+
+      <CreateItemBankModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={fetchItemBanks}
+      />
     </Navbar_admin>
   );
 }

@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, AlignLeft, X, Info } from 'lucide-react';
 import Link from 'next/link';
 import NoteList from "@/components/note/NoteList";
+import { useAuth } from '@/contexts/AuthContext';
 
 // ... (Interface และ categoryColors เหมือนเดิม)
 interface ExamSchedule {
@@ -20,7 +21,7 @@ interface ExamSchedule {
 interface Tag { id: number; name: string; }
 interface UserNote { id: string; title: string; content: string; tags: Tag[]; files: string[]; createdAt: number; }
 
-const API_URL = "http://localhost:5000";
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 const categoryColors = {
   'ทฤษฎี': 'bg-blue-100 text-blue-800 border-blue-200',
   'ปฏิบัติ': 'bg-purple-100 text-purple-800 border-purple-200',
@@ -30,9 +31,10 @@ const categoryColors = {
 };
 
 const CalenderPage = () => {
+  const { getToken } = useAuth();
   const [adminSchedules, setAdminSchedules] = useState<ExamSchedule[]>([]);
   const [userNotes, setUserNotes] = useState<UserNote[]>([]);
-  
+
   // แก้ไข: ใช้ Date Object ตัวเดียวจัดการทั่งเดือนและปี เพื่อป้องกันการหลุดช่วงปี
   const [viewDate, setViewDate] = useState(new Date());
   const selectedMonth = viewDate.getMonth();
@@ -49,7 +51,7 @@ const CalenderPage = () => {
 
   const fetchAdminSchedules = useCallback(async () => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
       const res = await fetch(`${API_URL}/schedules`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -74,11 +76,11 @@ const CalenderPage = () => {
     } catch (error) {
       console.error("fetchAdminSchedules error:", error);
     }
-  }, []);
+  }, [getToken]);
 
   const fetchNotes = async () => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
       if (!token) return;
       const res = await fetch(`${API_URL}/notes`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -167,7 +169,7 @@ const CalenderPage = () => {
     return days;
   };
   const createNote = async (note: any, files?: File[]) => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) return;
     const formData = new FormData();
     formData.append("title", note.title);
@@ -179,7 +181,7 @@ const CalenderPage = () => {
   };
 
   const updateNote = async (note: UserNote, files?: File[], deletedFiles?: string[]) => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) return;
     const formData = new FormData();
     formData.append("title", note.title);
@@ -192,7 +194,7 @@ const CalenderPage = () => {
   };
 
   const deleteNote = async (id: string) => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
     if (!token) return;
     await fetch(`${API_URL}/notes/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     fetchNotes();
@@ -280,7 +282,7 @@ const CalenderPage = () => {
                     <p className="text-xs font-bold text-gray-400 uppercase">วันที่</p>
                     <p className="text-sm font-medium text-gray-700">
                       {selectedEvent.startDate.toLocaleDateString('th-TH', { dateStyle: 'long' })}
-                      {selectedEvent.startDate.toDateString() !== selectedEvent.endDate.toDateString() && 
+                      {selectedEvent.startDate.toDateString() !== selectedEvent.endDate.toDateString() &&
                         ` - ${selectedEvent.endDate.toLocaleDateString('th-TH', { dateStyle: 'long' })}`}
                     </p>
                   </div>

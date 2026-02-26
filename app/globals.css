@@ -2,13 +2,26 @@
 
 body {
   font-family: var(--font-primary), sans-serif;
-  /* <-- ใช้ฟอนต์ที่นี่ */
+  --sidebar-width: 0px;
 }
 
-nav,
-footer {
-  background-color: rgba(118, 178, 90, 1);
+@media (min-width: 1024px) {
+  body {
+    --sidebar-width: 256px;
+  }
 }
+
+@media (min-width: 1280px) {
+  body {
+    --sidebar-width: 288px;
+  }
+}
+
+.sidebar-collapsed {
+  --sidebar-width: 80px !important;
+}
+
+
 
 .buttonact {
   background-color: rgb(97, 155, 71);

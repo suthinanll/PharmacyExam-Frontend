@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import Navbar from '@/components/Navbar_user';
 import Footer from '@/components/Footer';
-import NewsCard from '@/components/์News'; // ตรวจสอบชื่อไฟล์ว่าสะกดถูกไหม (์News)
-import { ChevronRight, AlarmClock, Info, Calendar, Bookmark, LayoutGrid } from 'lucide-react';
+import NewsCard from '@/components/์News';
+import SearchBar from "@/components/SearchBar";
+import { ChevronRight, AlarmClock, Flame, Info, Calendar } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 // --- Data & Sub-components (University Leaderboard) ---
 const universityLeaderboardData = [
@@ -77,6 +79,7 @@ const UniversityLeaderboard = () => {
 
 // --- Main Page Component ---
 const Page = () => {
+  const { getToken } = useAuth(); // 1. Use useAuth
   const [targetDate, setTargetDate] = useState<number | null>(null);
   const [targetTitle, setTargetTitle] = useState<string>("");
   const [targetDesc, setTargetDesc] = useState<string>("");
@@ -88,12 +91,8 @@ const Page = () => {
   // ✅ ปรับปรุงการ Toggle Bookmark ให้ทำงานลื่นไหล
   const handleBookmarkToggle = async (articleId: number) => {
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        alert("กรุณาเข้าสู่ระบบเพื่อบันทึกข่าวสาร");
-        return;
-      }
-      const res = await fetch("http://localhost:5000/bookmark/toggle", {
+      const token = getToken(); // 2. Use getToken()
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookmark/toggle`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ articleId })
@@ -107,35 +106,41 @@ const Page = () => {
       }
     } catch (error) { console.error("Bookmark Error:", error); }
   };
-
   const fetchData = useCallback(async () => {
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem("access_token") : null;
+      const token = getToken(); // 3. Use getToken()
       const headers = { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
       const now = Date.now();
-
-      // 1. โหลดข้อมูลตารางสอบ
-      const resSched = await fetch("http://localhost:5000/schedules", { headers });
+      const resSched = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules`, { headers });
       if (resSched.ok) {
         const data = await resSched.json();
         const allExams = data
           .filter((item: any) => item.is_public === true || item.is_public === 1)
           .map((item: any) => ({ ...item, targetStamp: new Date(item.start_time).getTime() }))
           .sort((a: any, b: any) => a.targetStamp - b.targetStamp);
-        
-        const upcoming = allExams.find((exam: any) => exam.targetStamp > now - (1000 * 60 * 60)); // รวมที่เพิ่งเริ่มไปไม่เกิน 1 ชม.
-        if (upcoming) {
-          setTargetDate(upcoming.targetStamp);
-          setTargetTitle(upcoming.title);
-          setTargetDesc(upcoming.description || "เข้าร่วมการทดสอบตามกำหนดการ");
+        const examToday = allExams.find((exam: { targetStamp: string | number | Date; }) => new Date(exam.targetStamp).toDateString() === todayStr);
+        if (examToday) {
+          setTargetDate(examToday.targetStamp);
+          setTargetTitle(examToday.title);
+          setTargetDesc(examToday.description || "เข้าร่วมการทดสอบตามกำหนดการวันนี้");
+          const remaining = allExams.filter((e: any) => e.id !== examToday.id && e.targetStamp > now);
+          setUpcomingExams(remaining.slice(0, 4));
+        } else {
+          const futureExams = allExams.filter((exam: any) => exam.targetStamp > now);
+          if (futureExams.length > 0) {
+            setTargetDate(futureExams[0].targetStamp);
+            setTargetTitle(futureExams[0].title);
+            setTargetDesc(futureExams[0].description || "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง");
+            setUpcomingExams(futureExams.slice(1, 5));
+          }
         }
       }
 
       // 2. โหลดข่าวและรายการ Bookmark พร้อมกัน
       setLoadingNews(true);
       const [resNews, resBookmarks] = await Promise.all([
-        fetch("http://localhost:5000/news", { headers }),
-        token ? fetch("http://localhost:5000/bookmark", { headers }) : Promise.resolve(null)
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, { headers }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookmark`, { headers })
       ]);
 
       if (resNews.ok) {
@@ -147,7 +152,7 @@ const Page = () => {
         setBookmarkIds(bookmarks.map((b: any) => Number(b.news.article_id)));
       }
     } catch (error) { console.error("Fetch Error:", error); } finally { setLoadingNews(false); }
-  }, []);
+  }, [getToken]); // Add getToken to dependency
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -267,3 +272,7 @@ const Page = () => {
 };
 
 export default Page;
+
+function setUpcomingExams(arg0: any) {
+  throw new Error('Function not implemented.');
+}

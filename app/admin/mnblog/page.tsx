@@ -5,6 +5,7 @@ import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect, useMemo } from "react";
 import { Plus, Search, Clock, Loader2, ImageOff, Trash2, Eye, EyeOff, Filter } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from '@/contexts/AuthContext';
 
 // ... (BlogData และ BlogCardProps interface เหมือนเดิม)
 interface BlogData {
@@ -22,6 +23,7 @@ interface BlogCardProps {
 
 // BlogCard Component (คงเดิมตามที่คุณส่งมา)
 const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
+  const { getToken } = useAuth();
   const [isActionLoading, setIsActionLoading] = useState(false);
   const isPublished = blog.status?.toUpperCase() === 'PUBLISHED';
 
@@ -38,8 +40,8 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
     if (!confirm(`คุณต้องการลบข่าว "${blog.title}" ใช่หรือไม่?`)) return;
     setIsActionLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:5000/news/${blog.article_id}`, {
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/${blog.article_id}`, {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });
@@ -54,10 +56,11 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
   const toggleStatus = async (e: React.MouseEvent) => {
     e.preventDefault();
     const newStatus = isPublished ? 'DRAFT' : 'PUBLISHED';
+
     setIsActionLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
-      await fetch(`http://localhost:5000/news/${blog.article_id}`, {
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/${blog.article_id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -80,16 +83,19 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
       >
         <div className="relative h-48 w-full bg-gray-100 overflow-hidden">
           {blog.cover_image_url ? (
-            <img src={blog.cover_image_url} alt={blog.title} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+            <img
+              src={blog.cover_image_url}
+              alt={blog.title}
+              className="w-full h-full object-cover transition-transform group-hover:scale-105"
+            />
           ) : (
             <div className="h-full w-full flex flex-col items-center justify-center text-gray-400">
               <ImageOff className="w-10 h-10 mb-2" />
               <span className="text-xs">ไม่มีรูปภาพหน้าปก</span>
             </div>
           )}
-          <span className={`absolute top-2 left-2 text-[10px] font-medium px-2 py-0.5 rounded  shadow-sm ${
-            isPublished ? 'bg-green-600 text-white' : 'bg-gray-500 text-white'
-          }`}>
+          <span className={`absolute top-2 left-2 text-[10px] font-bold px-2 py-0.5 rounded uppercase shadow-sm ${isPublished ? 'bg-green-600 text-white' : 'bg-gray-500 text-white'
+            }`}>
             {isPublished ? 'Live' : 'Draft'}
           </span>
         </div>
@@ -104,8 +110,14 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
         
       </Link>
       <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-        <button disabled={isActionLoading} onClick={toggleStatus} className={`p-2 rounded-full shadow-lg ${isPublished ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-500 hover:bg-blue-600'} text-white`}>
-          {isPublished ? <EyeOff size={16}/> : <Eye size={16}/>}
+        <button
+          disabled={isActionLoading}
+          onClick={toggleStatus}
+          title={isPublished ? "เปลี่ยนเป็นฉบับร่าง" : "เผยแพร่ทันที"}
+          className={`p-2 rounded-full shadow-lg transition-colors ${isPublished ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-500 hover:bg-blue-600'
+            } text-white`}
+        >
+          {isPublished ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
         <button disabled={isActionLoading} onClick={handleDelete} className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg">
           <Trash2 size={16} />
@@ -121,6 +133,7 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
 };
 
 function Page() {
+  const { getToken } = useAuth();
   const [blogs, setBlogs] = useState<BlogData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -129,8 +142,8 @@ function Page() {
   const fetchBlogs = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('access_token');
-      const response = await fetch('http://localhost:5000/news', {
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Failed to fetch');
@@ -147,13 +160,9 @@ function Page() {
     fetchBlogs();
   }, []);
 
-  const filteredBlogs = useMemo(() => {
-    return blogs.filter(blog => {
-      const matchesSearch = blog.title.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "ALL" || blog.status?.toUpperCase() === statusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [blogs, searchTerm, statusFilter]);
+  const filteredBlogs = blogs.filter(blog =>
+    blog.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const counts = {
     ALL: blogs.length,
@@ -219,12 +228,8 @@ function Page() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-24 bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl">
-            <div className="bg-white w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-              <Filter className="text-gray-300 w-8 h-8" />
-            </div>
-            <h3 className="text-gray-900 font-bold mb-1">ไม่พบข้อมูลที่ต้องการ</h3>
-            <p className="text-gray-500 text-sm">ลองปรับการค้นหาหรือเปลี่ยนตัวกรองสถานะดูใหม่อีกครั้ง</p>
+          <div className="text-center py-20 text-gray-500 border-2 border-dashed border-gray-200 rounded-2xl">
+            <p>ไม่พบข้อมูลข่าวสารที่คุณกำลังค้นหา</p>
           </div>
         )}
       </div>

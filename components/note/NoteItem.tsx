@@ -87,7 +87,7 @@ export default function NoteItem({
               // ดึงชื่อไฟล์จาก storage_path (ตามโครงสร้าง DB/NoteFile Entity)
               const fileName = file.storage_path || file.original_filename || file;
               const displayLabel = file.original_filename || fileName;
-              const fileUrl = `http://localhost:5000/uploads/${fileName}`;
+              const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/${fileName}`;
 
               return (
                 <a

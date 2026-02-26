@@ -8,6 +8,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Loader2, BookOpen, Clock } from "lucide-react"
 import Swal from "sweetalert2"
+import { useAuth } from '@/contexts/AuthContext'
 
 // Types
 interface Category {
@@ -26,16 +27,18 @@ interface ItemBank {
   categories?: Category[];
 }
 
-const API_URL = 'http://localhost:5000';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 const examset = () => {
   const router = useRouter();
+  const { getToken } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [itemBanks, setItemBanks] = useState<ItemBank[]>([]);
   const [filteredBanks, setFilteredBanks] = useState<ItemBank[]>([]);
   const [activeTab, setActiveTab] = useState<number | "all">("all");
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searching, setSearching] = useState(false);
   const [startingExam, setStartingExam] = useState<number | null>(null);
 
   // Fetch data on mount
@@ -64,8 +67,11 @@ const examset = () => {
 
   const fetchCategories = async () => {
     try {
+      const token = getToken();
       const response = await fetch(`${API_URL}/categories`, {
-        credentials: 'include'
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       if (response.ok) {
         const data = await response.json();
@@ -78,8 +84,11 @@ const examset = () => {
 
   const fetchItemBanks = async () => {
     try {
+      const token = getToken();
       const response = await fetch(`${API_URL}/items-bank`, {
-        credentials: 'include'
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       if (response.ok) {
         const data = await response.json();
@@ -93,7 +102,10 @@ const examset = () => {
   };
 
   const filterExams = () => {
-    let filtered = [...itemBanks];
+    // กรองจาก itemBanks เฉพาะเมื่อไม่ได้ทำการค้นหา (searchQuery ว่าง)
+    // หรือถ้ามีการค้นหา เราจะใช้ข้อมูลที่ได้จาก API มากรองตามประเภทข้อสอบต่อ (ถ้าต้องการ)
+    let baseData = searchQuery.trim() ? filteredBanks : itemBanks;
+    let filtered = [...baseData];
 
     // Filter by category
     if (activeTab !== "all") {
@@ -102,20 +114,41 @@ const examset = () => {
       );
     }
 
-    // Filter by search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(bank =>
-        bank.bank_name.toLowerCase().includes(query) ||
-        bank.description.toLowerCase().includes(query)
-      );
-    }
-
     setFilteredBanks(filtered);
   };
 
-  const handleSearch = (query: string) => {
+  const handleSearch = async (query: string) => {
     setSearchQuery(query);
+
+    if (!query.trim()) {
+      // ถ้าล้างการค้นหา ให้กลับไปใช้ข้อมูลหลัก
+      setFilteredBanks(itemBanks);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const token = getToken();
+      const response = await fetch(`${API_URL}/items-bank/search?q=${encodeURIComponent(query)}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        // อัปเดตข้อมูลที่ค้นหาได้
+        setFilteredBanks(data);
+      } else {
+        console.error('Search failed');
+        setFilteredBanks([]);
+      }
+    } catch (error) {
+      console.error('Error during search:', error);
+      setFilteredBanks([]);
+    } finally {
+      setSearching(false);
+    }
   };
 
   const formatDuration = (seconds: number) => {
@@ -146,10 +179,13 @@ const examset = () => {
     setStartingExam(itemBankId);
 
     try {
+      const token = getToken();
       const response = await fetch(`${API_URL}/items-bank/exam/start`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
         body: JSON.stringify({
           item_bank_id: itemBankId
         })
@@ -278,7 +314,12 @@ const examset = () => {
 
             {/* Exam List */}
             <div className="space-y-4">
-              {filteredBanks.map((bank) => (
+              {searching ? (
+                <div className="text-center py-12">
+                  <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-4" />
+                  <p className="text-gray-500">กำลังค้นหา...</p>
+                </div>
+              ) : filteredBanks.map((bank) => (
                 <div
                   key={bank.item_bank_id}
                   className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:border-blue-200"
@@ -359,8 +400,8 @@ const examset = () => {
                   </h3>
                   <p className="text-gray-500">
                     {searchQuery
-                      ? 'ลองค้นหาด้วยคำอื่น หรือเลือกหมวดหมู่อื่น'
-                      : 'ยังไม่มีข้อสอบในหมวดหมู่นี้ในขณะนี้'
+                      ? 'ลองค้นหาด้วยคำอื่น หรือเลือกประเภทข้อสอบอื่น'
+                      : 'ยังไม่มีข้อสอบในประเภทนี้ในขณะนี้'
                     }
                   </p>
                   {searchQuery && (

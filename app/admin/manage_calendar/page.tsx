@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { ChevronLeft, ChevronRight, Plus, X, Calendar, AlertTriangle, Eye, EyeOff, Search, Filter } from "lucide-react";
 import Link from "next/link";
 import Swal from "sweetalert2";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CalendarEvent {
   id: number;
@@ -20,7 +21,8 @@ interface CalendarEvent {
 }
 
 function Page() {
-  const [viewDate, setViewDate] = useState(new Date());
+  // เริ่มต้นด้วยเดือนปัจจุบันและปีปัจจุบัน (ค.ศ.)
+  const [viewDate, setViewDate] = useState(new Date()); 
   const currentMonth = viewDate.getMonth();
   const currentYearAD = viewDate.getFullYear();
   
@@ -47,8 +49,8 @@ function Page() {
 
   const fetchEvents = useCallback(async () => {
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch("http://localhost:5000/schedules", {
+      const token = getToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (!res.ok) throw new Error("ดึงข้อมูลล้มเหลว");
@@ -73,7 +75,7 @@ function Page() {
     } catch (error) {
       console.error(error);
     }
-  }, []);
+  }, [getToken]);
 
   useEffect(() => {
     fetchEvents();
@@ -110,11 +112,78 @@ function Page() {
     setIsEditModalOpen(true);
   };
 
+  // ... (handleDeleteAll, handleToggleAllStatus, handleToggleStatus, handleEditSubmit, handleDeleteClick เหมือนเดิม)
+  const handleDeleteAll = async () => {
+    const result = await Swal.fire({
+      title: 'ยืนยันการลบทั้งหมด?',
+      text: "ข้อมูลกำหนดการทั้งหมดของคุณจะถูกลบถาวร",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'ใช่, ลบทั้งหมด',
+      cancelButtonText: 'ยกเลิก'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch("http://localhost:5000/schedules/bulk/all", {
+          method: "DELETE",
+          headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          fetchEvents();
+          Swal.fire("สำเร็จ", "ลบข้อมูลทั้งหมดเรียบร้อย", "success");
+        }
+      } catch (error) {
+        Swal.fire("ผิดพลาด", "ไม่สามารถลบข้อมูลได้", "error");
+      }
+    }
+  };
+
+  const handleToggleAllStatus = async () => {
+    if (events.length === 0) return;
+    const currentStatus = events[0].is_published;
+    const newStatus = !currentStatus;
+
+    const result = await Swal.fire({
+      title: `ยืนยันการ${newStatus ? 'เปิด' : 'ปิด'}ใช้งานทั้งหมด?`,
+      text: `กำหนดการทั้งหมดจะถูกเปลี่ยนสถานะเป็น ${newStatus ? 'เผยแพร่' : 'แบบร่าง'}`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#059669',
+      confirmButtonText: 'ยืนยัน',
+      cancelButtonText: 'ยกเลิก'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const token = localStorage.getItem("access_token");
+        const res = await fetch("http://localhost:5000/schedules/bulk/status", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ is_public: newStatus })
+        });
+
+        if (res.ok) {
+          fetchEvents();
+          Swal.fire("สำเร็จ", "อัปเดตสถานะทั้งหมดเรียบร้อย", "success");
+        }
+      } catch (error) {
+        Swal.fire("ผิดพลาด", "ไม่สามารถอัปเดตสถานะได้", "error");
+      }
+    }
+  };
+
   const handleToggleStatus = async (event: CalendarEvent) => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = getToken();
       const newStatus = !event.is_published;
-      const res = await fetch(`http://localhost:5000/schedules/${event.id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules/${event.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -142,8 +211,8 @@ function Page() {
     e.preventDefault();
     if (!selectedEvent) return;
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch(`http://localhost:5000/schedules/${selectedEvent.id}`, {
+      const token = getToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules/${selectedEvent.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -171,8 +240,8 @@ function Page() {
   const handleDeleteConfirm = async () => {
     if (!selectedEvent) return;
     try {
-      const token = localStorage.getItem("access_token");
-      const res = await fetch(`http://localhost:5000/schedules/${selectedEvent.id}`, {
+      const token = getToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules/${selectedEvent.id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -200,7 +269,7 @@ function Page() {
       const currentDate = new Date(currentYearAD, currentMonth, day);
       currentDate.setHours(0, 0, 0, 0);
       
-      const dayEvents = filteredEvents.filter(event => {
+      const dayEvents = events.filter(event => {
         const eventStart = new Date(event.raw_start!);
         const eventEnd = new Date(event.raw_end!);
         eventStart.setHours(0, 0, 0, 0);
@@ -353,12 +422,11 @@ function Page() {
                       <button onClick={() => { setSelectedEvent(event); setIsDeleteModalOpen(true); }} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"><X className="w-5 h-5" /></button>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
+                )
+              ))}
+            </div>
           </div>
         )}
-
         {/* Edit Modal */}
         {isEditModalOpen && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">

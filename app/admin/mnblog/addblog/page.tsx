@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from '@/contexts/AuthContext';
+
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -32,8 +34,6 @@ interface BlogFormData {
     title: string;
     imageUrl: string;
     content: string;
-    sourceUrl: string;
-    author_id: number;
     categoryIds: number[];
 }
 
@@ -232,18 +232,15 @@ const DraftCard = ({
 };
 
 function AddBlogPage() {
+    const { getToken } = useAuth();
     const router = useRouter();
-    const [drafts, setDrafts] = useState<BlogFormData[]>([
-        {
-            tempId: Date.now(),
-            title: "",
-            imageUrl: "",
-            content: "",
-            sourceUrl: "",
-            author_id: 10,
-            categoryIds: [1],
-        },
-    ]);
+    const [formData, setFormData] = useState<BlogFormData>({
+        title: '',
+        imageUrl: '',
+        content: '',
+        categoryIds: [1],
+    });
+
     const [isSaving, setIsSaving] = useState(false);
     const [isFetching, setIsFetching] = useState(false); // สถานะ Loading สำหรับ AI
 
@@ -284,7 +281,13 @@ function AddBlogPage() {
 
         setIsFetching(true);
         try {
-            const token = localStorage.getItem("access_token");
+            const token = getToken();
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/latest`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }); // ปรับ Endpoint ตามจริง
+            if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
 
             const response = await fetch("http://localhost:5000/news/auto-fetch", {
                 method: "POST",
@@ -342,26 +345,28 @@ function AddBlogPage() {
     const handleSubmitAll = async () => {
         setIsSaving(true);
         try {
-            const token = localStorage.getItem("access_token");
-            for (const item of drafts) {
-                if (!item.title) continue;
-                await fetch("http://localhost:5000/news", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        ...item,
-                        cover_image_url: item.imageUrl,
-                        status: "DRAFT",
-                        metadata: { source: item.sourceUrl },
-                    }),
-                });
-            }
-            router.push("/admin/mnblog");
-        } catch (error) {
-            alert("เกิดข้อผิดพลาดในการบันทึก");
+            const token = getToken();
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title: formData.title,
+                    content: formData.content,
+                    cover_image_url: formData.imageUrl,
+                    categoryIds: formData.categoryIds,
+                    status: 'PUBLISHED'
+                }),
+            });
+
+            if (!response.ok) throw new Error("เกิดข้อผิดพลาดในการบันทึก");
+
+            alert("บันทึกข่าวสารเรียบร้อยแล้ว!");
+            router.push('/admin/mnblog');
+        } catch (error: any) {
+            alert(error.message);
         } finally {
             setIsSaving(false);
         }
@@ -397,19 +402,15 @@ function AddBlogPage() {
                             ดึงข้อมูลอัตโนมัติ
                         </button>
 
-                        <button
-                            onClick={handleSubmitAll}
-                            disabled={isSaving}
-                            className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-8 py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg hover:bg-green-700 disabled:opacity-50 transition-all"
-                        >
-                            {isSaving ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                                <Save className="w-5 h-5" />
-                            )}
-                            บันทึกร่างทั้งหมด
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={isSaving || isGenerating || !formData.title}
+                        className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg text-white transition-all shadow-md ${isSaving || isGenerating ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'
+                            }`}
+                    >
+                        {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                        <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกข่าวสาร'}</span>
+                    </button>
                 </div>
 
                 <div className="space-y-6">
@@ -421,9 +422,82 @@ function AddBlogPage() {
                             onUpdate={updateDraft}
                             onRemove={removeDraft}
                         />
-                    ))}
-                </div>
+                    </div>
 
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* จัดการรูปภาพผ่าน URL */}
+                        <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                            <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">ลิงก์รูปภาพหน้าปก (Image URL)</label>
+
+                            <div className="relative mb-4">
+                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    name="imageUrl"
+                                    type="text"
+                                    value={formData.imageUrl}
+                                    onChange={handleInputChange}
+                                    placeholder="วางลิงก์รูปภาพ https://..."
+                                    className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:ring-2 focus:ring-green-500 outline-none transition-all"
+                                />
+                            </div>
+
+                            {/* Preview Window */}
+                            <div className="relative border-2 border-dashed border-gray-200 rounded-xl overflow-hidden aspect-[16/9] bg-gray-50 flex flex-col items-center justify-center">
+                                {formData.imageUrl ? (
+                                    <>
+                                        <img
+                                            src={formData.imageUrl}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/800x450/eeeeee/999999?text=Invalid+Image+URL"; }}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, imageUrl: '' })}
+                                            className="absolute top-3 right-3 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-xl transition-all"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </>
+                                ) : (
+                                    <div className="text-center text-gray-400">
+                                        <ImageIcon className="w-14 h-14 mx-auto mb-3 opacity-20" />
+                                        <p className="text-sm font-medium">รอการแสดงตัวอย่างรูปภาพจากลิงก์ของคุณ...</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        {/* ปุ่ม AI ดึงข้อมูลด่วน */}
+                        <div className="lg:col-span p-8 rounded-xl shadow-lg flex flex-col justify-center items-center text-center text-black">
+                            <div className="bg-gray-100 p-4 rounded-full mb-4 backdrop-blur-sm">
+                                <Zap className="w-10 h-10 text-yellow-300 fill-yellow-300" />
+                            </div>
+                            <h3 className="text-xl font-bold mb-2">Smart Auto-Fetch</h3>
+                            <p className="text-sm text-black-100 mb-8 leading-relaxed">
+                                ช่วยคุณเขียนข่าวได้ไวขึ้น 10 เท่า! <br /> ดึงข้อมูลและรูปภาพจากระบบล่าสุดมาให้อัตโนมัติ
+                            </p>
+                            <button
+                                type="button"
+                                onClick={handleAutoGenerate}
+                                disabled={isGenerating}
+                                className={`flex items-center justify-center gap-2 px-8 py-4 text-sm font-normal rounded-full transition-all w-full shadow-2xl ${isGenerating ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 active:scale-95 cursor-pointer'
+                                    }`}
+                            >
+                                {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
+                                {isGenerating ? 'กำลังโหลดข่าว...' : 'ดึงข้อมูลอัตโนมัติ'}
+                            </button>
+                        </div>
+                    </div>
+                    {/* เนื้อหาข่าว */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">รายละเอียดเนื้อหาข่าวสาร</label>
+                        <DummyTextEditor
+                            content={formData.content}
+                            setContent={(c) => setFormData({ ...formData, content: c })}
+                            isGenerating={isGenerating}
+                        />
+                    </div>
+                </div>
                 <button
                     onClick={addNewDraft}
                     className="mt-8 w-full py-4 border-2 border-dashed border-gray-300 rounded-3xl text-gray-400 hover:text-green-600 hover:border-green-300 hover:bg-green-50 transition-all flex items-center justify-center gap-2 font-bold"

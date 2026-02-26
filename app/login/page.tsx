@@ -4,8 +4,10 @@ import Swal from "sweetalert2";
 import { FcGoogle } from "react-icons/fc";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Page() {
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -15,16 +17,16 @@ export default function Page() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:5000/auth/login", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
-      localStorage.setItem("access_token", data.accessToken);
 
       if (res.ok) {
+        await login(data.accessToken);
         await Swal.fire({
           icon: "success",
           title: "เข้าสู่ระบบสำเร็จ!",
@@ -56,7 +58,7 @@ export default function Page() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/auth/google";
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`;
   };
 
   return (

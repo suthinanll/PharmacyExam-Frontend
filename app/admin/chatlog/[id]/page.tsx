@@ -14,7 +14,7 @@ interface ChatMessage {
     sent_at: string; // หรือ created_at ขึ้นอยู่กับ backend entity
 }
 
-const API_URL = 'http://localhost:5000';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 function ChatDetailPage() {
     const params = useParams();

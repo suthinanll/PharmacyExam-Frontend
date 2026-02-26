@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ChevronLeft, Plus, X, Calendar } from "lucide-react";
 import Link from "next/link";
 import Swal from "sweetalert2";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CalendarEvent {
   id: number;
@@ -16,6 +17,7 @@ interface CalendarEvent {
 }
 
 function Page() {
+  const { getToken } = useAuth();
   const [events, setEvents] = useState<CalendarEvent[]>([
     {
       id: 1,
@@ -55,7 +57,7 @@ function Page() {
   };
 
   const saveSchedules = async (isPublished: boolean) => {
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
 
     try {
       Swal.fire({
@@ -65,7 +67,7 @@ function Page() {
       });
 
       const promises = events.map(event =>
-        fetch("http://localhost:5000/schedules", {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -128,7 +130,7 @@ function Page() {
       Swal.fire("แจ้งเตือน", "กรุณาเลือกไฟล์ PDF ก่อน", "info");
       return;
     }
-    const token = localStorage.getItem("access_token");
+    const token = getToken();
 
     const formData = new FormData();
     formData.append("file", pdfFile);
@@ -139,7 +141,7 @@ function Page() {
         allowOutsideClick: false,
         didOpen: () => { Swal.showLoading(); }
       });
-      const res = await fetch("http://localhost:5000/schedules/upload", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules/upload`, {
         method: "POST",
         headers: {
           // 2. แนบ Token เข้าไปเพื่อให้ Guard ยอมให้ผ่าน
@@ -156,7 +158,7 @@ function Page() {
         // กรองรายการที่ว่างอยู่ออก (ถ้ามี)
         const filteredEvents = events.filter(e => e.title.trim() !== "");
 
-        const newEventsFromPdf = data.events.map((e) => ({
+        const newEventsFromPdf = data.events.map((e: any) => ({
           id: Date.now() + Math.random(),
           title: e.title || "กำหนดการใหม่",
           description: e.description || "",

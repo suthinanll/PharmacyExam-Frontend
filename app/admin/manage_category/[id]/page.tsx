@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import { Loader2, Save, X, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
-const API_URL = 'http://localhost:5000/categories';
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/categories`;
 
 interface Category {
     category_id: number;
@@ -52,13 +52,13 @@ export default function EditCategory() {
                     category_description: data.category_description
                 });
             } else {
-                throw new Error('ไม่พบหมวดหมู่');
+                throw new Error('ไม่พบประเภทข้อสอบ');
             }
         } catch (error) {
             console.error('Error fetching category:', error);
             Swal.fire({
                 title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถโหลดข้อมูลหมวดหมู่ได้',
+                text: 'ไม่สามารถโหลดข้อมูลประเภทข้อสอบได้',
                 icon: 'error',
                 confirmButtonColor: '#ef4444'
             }).then(() => {
@@ -84,7 +84,7 @@ export default function EditCategory() {
         if (!formData.category_name.trim()) {
             Swal.fire({
                 title: 'กรุณากรอกข้อมูล',
-                text: 'กรุณากรอกชื่อหมวดหมู่',
+                text: 'กรุณากรอกชื่อประเภทข้อสอบ',
                 icon: 'warning',
                 confirmButtonColor: '#3b82f6'
             });
@@ -116,7 +116,7 @@ export default function EditCategory() {
             if (response.ok) {
                 await Swal.fire({
                     title: 'สำเร็จ!',
-                    text: 'แก้ไขหมวดหมู่สำเร็จ',
+                    text: 'แก้ไขประเภทข้อสอบสำเร็จ',
                     icon: 'success',
                     confirmButtonColor: '#22c55e'
                 });
@@ -125,13 +125,13 @@ export default function EditCategory() {
                 router.push('/admin/manage_category');
             } else {
                 const errorData = await response.json();
-                throw new Error(errorData.message || 'ไม่สามารถแก้ไขหมวดหมู่ได้');
+                throw new Error(errorData.message || 'ไม่สามารถแก้ไขประเภทข้อสอบได้');
             }
         } catch (error: any) {
             console.error('Error updating category:', error);
             Swal.fire({
                 title: 'เกิดข้อผิดพลาด',
-                text: error.message || 'ไม่สามารถแก้ไขหมวดหมู่ได้ กรุณาลองใหม่อีกครั้ง',
+                text: error.message || 'ไม่สามารถแก้ไขประเภทข้อสอบได้ กรุณาลองใหม่อีกครั้ง',
                 icon: 'error',
                 confirmButtonColor: '#ef4444'
             });
@@ -177,16 +177,16 @@ export default function EditCategory() {
 
                     {/* Header */}
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">แก้ไขหมวดหมู่</h1>
-                        <p className="text-gray-600">แก้ไขข้อมูลหมวดหมู่</p>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">แก้ไขประเภทข้อสอบ</h1>
+                        <p className="text-gray-600">แก้ไขข้อมูลประเภทข้อสอบ</p>
                     </div>
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-8">
-                        {/* ชื่อหมวดหมู่ */}
+                        {/* ชื่อประเภทข้อสอบ */}
                         <div className="mb-6">
                             <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                ชื่อหมวดหมู่ <span className="text-red-500">*</span>
+                                ชื่อประเภทข้อสอบ <span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
@@ -210,7 +210,7 @@ export default function EditCategory() {
                                 onChange={handleInputChange}
                                 rows={4}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
-                                placeholder="รายละเอียดของหมวดหมู่..."
+                                placeholder="รายละเอียดของประเภทข้อสอบ..."
                                 required
                             />
                         </div>

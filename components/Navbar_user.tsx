@@ -45,7 +45,7 @@ const Navbar = () => {
           return;
         }
 
-        const res = await fetch("http://localhost:5000/auth/me", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -110,7 +110,7 @@ const Navbar = () => {
       submenu: [
         { href: '/examset/by-year', label: 'ข้อสอบโรคและระบบต่างๆ' },
         { href: '/examset/mock-exam', label: 'ข้อสอบย้อนหลัง' },
-        { href: '/user/examcat', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)' }
+        { href: '/user/cat-exam', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)' }
       ]
     },
     { href: '/user/calendar', label: 'ปฏิทินการสอบ' },
@@ -173,8 +173,8 @@ const Navbar = () => {
   }, [isMobileMenuOpen]);
 
   return (
-    <nav className="shadow-lg sticky top-0 z-50">
-      <div className="mx-auto max-w-7xl px-2 sm:px-4 md:px-6 lg:px-8">
+    <nav className="shadow-lg bg-[rgba(118,178,90,1)] sticky top-0 z-50">
+      <div className="mx-auto max-w-7xl px-2 sm:px-4 md:px-6 lg:px-8 ">
         <div className="relative flex h-14 sm:h-16 items-center justify-between">
 
           <div className="absolute inset-y-0 left-0 flex items-center lg:hidden">

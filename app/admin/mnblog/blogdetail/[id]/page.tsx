@@ -21,37 +21,10 @@ import {
     FileText
 } from "lucide-react";
 import Link from "next/link";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import LinkExtension from "@tiptap/extension-link";
-
-// --- Tiptap Toolbar Component ---
-const TiptapToolbar = ({ editor }: { editor: any }) => {
-    if (!editor) return null;
-
-    const addLink = () => {
-        const url = window.prompt("ใส่ URL ของลิงก์:");
-        if (url) editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
-    };
-
-    const btnClass = (activeName: string, attrs = {}) =>
-        `p-2 rounded transition-colors ${editor.isActive(activeName, attrs) ? "bg-green-100 text-green-600" : "text-gray-500 hover:bg-gray-100"}`;
-
-    return (
-        <div className="flex flex-wrap gap-1 pb-2 mb-3 border-b border-gray-100 sticky top-0 bg-white z-10">
-            <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={btnClass("bold")}><Bold size={18} /></button>
-            <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={btnClass("italic")}><Italic size={18} /></button>
-            <div className="w-[1px] h-4 bg-gray-200 mx-1 self-center" />
-            <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} className={btnClass("bulletList")}><ListIcon size={18} /></button>
-            <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={btnClass("orderedList")}><ListOrdered size={18} /></button>
-            <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={btnClass("blockquote")}><Quote size={18} /></button>
-            <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()} className="p-2 text-gray-500 hover:bg-gray-100 rounded"><Minus size={18} /></button>
-            <button type="button" onClick={addLink} className={btnClass("link")}><Link2 size={18} /></button>
-        </div>
-    );
-};
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function EditBlogDetail() {
+    const { getToken } = useAuth();
     const params = useParams();
     const router = useRouter();
     const blogId = params?.id;
@@ -78,9 +51,16 @@ export default function EditBlogDetail() {
             if (!blogId) return;
             setIsLoading(true);
             try {
-                const token = localStorage.getItem('access_token');
-                const response = await fetch(`http://localhost:5000/news/${blogId}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                // ✅ 1. ดึง Token ออกมาเตรียมไว้
+                const token = getToken();
+
+                // ✅ 2. แนบ Authorization Header ในการเรียก GET
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/${blogId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // ส่ง Token ไปยืนยันตัวตน
+                    }
                 });
 
                 if (!response.ok) throw new Error(`ไม่สามารถดึงข้อมูลได้ (${response.status})`);
@@ -115,9 +95,10 @@ export default function EditBlogDetail() {
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
+        const token = getToken();
+
         try {
-            const token = localStorage.getItem('access_token');
-            const response = await fetch(`http://localhost:5000/news/${blogId}`, {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/${blogId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

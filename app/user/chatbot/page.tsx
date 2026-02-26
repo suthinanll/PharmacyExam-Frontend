@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
-import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, User, Bot, AlertCircle, Trash2, Pencil } from "lucide-react";
+import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, User, Bot, AlertCircle, Trash2, Pencil, Shield } from "lucide-react";
 import Navbar from "@/components/Navbar_user";
 import Swal from "sweetalert2";
+import { useAuth } from '@/contexts/AuthContext';
 
 // Utility for typing effect
 const useTypewriter = (text: string, speed: number = 20) => {
@@ -73,6 +74,7 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
 };
 
 export default function ChatbotPage() {
+  const { getToken } = useAuth();
   type Message = {
     id: string;
     sender: "user" | "bot";
@@ -102,6 +104,7 @@ export default function ChatbotPage() {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [isEditLoading, setIsEditLoading] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
 
@@ -109,8 +112,9 @@ export default function ChatbotPage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('http://localhost:5000/auth/me', {
-          credentials: 'include',
+        const token = getToken();
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
 
         if (res.ok) {
@@ -128,6 +132,12 @@ export default function ChatbotPage() {
     };
 
     fetchUser();
+
+    // Check if user has accepted privacy policy
+    const hasAccepted = localStorage.getItem('chatbot_privacy_accepted');
+    if (!hasAccepted) {
+      setShowPrivacyModal(true);
+    }
   }, []);
 
   // 2. Fetch sessions when userId is available
@@ -161,8 +171,9 @@ export default function ChatbotPage() {
   const fetchSessions = async () => {
     if (!userId) return;
     try {
-      const response = await fetch(`http://localhost:5000/chat/session/${userId}`, {
-        credentials: 'include'
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/session/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!response.ok) {
@@ -193,8 +204,9 @@ export default function ChatbotPage() {
       setMessages([]);
 
       // GET /chat/message/:session_id (Singular based on user hint)
-      const response = await fetch(`http://localhost:5000/chat/message/${sessionId}`, {
-        credentials: 'include'
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/message/${sessionId}`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (!response.ok) {
@@ -296,11 +308,12 @@ export default function ChatbotPage() {
       // Assuming backend accepts '/chat/send/new' or similar for creating a session.
       // If 'currentSessionId' is null, interpolating it directly results in ".../null" which likely causes 500.
       const endpointSessionId = currentSessionId || 'new';
-      const response = await fetch(`http://localhost:5000/chat/send/${endpointSessionId}`, {
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/send/${endpointSessionId}`, {
         method: "POST",
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
           user_id: userId,
@@ -371,9 +384,10 @@ export default function ChatbotPage() {
     if (!result.isConfirmed) return;
 
     try {
-      const response = await fetch(`http://localhost:5000/chat/session/${sessionId}`, {
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/session/${sessionId}`, {
         method: "DELETE",
-        credentials: 'include'
+        headers: { Authorization: `Bearer ${token}` }
       });
 
       if (response.ok) {
@@ -461,11 +475,12 @@ export default function ChatbotPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`http://localhost:5000/chat/message/${messageId}`, {
+      const token = getToken();
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/message/${messageId}`, {
         method: 'PUT',
-        credentials: 'include',
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
           message: editContent,
@@ -532,9 +547,117 @@ export default function ChatbotPage() {
     }
   };
 
+  const handleAcceptPrivacy = () => {
+    localStorage.setItem('chatbot_privacy_accepted', 'true');
+    setShowPrivacyModal(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-green-50/30">
       <Navbar />
+
+      {/* Privacy Policy Modal */}
+      {showPrivacyModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-300">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-5 text-white flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <Shield className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold">นโยบายความเป็นส่วนตัว</h2>
+                <p className="text-green-100 text-sm">เกี่ยวกับการใช้งานแชตบอต</p>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-blue-800">
+                    <p className="font-semibold mb-1">ข้อมูลที่เราเก็บรวบรวม</p>
+                    <p>เพื่อปรับปรุงคุณภาพการให้บริการ เราจะเก็บบันทึกการสนทนาระหว่างคุณกับแชตบอต</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                  <div className="w-1.5 h-5 bg-green-600 rounded-full"></div>
+                  ข้อมูลที่จะถูกบันทึก
+                </h3>
+                <ul className="space-y-2 text-gray-700 text-sm">
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>คำถามและข้อความที่คุณส่งถึงแชตบอต</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>คำตอบและคำแนะนำที่แชตบอตให้กับคุณ</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>วันที่และเวลาของการสนทนา</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                  <div className="w-1.5 h-5 bg-green-600 rounded-full"></div>
+                  วัตถุประสงค์ในการใช้ข้อมูล
+                </h3>
+                <ul className="space-y-2 text-gray-700 text-sm">
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>ปรับปรุงและพัฒนาความแม่นยำของแชตบอต</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>วิเคราะห์และเข้าใจคำถามที่ผู้ใช้สนใจ</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span>ให้บริการที่ดีขึ้นและตรงกับความต้องการ</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                <div className="flex items-start gap-3">
+                  <Shield className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm text-green-800">
+                    <p className="font-semibold mb-1">ความปลอดภัยของข้อมูล</p>
+                    <p>เราให้ความสำคัญกับความเป็นส่วนตัวของคุณ ข้อมูลทั้งหมดจะถูกเก็บรักษาอย่างปลอดภัยและจะไม่ถูกนำไปเผยแพร่หรือขายให้กับบุคคลที่สาม</p>
+                  </div>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500 italic">
+                หมายเหตุ: คุณสามารถลบประวัติการสนทนาของคุณได้ตลอดเวลาผ่านเมนูด้านซ้าย
+              </p>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-200 px-6 py-4 bg-gray-50">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handleAcceptPrivacy}
+                  className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                >
+                  <Check className="w-5 h-5" />
+                  ยอมรับและเริ่มใช้งาน
+                </button>
+              </div>
+              <p className="text-center text-xs text-gray-500 mt-3">
+                การกดปุ่ม "ยอมรับและเริ่มใช้งาน" ถือว่าคุณยอมรับนโยบายความเป็นส่วนตัวของเรา
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="max-w-screen-2xl mx-auto flex h-[calc(100vh-64px)] overflow-hidden">
         {/* Mobile Sidebar Overlay */}
