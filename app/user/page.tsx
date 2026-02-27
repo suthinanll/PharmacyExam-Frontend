@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar_user';
 import Footer from '@/components/Footer';
 import NewsCard from '@/components/์News';
 import SearchBar from "@/components/SearchBar";
-import { ChevronRight, AlarmClock, Flame, Info, Calendar } from 'lucide-react';
+import { ChevronRight, AlarmClock, Flame, Info, Calendar, LayoutGrid, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 // --- Data & Sub-components (University Leaderboard) ---
@@ -87,8 +87,8 @@ const Page = () => {
   const [realNews, setRealNews] = useState<any[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
   const [bookmarkIds, setBookmarkIds] = useState<number[]>([]);
+  const [upcomingExams, setUpcomingExams] = useState<any[]>([]);
 
-  // ✅ ปรับปรุงการ Toggle Bookmark ให้ทำงานลื่นไหล
   const handleBookmarkToggle = async (articleId: number) => {
     try {
       const token = getToken(); // 2. Use getToken()
@@ -112,6 +112,9 @@ const Page = () => {
       const headers = { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
       const now = Date.now();
       const resSched = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules`, { headers });
+
+      const todayStr = new Date().toDateString();
+
       if (resSched.ok) {
         const data = await resSched.json();
         const allExams = data
@@ -215,7 +218,7 @@ const Page = () => {
 
               <div className={`max-w-2xl w-full p-5 rounded-2xl flex items-center gap-4 border-l-8 mb-8 ${isExamStarted ? 'bg-red-50 border-red-500 text-red-700' : 'bg-gray-50 border-blue-600 text-gray-600'}`}>
                 <Info className="flex-shrink-0 text-blue-500" size={24} />
-                <p className="text-left text-sm md:text-base italic font-medium leading-relaxed">"{targetDesc}"</p>
+                <p className="text-left text-sm md:text-base italic font-medium leading-relaxed">&quot;{targetDesc}&quot;</p>
               </div>
 
               <a href="/user/calendar" className="inline-flex items-center justify-center px-10 py-4 bg-gray-900 hover:bg-blue-700 text-white rounded-2xl font-black text-sm transition-all gap-2 group shadow-lg hover:scale-105">
@@ -273,6 +276,4 @@ const Page = () => {
 
 export default Page;
 
-function setUpcomingExams(arg0: any) {
-  throw new Error('Function not implemented.');
-}
+
