@@ -18,12 +18,12 @@ import {
     ListOrdered,
     Quote,
     Minus,
-    Sparkles, // เพิ่มไอคอนสำหรับ AI
+    Zap,
+    Link as LinkIcon
 } from "lucide-react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from '@/contexts/AuthContext';
-
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -35,6 +35,8 @@ interface BlogFormData {
     imageUrl: string;
     content: string;
     categoryIds: number[];
+    sourceUrl?: string;
+    author_id?: number;
 }
 
 const TiptapToolbar = ({ editor }: { editor: any }) => {
@@ -56,47 +58,23 @@ const TiptapToolbar = ({ editor }: { editor: any }) => {
 
     return (
         <div className="flex flex-wrap gap-1 pb-2 mb-3 border-b border-gray-100 sticky top-0 bg-white z-10">
-            <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleBold().run()}
-                className={btnClass("bold")}
-            >
+            <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={btnClass("bold")}>
                 <Bold className="w-4 h-4" />
             </button>
-            <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-                className={btnClass("italic")}
-            >
+            <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={btnClass("italic")}>
                 <Italic className="w-4 h-4" />
             </button>
             <div className="w-[1px] h-4 bg-gray-200 mx-1 self-center" />
-            <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-                className={btnClass("bulletList")}
-            >
+            <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} className={btnClass("bulletList")}>
                 <ListIcon className="w-4 h-4" />
             </button>
-            <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                className={btnClass("orderedList")}
-            >
+            <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={btnClass("orderedList")}>
                 <ListOrdered className="w-4 h-4" />
             </button>
-            <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                className={btnClass("blockquote")}
-            >
+            <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={btnClass("blockquote")}>
                 <Quote className="w-4 h-4" />
             </button>
-            <button
-                type="button"
-                onClick={() => editor.chain().focus().setHorizontalRule().run()}
-                className="p-1.5 text-gray-500 hover:bg-gray-100 rounded"
-            >
+            <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded">
                 <Minus className="w-4 h-4" />
             </button>
             <button type="button" onClick={addLink} className={btnClass("link")}>
@@ -176,10 +154,8 @@ const DraftCard = ({
                         <Link2 className="w-4 h-4 text-gray-400" />
                         <input
                             type="text"
-                            value={draft.sourceUrl}
-                            onChange={(e) =>
-                                onUpdate(draft.tempId, "sourceUrl", e.target.value)
-                            }
+                            value={draft.sourceUrl || ""}
+                            onChange={(e) => onUpdate(draft.tempId, "sourceUrl", e.target.value)}
                             placeholder="ลิงก์แหล่งข่าว (Facebook / เว็บไซต์อ้างอิง)..."
                             className="w-full text-sm text-blue-600 placeholder-gray-300 border-none p-0 focus:ring-0 bg-transparent"
                         />
@@ -192,32 +168,16 @@ const DraftCard = ({
                         className="relative aspect-video bg-gray-50 rounded-2xl overflow-hidden border-2 border-dashed border-gray-200 flex items-center justify-center group/img cursor-pointer hover:bg-gray-100 transition-colors"
                     >
                         {draft.imageUrl ? (
-                            <img
-                                src={draft.imageUrl}
-                                alt="Preview"
-                                className="w-full h-full object-cover"
-                            />
+                            <img src={draft.imageUrl} alt="Preview" className="w-full h-full object-cover" />
                         ) : (
                             <div className="text-center text-gray-400">
                                 <Upload className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                                <p className="text-[10px] font-bold uppercase tracking-widest">
-                                    Upload Cover
-                                </p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest">Upload Cover</p>
                             </div>
                         )}
-                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                            <ImageIcon className="text-white w-6 h-6" />
-                        </div>
                     </div>
 
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        accept="image/*"
-                    />
-
+                    <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
                     <input
                         type="text"
                         placeholder="หรือวาง URL รูปภาพ..."
@@ -234,19 +194,25 @@ const DraftCard = ({
 function AddBlogPage() {
     const { getToken } = useAuth();
     const router = useRouter();
-    const [formData, setFormData] = useState<BlogFormData>({
-        title: '',
-        imageUrl: '',
-        content: '',
-        categoryIds: [1],
-    });
+
+    // แก้ไข: ใช้ drafts เป็น state หลักเพื่อให้สอดคล้องกับฟังก์ชันที่มี
+    const [drafts, setDrafts] = useState<BlogFormData[]>([
+        {
+            tempId: Date.now(),
+            title: "",
+            imageUrl: "",
+            content: "",
+            categoryIds: [1],
+            sourceUrl: "",
+            author_id: 10
+        }
+    ]);
 
     const [isSaving, setIsSaving] = useState(false);
-    const [isFetching, setIsFetching] = useState(false); // สถานะ Loading สำหรับ AI
 
     const addNewDraft = () => {
-        setDrafts([
-            ...drafts,
+        setDrafts(prev => [
+            ...prev,
             {
                 tempId: Date.now(),
                 title: "",
@@ -261,7 +227,7 @@ function AddBlogPage() {
 
     const removeDraft = (tempId: number) => {
         if (drafts.length === 1) return;
-        setDrafts(drafts.filter((d) => d.tempId !== tempId));
+        setDrafts(prev => prev.filter((d) => d.tempId !== tempId));
     };
 
     const updateDraft = useCallback(
@@ -273,97 +239,36 @@ function AddBlogPage() {
         [],
     );
 
-    // app\admin\mnblog\addblog\page.tsx
-
-    const handleAutoFetch = async () => {
-        const url = window.prompt("วางลิงก์หน้าเพจ หรือลิงก์โพสต์ Facebook:");
-        if (!url) return;
-
-        setIsFetching(true);
-        try {
-            const token = getToken();
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/latest`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            }); // ปรับ Endpoint ตามจริง
-            if (!response.ok) throw new Error("ไม่สามารถดึงข้อมูลได้");
-
-            const response = await fetch("http://localhost:5000/news/auto-fetch", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ url }),
-            });
-
-            if (!response.ok) {
-                if (response.status === 401) {
-                    throw new Error("คุณไม่มีสิทธิ์เข้าถึง หรือไม่ได้เข้าสู่ระบบ");
-                }
-                throw new Error("ไม่สามารถดึงข้อมูลได้ (Backend Error)");
-            }
-
-            // รับข้อมูลซึ่งตอนนี้จะเป็น Array [ {title, content}, ... ]
-            const data = await response.json();
-
-            if (Array.isArray(data) && data.length > 0) {
-                // แปลงข้อมูลที่ได้จาก AI ให้เข้ากับรูปแบบ BlogFormData ของเรา
-                const newItems: BlogFormData[] = data.map((item: any, idx: number) => ({
-                    // ใช้ Date.now() บวกกับ index และเลขสุ่มเพื่อให้ ID ไม่ซ้ำกันแน่นอน
-                    tempId: Date.now() + idx + Math.floor(Math.random() * 1000),
-                    title: item.title || "หัวข้อข่าวอัตโนมัติ",
-                    content: item.content ? `<p>${item.content}</p>` : "",
-                    imageUrl: "", // รูปภาพจาก FB Scraping ดึงยาก แนะนำให้แอดมินอัปโหลดเอง
-                    sourceUrl: url,
-                    author_id: 10,
-                    categoryIds: [1],
-                }));
-
-                // เอาข่าวใหม่ที่ดึงได้ (newItems) ไปวางข้างหน้า drafts เดิมที่มีอยู่
-                // ถ้าไม่อยากให้เหลือ Card เปล่าอันแรก ให้กรองอันที่ว่างออกได้ครับ
-                setDrafts((prev) => {
-                    const filteredPrev = prev.filter(
-                        (d) => d.title !== "" || d.content !== "",
-                    );
-                    return [...newItems, ...filteredPrev];
-                });
-
-                alert(`ดึงข้อมูลสำเร็จ! พบทั้งหมด ${newItems.length} รายการ`);
-            } else {
-                alert("ไม่พบข้อมูลข่าวที่สรุปได้จากลิงก์นี้");
-            }
-        } catch (error: any) {
-            console.error("Fetch Error:", error);
-            alert("เกิดข้อผิดพลาด: " + error.message);
-        } finally {
-            setIsFetching(false);
-        }
-    };
+ 
 
     const handleSubmitAll = async () => {
+        if (drafts.some(d => !d.title)) {
+            alert("กรุณากรอกหัวข้อข่าวให้ครบทุกรายการ");
+            return;
+        }
+
         setIsSaving(true);
         try {
             const token = getToken();
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    title: formData.title,
-                    content: formData.content,
-                    cover_image_url: formData.imageUrl,
-                    categoryIds: formData.categoryIds,
-                    status: 'PUBLISHED'
-                }),
-            });
+            // ตัวอย่าง: ส่งทีละรายการ (หรือปรับเป็น Bulk Insert ตาม Backend)
+            for (const draft of drafts) {
+                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title: draft.title,
+                        content: draft.content,
+                        cover_image_url: draft.imageUrl,
+                        categoryIds: draft.categoryIds,
+                        status: 'PUBLISHED'
+                    }),
+                });
+            }
 
-            if (!response.ok) throw new Error("เกิดข้อผิดพลาดในการบันทึก");
-
-            alert("บันทึกข่าวสารเรียบร้อยแล้ว!");
+            alert("บันทึกข่าวสารทั้งหมดเรียบร้อยแล้ว!");
             router.push('/admin/mnblog');
         } catch (error: any) {
             alert(error.message);
@@ -385,32 +290,19 @@ function AddBlogPage() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm gap-4">
                     <div>
                         <h1 className="text-2xl font-black text-gray-800 flex items-center gap-3">
-                            <FileText className="w-8 h-8 text-green-600" /> เพิ่มข่าวสาร
+                            <FileText className="w-8 h-8 text-green-600" /> จัดการคิวข่าวสาร
                         </h1>
                     </div>
                     <div className="flex gap-2 w-full md:w-auto">
                         <button
-                            onClick={handleAutoFetch}
-                            disabled={isFetching}
-                            className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-50 text-blue-600 rounded-xl font-bold border border-blue-100 hover:bg-blue-100 disabled:opacity-50 transition-all"
+                            onClick={handleSubmitAll}
+                            disabled={isSaving || drafts.length === 0}
+                            className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg text-white transition-all shadow-md ${isSaving ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'}`}
                         >
-                            {isFetching ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                                <Sparkles className="w-5 h-5" />
-                            )}
-                            ดึงข้อมูลอัตโนมัติ
+                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                            <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกทั้งหมด'}</span>
                         </button>
-
-                    <button
-                        onClick={handleSubmit}
-                        disabled={isSaving || isGenerating || !formData.title}
-                        className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg text-white transition-all shadow-md ${isSaving || isGenerating ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'
-                            }`}
-                    >
-                        {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                        <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกข่าวสาร'}</span>
-                    </button>
+                    </div>
                 </div>
 
                 <div className="space-y-6">
@@ -422,82 +314,9 @@ function AddBlogPage() {
                             onUpdate={updateDraft}
                             onRemove={removeDraft}
                         />
-                    </div>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* จัดการรูปภาพผ่าน URL */}
-                        <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                            <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">ลิงก์รูปภาพหน้าปก (Image URL)</label>
-
-                            <div className="relative mb-4">
-                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <input
-                                    name="imageUrl"
-                                    type="text"
-                                    value={formData.imageUrl}
-                                    onChange={handleInputChange}
-                                    placeholder="วางลิงก์รูปภาพ https://..."
-                                    className="w-full border border-gray-300 rounded-lg pl-10 pr-3 py-3 focus:ring-2 focus:ring-green-500 outline-none transition-all"
-                                />
-                            </div>
-
-                            {/* Preview Window */}
-                            <div className="relative border-2 border-dashed border-gray-200 rounded-xl overflow-hidden aspect-[16/9] bg-gray-50 flex flex-col items-center justify-center">
-                                {formData.imageUrl ? (
-                                    <>
-                                        <img
-                                            src={formData.imageUrl}
-                                            alt="Preview"
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/800x450/eeeeee/999999?text=Invalid+Image+URL"; }}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, imageUrl: '' })}
-                                            className="absolute top-3 right-3 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-xl transition-all"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
-                                    </>
-                                ) : (
-                                    <div className="text-center text-gray-400">
-                                        <ImageIcon className="w-14 h-14 mx-auto mb-3 opacity-20" />
-                                        <p className="text-sm font-medium">รอการแสดงตัวอย่างรูปภาพจากลิงก์ของคุณ...</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        {/* ปุ่ม AI ดึงข้อมูลด่วน */}
-                        <div className="lg:col-span p-8 rounded-xl shadow-lg flex flex-col justify-center items-center text-center text-black">
-                            <div className="bg-gray-100 p-4 rounded-full mb-4 backdrop-blur-sm">
-                                <Zap className="w-10 h-10 text-yellow-300 fill-yellow-300" />
-                            </div>
-                            <h3 className="text-xl font-bold mb-2">Smart Auto-Fetch</h3>
-                            <p className="text-sm text-black-100 mb-8 leading-relaxed">
-                                ช่วยคุณเขียนข่าวได้ไวขึ้น 10 เท่า! <br /> ดึงข้อมูลและรูปภาพจากระบบล่าสุดมาให้อัตโนมัติ
-                            </p>
-                            <button
-                                type="button"
-                                onClick={handleAutoGenerate}
-                                disabled={isGenerating}
-                                className={`flex items-center justify-center gap-2 px-8 py-4 text-sm font-normal rounded-full transition-all w-full shadow-2xl ${isGenerating ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 active:scale-95 cursor-pointer'
-                                    }`}
-                            >
-                                {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
-                                {isGenerating ? 'กำลังโหลดข่าว...' : 'ดึงข้อมูลอัตโนมัติ'}
-                            </button>
-                        </div>
-                    </div>
-                    {/* เนื้อหาข่าว */}
-                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <label className="block text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide">รายละเอียดเนื้อหาข่าวสาร</label>
-                        <DummyTextEditor
-                            content={formData.content}
-                            setContent={(c) => setFormData({ ...formData, content: c })}
-                            isGenerating={isGenerating}
-                        />
-                    </div>
+                    ))}
                 </div>
+
                 <button
                     onClick={addNewDraft}
                     className="mt-8 w-full py-4 border-2 border-dashed border-gray-300 rounded-3xl text-gray-400 hover:text-green-600 hover:border-green-300 hover:bg-green-50 transition-all flex items-center justify-center gap-2 font-bold"
