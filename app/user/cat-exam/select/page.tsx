@@ -46,7 +46,7 @@ export default function CATSetupPage() {
     const [loading, setLoading] = useState(true);
 
     // Config State
-    const [minItems, setMinItems] = useState(20);
+    const [minItems, setMinItems] = useState(5); // ลดเพื่อ testing (production ควรใช้ 20+)
     const [maxItems, setMaxItems] = useState(60);
     const [difficulty, setDifficulty] = useState(0.0);
     const [useAbility, setUseAbility] = useState(false);

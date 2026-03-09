@@ -1,16 +1,26 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from "react";
 import Navbar_admin from "@/components/Navbar_admin";
-import { Plus, Edit2, Trash2, ChevronDown, ChevronRight, BookOpen, List, Loader2, X } from 'lucide-react';
-import Swal from 'sweetalert2';
-import { useAuth } from '@/contexts/AuthContext';
+import {
+    Plus, Edit2, Trash2, ChevronDown, ChevronRight,
+    BookOpen, List, Loader2, X, PieChart as PieChartIcon,
+    LayoutGrid, Table as TableIcon, Search, ArrowUpDown
+} from "lucide-react";
+import Swal from "sweetalert2";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+    PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
+    BarChart, Bar, XAxis, YAxis, CartesianGrid
+} from "recharts";
 
+// ─── Types ───────────────────────────────────────────
 interface SubTopic {
     sub_topic_id: number;
     topic_id: number;
     sub_topic_name: string;
     description?: string;
+    item_count?: number;
 }
 
 interface Topic {
@@ -18,15 +28,27 @@ interface Topic {
     topic_name: string;
     description?: string;
     sub_topics: SubTopic[];
+    item_count?: number;
+}
+
+interface TopicStats {
+    total_items: number;
+    by_topic: Topic[];
 }
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
+const COLORS = [
+    "#10B981", "#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6",
+    "#EC4899", "#6366F1", "#14B8A6", "#F97316", "#06B6D4"
+];
 
 export default function ManageTopicsPage() {
-    const { isAuthenticated, isLoading: authLoading, getToken } = useAuth();
-    const [topics, setTopics] = useState<Topic[]>([]);
+    const { getToken } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [stats, setStats] = useState<TopicStats | null>(null);
+    const [viewMode, setViewMode] = useState<"table" | "card">("table");
     const [expandedTopics, setExpandedTopics] = useState<Set<number>>(new Set());
+    const [searchTerm, setSearchTerm] = useState("");
 
     // Modal states
     const [showTopicModal, setShowTopicModal] = useState(false);
@@ -36,607 +58,491 @@ export default function ManageTopicsPage() {
     const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
 
     // Form states
-    const [topicName, setTopicName] = useState('');
-    const [topicDescription, setTopicDescription] = useState('');
-    const [subTopicName, setSubTopicName] = useState('');
-    const [subTopicDescription, setSubTopicDescription] = useState('');
+    const [topicName, setTopicName] = useState("");
+    const [topicDesc, setTopicDesc] = useState("");
+    const [subTopicName, setSubTopicName] = useState("");
+    const [subTopicDesc, setSubTopicDesc] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
-    useEffect(() => {
-        if (!authLoading && isAuthenticated) {
-            fetchTopics();
-        } else if (!authLoading && !isAuthenticated) {
-            setLoading(false);
-        }
-    }, [authLoading, isAuthenticated]);
-
-    const fetchTopics = async () => {
+    // Fetch Data
+    const fetchStats = useCallback(async () => {
         try {
             setLoading(true);
-            const token = getToken();
-            const response = await fetch(`${API_URL}/topics`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
-                credentials: 'include'
+            const res = await fetch(`${API_URL}/topics/stats`, {
+                headers: { Authorization: `Bearer ${getToken()}` },
+                credentials: "include",
             });
-
-            if (response.ok) {
-                const data = await response.json();
-                setTopics(data);
+            if (res.ok) {
+                const data = await res.json();
+                setStats(data);
             }
         } catch (error) {
-            console.error('Error fetching topics:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถโหลดข้อมูลหัวข้อได้'
-            });
+            console.error("Error fetching stats:", error);
+            Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: "ไม่สามารถโหลดข้อมูลได้" });
         } finally {
             setLoading(false);
         }
+    }, [getToken]);
+
+    useEffect(() => {
+        fetchStats();
+        const savedView = localStorage.getItem("topic_viewmode") as "list" | "chart";
+        if (savedView) setViewMode(savedView);
+    }, [fetchStats]);
+
+    const switchView = (mode: "table" | "card") => {
+        setViewMode(mode);
+        localStorage.setItem("topic_viewmode", mode);
     };
 
-    const toggleTopic = (topicId: number) => {
-        const newExpanded = new Set(expandedTopics);
-        if (newExpanded.has(topicId)) {
-            newExpanded.delete(topicId);
-        } else {
-            newExpanded.add(topicId);
-        }
-        setExpandedTopics(newExpanded);
+    const toggleTopic = (id: number) => {
+        const newSet = new Set(expandedTopics);
+        if (newSet.has(id)) newSet.delete(id);
+        else newSet.add(id);
+        setExpandedTopics(newSet);
     };
 
+    // ─── Handlers ───
     const handleCreateTopic = () => {
         setEditingTopic(null);
-        setTopicName('');
-        setTopicDescription('');
+        setTopicName("");
+        setTopicDesc("");
         setShowTopicModal(true);
     };
 
-    const handleEditTopic = (topic: Topic) => {
-        setEditingTopic(topic);
-        setTopicName(topic.topic_name);
-        setTopicDescription(topic.description || '');
+    const handleEditTopic = (t: Topic) => {
+        setEditingTopic(t);
+        setTopicName(t.topic_name);
+        setTopicDesc(t.description || "");
         setShowTopicModal(true);
     };
 
-    const handleCreateSubTopic = (topicId: number) => {
+    const handleCreateSubTopic = (tid: number) => {
         setEditingSubTopic(null);
-        setSelectedTopicId(topicId);
-        setSubTopicName('');
-        setSubTopicDescription('');
+        setSelectedTopicId(tid);
+        setSubTopicName("");
+        setSubTopicDesc("");
         setShowSubTopicModal(true);
     };
 
-    const handleEditSubTopic = (subTopic: SubTopic) => {
-        setEditingSubTopic(subTopic);
-        setSelectedTopicId(subTopic.topic_id);
-        setSubTopicName(subTopic.sub_topic_name);
-        setSubTopicDescription(subTopic.description || '');
+    const handleEditSubTopic = (st: SubTopic) => {
+        setEditingSubTopic(st);
+        setSelectedTopicId(st.topic_id);
+        setSubTopicName(st.sub_topic_name);
+        setSubTopicDesc(st.description || "");
         setShowSubTopicModal(true);
+    };
+
+    const handleDeleteTopic = async (t: Topic) => {
+        const result = await Swal.fire({
+            title: "ยืนยันการลบ?",
+            html: `ต้องการลบหัวข้อ "<strong>${t.topic_name}</strong>" หรือไม่?<br/><span class="text-red-500 text-sm">หัวข้อย่อยทั้งหมดจะถูกลบด้วย</span>`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef4444",
+            confirmButtonText: "ลบเลย",
+            cancelButtonText: "ยกเลิก"
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await fetch(`${API_URL}/topics/${t.topic_id}`, {
+                    method: "DELETE",
+                    headers: { Authorization: `Bearer ${getToken()}` },
+                });
+                fetchStats();
+                Swal.fire("สำเร็จ", "ลบหัวข้อเรียบร้อย", "success");
+            } catch (e) {
+                Swal.fire("Error", "ไม่สามารถลบได้", "error");
+            }
+        }
+    };
+
+    const handleDeleteSubTopic = async (st: SubTopic) => {
+        const result = await Swal.fire({
+            title: "ยืนยันการลบ?",
+            text: `ต้องการลบหัวข้อย่อย "${st.sub_topic_name}" หรือไม่?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef4444",
+            confirmButtonText: "ลบเลย",
+            cancelButtonText: "ยกเลิก"
+        });
+
+        if (result.isConfirmed) {
+            try {
+                await fetch(`${API_URL}/topics/sub-topic/${st.sub_topic_id}`, {
+                    method: "DELETE",
+                    headers: { Authorization: `Bearer ${getToken()}` },
+                });
+                fetchStats();
+                Swal.fire("สำเร็จ", "ลบหัวข้อย่อยเรียบร้อย", "success");
+            } catch (e) {
+                Swal.fire("Error", "ไม่สามารถลบได้", "error");
+            }
+        }
     };
 
     const submitTopic = async () => {
-        if (!topicName.trim()) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'กรุณากรอกข้อมูล',
-                text: 'กรุณากรอกชื่อหัวข้อหลัก'
-            });
-            return;
-        }
-
+        if (!topicName.trim()) return;
         setSubmitting(true);
         try {
-            const url = editingTopic
-                ? `${API_URL}/topics/${editingTopic.topic_id}`
-                : `${API_URL}/topics`;
-
-            const method = editingTopic ? 'PATCH' : 'POST';
-
-            const response = await fetch(url, {
+            const url = editingTopic ? `${API_URL}/topics/${editingTopic.topic_id}` : `${API_URL}/topics`;
+            const method = editingTopic ? "PATCH" : "POST";
+            const res = await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getToken()}`
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    topic_name: topicName,
-                    description: topicDescription || undefined
-                })
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+                body: JSON.stringify({ topic_name: topicName, description: topicDesc || undefined })
             });
-
-            if (response.ok) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'สำเร็จ!',
-                    text: editingTopic ? 'แก้ไขหัวข้อหลักเรียบร้อย' : 'สร้างหัวข้อหลักเรียบร้อย',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
+            if (res.ok) {
                 setShowTopicModal(false);
-                fetchTopics();
-            } else {
-                throw new Error('Failed to save topic');
+                fetchStats();
+                Swal.fire("สำเร็จ", "บันทึกข้อมูลเรียบร้อย", "success");
             }
-        } catch (error) {
-            console.error('Error saving topic:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถบันทึกหัวข้อได้'
-            });
+        } catch {
+            Swal.fire("Error", "บันทึกไม่สำเร็จ", "error");
         } finally {
             setSubmitting(false);
         }
     };
 
     const submitSubTopic = async () => {
-        if (!subTopicName.trim()) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'กรุณากรอกข้อมูล',
-                text: 'กรุณากรอกชื่อหัวข้อย่อย'
-            });
-            return;
-        }
-
+        if (!subTopicName.trim()) return;
         setSubmitting(true);
         try {
             const url = editingSubTopic
                 ? `${API_URL}/topics/sub-topic/${editingSubTopic.sub_topic_id}`
                 : `${API_URL}/topics/${selectedTopicId}/sub-topics`;
-
-            const method = editingSubTopic ? 'PATCH' : 'POST';
-
-            const response = await fetch(url, {
+            const method = editingSubTopic ? "PATCH" : "POST";
+            const res = await fetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getToken()}`
-                },
-                credentials: 'include',
-                body: JSON.stringify({
-                    sub_topic_name: subTopicName,
-                    description: subTopicDescription || undefined
-                })
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+                body: JSON.stringify({ sub_topic_name: subTopicName, description: subTopicDesc || undefined })
             });
-
-            if (response.ok) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'สำเร็จ!',
-                    text: editingSubTopic ? 'แก้ไขหัวข้อย่อยเรียบร้อย' : 'สร้างหัวข้อย่อยเรียบร้อย',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
+            if (res.ok) {
                 setShowSubTopicModal(false);
-                fetchTopics();
-            } else {
-                throw new Error('Failed to save subtopic');
+                fetchStats();
+                Swal.fire("สำเร็จ", "บันทึกข้อมูลเรียบร้อย", "success");
             }
-        } catch (error) {
-            console.error('Error saving subtopic:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถบันทึกหัวข้อย่อยได้'
-            });
+        } catch {
+            Swal.fire("Error", "บันทึกไม่สำเร็จ", "error");
         } finally {
             setSubmitting(false);
         }
     };
 
-    const handleDeleteTopic = async (topic: Topic) => {
-        const result = await Swal.fire({
-            title: 'คุณแน่ใจหรือไม่?',
-            html: `ต้องการลบหัวข้อ "<strong>${topic.topic_name}</strong>" ใช่หรือไม่?<br/><span class="text-red-600">จะลบหัวข้อย่อยทั้งหมด (${topic.sub_topics.length} รายการ) ด้วย</span>`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'ใช่, ลบเลย!',
-            cancelButtonText: 'ยกเลิก',
-            reverseButtons: true
-        });
+    // Filter Data
+    const filteredTopics = stats?.by_topic.filter(t =>
+        t.topic_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        t.sub_topics.some(st => st.sub_topic_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    ) || [];
 
-        if (!result.isConfirmed) return;
+    // Chart Data Preparation
+    const topicPieData = stats?.by_topic.map(t => ({
+        name: t.topic_name,
+        value: t.item_count || 0
+    })).filter(d => d.value > 0) || [];
 
-        try {
-            const response = await fetch(`${API_URL}/topics/${topic.topic_id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${getToken()}`
-                },
-                credentials: 'include'
-            });
-
-            if (response.ok) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'ลบสำเร็จ!',
-                    text: 'ลบหัวข้อหลักเรียบร้อยแล้ว',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                fetchTopics();
-            } else {
-                throw new Error('Failed to delete topic');
-            }
-        } catch (error) {
-            console.error('Error deleting topic:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถลบหัวข้อได้'
-            });
-        }
-    };
-
-    const handleDeleteSubTopic = async (subTopic: SubTopic) => {
-        const result = await Swal.fire({
-            title: 'คุณแน่ใจหรือไม่?',
-            text: `ต้องการลบหัวข้อย่อย "${subTopic.sub_topic_name}" ใช่หรือไม่?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'ใช่, ลบเลย!',
-            cancelButtonText: 'ยกเลิก',
-            reverseButtons: true
-        });
-
-        if (!result.isConfirmed) return;
-
-        try {
-            const response = await fetch(`${API_URL}/topics/sub-topic/${subTopic.sub_topic_id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${getToken()}`
-                },
-                credentials: 'include'
-            });
-
-            if (response.ok) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'ลบสำเร็จ!',
-                    text: 'ลบหัวข้อย่อยเรียบร้อยแล้ว',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                fetchTopics();
-            } else {
-                throw new Error('Failed to delete subtopic');
-            }
-        } catch (error) {
-            console.error('Error deleting subtopic:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาด',
-                text: 'ไม่สามารถลบหัวข้อย่อยได้'
-            });
-        }
-    };
-
-    if (loading) {
-        return (
-            <Navbar_admin>
-                <div className="flex items-center justify-center min-h-screen">
-                    <div className="text-center">
-                        <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
-                        <p className="text-gray-600 font-medium">กำลังโหลดข้อมูล...</p>
-                    </div>
-                </div>
-            </Navbar_admin>
-        );
-    }
+    const subTopicPieData = stats?.by_topic.flatMap(t =>
+        t.sub_topics.map(st => ({
+            name: st.sub_topic_name,
+            value: st.item_count || 0,
+            topicName: t.topic_name
+        }))
+    ).filter(d => d.value > 0).sort((a, b) => b.value - a.value).slice(0, 10) || []; // Top 10 subtopics
 
     return (
         <Navbar_admin>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" suppressHydrationWarning>
+
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">
-                                จัดการหัวข้อ
-                            </h1>
-                            <p className="text-sm sm:text-base text-gray-600">
-                                จัดการหัวข้อหลักและหัวข้อย่อยสำหรับข้อสอบ
+                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">จัดการหัวข้อข้อสอบ</h1>
+                            <p className="text-gray-500 text-sm">
+                                จัดการ Topic/Sub-Topic และดูสัดส่วนข้อสอบทั้งหมด ({stats?.total_items || 0} ข้อ)
                             </p>
                         </div>
-                        <button
-                            onClick={handleCreateTopic}
-                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
-                        >
-                            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                            เพิ่มหัวข้อหลัก
+                        <button onClick={handleCreateTopic}
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md">
+                            <Plus size={18} /> เพิ่มหัวข้อหลัก
                         </button>
                     </div>
                 </div>
 
-                {/* Stats */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6">
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 sm:p-6 border border-green-200">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-green-600 font-medium mb-1 text-sm sm:text-base">หัวข้อหลัก</p>
-                                <p className="text-2xl sm:text-3xl font-bold text-green-700">{topics.length}</p>
-                            </div>
-                            <BookOpen className="w-10 h-10 sm:w-12 sm:h-12 text-green-600 opacity-50" />
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+                        <div className="p-3 bg-green-50 text-green-600 rounded-lg"><BookOpen size={24} /></div>
+                        <div>
+                            <p className="text-xs text-gray-500 font-medium uppercase">หัวข้อหลัก (Topic)</p>
+                            <h3 className="text-2xl font-bold text-gray-900">{stats?.by_topic.length || 0}</h3>
                         </div>
                     </div>
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 sm:p-6 border border-blue-200">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-blue-600 font-medium mb-1 text-sm sm:text-base">หัวข้อย่อย</p>
-                                <p className="text-2xl sm:text-3xl font-bold text-blue-700">
-                                    {topics.reduce((sum, topic) => sum + topic.sub_topics.length, 0)}
-                                </p>
-                            </div>
-                            <List className="w-10 h-10 sm:w-12 sm:h-12 text-blue-600 opacity-50" />
+                    <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+                        <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><List size={24} /></div>
+                        <div>
+                            <p className="text-xs text-gray-500 font-medium uppercase">หัวข้อย่อย (Sub-Topic)</p>
+                            <h3 className="text-2xl font-bold text-gray-900">
+                                {stats?.by_topic.reduce((a, b) => a + b.sub_topics.length, 0) || 0}
+                            </h3>
+                        </div>
+                    </div>
+                    <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
+                        <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><PieChartIcon size={24} /></div>
+                        <div>
+                            <p className="text-xs text-gray-500 font-medium uppercase">จำนวนข้อสอบรวม</p>
+                            <h3 className="text-2xl font-bold text-gray-900">{stats?.total_items || 0}</h3>
                         </div>
                     </div>
                 </div>
 
-                {/* Topics List */}
-                {topics.length === 0 ? (
-                    <div className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-8 sm:p-12 text-center">
-                        <BookOpen className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg sm:text-xl font-bold text-gray-700 mb-2">ยังไม่มีหัวข้อ</h3>
-                        <p className="text-sm sm:text-base text-gray-500 mb-6">เริ่มต้นสร้างหัวข้อหลักเพื่อจัดระเบียบข้อสอบ</p>
-                        <button
-                            onClick={handleCreateTopic}
-                            className="bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg font-semibold inline-flex items-center gap-2 text-sm sm:text-base"
-                        >
-                            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                            เพิ่มหัวข้อแรก
+                {/* Toolbar */}
+                <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center bg-white p-3 rounded-2xl border border-gray-200 shadow-sm">
+                    <div className="relative w-full sm:w-80">
+                        <input
+                            type="text" placeholder="ค้นหาหัวข้อ..."
+                            value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 bg-gray-50 border-none rounded-xl focus:ring-2 focus:ring-green-500 text-sm"
+                        />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    </div>
+
+                    <div className="flex bg-gray-100 p-1 rounded-lg">
+                        <button onClick={() => switchView("list")}
+                            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === "list" ? "bg-white text-green-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+                            <List size={16} /> รายการ
                         </button>
+                        <button onClick={() => switchView("chart")}
+                            className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === "chart" ? "bg-white text-green-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>
+                            <PieChartIcon size={16} /> กราฟสัดส่วน
+                        </button>
+                    </div>
+                </div>
+
+                {loading ? (
+                    <div className="h-64 flex flex-col items-center justify-center text-gray-500">
+                        <Loader2 className="w-10 h-10 animate-spin mb-4 text-green-500" />
+                        <p>กำลังโหลดข้อมูล...</p>
                     </div>
                 ) : (
-                    <div className="space-y-4">
-                        {topics.map((topic) => {
-                            const isExpanded = expandedTopics.has(topic.topic_id);
-                            return (
-                                <div key={topic.topic_id} className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                                    {/* Topic Header */}
-                                    <div className="bg-gradient-to-r from-green-600 to-green-700 px-4 sm:px-6 py-3 sm:py-4">
-                                        <div className="flex items-center justify-between gap-2 sm:gap-4">
-                                            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-                                                <button
-                                                    onClick={() => toggleTopic(topic.topic_id)}
-                                                    className="p-1 sm:p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors flex-shrink-0"
+                    <>
+                        {/* VIEW MODE: CHART */}
+                        {viewMode === "chart" && (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 animate-in fade-in zoom-in duration-300">
+                                {/* Topic Distribution */}
+                                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                                    <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                        <PieChartIcon className="text-green-500" size={20} /> สัดส่วนข้อสอบแยกตาม Topic
+                                    </h3>
+                                    <div className="h-[300px]">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <PieChart>
+                                                <Pie
+                                                    data={topicPieData}
+                                                    cx="50%" cy="50%"
+                                                    innerRadius={60} outerRadius={100}
+                                                    paddingAngle={2}
+                                                    dataKey="value"
                                                 >
-                                                    {isExpanded ? (
-                                                        <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                                    ) : (
-                                                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                                    )}
-                                                </button>
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="text-base sm:text-lg font-bold text-white truncate">{topic.topic_name}</h3>
-                                                    {topic.description && (
-                                                        <p className="text-green-100 text-xs sm:text-sm mt-1 line-clamp-1">{topic.description}</p>
-                                                    )}
-                                                </div>
-                                                <div className="bg-white/20 px-2 sm:px-3 py-1 rounded-full flex-shrink-0">
-                                                    <span className="text-white text-xs sm:text-sm font-medium whitespace-nowrap">
-                                                        {topic.sub_topics.length} หัวข้อย่อย
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                                                <button
-                                                    onClick={() => handleCreateSubTopic(topic.topic_id)}
-                                                    className="p-1.5 sm:p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-                                                    title="เพิ่มหัวข้อย่อย"
-                                                >
-                                                    <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEditTopic(topic)}
-                                                    className="p-1.5 sm:p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-                                                    title="แก้ไข"
-                                                >
-                                                    <Edit2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteTopic(topic)}
-                                                    className="p-1.5 sm:p-2 bg-red-500/80 hover:bg-red-600 rounded-lg transition-colors"
-                                                    title="ลบ"
-                                                >
-                                                    <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                                </button>
-                                            </div>
-                                        </div>
+                                                    {topicPieData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip formatter={(val: number) => [`${val} ข้อ`, "จำนวน"]} />
+                                                <Legend />
+                                            </PieChart>
+                                        </ResponsiveContainer>
                                     </div>
+                                </div>
 
-                                    {/* SubTopics */}
-                                    {isExpanded && (
-                                        <div className="p-4 sm:p-6">
-                                            {topic.sub_topics.length === 0 ? (
-                                                <div className="text-center py-6 sm:py-8 border-2 border-dashed border-gray-300 rounded-lg">
-                                                    <List className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-3" />
-                                                    <p className="text-sm sm:text-base text-gray-500 mb-4">ยังไม่มีหัวข้อย่อย</p>
-                                                    <button
-                                                        onClick={() => handleCreateSubTopic(topic.topic_id)}
-                                                        className="text-green-600 hover:text-green-700 font-medium inline-flex items-center gap-1 text-sm sm:text-base"
-                                                    >
-                                                        <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
-                                                        เพิ่มหัวข้อย่อย
+                                {/* SubTopic Distribution (Bar Chart for top 10) */}
+                                <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+                                    <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                        <PieChartIcon className="text-blue-500" size={20} /> Top 10 Sub-Topics ที่มีข้อสอบมากที่สุด
+                                    </h3>
+                                    <div className="h-[300px]">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart data={subTopicPieData} layout="vertical" margin={{ left: 20 }}>
+                                                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                                                <XAxis type="number" hide />
+                                                <YAxis type="category" dataKey="name" width={120} tick={{ fontSize: 12 }} />
+                                                <Tooltip cursor={{ fill: '#f3f4f6' }} formatter={(val: number) => [`${val} ข้อ`, "จำนวน"]} />
+                                                <Bar dataKey="value" fill="#3B82F6" radius={[0, 4, 4, 0]}>
+                                                    {subTopicPieData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                                                    ))}
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* VIEW MODE: LIST (Always render filtered list if in list mode, or below charts) */}
+                        <div className={`space-y-4 ${viewMode === "chart" ? "opacity-50 hover:opacity-100 transition-opacity" : ""}`}>
+                            {filteredTopics.length === 0 ? (
+                                <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
+                                    <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                                    <p className="text-gray-500">ไม่พบหัวข้อที่ค้นหา</p>
+                                </div>
+                            ) : (
+                                filteredTopics.map((topic) => {
+                                    const isExpanded = expandedTopics.has(topic.topic_id);
+                                    return (
+                                        <div key={topic.topic_id} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden transition-all hover:shadow-md">
+                                            {/* Topic Header Row */}
+                                            <div className="flex items-center p-4 gap-4 bg-gray-50/50 hover:bg-white transition-colors cursor-pointer"
+                                                onClick={() => toggleTopic(topic.topic_id)}>
+                                                <button className="p-1 text-gray-400 hover:text-green-600 transition-colors">
+                                                    {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                                                </button>
+                                                <div className="flex-1">
+                                                    <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                                        {topic.topic_name}
+                                                        <span className="text-xs font-normal px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
+                                                            {topic.item_count || 0} ข้อ
+                                                        </span>
+                                                    </h3>
+                                                    {topic.description && <p className="text-sm text-gray-500 mt-0.5">{topic.description}</p>}
+                                                </div>
+                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={(e) => { e.stopPropagation(); handleEditTopic(topic); }}
+                                                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteTopic(topic); }}
+                                                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg">
+                                                        <Trash2 size={16} />
                                                     </button>
                                                 </div>
-                                            ) : (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                                                    {topic.sub_topics.map((subTopic) => (
-                                                        <div
-                                                            key={subTopic.sub_topic_id}
-                                                            className="bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-md transition-shadow"
-                                                        >
-                                                            <div className="flex items-start justify-between gap-2 sm:gap-3">
-                                                                <div className="flex-1 min-w-0">
-                                                                    <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base line-clamp-2">
-                                                                        {subTopic.sub_topic_name}
-                                                                    </h4>
-                                                                    {subTopic.description && (
-                                                                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2">{subTopic.description}</p>
-                                                                    )}
+                                            </div>
+
+                                            {/* SubTopics List */}
+                                            {isExpanded && (
+                                                <div className="border-t border-gray-100 bg-white animate-in slide-in-from-top-2 duration-200">
+                                                    {topic.sub_topics.length === 0 ? (
+                                                        <div className="p-8 text-center">
+                                                            <p className="text-sm text-gray-400 mb-3">ยังไม่มีหัวข้อย่อย</p>
+                                                            <button onClick={() => handleCreateSubTopic(topic.topic_id)}
+                                                                className="text-sm text-green-600 hover:underline font-medium inline-flex items-center gap-1">
+                                                                <Plus size={14} /> เพิ่มหัวข้อย่อย
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="divide-y divide-gray-50">
+                                                            <div className="grid grid-cols-12 px-6 py-2 bg-gray-50/30 text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                                                <div className="col-span-1">#</div>
+                                                                <div className="col-span-5">ชื่อหัวข้อย่อย</div>
+                                                                <div className="col-span-2 text-center">จำนวนข้อ</div>
+                                                                <div className="col-span-4 text-right">จัดการ</div>
+                                                            </div>
+                                                            {topic.sub_topics.map((st, idx) => (
+                                                                <div key={st.sub_topic_id} className="grid grid-cols-12 px-6 py-3.5 items-center hover:bg-green-50/30 transition-colors group/row">
+                                                                    <div className="col-span-1 text-sm text-gray-400">{idx + 1}</div>
+                                                                    <div className="col-span-5">
+                                                                        <p className="text-sm font-medium text-gray-700">{st.sub_topic_name}</p>
+                                                                        <p className="text-xs text-gray-400 truncate max-w-xs">{st.description}</p>
+                                                                    </div>
+                                                                    <div className="col-span-2 text-center">
+                                                                        <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-gray-100 text-gray-600 rounded-md">
+                                                                            {st.item_count || 0}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="col-span-4 flex justify-end gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                                                                        <button onClick={() => handleEditSubTopic(st)}
+                                                                            className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg">
+                                                                            <Edit2 size={14} />
+                                                                        </button>
+                                                                        <button onClick={() => handleDeleteSubTopic(st)}
+                                                                            className="p-1.5 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg">
+                                                                            <Trash2 size={14} />
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="flex items-center gap-1 flex-shrink-0">
-                                                                    <button
-                                                                        onClick={() => handleEditSubTopic(subTopic)}
-                                                                        className="p-1 sm:p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                                                                        title="แก้ไข"
-                                                                    >
-                                                                        <Edit2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleDeleteSubTopic(subTopic)}
-                                                                        className="p-1 sm:p-1.5 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                                        title="ลบ"
-                                                                    >
-                                                                        <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                                                    </button>
-                                                                </div>
+                                                            ))}
+                                                            <div className="p-3 bg-gray-50/50 flex justify-end border-t border-gray-100">
+                                                                <button onClick={() => handleCreateSubTopic(topic.topic_id)}
+                                                                    className="text-xs text-green-600 hover:text-green-700 font-medium flex items-center gap-1 px-3 py-1.5 hover:bg-green-50 rounded-lg transition-colors">
+                                                                    <Plus size={14} /> เพิ่มหัวข้อย่อย
+                                                                </button>
                                                             </div>
                                                         </div>
-                                                    ))}
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </>
                 )}
 
-                {/* Topic Modal */}
+                {/* ─── Topic Modal ─── */}
                 {showTopicModal && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
-                            <div className="bg-green-600 px-4 sm:px-6 py-3 sm:py-4 rounded-t-xl flex items-center justify-between">
-                                <h3 className="text-lg sm:text-xl font-bold text-white">
-                                    {editingTopic ? 'แก้ไขหัวข้อหลัก' : 'เพิ่มหัวข้อหลัก'}
-                                </h3>
-                                <button
-                                    onClick={() => setShowTopicModal(false)}
-                                    className="p-1 hover:bg-white/20 rounded-lg transition-colors"
-                                >
-                                    <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                </button>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+                            <div className="bg-green-600 px-6 py-4 flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-white">{editingTopic ? "แก้ไขหัวข้อหลัก" : "เพิ่มหัวข้อหลัก"}</h3>
+                                <button onClick={() => setShowTopicModal(false)} className="text-white/80 hover:text-white"><X size={20} /></button>
                             </div>
-                            <div className="p-4 sm:p-6 space-y-4">
+                            <div className="p-6 space-y-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        ชื่อหัวข้อหลัก <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={topicName}
-                                        onChange={(e) => setTopicName(e.target.value)}
-                                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
-                                        placeholder="เช่น เภสัชวิทยา"
-                                    />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อหัวข้อ <span className="text-red-500">*</span></label>
+                                    <input type="text" value={topicName} onChange={e => setTopicName(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 text-sm" placeholder="เช่น เภสัชวิทยา" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        คำอธิบาย
-                                    </label>
-                                    <textarea
-                                        value={topicDescription}
-                                        onChange={(e) => setTopicDescription(e.target.value)}
-                                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none text-sm sm:text-base"
-                                        rows={3}
-                                        placeholder="อธิบายเกี่ยวกับหัวข้อนี้"
-                                    />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">คำอธิบาย</label>
+                                    <textarea value={topicDesc} onChange={e => setTopicDesc(e.target.value)} rows={3}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 text-sm resize-none" />
                                 </div>
                             </div>
-                            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 rounded-b-xl flex justify-end gap-3">
-                                <button
-                                    onClick={() => setShowTopicModal(false)}
-                                    className="px-4 sm:px-5 py-2 sm:py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors text-sm sm:text-base"
-                                    disabled={submitting}
-                                >
-                                    ยกเลิก
-                                </button>
-                                <button
-                                    onClick={submitTopic}
-                                    className="px-4 sm:px-5 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50 text-sm sm:text-base"
-                                    disabled={submitting}
-                                >
-                                    {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                                    {submitting ? 'กำลังบันทึก...' : 'บันทึก'}
+                            <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3">
+                                <button onClick={() => setShowTopicModal(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">ยกเลิก</button>
+                                <button onClick={submitTopic} disabled={submitting}
+                                    className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2">
+                                    {submitting && <Loader2 size={14} className="animate-spin" />} บันทึก
                                 </button>
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* SubTopic Modal */}
+                {/* ─── SubTopic Modal ─── */}
                 {showSubTopicModal && (
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full">
-                            <div className="bg-green-600 px-4 sm:px-6 py-3 sm:py-4 rounded-t-xl flex items-center justify-between">
-                                <h3 className="text-lg sm:text-xl font-bold text-white">
-                                    {editingSubTopic ? 'แก้ไขหัวข้อย่อย' : 'เพิ่มหัวข้อย่อย'}
-                                </h3>
-                                <button
-                                    onClick={() => setShowSubTopicModal(false)}
-                                    className="p-1 hover:bg-white/20 rounded-lg transition-colors"
-                                >
-                                    <X className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                                </button>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                        <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
+                            <div className="bg-green-600 px-6 py-4 flex justify-between items-center">
+                                <h3 className="text-lg font-bold text-white">{editingSubTopic ? "แก้ไขหัวข้อย่อย" : "เพิ่มหัวข้อย่อย"}</h3>
+                                <button onClick={() => setShowSubTopicModal(false)} className="text-white/80 hover:text-white"><X size={20} /></button>
                             </div>
-                            <div className="p-4 sm:p-6 space-y-4">
+                            <div className="p-6 space-y-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        ชื่อหัวข้อย่อย <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={subTopicName}
-                                        onChange={(e) => setSubTopicName(e.target.value)}
-                                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
-                                        placeholder="เช่น ยาต้านจุลชีพ"
-                                    />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อหัวข้อย่อย <span className="text-red-500">*</span></label>
+                                    <input type="text" value={subTopicName} onChange={e => setSubTopicName(e.target.value)}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 text-sm" placeholder="เช่น ยาต้านจุลชีพ" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        คำอธิบาย
-                                    </label>
-                                    <textarea
-                                        value={subTopicDescription}
-                                        onChange={(e) => setSubTopicDescription(e.target.value)}
-                                        className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none text-sm sm:text-base"
-                                        rows={3}
-                                        placeholder="อธิบายเกี่ยวกับหัวข้อย่อยนี้"
-                                    />
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">คำอธิบาย</label>
+                                    <textarea value={subTopicDesc} onChange={e => setSubTopicDesc(e.target.value)} rows={3}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 text-sm resize-none" />
                                 </div>
                             </div>
-                            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-50 rounded-b-xl flex justify-end gap-3">
-                                <button
-                                    onClick={() => setShowSubTopicModal(false)}
-                                    className="px-4 sm:px-5 py-2 sm:py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 font-medium transition-colors text-sm sm:text-base"
-                                    disabled={submitting}
-                                >
-                                    ยกเลิก
-                                </button>
-                                <button
-                                    onClick={submitSubTopic}
-                                    className="px-4 sm:px-5 py-2 sm:py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50 text-sm sm:text-base"
-                                    disabled={submitting}
-                                >
-                                    {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
-                                    {submitting ? 'กำลังบันทึก...' : 'บันทึก'}
+                            <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3">
+                                <button onClick={() => setShowSubTopicModal(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">ยกเลิก</button>
+                                <button onClick={submitSubTopic} disabled={submitting}
+                                    className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2">
+                                    {submitting && <Loader2 size={14} className="animate-spin" />} บันทึก
                                 </button>
                             </div>
                         </div>
                     </div>
                 )}
+
             </div>
         </Navbar_admin>
     );

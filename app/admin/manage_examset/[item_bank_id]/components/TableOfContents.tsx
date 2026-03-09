@@ -12,6 +12,8 @@ interface TableOfContentsProps {
     showTOC: boolean;
     setShowTOC: (show: boolean) => void;
     scrollToSituation: (index: number) => void;
+    collapsedSituations: Set<number>;
+    onExpandSituation: (index: number) => void;
 }
 
 export default function TableOfContents({
@@ -19,7 +21,9 @@ export default function TableOfContents({
     activeSituationIndex,
     showTOC,
     setShowTOC,
-    scrollToSituation
+    scrollToSituation,
+    collapsedSituations,
+    onExpandSituation,
 }: TableOfContentsProps) {
     // State to track expanded situations in TOC
     const [expandedSituations, setExpandedSituations] = useState<Set<number>>(new Set([0]));
@@ -52,7 +56,7 @@ export default function TableOfContents({
         <motion.div
             drag
             dragMomentum={false}
-            className="fixed right-4 top-28 z-50 flex flex-col items-end gap-2 transition-shadow"
+            className="fixed right-4 top-28 z-50 flex flex-col items-end gap-2 transition-shadow w-fit h-fit"
             whileDrag={{ scale: 1.02, zIndex: 60 }}
         >
             {/* Toggle Button / Drag Handle */}
@@ -114,8 +118,17 @@ export default function TableOfContents({
                                                     key={qIdx}
                                                     type="button"
                                                     onClick={() => {
-                                                        const el = document.getElementById(`question-${idx}-${qIdx}`);
-                                                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                        const scrollToQuestion = () => {
+                                                            const el = document.getElementById(`question-${idx}-${qIdx}`);
+                                                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                                        };
+                                                        // If situation is collapsed, expand first then scroll
+                                                        if (collapsedSituations.has(idx)) {
+                                                            onExpandSituation(idx);
+                                                            setTimeout(scrollToQuestion, 200);
+                                                        } else {
+                                                            scrollToQuestion();
+                                                        }
                                                     }}
                                                     className="w-full text-left px-2 py-1.5 rounded text-xs text-gray-500 hover:bg-gray-50 hover:text-green-600 transition-colors truncate block"
                                                     title={q.question_text}

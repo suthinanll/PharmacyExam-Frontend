@@ -20,7 +20,11 @@ interface ExamHistory {
     status: string;
     start_time: string;
     end_time: string;
-    final_score: number;
+    final_score?: number; // สำหรับสอบปกติ
+    final_theta?: number; // สำหรับ CAT
+    num_items?: number;   // สำหรับ CAT
+    num_correct?: number; // สำหรับ CAT
+    passed?: boolean;     // สำหรับ CAT
     categories?: Category[];
 }
 
@@ -29,10 +33,12 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 function ExamHistory() {
     const { getToken } = useAuth();
     const [examHistory, setExamHistory] = useState<ExamHistory[]>([]);
+    const [catHistory, setCatHistory] = useState<ExamHistory[]>([]);
     const [filteredHistory, setFilteredHistory] = useState<ExamHistory[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'NORMAL' | 'CAT'>('NORMAL');
 
     // Filter states
     const [searchQuery, setSearchQuery] = useState('');
@@ -47,27 +53,37 @@ function ExamHistory() {
 
     useEffect(() => {
         applyFilters();
-    }, [examHistory, searchQuery, selectedCategories, statusFilter]);
+    }, [examHistory, catHistory, activeTab, searchQuery, selectedCategories, statusFilter]);
 
     const fetchExamHistory = async () => {
         setLoading(true);
         try {
             const token = getToken();
-            const response = await fetch(`${API_URL}/items-bank/exam/history`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+            
+            // ดึงประวัติสอบปกติ
+            const normalResponse = await fetch(`${API_URL}/items-bank/exam/history`, {
+                headers: { Authorization: `Bearer ${token}` }
             });
 
-            if (response.ok) {
-                const data = await response.json();
-                // เรียงจากใหม่ไปเก่า
+            // ดึงประวัติสอบ CAT
+            const catResponse = await fetch(`${API_URL}/cat/history`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+            if (normalResponse.ok) {
+                const data = await normalResponse.json();
                 const sortedData = data.sort((a: ExamHistory, b: ExamHistory) =>
                     new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
                 );
                 setExamHistory(sortedData);
-            } else {
-                throw new Error('ไม่สามารถโหลดประวัติการสอบได้');
+            }
+
+            if (catResponse.ok) {
+                const data = await catResponse.json();
+                const sortedData = data.sort((a: ExamHistory, b: ExamHistory) =>
+                    new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
+                );
+                setCatHistory(sortedData);
             }
         } catch (error) {
             console.error('Error fetching exam history:', error);
@@ -96,18 +112,18 @@ function ExamHistory() {
     };
 
     const applyFilters = () => {
-        let filtered = [...examHistory];
+        let source = activeTab === 'NORMAL' ? [...examHistory] : [...catHistory];
+        let filtered = source;
 
         // Filter by search query
         if (searchQuery.trim()) {
             filtered = filtered.filter(exam =>
-                exam.item_bank_name.toLowerCase().includes(searchQuery.toLowerCase())
+                exam.item_bank_name?.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
 
-
-        // Filter by categories
-        if (selectedCategories.length > 0) {
+        // Filter by categories (เฉพาะสอบปกติ)
+        if (activeTab === 'NORMAL' && selectedCategories.length > 0) {
             filtered = filtered.filter(exam =>
                 exam.categories?.some(cat =>
                     selectedCategories.includes(cat.category_id)
@@ -118,8 +134,13 @@ function ExamHistory() {
         // Filter by status
         if (statusFilter !== 'ALL') {
             filtered = filtered.filter(exam => {
-                const isPassed = exam.final_score >= 50;
-                return statusFilter === 'PASSED' ? isPassed : !isPassed;
+                if (activeTab === 'NORMAL') {
+                    const score = exam.final_score ?? 0;
+                    const isPassed = score >= 50;
+                    return statusFilter === 'PASSED' ? isPassed : !isPassed;
+                } else {
+                    return statusFilter === 'PASSED' ? exam.passed : !exam.passed;
+                }
             });
         }
 
@@ -238,7 +259,29 @@ function ExamHistory() {
                     {/* Header */}
                     <div className="mb-6">
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">ประวัติการสอบ</h1>
-                        <p className="text-gray-600">ประวัติการทำข้อสอบทั้งหมดของคุณ ({examHistory.length} ครั้ง)</p>
+                        <p className="text-gray-600">ประวัติการทำข้อสอบทั้งหมดของคุณ ({activeTab === 'NORMAL' ? examHistory.length : catHistory.length} ครั้ง)</p>
+                    </div>
+
+                    {/* Tabs */}
+                    <div className="flex border-b border-gray-200 mb-6 bg-white rounded-t-xl overflow-hidden shadow-sm">
+                        <button
+                            onClick={() => { setActiveTab('NORMAL'); clearFilters(); }}
+                            className={`flex-1 py-4 text-center font-bold text-lg transition-all ${activeTab === 'NORMAL'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                                }`}
+                        >
+                            สอบปกติ
+                        </button>
+                        <button
+                            onClick={() => { setActiveTab('CAT'); clearFilters(); }}
+                            className={`flex-1 py-4 text-center font-bold text-lg transition-all ${activeTab === 'CAT'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                                }`}
+                        >
+                            สอบ CAT (Adaptive)
+                        </button>
                     </div>
 
                     {/* Search and Filter Section */}
@@ -398,18 +441,29 @@ function ExamHistory() {
                     {filteredHistory.length > 0 ? (
                         <div className="space-y-4">
                             {filteredHistory.map((exam) => {
-                                const percentage = Math.round(exam.final_score);
+                                const isCAT = activeTab === 'CAT';
+                                const percentage = isCAT ? 0 : Math.round(exam.final_score ?? 0);
+                                const isPassed = isCAT ? exam.passed : percentage >= 50;
                                 const timeUsed = calculateTimeUsed(exam.start_time, exam.end_time);
 
+                                // กำหนดสีตามสถานะ
+                                const statusColor = isPassed ? "text-green-600 bg-green-50" : "text-red-600 bg-red-50";
+                                const statusBorder = isPassed ? "border-green-500" : "border-red-500";
+                                const statusLabel = isPassed ? 'ผ่าน' : 'ไม่ผ่าน';
+
                                 return (
-                                    <div key={exam.session_id} className={`bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow border-l-[6px] ${getScoreBorderColor(percentage)}`}>
+                                    <div key={exam.session_id} className={`bg-white rounded-xl shadow-sm p-6 hover:shadow-md transition-shadow border-l-[6px] ${statusBorder}`}>
                                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                                             {/* Left Section */}
                                             <div className="flex-1">
                                                 <div className="flex items-start gap-3">
-                                                    {/* Removed dot */}
                                                     <div className="flex-1">
-                                                        <h3 className="text-lg font-bold text-gray-900 mb-1">{exam.item_bank_name}</h3>
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <h3 className="text-lg font-bold text-gray-900">{exam.item_bank_name}</h3>
+                                                            {isCAT && (
+                                                                <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-bold rounded-full uppercase">CAT</span>
+                                                            )}
+                                                        </div>
                                                         <div className="flex flex-wrap gap-2 mb-2">
                                                             {exam.categories && exam.categories.map((cat) => (
                                                                 <span
@@ -433,6 +487,11 @@ function ExamHistory() {
                                                                 </svg>
                                                                 {timeUsed}
                                                             </span>
+                                                            {isCAT && (
+                                                                <span className="flex items-center gap-1 text-purple-600 font-medium">
+                                                                    ทำไป {exam.num_items} ข้อ
+                                                                </span>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -440,20 +499,20 @@ function ExamHistory() {
 
                                             {/* Right Section */}
                                             <div className="flex items-center gap-6">
-                                                <div className="text-center">
-                                                    <div className={`inline-block px-4 py-2 rounded-full text-sm font-medium ${getScoreColor(percentage)}`}>
-                                                        {percentage}%
+                                                <div className="text-center min-w-[80px]">
+                                                    <div className={`inline-block px-4 py-2 rounded-full text-sm font-bold ${statusColor}`}>
+                                                        {isCAT ? `θ = ${exam.final_theta?.toFixed(2)}` : `${percentage}%`}
                                                     </div>
-                                                    <div className={`text-xs mt-1 font-medium ${percentage >= 61 ? 'text-green-600' :
-                                                            percentage >= 50 ? 'text-yellow-600' :
-                                                                'text-red-500'
-                                                        }`}>
-                                                        {percentage >= 50 ? 'ผ่าน' : 'ไม่ผ่าน'}
+                                                    <div className={`text-xs mt-1 font-bold ${isPassed ? 'text-green-600' : 'text-red-500'}`}>
+                                                        {statusLabel}
                                                     </div>
                                                 </div>
                                                 <Link
-                                                    href={`/user/examset/take-exam/summarize-exam?session_id=${exam.session_id}`}
-                                                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-md hover:shadow-lg inline-block whitespace-nowrap"
+                                                    href={isCAT 
+                                                        ? `/user/cat-exam/result/${exam.session_id}` 
+                                                        : `/user/examset/take-exam/summarize-exam?session_id=${exam.session_id}`
+                                                    }
+                                                    className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm hover:shadow-lg inline-block whitespace-nowrap"
                                                 >
                                                     ดูรายละเอียด
                                                 </Link>
