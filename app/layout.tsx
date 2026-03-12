@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import './globals.css'
 import localFont from 'next/font/local';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { NotificationProvider } from '@/contexts/NotificationContext';
 
 
 const myFont = localFont({
@@ -39,16 +40,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="th" className={`${myFont.variable}`}>
       <body>
         <AuthProvider>
-          <header>
+          <NotificationProvider>
+            <header>
 
-          </header>
+            </header>
 
-          <main>
-            {children}
-          </main>
+            <main>
+              {children}
+            </main>
 
-          <footer>
-          </footer>
+            <footer>
+            </footer>
+          </NotificationProvider>
         </AuthProvider>
       </body>
     </html>

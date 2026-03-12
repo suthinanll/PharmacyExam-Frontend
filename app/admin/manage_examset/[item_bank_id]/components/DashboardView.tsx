@@ -26,9 +26,11 @@ import {
     PlayCircle,
     ChevronRight,
     Home,
-    ArrowLeft
+    ArrowLeft,
+    Eye
 } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
+import ExamPreviewModal from './ExamPreviewModal';
 import Link from 'next/link';
 import SettingsModal from './SettingsModal';
 import Swal from 'sweetalert2';
@@ -86,6 +88,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showSettingsModal, setShowSettingsModal] = useState(false);
+    const [showPreview, setShowPreview] = useState(false);
 
     useEffect(() => {
         fetchDashboardData();
@@ -235,6 +238,13 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                     <span className="text-gray-700 font-normal">{item_bank.name}</span>
                 </h1>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setShowPreview(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                    >
+                        <Eye className="w-4 h-4" />
+                        พรีวิวข้อสอบ
+                    </button>
                     <button
                         onClick={onManageExams}
                         className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg text-white transition-all shadow-md bg-green-600 hover:bg-green-700 active:scale-95"
@@ -470,6 +480,12 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                 onClose={() => setShowSettingsModal(false)}
                 itemBankId={itemBankId}
                 onUpdate={fetchDashboardData}
+            />
+
+            <ExamPreviewModal
+                isOpen={showPreview}
+                onClose={() => setShowPreview(false)}
+                itemBankId={itemBankId}
             />
         </div>
     );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowLeft, Settings, Plus, FileText, Clock, CheckCircle, XCircle, Layers, Edit2, ChevronLeft, ChevronRight, X, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Settings, Plus, FileText, Clock, CheckCircle, XCircle, Layers, Edit2, ChevronLeft, ChevronRight, X, HelpCircle, Save, Ban } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -29,6 +29,7 @@ interface ItemBankHeaderProps {
     onCATGuideClick: () => void;
     isEditing: boolean;
     onToggleEdit: () => void;
+    onCancel?: () => void;
     onSave?: (e: React.FormEvent) => void;
     submitting?: boolean;
     onBack?: () => void;
@@ -43,6 +44,7 @@ export default function ItemBankHeader({
     onCATGuideClick,
     isEditing,
     onToggleEdit,
+    onCancel,
     onSave,
     submitting = false,
     onBack
@@ -125,6 +127,14 @@ export default function ItemBankHeader({
                             </>
                         ) : (
                             <>
+                                <button
+                                    type="button"
+                                    onClick={onCancel}
+                                    className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-white text-gray-600 hover:bg-gray-50 border border-gray-300 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
+                                >
+                                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
+                                    ยกเลิก
+                                </button>
 
                                 <button
                                     onClick={onAddSituation}
@@ -132,6 +142,15 @@ export default function ItemBankHeader({
                                 >
                                     <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                                     เพิ่มสถานการณ์
+                                </button>
+
+                                <button
+                                    onClick={onSave}
+                                    disabled={submitting}
+                                    className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
+                                >
+                                    <Save className="w-4 h-4 sm:w-5 sm:h-5" />
+                                    บันทึก
                                 </button>
                             </>
                         )}

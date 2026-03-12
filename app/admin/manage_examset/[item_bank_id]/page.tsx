@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Navbar_admin from "@/components/Navbar_admin";
 import { useParams, useRouter } from 'next/navigation';
-import { Plus, Trash2, Save, FileText, AlertCircle, ChevronLeft, ChevronRight, Loader2, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ArrowLeft, Settings, Clock, Calendar, CheckCircle, XCircle, Tag, Layers, X, List, HelpCircle } from 'lucide-react';
+import { Plus, Trash2, Save, FileText, AlertCircle, ChevronLeft, ChevronRight, Loader2, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ArrowLeft, Settings, Clock, Calendar, CheckCircle, XCircle, Tag, Layers, X, List, HelpCircle, LayoutList, TableProperties } from 'lucide-react';
 import Swal from 'sweetalert2';
 import Link from 'next/link';
 import { div } from 'framer-motion/client';
@@ -10,6 +10,7 @@ import TableOfContents from './components/TableOfContents';
 import ItemBankHeader from './components/ItemBankHeader';
 import AddSubTopicModal from './components/AddSubTopicModal';
 import SituationViewer from './components/SituationViewer';
+import QuestionTableView from './components/QuestionTableView';
 import CATGuideModal from '../../cat_management/components/CATGuideModal';
 import DashboardView from './components/DashboardView';
 import SettingsModal from './components/SettingsModal';
@@ -83,6 +84,7 @@ export default function ItemBankEditPage() {
     const [submitting, setSubmitting] = useState(false);
     const [collapsedSituations, setCollapsedSituations] = useState<Set<number>>(new Set());
     const [collapsedQuestions, setCollapsedQuestions] = useState<Set<string>>(new Set());
+    const initialSituationsHash = useRef<string>(JSON.stringify([]));
 
     // States for Add SubTopic Modal
     const [showAddSubTopicModal, setShowAddSubTopicModal] = useState(false);
@@ -92,7 +94,10 @@ export default function ItemBankEditPage() {
 
     // Editing State
     const [viewMode, setViewMode] = useState<'dashboard' | 'editor'>('dashboard');
-    const [isEditing, setIsEditing] = useState(true); // Default to editing when in editor mode
+    const [isEditing, setIsEditing] = useState(false); // Default to view-only, must click edit button to edit
+    const [readViewMode, setReadViewMode] = useState<'accordion' | 'table'>('accordion');
+    const [editViewMode, setEditViewMode] = useState<'accordion' | 'card'>('accordion');
+    const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
 
 
 
@@ -134,9 +139,12 @@ export default function ItemBankEditPage() {
     // Save draft when situations change
     useEffect(() => {
         if (!loading && !isInitialLoad.current && itemBankId) {
-            const draftKey = `item_bank_draft_${itemBankId}`;
-            localStorage.setItem(draftKey, JSON.stringify(situations));
-            hasUnsavedChanges.current = true;
+            const currentHash = JSON.stringify(situations);
+            if (initialSituationsHash.current !== currentHash) {
+                const draftKey = `item_bank_draft_${itemBankId}`;
+                localStorage.setItem(draftKey, currentHash);
+                hasUnsavedChanges.current = true;
+            }
         }
     }, [situations, loading, itemBankId]);
 
@@ -313,6 +321,7 @@ export default function ItemBankEditPage() {
                 });
 
                 setSituations(sortedSituations);
+                initialSituationsHash.current = JSON.stringify(sortedSituations);
             }
         } catch (error) {
             console.error('Error fetching existing items:', error);
@@ -550,6 +559,22 @@ export default function ItemBankEditPage() {
             newCollapsed.add(key);
         }
         setCollapsedQuestions(newCollapsed);
+    };
+
+    const collapseAllSituations = () => {
+        setCollapsedSituations(new Set(situations.map((_, i) => i)));
+    };
+
+    const expandAllSituations = () => {
+        setCollapsedSituations(new Set());
+    };
+
+    const expandSituation = (index: number) => {
+        setCollapsedSituations(prev => {
+            const next = new Set(prev);
+            next.delete(index);
+            return next;
+        });
     };
 
     const handleCancel = async () => {
@@ -975,10 +1000,25 @@ export default function ItemBankEditPage() {
     };
 
     const scrollToSituation = (index: number) => {
-        const element = situationRefs.current[index];
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            setActiveSituationIndex(index);
+        // If the situation is collapsed, expand it first then scroll
+        if (collapsedSituations.has(index)) {
+            const newCollapsed = new Set(collapsedSituations);
+            newCollapsed.delete(index);
+            setCollapsedSituations(newCollapsed);
+            // Wait for DOM to re-render after expanding
+            setTimeout(() => {
+                const element = situationRefs.current[index];
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    setActiveSituationIndex(index);
+                }
+            }, 150);
+        } else {
+            const element = situationRefs.current[index];
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                setActiveSituationIndex(index);
+            }
         }
     };
 
@@ -1002,7 +1042,7 @@ export default function ItemBankEditPage() {
                     itemBankId={itemBankId}
                     onManageExams={() => {
                         setViewMode('editor');
-                        setIsEditing(true);
+                        setIsEditing(false); // Start in read-only mode
                     }}
                     onUpdate={fetchItemBankInfo}
                 />
@@ -1024,7 +1064,8 @@ export default function ItemBankEditPage() {
                     onSettingsClick={() => setShowSettingsModal(true)}
                     onCATGuideClick={() => setShowCATGuide(true)}
                     isEditing={isEditing}
-                    onToggleEdit={() => setIsEditing(!isEditing)}
+                    onToggleEdit={() => setIsEditing(true)}
+                    onCancel={handleCancel}
                     onSave={handleSubmit}
                     onBack={async () => {
                         if (hasUnsavedChanges.current) {
@@ -1063,37 +1104,221 @@ export default function ItemBankEditPage() {
                     }}
                 />
 
-                <TableOfContents
-                    situations={situations}
-                    activeSituationIndex={activeSituationIndex}
-                    showTOC={showTOC}
-                    setShowTOC={setShowTOC}
-                    scrollToSituation={scrollToSituation}
-                />
-
-                {/* View Mode */}
-                {!isEditing && (
-                    <SituationViewer
+                {/* TOC — read accordion view OR edit accordion view */}
+                {((!isEditing && readViewMode === 'accordion') || (isEditing && editViewMode === 'accordion')) && (
+                    <TableOfContents
                         situations={situations}
+                        activeSituationIndex={activeSituationIndex}
+                        showTOC={showTOC}
+                        setShowTOC={setShowTOC}
+                        scrollToSituation={scrollToSituation}
                         collapsedSituations={collapsedSituations}
-                        collapsedQuestions={collapsedQuestions}
-                        toggleSituationCollapse={toggleSituationCollapse}
-                        toggleQuestionCollapse={toggleQuestionCollapse}
-                        situationRefs={situationRefs}
+                        onExpandSituation={expandSituation}
                     />
+                )}
+
+                {/* View Mode Toggle + Content */}
+                {!isEditing && (
+                    <div className="space-y-4">
+                        {/* Toggle Bar */}
+                        <div className="flex items-center justify-end">
+                            <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
+                                <button
+                                    onClick={() => setReadViewMode('accordion')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${readViewMode === 'accordion'
+                                        ? 'bg-white text-gray-800 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                >
+                                    <List className="w-4 h-4" />
+                                    แบบยุบ/ขยาย
+                                </button>
+                                <button
+                                    onClick={() => setReadViewMode('table')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${readViewMode === 'table'
+                                        ? 'bg-white text-gray-800 shadow-sm'
+                                        : 'text-gray-500 hover:text-gray-700'
+                                        }`}
+                                >
+                                    <LayoutList className="w-4 h-4" />
+                                    แบบตาราง
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Accordion View */}
+                        {readViewMode === 'accordion' && (
+                            <SituationViewer
+                                situations={situations}
+                                collapsedSituations={collapsedSituations}
+                                collapsedQuestions={collapsedQuestions}
+                                toggleSituationCollapse={toggleSituationCollapse}
+                                toggleQuestionCollapse={toggleQuestionCollapse}
+                                situationRefs={situationRefs}
+                                onCollapseAll={collapseAllSituations}
+                                onExpandAll={expandAllSituations}
+                            />
+                        )}
+
+                        {/* Table View */}
+                        {readViewMode === 'table' && (
+                            <QuestionTableView
+                                situations={situations}
+                                subTopics={subTopics}
+                                topics={topics}
+                            />
+                        )}
+                    </div>
                 )}
 
                 {/* Edit Mode Content */}
                 {isEditing && (
-                    <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8 pb-8">
+                    <form onSubmit={handleSubmit} className="space-y-4 pb-8">
+
+                        {/* Edit View Mode Toggle */}
+                        {situations.length > 0 && (
+                            <div className="flex items-center justify-end">
+                                <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditViewMode('accordion')}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${editViewMode === 'accordion' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                                            }`}
+                                    >
+                                        <List className="w-4 h-4" />
+                                        แบบยุบ/ขยาย
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setEditViewMode('card')}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${editViewMode === 'card' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                                            }`}
+                                    >
+                                        <LayoutList className="w-4 h-4" />
+                                        แบบการ์ด
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         {situations.length === 0 ? (
                             <div className="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-12 sm:p-16 text-center">
                                 <FileText className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400 mx-auto mb-4" />
                                 <h3 className="text-lg sm:text-xl font-bold text-gray-700 mb-2">ยังไม่มีสถานการณ์</h3>
                                 <p className="text-gray-500 mb-6 text-sm sm:text-base">เริ่มต้นสร้างข้อสอบโดยการเพิ่มสถานการณ์ใหม่</p>
-
                             </div>
+
+                        ) : editViewMode === 'card' ? (
+                            /* ── Card View ─────────────────────────────────────── */
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {situations.map((situation, sitIdx) => {
+                                    const isOpen = expandedCardIndex === sitIdx;
+                                    const questionStartIndex = situations.slice(0, sitIdx).reduce((acc, s) => acc + s.questions.length, 0);
+                                    return (
+                                        <div
+                                            key={situation.temporary_id || situation.situation_id || sitIdx}
+                                            ref={(el) => { situationRefs.current[sitIdx] = el; }}
+                                            className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden scroll-mt-32"
+                                        >
+                                            {/* Card Header */}
+                                            <div
+                                                className="flex items-center gap-3 px-4 py-4 cursor-pointer select-none group"
+                                                onClick={() => setExpandedCardIndex(isOpen ? null : sitIdx)}
+                                            >
+                                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+                                                    {sitIdx + 1}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap">
+                                                        <span className="font-bold text-gray-800 text-sm">สถานการณ์ที่ {sitIdx + 1}</span>
+                                                        {situation.situation_id
+                                                            ? <span className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">บันทึกแล้ว</span>
+                                                            : <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">ใหม่</span>
+                                                        }
+                                                    </div>
+                                                    <p className="text-xs text-gray-500 mt-0.5">{situation.questions.length} คำถาม</p>
+                                                </div>
+                                                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                                    <button type="button" onClick={() => moveSituation(sitIdx, 'up')} disabled={sitIdx === 0} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="ย้ายขึ้น"><ArrowUp className="w-3.5 h-3.5" /></button>
+                                                    <button type="button" onClick={() => moveSituation(sitIdx, 'down')} disabled={sitIdx === situations.length - 1} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="ย้ายลง"><ArrowDown className="w-3.5 h-3.5" /></button>
+                                                    <button type="button" onClick={() => removeSituation(sitIdx)} className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="ลบ"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                </div>
+                                                <div className="w-7 h-7 rounded-lg bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center transition-colors shrink-0">
+                                                    {isOpen ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
+                                                </div>
+                                            </div>
+
+                                            {/* Card Expanded Body */}
+                                            {isOpen && (
+                                                <div className="border-t border-gray-100">
+                                                    {/* Situation text */}
+                                                    <div className="bg-gradient-to-b from-slate-50 to-white px-4 py-4 border-b border-gray-100">
+                                                        <div className="flex items-start gap-2 mb-3">
+                                                            <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shrink-0" />
+                                                            <textarea
+                                                                value={situation.situation_text}
+                                                                onChange={(e) => updateSituation(sitIdx, 'situation_text', e.target.value)}
+                                                                onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = `${t.scrollHeight}px`; }}
+                                                                ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; } }}
+                                                                className="flex-1 w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none resize-none overflow-hidden text-sm text-gray-700 leading-relaxed bg-white"
+                                                                rows={1}
+                                                                placeholder="รายละเอียดสถานการณ์..."
+                                                                required
+                                                            />
+                                                        </div>
+                                                        <input type="text" value={situation.situation_image_url || ''} onChange={(e) => updateSituation(sitIdx, 'situation_image_url', e.target.value)} className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-500 bg-white outline-none focus:ring-1 focus:ring-emerald-400" placeholder="URL รูปภาพ (ถ้ามี)" />
+                                                    </div>
+
+                                                    {/* Questions list */}
+                                                    <div className="divide-y divide-gray-100">
+                                                        {situation.questions.map((question, qIdx) => {
+                                                            const isQCollapsed = collapsedQuestions.has(`${sitIdx}-${qIdx}`);
+                                                            return (
+                                                                <div key={qIdx} className="scroll-mt-32">
+                                                                    <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/70 transition-colors group">
+                                                                        <div className="w-7 h-7 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0 cursor-pointer" onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}>{questionStartIndex + qIdx + 1}</div>
+                                                                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}>
+                                                                            <p className="text-gray-800 font-medium text-xs leading-relaxed line-clamp-2">{question.question_text || 'คำถามใหม่'}</p>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-1 shrink-0">
+                                                                            <button type="button" onClick={() => removeQuestion(sitIdx, qIdx)} className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-all" title="ลบ"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                                            <div className="w-6 h-6 rounded flex items-center justify-center cursor-pointer hover:bg-gray-100" onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}>
+                                                                                {isQCollapsed ? <ChevronDown className="w-3.5 h-3.5 text-gray-400" /> : <ChevronUp className="w-3.5 h-3.5 text-gray-400" />}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    {!isQCollapsed && (
+                                                                        <div className="px-4 pb-4 pt-1 bg-gray-50/40 space-y-3">
+                                                                            <textarea value={question.question_text} onChange={(e) => updateQuestion(sitIdx, qIdx, 'question_text', e.target.value)} onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = `${t.scrollHeight}px`; }} ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; } }} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none overflow-hidden text-sm" rows={1} placeholder="โจทย์คำถาม..." required />
+                                                                            <div className="space-y-1.5">
+                                                                                {question.answer_options.map((option, optIdx) => (
+                                                                                    <div key={optIdx} className="flex gap-2 items-center">
+                                                                                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">{String.fromCharCode(65 + optIdx)}</div>
+                                                                                        <input type="text" value={option.option_text} onChange={(e) => updateAnswerOption(sitIdx, qIdx, optIdx, 'option_text', e.target.value)} className="flex-1 px-3 py-1.5 rounded-lg border border-gray-300 focus:ring-1 focus:ring-green-500 outline-none text-sm" placeholder={`ตัวเลือกที่ ${optIdx + 1}`} required />
+                                                                                        <input type="radio" name={`correct-card-${sitIdx}-${qIdx}`} checked={option.is_correct} onChange={() => updateAnswerOption(sitIdx, qIdx, optIdx, 'is_correct', true)} className="w-4 h-4 text-green-600 cursor-pointer shrink-0" required />
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                    <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
+                                                        <button type="button" onClick={() => addQuestion(sitIdx)} className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors">
+                                                            <Plus className="w-3.5 h-3.5" /> เพิ่มคำถาม
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
                         ) : (
+                            /* ── Accordion View ─────────────────────────────────────── */
                             <>
                                 {situations.map((situation, sitIdx) => {
                                     const isCollapsed = collapsedSituations.has(sitIdx);
@@ -1103,120 +1328,141 @@ export default function ItemBankEditPage() {
                                         <div
                                             key={situation.temporary_id || situation.situation_id || sitIdx}
                                             ref={(el) => { situationRefs.current[sitIdx] = el; }}
-                                            className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden scroll-mt-32"
+                                            className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden scroll-mt-32 transition-shadow hover:shadow-md"
                                         >
                                             {/* Situation Header */}
-                                            <div className="px-4 sm:px-6 py-3 sm:py-4 bg-white border-b border-gray-100 transition-colors duration-200">
-                                                <div className="flex items-center justify-between gap-3 sm:gap-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-1.5 h-6 rounded-full ${situation.situation_id ? 'bg-emerald-500' : 'bg-slate-400'}`}></div>
-                                                        <h5 className="font-bold text-gray-800 text-base sm:text-lg">สถานการณ์ที่ {sitIdx + 1}</h5>
-
-                                                        <div className="hidden sm:flex items-center gap-1 ml-4 py-1 px-2 bg-gray-50 rounded-lg border border-gray-100">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => moveSituation(sitIdx, 'up')}
-                                                                disabled={sitIdx === 0}
-                                                                className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                                                title="ย้ายขึ้น"
-                                                            >
-                                                                <ArrowUp className="w-4 h-4" />
-                                                            </button>
-                                                            <div className="w-[1px] h-3 bg-gray-200"></div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => moveSituation(sitIdx, 'down')}
-                                                                disabled={sitIdx === situations.length - 1}
-                                                                className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                                                                title="ย้ายลง"
-                                                            >
-                                                                <ArrowDown className="w-4 h-4" />
-                                                            </button>
+                                            <div className="flex items-center justify-between px-5 py-4 select-none group">
+                                                {/* Left: badge + title — click to collapse */}
+                                                <div
+                                                    className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                                                    onClick={() => toggleSituationCollapse(sitIdx)}
+                                                >
+                                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+                                                        {sitIdx + 1}
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-bold text-gray-800">สถานการณ์ที่ {sitIdx + 1}</span>
+                                                            {situation.situation_id
+                                                                ? <span className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">บันทึกแล้ว</span>
+                                                                : <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">ใหม่</span>
+                                                            }
                                                         </div>
+                                                        <p className="text-xs text-gray-500 mt-0.5">{situation.questions.length} คำถาม</p>
                                                     </div>
+                                                </div>
 
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeSituation(sitIdx)}
-                                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                                            title="ลบสถานการณ์"
-                                                        >
-                                                            <Trash2 className="w-5 h-5" />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => toggleSituationCollapse(sitIdx)}
-                                                            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
-                                                        >
-                                                            {isCollapsed ? <ChevronDown className="w-5 h-5" /> : <ChevronUp className="w-5 h-5" />}
-                                                        </button>
+                                                {/* Right: action buttons */}
+                                                <div className="flex items-center gap-2 shrink-0">
+                                                    <div className="hidden sm:flex items-center gap-1 py-1 px-2 bg-gray-50 rounded-lg border border-gray-100">
+                                                        <button type="button" onClick={() => moveSituation(sitIdx, 'up')} disabled={sitIdx === 0} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="ย้ายขึ้น"><ArrowUp className="w-4 h-4" /></button>
+                                                        <div className="w-[1px] h-3 bg-gray-200"></div>
+                                                        <button type="button" onClick={() => moveSituation(sitIdx, 'down')} disabled={sitIdx === situations.length - 1} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="ย้ายลง"><ArrowDown className="w-4 h-4" /></button>
                                                     </div>
+                                                    <button type="button" onClick={() => removeSituation(sitIdx)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="ลบสถานการณ์"><Trash2 className="w-5 h-5" /></button>
+                                                    <button type="button" onClick={() => toggleSituationCollapse(sitIdx)} className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+                                                        {isCollapsed ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronUp className="w-4 h-4 text-gray-500" />}
+                                                    </button>
                                                 </div>
                                             </div>
 
-                                            {/* Questions */}
+                                            {/* Situation Body + Questions */}
                                             {!isCollapsed && (
-                                                <div className="p-4 sm:p-6 space-y-4 bg-gray-50/30">
-                                                    {/* Situation Details */}
-                                                    <div className="space-y-3 mb-6">
-                                                        <div className="space-y-2">
-                                                            <label className="text-base text-gray-700">รายละเอียดสถานการณ์ <span className="text-red-500">*</span></label>
-                                                            <textarea
-                                                                value={situation.situation_text}
-                                                                onChange={(e) => updateSituation(sitIdx, 'situation_text', e.target.value)}
-                                                                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all resize-y text-base"
-                                                                rows={3}
-                                                                placeholder="รายละเอียดสถานการณ์..."
-                                                                required
-                                                            />
+                                                <div className="border-t border-gray-100">
+                                                    {/* Situation text & image — same style as SituationViewer body */}
+                                                    <div className="bg-gradient-to-b from-slate-50 to-white px-5 py-5 border-b border-gray-100">
+                                                        <div className="flex items-start gap-3 mb-4">
+                                                            <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shrink-0" />
+                                                            <div className="flex-1 space-y-3">
+                                                                <textarea
+                                                                    value={situation.situation_text}
+                                                                    onChange={(e) => updateSituation(sitIdx, 'situation_text', e.target.value)}
+                                                                    onInput={(e) => {
+                                                                        const t = e.target as HTMLTextAreaElement;
+                                                                        t.style.height = 'auto';
+                                                                        t.style.height = `${t.scrollHeight}px`;
+                                                                    }}
+                                                                    ref={(el) => {
+                                                                        if (el) {
+                                                                            el.style.height = 'auto';
+                                                                            el.style.height = `${el.scrollHeight}px`;
+                                                                        }
+                                                                    }}
+                                                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none overflow-hidden text-[15px] text-gray-700 leading-relaxed bg-white"
+                                                                    rows={1}
+                                                                    placeholder="รายละเอียดสถานการณ์..."
+                                                                    required
+                                                                />
+                                                                <div>
+                                                                    <label className="text-xs font-medium text-gray-500 mb-1 block">URL รูปภาพ (ถ้ามี)</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={situation.situation_image_url || ''}
+                                                                        onChange={(e) => updateSituation(sitIdx, 'situation_image_url', e.target.value)}
+                                                                        className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-sm bg-white"
+                                                                        placeholder="https://example.com/image.jpg"
+                                                                    />
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div className="space-y-2">
-                                                            <label className="text-base font-medium text-gray-700">URL รูปภาพ (ถ้ามี)</label>
-                                                            <input
-                                                                type="text"
-                                                                value={situation.situation_image_url || ''}
-                                                                onChange={(e) => updateSituation(sitIdx, 'situation_image_url', e.target.value)}
-                                                                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all text-base"
-                                                                placeholder="https://example.com/image.jpg"
-                                                            />
-                                                        </div>
+                                                        {situation.situation_image_url && (
+                                                            <div className="mt-2 pl-4">
+                                                                <img
+                                                                    src={situation.situation_image_url}
+                                                                    alt="สถานการณ์"
+                                                                    className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm"
+                                                                />
+                                                            </div>
+                                                        )}
                                                     </div>
 
-                                                    <div className="sticky top-0 z-10 bg-gray-50 py-2 flex items-center justify-between flex-wrap gap-3">
-                                                        <h4 className="text-base sm:text-lg font-bold text-gray-800">
-                                                            คำถาม
-                                                        </h4>
+                                                    {/* Question area header */}
+                                                    <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
+                                                        <h4 className="text-sm font-bold text-gray-700">คำถาม</h4>
                                                         <button
                                                             type="button"
                                                             onClick={() => addQuestion(sitIdx)}
-                                                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-all active:scale-95"
+                                                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg font-medium text-xs transition-all active:scale-95"
                                                         >
-                                                            <Plus className="w-4 h-4" />
+                                                            <Plus className="w-3.5 h-3.5" />
                                                             เพิ่มคำถาม
                                                         </button>
                                                     </div>
 
                                                     {situation.questions.length === 0 ? (
-                                                        <div className="bg-white border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
-                                                            <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                                                            <p className="text-gray-500 text-sm">ยังไม่มีคำถามในสถานการณ์นี้</p>
+                                                        <div className="bg-white border-2 border-dashed border-gray-200 rounded-xl p-8 text-center mx-5 my-4">
+                                                            <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                                                            <p className="text-gray-400 text-sm">ยังไม่มีคำถามในสถานการณ์นี้</p>
                                                         </div>
                                                     ) : (
-                                                        <div className="space-y-4">
+                                                        <div className="divide-y divide-gray-100">
                                                             {situation.questions.map((question, qIdx) => {
                                                                 const isQCollapsed = collapsedQuestions.has(`${sitIdx}-${qIdx}`);
                                                                 return (
-                                                                    <div id={`question-${sitIdx}-${qIdx}`} key={qIdx} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden scroll-mt-32">
-                                                                        {/* Question Header */}
-                                                                        <div className="bg-white px-4 py-3 border-b border-gray-100 flex items-center justify-between">
-                                                                            <div className="flex items-center gap-3">
-                                                                                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-sm border border-blue-100">
-                                                                                    {questionStartIndex + qIdx + 1}
-                                                                                </div>
-                                                                                <h5 className="font-bold text-gray-700 text-sm sm:text-base">ข้อที่ {questionStartIndex + qIdx + 1}</h5>
+                                                                    <div id={`question-${sitIdx}-${qIdx}`} key={qIdx} className="scroll-mt-32">
+                                                                        {/* Question Header — เหมือน SituationViewer */}
+                                                                        <div className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50/70 transition-colors group">
+                                                                            {/* number badge */}
+                                                                            <div
+                                                                                className="w-8 h-8 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0 cursor-pointer"
+                                                                                onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
+                                                                            >
+                                                                                {questionStartIndex + qIdx + 1}
+                                                                            </div>
 
-                                                                                <div className="flex items-center gap-1 ml-2 py-0.5 px-1 bg-gray-50 rounded border border-gray-100">
+                                                                            {/* question text preview */}
+                                                                            <div
+                                                                                className="flex-1 min-w-0 cursor-pointer"
+                                                                                onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
+                                                                            >
+                                                                                <p className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-2">
+                                                                                    {question.question_text || 'คำถามใหม่'}
+                                                                                </p>
+                                                                            </div>
+
+                                                                            {/* action buttons */}
+                                                                            <div className="flex items-center gap-1 shrink-0">
+                                                                                <div className="flex items-center gap-0.5 py-0.5 px-1 bg-gray-50 rounded border border-gray-100">
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => moveQuestion(sitIdx, qIdx, 'up')}
@@ -1236,38 +1482,45 @@ export default function ItemBankEditPage() {
                                                                                         <ArrowDown className="w-3.5 h-3.5" />
                                                                                     </button>
                                                                                 </div>
-                                                                            </div>
-
-                                                                            <div className="flex items-center gap-1">
                                                                                 <button
                                                                                     type="button"
                                                                                     onClick={() => removeQuestion(sitIdx, qIdx)}
-                                                                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                                                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                                                                     title="ลบคำถาม"
                                                                                 >
                                                                                     <Trash2 className="w-4 h-4" />
                                                                                 </button>
-                                                                                <button
-                                                                                    type="button"
+                                                                                <div
+                                                                                    className="w-7 h-7 rounded-lg bg-transparent group-hover:bg-gray-100 flex items-center justify-center transition-colors cursor-pointer"
                                                                                     onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
-                                                                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
                                                                                 >
-                                                                                    {isQCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
-                                                                                </button>
+                                                                                    {isQCollapsed ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronUp className="w-4 h-4 text-gray-400" />}
+                                                                                </div>
                                                                             </div>
                                                                         </div>
 
                                                                         {/* Question Content */}
                                                                         {!isQCollapsed && (
-                                                                            <div className="p-4 sm:p-5 space-y-4">
+                                                                            <div className="px-5 pb-5 pt-2 space-y-4 bg-gray-50/40">
                                                                                 {/* Question Text */}
                                                                                 <div className="space-y-2">
                                                                                     <label className="text-base font-medium text-gray-700">โจทย์คำถาม <span className="text-red-500">*</span></label>
                                                                                     <textarea
                                                                                         value={question.question_text}
                                                                                         onChange={(e) => updateQuestion(sitIdx, qIdx, 'question_text', e.target.value)}
-                                                                                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all resize-none text-base"
-                                                                                        rows={2}
+                                                                                        onInput={(e) => {
+                                                                                            const t = e.target as HTMLTextAreaElement;
+                                                                                            t.style.height = 'auto';
+                                                                                            t.style.height = `${t.scrollHeight}px`;
+                                                                                        }}
+                                                                                        ref={(el) => {
+                                                                                            if (el) {
+                                                                                                el.style.height = 'auto';
+                                                                                                el.style.height = `${el.scrollHeight}px`;
+                                                                                            }
+                                                                                        }}
+                                                                                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all resize-none overflow-hidden text-base"
+                                                                                        rows={1}
                                                                                         placeholder="กรอกโจทย์คำถาม..."
                                                                                         required
                                                                                     />

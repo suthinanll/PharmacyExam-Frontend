@@ -59,19 +59,16 @@ const LogoutConfirmationModal = ({
 
 export default function Navbar_admin({ children }: { children: React.ReactNode }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("admin_sidebar_collapsed") === "true";
+  });
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [loadingLogout, setLoadingLogout] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
-  // Load initial collapse state from localStorage
-  useEffect(() => {
-    const savedState = localStorage.getItem("admin_sidebar_collapsed");
-    if (savedState !== null) {
-      setIsCollapsed(savedState === "true");
-    }
-  }, []);
+
 
   // Save collapse state to localStorage
   const toggleCollapse = () => {

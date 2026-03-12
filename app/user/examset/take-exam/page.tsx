@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar_user from "@/components/Navbar_user";
@@ -73,6 +73,8 @@ function TakeExam() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    // Track whether exam was properly submitted (don't cancel on submit)
+    const submittedRef = useRef(false);
 
     // Fetch exam data
     useEffect(() => {
@@ -88,6 +90,31 @@ function TakeExam() {
     useEffect(() => {
         setQuestionStartTime(Date.now());
     }, [currentQuestionIndex]);
+
+    // Cancel session if user leaves without submitting (closes tab / navigates away)
+    useEffect(() => {
+        if (!sessionId) return;
+        const doCancel = () => {
+            if (submittedRef.current) return;
+            const token = getToken();
+            if (!token) return;
+            // Use sendBeacon so the request survives page unload
+            const url = `${API_URL}/items-bank/exam/${sessionId}/cancel`;
+            const blob = new Blob([], { type: 'application/json' });
+            // sendBeacon doesn't support custom headers, so fall back to fetch w/ keepalive
+            fetch(url, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+                keepalive: true
+            }).catch(() => { });
+        };
+        window.addEventListener('beforeunload', doCancel);
+        return () => {
+            // Cleanup: called when component unmounts (route change via Next.js)
+            doCancel();
+            window.removeEventListener('beforeunload', doCancel);
+        };
+    }, [sessionId]);
 
     const fetchExamData = async () => {
         setLoading(true);
@@ -242,6 +269,7 @@ function TakeExam() {
                 });
 
                 // Redirect to result page
+                submittedRef.current = true;
                 router.push(`/user/examset/take-exam/summarize-exam?session_id=${sessionId}`);
             } else {
                 // Try to parse error message
