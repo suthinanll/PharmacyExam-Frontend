@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar_user';
 import Footer from '@/components/Footer';
-import NewsCard from '@/components/์News';
-import SearchBar from "@/components/SearchBar";
-import { ChevronRight, AlarmClock, Flame, Info, Calendar, LayoutGrid, Bookmark } from 'lucide-react';
+import NewsCard from '@/components/News';
+import { ChevronRight, AlarmClock, Info, Calendar, LayoutGrid, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
-// --- Data & Sub-components (University Leaderboard) ---
 const universityLeaderboardData = [
   { rank: 1, name: "มหาวิทยาลัยเชียงใหม่", score: 85.75 },
   { rank: 2, name: "มหาวิทยาลัยมหิดล", score: 84.30 },
@@ -45,7 +44,10 @@ const UniversityLeaderboard = () => {
     <div className='bg-white rounded-3xl shadow-lg p-6 sm:p-8 md:p-10 mb-10 border border-gray-200'>
       <div className='flex items-center gap-3 mb-8'>
         <div className='bg-yellow-50 p-3 rounded-xl'><span className='text-2xl'>🏆</span></div>
-        <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-gray-800'>อันดับคะแนนเฉลี่ยสูงสุด <span className='block text-sm font-normal text-gray-500 mt-1'>มหาวิทยาลัย</span></h2>
+        <h2 className='text-xl sm:text-2xl md:text-3xl font-bold text-gray-800'>
+          อันดับคะแนนเฉลี่ยสูงสุด
+          <span className='block text-sm font-normal text-gray-500 mt-1'>มหาวิทยาลัย</span>
+        </h2>
       </div>
       <div className="relative bg-gray-50 rounded-2xl p-6 mb-8 overflow-hidden">
         <div className="flex justify-center items-end gap-3 sm:gap-6">
@@ -54,11 +56,15 @@ const UniversityLeaderboard = () => {
             return (
               <div key={uni.rank} className={`relative flex flex-col items-center ${uni.rank === 1 ? 'z-10' : 'z-0'}`}>
                 <div className={`absolute -top-3 ${uni.rank === 1 ? 'animate-bounce' : ''}`}>
-                  <div className={`${style.bgColor} ${style.ring} rounded-full p-2 ${style.shadow}`}><span className='text-3xl sm:text-4xl'>{style.medal}</span></div>
+                  <div className={`${style.bgColor} ${style.ring} rounded-full p-2 ${style.shadow}`}>
+                    <span className='text-3xl sm:text-4xl'>{style.medal}</span>
+                  </div>
                 </div>
                 <div className={`${style.bgColor} ${style.borderColor} border-2 ${style.shadow} rounded-2xl p-4 w-28 sm:w-36 md:w-40 mt-12`}>
                   <div className={`${style.textColor} text-2xl font-bold text-center mb-2`}>#{uni.rank}</div>
-                  <div className='text-center mb-3'><p className='text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 min-h-[2.5rem]'>{uni.name}</p></div>
+                  <div className='text-center mb-3'>
+                    <p className='text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 min-h-[2.5rem]'>{uni.name}</p>
+                  </div>
                   <div className={`bg-white rounded-xl p-2 border ${style.borderColor}`}>
                     <p className='text-xs text-gray-500 text-center'>คะแนน</p>
                     <p className={`text-lg font-bold ${style.textColor} text-center`}>{uni.score.toFixed(2)}</p>
@@ -72,14 +78,113 @@ const UniversityLeaderboard = () => {
           })}
         </div>
       </div>
-      <div className="space-y-2">{remaining.map((uni) => <UniversityLeaderboardCard key={uni.rank} {...uni} />)}</div>
+      <div className="space-y-2">
+        {remaining.map((uni) => <UniversityLeaderboardCard key={uni.rank} {...uni} />)}
+      </div>
     </div>
   );
 };
 
-// --- Main Page Component ---
+const CountdownHero = ({
+  targetDate,
+  targetTitle,
+  targetDesc,
+  timeLeft,
+  isExamStarted,
+}: {
+  targetDate: number | null;
+  targetTitle: string;
+  targetDesc: string;
+  timeLeft: { days: number; hours: number; minutes: number; seconds: number };
+  isExamStarted: boolean | number | null;
+}) => {
+
+  const units = [
+    { label: 'วัน', val: timeLeft.days },
+    { label: 'ชั่วโมง', val: timeLeft.hours },
+    { label: 'นาที', val: timeLeft.minutes },
+    { label: 'วินาที', val: timeLeft.seconds },
+  ];
+
+  return (
+    <div className="relative overflow-hidden rounded-3xl mb-12 bg-white border border-blue-100 shadow-lg">
+
+      <div className="flex flex-col items-center justify-center p-8 md:p-12 text-center">
+
+        {/* Badge */}
+        <div
+          className={`inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-widest border
+          ${
+            isExamStarted
+              ? "bg-red-50 text-red-600 border-red-200"
+              : "bg-blue-50 text-blue-700 border-blue-200"
+          }`}
+        >
+          <AlarmClock size={14} />
+          {isExamStarted ? "กำลังดำเนินการสอบขณะนี้" : "เป้าหมายที่กำลังจะมาถึง"}
+        </div>
+
+        {/* Title */}
+        <h1 className="text-2xl md:text-4xl font-extrabold mb-2 text-blue-900">
+          {targetTitle || "พร้อมรับมือทุกการสอบ"}
+        </h1>
+
+        {/* Date */}
+        <p className="text-gray-500 text-sm flex items-center justify-center gap-2 mb-8 font-medium">
+          <Calendar size={16} />
+          {targetDate
+            ? new Date(targetDate).toLocaleDateString("th-TH", { dateStyle: "long" })
+            : "-"}
+        </p>
+
+        {/* Countdown */}
+        <div className="flex items-center justify-center gap-3 md:gap-5 mb-8 flex-wrap">
+          {units.map((item, idx) => (
+            <div key={idx} className="flex flex-col items-center">
+              <div className="flex flex-col items-center justify-center
+                bg-blue-50 border border-blue-100
+                rounded-xl w-16 h-16 md:w-40 md:h-40 shadow-sm">
+
+                <span className="text-2xl md:text-6xl font-black tabular-nums text-blue-900">
+                  {String(item.val).padStart(2, "0")}
+                </span>
+
+              </div>
+
+              <span className="text-[11px] font-bold text-gray-500 mt-1 uppercase tracking-wider">
+                {item.label}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Description */}
+        <div className="max-w-xl w-full p-4 rounded-xl flex items-center gap-3 bg-blue-50 border border-blue-100 mb-7">
+          <Info className="flex-shrink-0 text-blue-500" size={20} />
+          <p className="text-left text-sm italic font-medium leading-relaxed text-gray-700">
+            "{targetDesc}"
+          </p>
+        </div>
+
+        {/* Button */}
+        <a
+          href="/user/calendar"
+          className="inline-flex items-center justify-center px-8 py-3
+          bg-blue-600 text-white hover:bg-blue-700
+          rounded-xl font-bold text-sm transition-all gap-2
+          shadow hover:scale-105"
+        >
+          เปิดดูปฏิทินกิจกรรม
+          <ChevronRight size={18} className="transition-transform group-hover:translate-x-1" />
+        </a>
+      </div>
+    </div>
+  );
+};
+
 const Page = () => {
-  const { getToken } = useAuth(); // 1. Use useAuth
+  const { getToken } = useAuth();
+  const router = useRouter();
   const [targetDate, setTargetDate] = useState<number | null>(null);
   const [targetTitle, setTargetTitle] = useState<string>("");
   const [targetDesc, setTargetDesc] = useState<string>("");
@@ -91,7 +196,7 @@ const Page = () => {
 
   const handleBookmarkToggle = async (articleId: number) => {
     try {
-      const token = getToken(); // 2. Use getToken()
+      const token = getToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookmark/toggle`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
@@ -99,20 +204,23 @@ const Page = () => {
       });
       if (res.ok) {
         const result = await res.json();
-        // อัปเดต State ทันทีเพื่อให้สีปุ่มใน NewsCard เปลี่ยน
-        setBookmarkIds(prev => 
+        setBookmarkIds(prev =>
           result.isBookmarked ? [...prev, articleId] : prev.filter(id => id !== articleId)
         );
       }
     } catch (error) { console.error("Bookmark Error:", error); }
   };
+
+  const handleNewsClick = (articleId: number) => {
+    router.push(`/user/newsdetail/${articleId}`);
+  };
+
   const fetchData = useCallback(async () => {
     try {
-      const token = getToken(); // 3. Use getToken()
+      const token = getToken();
       const headers = { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" };
       const now = Date.now();
       const resSched = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules`, { headers });
-
       const todayStr = new Date().toDateString();
 
       if (resSched.ok) {
@@ -121,7 +229,8 @@ const Page = () => {
           .filter((item: any) => item.is_public === true || item.is_public === 1)
           .map((item: any) => ({ ...item, targetStamp: new Date(item.start_time).getTime() }))
           .sort((a: any, b: any) => a.targetStamp - b.targetStamp);
-        const examToday = allExams.find((exam: { targetStamp: string | number | Date; }) => new Date(exam.targetStamp).toDateString() === todayStr);
+
+        const examToday = allExams.find((exam: any) => new Date(exam.targetStamp).toDateString() === todayStr);
         if (examToday) {
           setTargetDate(examToday.targetStamp);
           setTargetTitle(examToday.title);
@@ -139,7 +248,6 @@ const Page = () => {
         }
       }
 
-      // 2. โหลดข่าวและรายการ Bookmark พร้อมกัน
       setLoadingNews(true);
       const [resNews, resBookmarks] = await Promise.all([
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, { headers }),
@@ -155,7 +263,7 @@ const Page = () => {
         setBookmarkIds(bookmarks.map((b: any) => Number(b.news.article_id)));
       }
     } catch (error) { console.error("Fetch Error:", error); } finally { setLoadingNews(false); }
-  }, [getToken]); // Add getToken to dependency
+  }, [getToken]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -164,8 +272,9 @@ const Page = () => {
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const distance = targetDate - now;
-      if (distance <= 0) setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-      else {
+      if (distance <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+      } else {
         setTimeLeft({
           days: Math.floor(distance / (1000 * 60 * 60 * 24)),
           hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
@@ -184,59 +293,23 @@ const Page = () => {
       <Navbar />
       <div className='bg-gray-50 min-h-screen py-8 px-4 sm:px-6'>
         <div className='max-w-7xl mx-auto'>
-          
-          {/* Countdown Hero Section */}
-          <div className={`relative overflow-hidden rounded-[2.5rem] shadow-xl mb-12 border-2 transition-all duration-700 bg-white ${isExamStarted ? 'border-red-500 shadow-red-50' : 'border-blue-600 shadow-blue-50'}`}>
-            <div className="flex flex-col items-center justify-center p-8 md:p-12 text-center">
-              <div className={`inline-flex items-center gap-2 mb-4 px-4 py-1.5 rounded-full font-bold text-sm ${isExamStarted ? 'bg-red-600 text-white animate-pulse' : 'bg-blue-50 text-blue-600'}`}>
-                <AlarmClock size={16} />
-                {isExamStarted ? 'กำลังดำเนินการสอบขณะนี้' : 'เป้าหมายที่กำลังจะมาถึง'}
-              </div>
-              <h1 className={`text-3xl md:text-5xl font-black mb-3 leading-tight ${isExamStarted ? 'text-red-700' : 'text-gray-900'}`}>
-                {targetTitle || "พร้อมรับมือทุกการสอบ"}
-              </h1>
-              <p className="text-gray-400 text-sm flex items-center justify-center gap-2 mb-8 font-bold uppercase tracking-wider">
-                <Calendar size={18} className="text-blue-500" />
-                {targetDate ? new Date(targetDate).toLocaleDateString('th-TH', { dateStyle: 'long' }) : '-'}
-              </p>
-              
-              <div className='flex items-center justify-center gap-4 md:gap-10 mb-10 flex-wrap'>
-                {[
-                  { label: 'วัน', val: timeLeft.days },
-                  { label: 'ชั่วโมง', val: timeLeft.hours },
-                  { label: 'นาที', val: timeLeft.minutes },
-                  { label: 'วินาที', val: timeLeft.seconds }
-                ].map((item, idx) => (
-                  <div key={idx} className="flex flex-col items-center min-w-[70px]">
-                    <div className={`text-5xl md:text-7xl font-black tabular-nums leading-none ${isExamStarted ? 'text-red-600' : 'text-blue-600'}`}>
-                      {String(item.val).padStart(2, '0')}
-                    </div>
-                    <div className="text-sm font-bold text-gray-500 mt-2 uppercase">{item.label}</div>
-                  </div>
-                ))}
-              </div>
 
-              <div className={`max-w-2xl w-full p-5 rounded-2xl flex items-center gap-4 border-l-8 mb-8 ${isExamStarted ? 'bg-red-50 border-red-500 text-red-700' : 'bg-gray-50 border-blue-600 text-gray-600'}`}>
-                <Info className="flex-shrink-0 text-blue-500" size={24} />
-                <p className="text-left text-sm md:text-base italic font-medium leading-relaxed">&quot;{targetDesc}&quot;</p>
-              </div>
-
-              <a href="/user/calendar" className="inline-flex items-center justify-center px-10 py-4 bg-gray-900 hover:bg-blue-700 text-white rounded-2xl font-black text-sm transition-all gap-2 group shadow-lg hover:scale-105">
-                เปิดดูปฏิทินกิจกรรม <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
-              </a>
-            </div>
-          </div>
+          <CountdownHero
+            targetDate={targetDate}
+            targetTitle={targetTitle}
+            targetDesc={targetDesc}
+            timeLeft={timeLeft}
+            isExamStarted={isExamStarted}
+          />
 
           <UniversityLeaderboard />
 
-          {/* News Section Header */}
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
               <LayoutGrid className="text-blue-600" size={28} /> ข่าวสารและประกาศ
             </h2>
           </div>
 
-          {/* News Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {loadingNews ? (
               Array(4).fill(0).map((_, i) => (
@@ -244,17 +317,25 @@ const Page = () => {
               ))
             ) : realNews.length > 0 ? (
               realNews.map((news) => (
-                <NewsCard
+                <div
                   key={news.article_id}
-                  id={Number(news.article_id)}
-                  title={news.title}
-                  desc={news.content?.replace(/<[^>]*>/g, '').substring(0, 100) + "..."}
-                  img={news.cover_image_url || "/img/news1.jpg"}
-                  badge={new Date(news.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000) ? "ใหม่" : ""}
-                  link={`/user/newsdetail/${news.article_id}`}
-                  initialIsSaved={bookmarkIds.includes(Number(news.article_id))}
-                  onBookmark={() => handleBookmarkToggle(Number(news.article_id))}
-                />
+                  className="cursor-pointer"
+                  onClick={() => handleNewsClick(Number(news.article_id))}
+                >
+                  <NewsCard
+                    id={Number(news.article_id)}
+                    title={news.title}
+                    desc={news.content?.replace(/<[^>]*>/g, '').substring(0, 100) + "..."}
+                    img={news.cover_image_url || "/img/news1.jpg"}
+                    badge={new Date(news.created_at).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000) ? "ใหม่" : ""}
+                    link={`/user/newsdetail/${news.article_id}`}
+                    initialIsSaved={bookmarkIds.includes(Number(news.article_id))}
+                    onBookmark={(e?: React.MouseEvent) => {
+                      e?.stopPropagation();
+                      handleBookmarkToggle(Number(news.article_id));
+                    }}
+                  />
+                </div>
               ))
             ) : (
               <div className="col-span-full py-20 bg-white rounded-[3rem] text-center border-2 border-dashed border-gray-200">
@@ -266,14 +347,8 @@ const Page = () => {
         </div>
       </div>
       <Footer />
-      <style jsx>{`
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-        .animate-bounce { animation: bounce 2s infinite; }
-      `}</style>
     </>
   );
 };
 
 export default Page;
-
-

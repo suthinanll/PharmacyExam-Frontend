@@ -282,7 +282,6 @@ export default function AdminDashboard() {
                 </ResponsiveContainer>
               </div>
             </div>
-
             {/* Charts Row 2 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Content Area Performance */}
@@ -308,7 +307,6 @@ export default function AdminDashboard() {
                   ))}
                 </div>
               </div>
-
               {/* Difficulty Distribution */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-lg font-bold text-gray-800 mb-4">🎯 การกระจายความยากของข้อสอบ</h2>
@@ -333,7 +331,6 @@ export default function AdminDashboard() {
                 </ResponsiveContainer>
               </div>
             </div>
-
             {/* Recent Exams & Alerts */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Recent Exams */}
@@ -373,14 +370,13 @@ export default function AdminDashboard() {
                   </table>
                 </div>
               </div>
-
               {/* System Alerts */}
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-lg font-bold text-gray-800 mb-4">🔔 แจ้งเตือนระบบ</h2>
                 <div className="space-y-3">
                   {mockSystemAlerts.map((alert, i) => (
                     <div key={i} className={`p-4 rounded-lg border-l-4 ${alert.type === 'warning' ? 'bg-yellow-50 border-yellow-500' :
-                      ert.type === 'info' ? 'bg-blue-50 border-blue-500' :
+                      alert.type === 'info' ? 'bg-blue-50 border-blue-500' :
                         'bgreen-50 border-green-500'
                       }`}>
                       <div className="flex items-start gap-2">
@@ -401,7 +397,6 @@ export default function AdminDashboard() {
             </div>
           </main>
         )}
-
         {/* Other Menu Placeholders */}
         {activeMenu !== 'dashboard' && (
           <main className="flex-1 overflow-auto p-6">
@@ -418,7 +413,6 @@ export default function AdminDashboard() {
     </div>
   );
 }
-
 // ==================== STAT CARD COMPONENT ====================
 function StatCard({ icon: Icon, title, value, change, positive }: {
   icon: any;

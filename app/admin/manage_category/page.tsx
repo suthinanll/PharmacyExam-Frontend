@@ -109,12 +109,10 @@ function CategoryCard({
                         </button>
                     </div>
                 </div>
-
                 {/* Description */}
                 <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
                     {category.category_description || 'ไม่มีคำอธิบาย'}
                 </p>
-
                 {/* Linked banks */}
                 <div className="mt-auto pt-2 border-t border-gray-100">
                     <button onClick={() => setExpanded(e => !e)}
@@ -125,7 +123,6 @@ function CategoryCard({
                         </span>
                         {banks.length > 0 && (expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />)}
                     </button>
-
                     {expanded && banks.length > 0 && (
                         <div className="mt-2 space-y-1.5">
                             {banks.map(b => (
@@ -141,7 +138,6 @@ function CategoryCard({
                         </div>
                     )}
                 </div>
-
                 {/* Date */}
                 <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
                     <Calendar size={11} />
@@ -288,7 +284,7 @@ export default function CategoriesManagement() {
 
     return (
         <Navbar_admin>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4" suppressHydrationWarning>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4" suppressHydrationWarning>
 
                 {/* Header */}
                 <div className="mb-8">
