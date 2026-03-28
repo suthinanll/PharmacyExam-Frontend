@@ -114,8 +114,6 @@ const Navbar = () => {
       href: '/user/examset',
       label: 'คลังข้อสอบ',
       submenu: [
-        { href: '/examset/by-year', label: 'ข้อสอบโรคและระบบต่างๆ' },
-        { href: '/examset/mock-exam', label: 'ข้อสอบย้อนหลัง' },
         { href: '/user/cat-exam', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)' }
       ]
     },

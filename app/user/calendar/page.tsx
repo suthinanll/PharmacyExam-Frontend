@@ -6,7 +6,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar as CalendarIcon,
-  Clock,
   AlignLeft,
   X,
   Info,
@@ -40,7 +39,6 @@ interface UserNote {
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
-// สีของแต่ละ Tag ประเภทกำหนดการ
 const TYPE_EVENT_STYLES: Record<
   string,
   { bg: string; text: string; border: string; dot: string }
