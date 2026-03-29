@@ -194,7 +194,7 @@ function Page() {
 
   return (
     <Navbar_admin>
-      <div className="max-w-6xl mx-auto px-4 py-6" suppressHydrationWarning>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4" suppressHydrationWarning>
 
         {/* Header */}
         <div className="mb-8">
