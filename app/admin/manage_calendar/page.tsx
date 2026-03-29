@@ -94,7 +94,11 @@ function Page() {
           is_published: item.is_public,
           raw_start: item.start_time,
           raw_end: item.end_time,
-          type_event: item.type_event || [],
+          type_event: Array.isArray(item.type_event) 
+            ? item.type_event 
+            : (typeof item.type_event === "string" 
+                ? item.type_event.replace(/^{|}$/g, '').split(',') 
+                : []),
         };
       });
       setEvents(formattedEvents);

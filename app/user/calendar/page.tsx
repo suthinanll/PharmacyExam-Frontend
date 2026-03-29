@@ -129,7 +129,11 @@ const CalenderPage = () => {
             endDate: end,
             timeRange: `${start.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}`,
             description: item.description || "",
-            type_event: item.type_event || [],
+            type_event: Array.isArray(item.type_event) 
+            ? item.type_event 
+            : (typeof item.type_event === "string" 
+                ? item.type_event.replace(/^{|}$/g, '').split(',') 
+                : []),
           };
         });
       setAdminSchedules(formatted);

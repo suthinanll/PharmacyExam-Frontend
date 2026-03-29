@@ -100,25 +100,37 @@ export default function EditBlogDetail() {
         const token = getToken();
 
         try {
-            const data = new FormData();
-            data.append("title", formData.title);
-            data.append("content", formData.content);
-            
-            // ถ้ามีการเลือกไฟล์ใหม่ ให้ส่งไฟล์ภาพไปด้วย
+            let finalImageUrl = formData.cover_image_url;
+
+            // ถ้ามีการเลือกไฟล์ใหม่ ให้อัปโหลดไฟล์ก่อน
             if (selectedFile) {
-                data.append("image", selectedFile);
-            } else {
-                // ถ้าใช้ URL เดิม (ไม่ได้เปลี่ยนรูป)
-                data.append("cover_image_url", formData.cover_image_url);
+                const uploadData = new FormData();
+                uploadData.append("file", selectedFile);
+                
+                const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: uploadData
+                });
+
+                if (!uploadRes.ok) throw new Error("อัปโหลดรูปภาพไม่สำเร็จ");
+                const uploadJson = await uploadRes.json();
+                finalImageUrl = uploadJson.url;
             }
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/${blogId}`, {
                 method: 'PATCH',
                 headers: { 
+                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}` 
-                    // สำคัญ: ห้ามตั้ง Content-Type เป็น application/json เมื่อส่ง FormData
                 },
-                body: data,
+                body: JSON.stringify({
+                    title: formData.title,
+                    content: formData.content,
+                    cover_image_url: finalImageUrl
+                }),
             });
 
             if (response.ok) {
