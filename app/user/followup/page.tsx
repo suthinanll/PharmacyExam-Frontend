@@ -414,9 +414,6 @@ const PharmacistDashboard = () => {
                                 <span className="flex items-center gap-1">
                                   <Clock className="w-3 h-3" /> {topic.study_time}
                                 </span>
-                                <span className="flex items-center gap-1">
-                                  <FileText className="w-3 h-3" /> {topic.resources} รายการ
-                                </span>
                               </div>
                             </div>
                           </div>
