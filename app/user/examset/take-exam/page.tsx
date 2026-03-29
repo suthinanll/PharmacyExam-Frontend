@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import Swal from 'sweetalert2';
-import { Loader2, BookOpen, Clock, AlertCircle } from 'lucide-react';
+import { Loader2, BookOpen, Clock, AlertCircle, ListCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Types
@@ -94,24 +94,31 @@ function TakeExam() {
     // Cancel session if user leaves without submitting (closes tab / navigates away)
     useEffect(() => {
         if (!sessionId) return;
+
+        // cancelAllowed starts false; we set it to true after a tick
+        // so that React 18 Strict Mode's simulated unmount (which runs immediately)
+        // does NOT trigger a real cancel request.
+        let cancelAllowed = false;
+        const allowTimer = setTimeout(() => { cancelAllowed = true; }, 300);
+
         const doCancel = () => {
             if (submittedRef.current) return;
+            if (!cancelAllowed) return; // StrictMode double-invoke guard
             const token = getToken();
             if (!token) return;
-            // Use sendBeacon so the request survives page unload
             const url = `${API_URL}/items-bank/exam/${sessionId}/cancel`;
-            const blob = new Blob([], { type: 'application/json' });
-            // sendBeacon doesn't support custom headers, so fall back to fetch w/ keepalive
             fetch(url, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` },
                 keepalive: true
             }).catch(() => { });
         };
+
         window.addEventListener('beforeunload', doCancel);
+
         return () => {
-            // Cleanup: called when component unmounts (route change via Next.js)
-            doCancel();
+            clearTimeout(allowTimer);
+            doCancel(); // only fires if cancelAllowed = true (real unmount)
             window.removeEventListener('beforeunload', doCancel);
         };
     }, [sessionId]);
@@ -224,6 +231,30 @@ function TakeExam() {
         setCurrentQuestionIndex(index);
         const question = questions[index];
         setSelectedAnswer(answers[question.item_id]?.option_index ?? null);
+    };
+
+    const handleDebugAutoFill = () => {
+        const newAnswers = { ...answers };
+        questions.forEach((q) => {
+            if (newAnswers[q.item_id] === undefined) {
+                newAnswers[q.item_id] = {
+                    option_index: 0,
+                    start_time: 1000 // dummy time
+                };
+            }
+        });
+        setAnswers(newAnswers);
+        // Refresh selected answer for current view
+        const currentQ = questions[currentQuestionIndex];
+        setSelectedAnswer(newAnswers[currentQ.item_id]?.option_index ?? null);
+        
+        Swal.fire({
+            title: 'Debug Active',
+            text: 'เลือกคำตอบให้ครบทุกข้อแล้ว (ข้อ ก.)',
+            icon: 'info',
+            timer: 1500,
+            showConfirmButton: false
+        });
     };
 
     const submitExam = async () => {
@@ -394,74 +425,90 @@ function TakeExam() {
                             <div className="bg-white rounded-lg shadow-md p-6">
                                 {/* Situation (if exists) */}
                                 {currentQuestion.situation && (
-                                    <div className="mb-6 p-4 pt-0 pb-0 border-l-4 border-gray-400">
-                                        <h3 className="font-bold text-gray-800 mb-3 text-lg">
-                                            {currentQuestion.situation.situation_title}
-                                        </h3>
-                                        <p className="text-gray-700 text-base whitespace-pre-wrap leading-relaxed">
-                                            {currentQuestion.situation.situation_text}
-                                        </p>
-                                        {currentQuestion.situation.situation_image_url && (
-                                            <img
-                                                src={currentQuestion.situation.situation_image_url}
-                                                alt="Situation"
-                                                className="mt-3 rounded-lg max-w-full"
-                                            />
-                                        )}
+                                    <div className="mb-6 bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                                        <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-2">
+                                            <BookOpen className="w-4 h-4 text-blue-600" />
+                                            <span className="text-sm font-semibold text-blue-700">สถานการณ์</span>
+                                        </div>
+                                        <div className="p-5">
+                                            {currentQuestion.situation.situation_title && (
+                                                <p className="font-bold text-gray-800 mb-2">
+                                                    {currentQuestion.situation.situation_title}
+                                                </p>
+                                            )}
+                                            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base">
+                                                {currentQuestion.situation.situation_text}
+                                            </p>
+                                            {currentQuestion.situation.situation_image_url && (
+                                                <img
+                                                    src={currentQuestion.situation.situation_image_url}
+                                                    alt="situation"
+                                                    className="mt-4 rounded-lg max-w-full border border-gray-200"
+                                                />
+                                            )}
+                                        </div>
                                     </div>
                                 )}
 
                                 {/* Question */}
                                 <div className="mb-6">
-                                    <div className="flex items-start gap-3 mb-4">
-                                        <div className="flex-1">
-                                            <h2 className="font-bold text-gray-800">
-                                                คำถามที่ {currentQuestionIndex + 1}
-                                            </h2>
-                                            {currentQuestion.sub_topics && currentQuestion.sub_topics.length > 0 && (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {currentQuestion.sub_topics.map((st) => (
-                                                        <span
-                                                            key={st.sub_topic_id}
-                                                            className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full"
-                                                        >
-                                                            {st.sub_topic_name}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
+                                    <div className="mb-6 border-b border-gray-100 pb-4">
+                                        <h2 className="text-2xl font-black text-gray-800 mb-2">
+                                            คำถามที่ {currentQuestionIndex + 1}
+                                        </h2>
+                                        {currentQuestion.sub_topics && currentQuestion.sub_topics.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                {currentQuestion.sub_topics.map((st) => (
+                                                    <span
+                                                        key={st.sub_topic_id}
+                                                        className="text-sm font-medium bg-[#e6f7ec] text-[#2e8555] px-3 py-1 rounded-full"
+                                                    >
+                                                        {st.sub_topic_name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
-                                    <p className="text-gray-700 mb-6 leading-relaxed whitespace-pre-wrap">
+                                    <p className="text-lg text-gray-800 mb-8 leading-relaxed whitespace-pre-wrap font-medium">
                                         {currentQuestion.question_text}
                                     </p>
 
                                     {/* Options */}
                                     <div className="space-y-3">
-                                        {currentQuestion.answer_options.map((option, index) => (
-                                            <button
-                                                key={option.option_id}
-                                                onClick={() => handleAnswerSelect(index)}
-                                                disabled={submitting}
-                                                className={`w-full p-4 text-left rounded-lg border-2 transition-all ${selectedAnswer === index
-                                                    ? 'border-blue-500 bg-blue-50'
-                                                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                                        {currentQuestion.answer_options.map((option, index) => {
+                                            const isSelected = selectedAnswer === index;
+                                            return (
+                                                <button
+                                                    key={option.option_id}
+                                                    onClick={() => handleAnswerSelect(index)}
+                                                    disabled={submitting}
+                                                    className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-150 flex items-center gap-4 group ${
+                                                        isSelected
+                                                            ? 'border-green-500 bg-green-50 shadow-sm'
+                                                            : 'border-gray-200 hover:border-green-300 bg-white hover:bg-green-50/30'
                                                     } ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            >
-                                                <div className="flex items-center">
-                                                    <div className={`w-5 h-5 rounded-full border-2 mr-3 flex items-center justify-center ${selectedAnswer === index
-                                                        ? 'border-blue-500'
-                                                        : 'border-gray-300'
-                                                        }`}>
-                                                        {selectedAnswer === index && (
-                                                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                                                        )}
+                                                >
+                                                    {/* radio */}
+                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
+                                                        isSelected ? 'border-green-500' : 'border-gray-300 group-hover:border-green-400'
+                                                    }`}>
+                                                        {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-green-500" />}
                                                     </div>
-                                                    <span className="text-gray-800">{option.option_text}</span>
-                                                </div>
-                                            </button>
-                                        ))}
+
+                                                    {/* label badge */}
+                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 transition-colors ${
+                                                        isSelected ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 group-hover:bg-green-100 group-hover:text-green-700'
+                                                    }`}>
+                                                        {['ก', 'ข', 'ค', 'ง', 'จ'][index] || String.fromCharCode(65 + index)}
+                                                    </span>
+
+                                                    <span className="text-gray-800 text-sm lg:text-base leading-relaxed">
+                                                        {option.option_text}
+                                                    </span>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
@@ -502,7 +549,10 @@ function TakeExam() {
 
                                 {/* Question Grid */}
                                 <div className="mb-6">
-                                    <h3 className="font-semibold text-gray-800 mb-3">เลือกข้อ</h3>
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <ListCheck className="w-4 h-4 text-gray-500" />
+                                        <h3 className="text-sm font-semibold text-gray-700">เลือกข้อ</h3>
+                                    </div>
                                     <div className="grid grid-cols-7 gap-2 max-h-96 overflow-y-auto p-1">
                                         {questions.map((q, index) => (
                                             <button
@@ -555,6 +605,15 @@ function TakeExam() {
                                         ถัดไป →
                                     </button>
                                 </div>
+
+                                {process.env.NODE_ENV === 'development' && (
+                                    <button
+                                        onClick={handleDebugAutoFill}
+                                        className="w-full py-2 mb-3 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs font-semibold rounded-lg border border-dashed border-gray-300 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        [Debug] Auto-fill ทุกข้อ
+                                    </button>
+                                )}
 
                                 <button
                                     onClick={handleSubmit}

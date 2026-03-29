@@ -244,10 +244,10 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                         </div>
                     </div>
                 ) : (
-                    <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+                    <div className="flex-1 overflow-y-auto lg:overflow-hidden block lg:flex">
 
                         {/* ── Left: Question Area ────────────────── */}
-                        <div className="flex-1 overflow-y-auto p-5 lg:p-8">
+                        <div className="lg:flex-1 lg:overflow-y-auto p-5 lg:p-8">
 
                             {/* Situation */}
                             {currentQuestion?.situation && (
@@ -279,28 +279,26 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                             {/* Question Card */}
                             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-5 lg:p-7">
                                 {/* question header */}
-                                <div className="flex items-start gap-3 mb-5">
-                                    <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-bold shrink-0">
-                                        {currentIndex + 1}
-                                    </div>
-                                    <div className="flex-1">
-                                        {currentQuestion?.sub_topics && currentQuestion.sub_topics.length > 0 && (
-                                            <div className="flex flex-wrap gap-1.5 mb-2">
-                                                {currentQuestion.sub_topics.map(st => (
-                                                    <span
-                                                        key={st.sub_topic_id}
-                                                        className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full"
-                                                    >
-                                                        {st.sub_topic_name}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
-                                        <p className="text-gray-800 text-sm lg:text-base leading-relaxed whitespace-pre-wrap font-medium">
-                                            {currentQuestion?.question_text}
-                                        </p>
-                                    </div>
+                                <div className="mb-6 border-b border-gray-100 pb-4">
+                                    <h2 className="text-2xl font-black text-gray-800 mb-2">
+                                        คำถามที่ {currentIndex + 1}
+                                    </h2>
+                                    {currentQuestion?.sub_topics && currentQuestion.sub_topics.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mt-2">
+                                            {currentQuestion.sub_topics.map(st => (
+                                                <span
+                                                    key={st.sub_topic_id}
+                                                    className="text-sm font-medium bg-[#e6f7ec] text-[#2e8555] px-3 py-1 rounded-full"
+                                                >
+                                                    {st.sub_topic_name}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
+                                <p className="text-lg text-gray-800 mb-8 leading-relaxed whitespace-pre-wrap font-medium">
+                                    {currentQuestion?.question_text}
+                                </p>
 
                                 {/* Options */}
                                 <div className="space-y-3">
@@ -362,7 +360,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                         </div>
 
                         {/* ── Right Sidebar ──────────────────────── */}
-                        <div className="w-full lg:w-72 xl:w-80 bg-white border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col shrink-0 overflow-y-auto">
+                        <div className="w-full lg:w-72 xl:w-80 bg-white border-t lg:border-t-0 lg:border-l border-gray-200 flex flex-col shrink-0 lg:overflow-y-auto">
 
                             {/* Progress */}
                             <div className="p-5 border-b border-gray-100">

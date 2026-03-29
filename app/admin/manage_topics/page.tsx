@@ -259,7 +259,7 @@ export default function ManageTopicsPage() {
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">จัดการหัวข้อข้อสอบ</h1>
+                            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">จัดการหัวข้อข้อสอบ</h1>
                             <p className="text-gray-500 text-sm">
                                 จัดการ Topic/Sub-Topic และดูสัดส่วนข้อสอบทั้งหมด ({stats?.total_items || 0} ข้อ)
                             </p>
@@ -408,7 +408,7 @@ export default function ManageTopicsPage() {
                                                     </h3>
                                                     {topic.description && <p className="text-sm text-gray-500 mt-0.5">{topic.description}</p>}
                                                 </div>
-                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <div className="flex items-center gap-2">
                                                     <button onClick={(e) => { e.stopPropagation(); handleEditTopic(topic); }}
                                                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
                                                         <Edit2 size={16} />
@@ -451,7 +451,7 @@ export default function ManageTopicsPage() {
                                                                             {st.item_count || 0}
                                                                         </span>
                                                                     </div>
-                                                                    <div className="col-span-4 flex justify-end gap-2 opacity-0 group-hover/row:opacity-100 transition-opacity">
+                                                                    <div className="col-span-4 flex justify-end gap-2">
                                                                         <button onClick={() => handleEditSubTopic(st)}
                                                                             className="p-1.5 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg">
                                                                             <Edit2 size={14} />

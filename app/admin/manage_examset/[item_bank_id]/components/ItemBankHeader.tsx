@@ -33,6 +33,7 @@ interface ItemBankHeaderProps {
     onSave?: (e: React.FormEvent) => void;
     submitting?: boolean;
     onBack?: () => void;
+    onUploadPdf?: () => void;
 }
 
 export default function ItemBankHeader({
@@ -47,7 +48,8 @@ export default function ItemBankHeader({
     onCancel,
     onSave,
     submitting = false,
-    onBack
+    onBack,
+    onUploadPdf
 }: ItemBankHeaderProps) {
     const router = useRouter();
 
@@ -127,14 +129,7 @@ export default function ItemBankHeader({
                             </>
                         ) : (
                             <>
-                                <button
-                                    type="button"
-                                    onClick={onCancel}
-                                    className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-white text-gray-600 hover:bg-gray-50 border border-gray-300 px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
-                                >
-                                    <X className="w-4 h-4 sm:w-5 sm:h-5" />
-                                    ยกเลิก
-                                </button>
+                                
 
                                 <button
                                     onClick={onAddSituation}
@@ -143,15 +138,7 @@ export default function ItemBankHeader({
                                     <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                                     เพิ่มสถานการณ์
                                 </button>
-
-                                <button
-                                    onClick={onSave}
-                                    disabled={submitting}
-                                    className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
-                                >
-                                    <Save className="w-4 h-4 sm:w-5 sm:h-5" />
-                                    บันทึก
-                                </button>
+                               
                             </>
                         )}
                     </div>

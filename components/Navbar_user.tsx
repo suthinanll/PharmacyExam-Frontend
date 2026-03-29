@@ -305,11 +305,7 @@ const Navbar = () => {
                   </div>
 
                   {/* Footer */}
-                  <div className="bg-gray-50 px-4 py-2 rounded-b-xl border-t border-gray-100 flex items-center justify-between">
-                    <span className={`flex items-center gap-1 text-[10px] ${isConnected ? 'text-green-500' : 'text-gray-400'}`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-400' : 'bg-gray-300'}`} />
-                      {isConnected ? 'เชื่อมต่อแบบ Real-time' : 'ไม่ได้เชื่อมต่อ'}
-                    </span>
+                  <div className="bg-gray-50 px-4 py-2 rounded-b-xl border-t border-gray-100 flex justify-end">
                     <button className="text-xs text-green-600 hover:text-green-700 font-medium transition-colors" onClick={() => setIsNotificationOpen(false)}>
                       ปิด
                     </button>

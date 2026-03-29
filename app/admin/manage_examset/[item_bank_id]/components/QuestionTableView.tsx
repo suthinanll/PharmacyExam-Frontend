@@ -166,11 +166,11 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
 
                     {/* Explanation */}
                     {question.explanation && (
-                        <div className="flex gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
-                            <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                        <div className="flex gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
+                            <Lightbulb className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                             <div>
-                                <p className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-1">คำอธิบายเฉลย</p>
-                                <p className="text-amber-800 text-sm leading-relaxed whitespace-pre-wrap">{question.explanation}</p>
+                                <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">คำอธิบายเฉลย</p>
+                                <p className="text-green-800 text-sm leading-relaxed whitespace-pre-wrap">{question.explanation}</p>
                             </div>
                         </div>
                     )}
@@ -182,17 +182,17 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
                                 <BarChart2 className="w-4 h-4 text-gray-500" />
                                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">IRT Parameters</p>
                             </div>
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 {[
-                                    { label: 'a (Discrimination)', value: question.irt_a_discrimination, color: 'blue' },
-                                    { label: 'b (Difficulty)', value: question.irt_b_difficulty, color: 'purple' },
-                                    { label: 'c (Guessing)', value: question.irt_c_guessing, color: 'orange' },
-                                ].map(({ label, value, color }) => (
-                                    <div key={label} className={`bg-${color}-50 border border-${color}-100 rounded-xl p-3 text-center`}>
-                                        <p className={`text-xl font-bold text-${color}-700`}>
+                                    { label: 'a (Discrimination)', value: question.irt_a_discrimination, bgClassName: 'bg-blue-50', borderClassName: 'border-blue-100', textValClassName: 'text-blue-700', textLblClassName: 'text-blue-500' },
+                                    { label: 'b (Difficulty)', value: question.irt_b_difficulty, bgClassName: 'bg-purple-50', borderClassName: 'border-purple-100', textValClassName: 'text-purple-700', textLblClassName: 'text-purple-500' },
+                                    { label: 'c (Guessing)', value: question.irt_c_guessing, bgClassName: 'bg-orange-50', borderClassName: 'border-orange-100', textValClassName: 'text-orange-700', textLblClassName: 'text-orange-500' },
+                                ].map(({ label, value, bgClassName, borderClassName, textValClassName, textLblClassName }) => (
+                                    <div key={label} className={`${bgClassName} border ${borderClassName} rounded-xl p-3 text-center`}>
+                                        <p className={`text-xl font-bold ${textValClassName}`}>
                                             {value !== undefined && value !== null ? Number(value).toFixed(2) : '-'}
                                         </p>
-                                        <p className={`text-xs text-${color}-500 mt-0.5`}>{label}</p>
+                                        <p className={`text-xs ${textLblClassName} mt-0.5`}>{label}</p>
                                     </div>
                                 ))}
                             </div>
@@ -440,21 +440,21 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
 
                                         {/* IRT a */}
                                         <td className="px-3 py-3 text-center">
-                                            <span className="text-xs font-mono text-blue-700">
+                                            <span className="text-xs text-blue-700">
                                                 {question.irt_a_discrimination != null ? Number(question.irt_a_discrimination).toFixed(2) : <span className="text-gray-300">-</span>}
                                             </span>
                                         </td>
 
                                         {/* IRT b */}
                                         <td className="px-3 py-3 text-center">
-                                            <span className="text-xs font-mono text-purple-700">
+                                            <span className="text-xs text-purple-700">
                                                 {question.irt_b_difficulty != null ? Number(question.irt_b_difficulty).toFixed(2) : <span className="text-gray-300">-</span>}
                                             </span>
                                         </td>
 
                                         {/* IRT c */}
                                         <td className="px-3 py-3 text-center">
-                                            <span className="text-xs font-mono text-orange-600">
+                                            <span className="text-xs text-orange-600">
                                                 {question.irt_c_guessing != null ? Number(question.irt_c_guessing).toFixed(2) : <span className="text-gray-300">-</span>}
                                             </span>
                                         </td>

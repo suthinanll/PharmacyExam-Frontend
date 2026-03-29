@@ -692,7 +692,7 @@ export default function ChatbotPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-3 space-y-1">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 py-2">
+            <h3 className="text-md text-gray-600 px-3 py-2">
               ประวัติการสนทนา ({totalCount})
             </h3>
             {sessions.map((session) => (

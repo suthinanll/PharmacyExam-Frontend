@@ -254,8 +254,8 @@ const examset = () => {
   return (
     <>
       <Navbar_user />
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="container mx-auto px-4 mb-4">
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-5xl mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
             {/* Breadcrumb */}
             <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">

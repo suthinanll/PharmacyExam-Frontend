@@ -116,6 +116,10 @@ export default function ItemBankEditPage() {
     const isInitialLoad = useRef(true);
     const hasUnsavedChanges = useRef(false);
     const hasInitialized = useRef(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // AI PDF Upload State
+    const [uploadingPdf, setUploadingPdf] = useState(false);
 
 
     useEffect(() => {
@@ -623,6 +627,85 @@ export default function ItemBankEditPage() {
         }
     };
 
+    const handleUploadPdf = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.type !== 'application/pdf') {
+            Swal.fire({
+                title: 'ไฟล์ไม่ถูกต้อง',
+                text: 'กรุณาอัปโหลดไฟล์ PDF เท่านั้น',
+                icon: 'error',
+                confirmButtonColor: '#ef4444'
+            });
+            return;
+        }
+
+        setUploadingPdf(true);
+        Swal.fire({
+            title: 'กำลังสกัดข้อสอบด้วย AI...',
+            text: 'ระบบกำลังอ่านไฟล์ PDF และดึงข้อมูลข้อสอบที่มีไฮไลท์สีเหลือง กรุณารอสักครู่',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const token = getToken();
+            const response = await fetch(`${API_URL}/items-bank/${itemBankId}/upload-pdf`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData,
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+
+                await Swal.fire({
+                    title: 'สำเร็จ!',
+                    text: `สกัดข้อสอบสำเร็จทั้งหมด ${result.items_count} ข้อ`,
+                    icon: 'success',
+                    confirmButtonColor: '#22c55e'
+                });
+
+                // Refresh data
+                await fetchExistingItems();
+
+                // Switch to editor if not already
+                if (!isEditing) {
+                    setIsEditing(true);
+                    setViewMode('editor');
+                }
+            } else {
+                let errorMsg = 'ไม่สามารถสกัดข้อสอบได้';
+                try {
+                    const errorData = await response.json();
+                    errorMsg = errorData.message || errorMsg;
+                } catch (e) {
+                    errorMsg = `เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ (Status: ${response.status})`;
+                }
+                throw new Error(errorMsg);
+            }
+        } catch (error: any) {
+            console.error('Error uploading PDF:', error);
+            Swal.fire({
+                title: 'เกิดข้อผิดพลาด',
+                text: error.message || 'ไม่สามารถสกัดข้อสอบได้ กรุณาลองใหม่อีกครั้ง',
+                icon: 'error',
+                confirmButtonColor: '#ef4444'
+            });
+        } finally {
+            setUploadingPdf(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -1067,6 +1150,8 @@ export default function ItemBankEditPage() {
                     onToggleEdit={() => setIsEditing(true)}
                     onCancel={handleCancel}
                     onSave={handleSubmit}
+                    onUploadPdf={() => fileInputRef.current?.click()}
+                    submitting={submitting || uploadingPdf}
                     onBack={async () => {
                         if (hasUnsavedChanges.current) {
                             const result = await Swal.fire({
@@ -1104,6 +1189,15 @@ export default function ItemBankEditPage() {
                     }}
                 />
 
+                {/* Hidden File Input for PDF Upload */}
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleUploadPdf}
+                    accept=".pdf"
+                    className="hidden"
+                />
+
                 {/* TOC — read accordion view OR edit accordion view */}
                 {((!isEditing && readViewMode === 'accordion') || (isEditing && editViewMode === 'accordion')) && (
                     <TableOfContents
@@ -1121,53 +1215,16 @@ export default function ItemBankEditPage() {
                 {!isEditing && (
                     <div className="space-y-4">
                         {/* Toggle Bar */}
-                        <div className="flex items-center justify-end">
-                            <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
-                                <button
-                                    onClick={() => setReadViewMode('accordion')}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${readViewMode === 'accordion'
-                                        ? 'bg-white text-gray-800 shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                        }`}
-                                >
-                                    <List className="w-4 h-4" />
-                                    แบบยุบ/ขยาย
-                                </button>
-                                <button
-                                    onClick={() => setReadViewMode('table')}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${readViewMode === 'table'
-                                        ? 'bg-white text-gray-800 shadow-sm'
-                                        : 'text-gray-500 hover:text-gray-700'
-                                        }`}
-                                >
-                                    <LayoutList className="w-4 h-4" />
-                                    แบบตาราง
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Accordion View */}
-                        {readViewMode === 'accordion' && (
-                            <SituationViewer
-                                situations={situations}
-                                collapsedSituations={collapsedSituations}
-                                collapsedQuestions={collapsedQuestions}
-                                toggleSituationCollapse={toggleSituationCollapse}
-                                toggleQuestionCollapse={toggleQuestionCollapse}
-                                situationRefs={situationRefs}
-                                onCollapseAll={collapseAllSituations}
-                                onExpandAll={expandAllSituations}
-                            />
-                        )}
-
-                        {/* Table View */}
-                        {readViewMode === 'table' && (
-                            <QuestionTableView
-                                situations={situations}
-                                subTopics={subTopics}
-                                topics={topics}
-                            />
-                        )}
+                        <SituationViewer
+                            situations={situations}
+                            collapsedSituations={collapsedSituations}
+                            collapsedQuestions={collapsedQuestions}
+                            toggleSituationCollapse={toggleSituationCollapse}
+                            toggleQuestionCollapse={toggleQuestionCollapse}
+                            situationRefs={situationRefs}
+                            onCollapseAll={collapseAllSituations}
+                            onExpandAll={expandAllSituations}
+                        />
                     </div>
                 )}
 
@@ -1176,145 +1233,13 @@ export default function ItemBankEditPage() {
                     <form onSubmit={handleSubmit} className="space-y-4 pb-8">
 
                         {/* Edit View Mode Toggle */}
-                        {situations.length > 0 && (
-                            <div className="flex items-center justify-end">
-                                <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
-                                    <button
-                                        type="button"
-                                        onClick={() => setEditViewMode('accordion')}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${editViewMode === 'accordion' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                                            }`}
-                                    >
-                                        <List className="w-4 h-4" />
-                                        แบบยุบ/ขยาย
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setEditViewMode('card')}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${editViewMode === 'card' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'
-                                            }`}
-                                    >
-                                        <LayoutList className="w-4 h-4" />
-                                        แบบการ์ด
-                                    </button>
-                                </div>
-                            </div>
-                        )}
+
 
                         {situations.length === 0 ? (
                             <div className="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-12 sm:p-16 text-center">
                                 <FileText className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400 mx-auto mb-4" />
                                 <h3 className="text-lg sm:text-xl font-bold text-gray-700 mb-2">ยังไม่มีสถานการณ์</h3>
                                 <p className="text-gray-500 mb-6 text-sm sm:text-base">เริ่มต้นสร้างข้อสอบโดยการเพิ่มสถานการณ์ใหม่</p>
-                            </div>
-
-                        ) : editViewMode === 'card' ? (
-                            /* ── Card View ─────────────────────────────────────── */
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {situations.map((situation, sitIdx) => {
-                                    const isOpen = expandedCardIndex === sitIdx;
-                                    const questionStartIndex = situations.slice(0, sitIdx).reduce((acc, s) => acc + s.questions.length, 0);
-                                    return (
-                                        <div
-                                            key={situation.temporary_id || situation.situation_id || sitIdx}
-                                            ref={(el) => { situationRefs.current[sitIdx] = el; }}
-                                            className="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden scroll-mt-32"
-                                        >
-                                            {/* Card Header */}
-                                            <div
-                                                className="flex items-center gap-3 px-4 py-4 cursor-pointer select-none group"
-                                                onClick={() => setExpandedCardIndex(isOpen ? null : sitIdx)}
-                                            >
-                                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
-                                                    {sitIdx + 1}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                        <span className="font-bold text-gray-800 text-sm">สถานการณ์ที่ {sitIdx + 1}</span>
-                                                        {situation.situation_id
-                                                            ? <span className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">บันทึกแล้ว</span>
-                                                            : <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">ใหม่</span>
-                                                        }
-                                                    </div>
-                                                    <p className="text-xs text-gray-500 mt-0.5">{situation.questions.length} คำถาม</p>
-                                                </div>
-                                                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                                                    <button type="button" onClick={() => moveSituation(sitIdx, 'up')} disabled={sitIdx === 0} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="ย้ายขึ้น"><ArrowUp className="w-3.5 h-3.5" /></button>
-                                                    <button type="button" onClick={() => moveSituation(sitIdx, 'down')} disabled={sitIdx === situations.length - 1} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="ย้ายลง"><ArrowDown className="w-3.5 h-3.5" /></button>
-                                                    <button type="button" onClick={() => removeSituation(sitIdx)} className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="ลบ"><Trash2 className="w-3.5 h-3.5" /></button>
-                                                </div>
-                                                <div className="w-7 h-7 rounded-lg bg-gray-100 group-hover:bg-gray-200 flex items-center justify-center transition-colors shrink-0">
-                                                    {isOpen ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
-                                                </div>
-                                            </div>
-
-                                            {/* Card Expanded Body */}
-                                            {isOpen && (
-                                                <div className="border-t border-gray-100">
-                                                    {/* Situation text */}
-                                                    <div className="bg-gradient-to-b from-slate-50 to-white px-4 py-4 border-b border-gray-100">
-                                                        <div className="flex items-start gap-2 mb-3">
-                                                            <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shrink-0" />
-                                                            <textarea
-                                                                value={situation.situation_text}
-                                                                onChange={(e) => updateSituation(sitIdx, 'situation_text', e.target.value)}
-                                                                onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = `${t.scrollHeight}px`; }}
-                                                                ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; } }}
-                                                                className="flex-1 w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none resize-none overflow-hidden text-sm text-gray-700 leading-relaxed bg-white"
-                                                                rows={1}
-                                                                placeholder="รายละเอียดสถานการณ์..."
-                                                                required
-                                                            />
-                                                        </div>
-                                                        <input type="text" value={situation.situation_image_url || ''} onChange={(e) => updateSituation(sitIdx, 'situation_image_url', e.target.value)} className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-xs text-gray-500 bg-white outline-none focus:ring-1 focus:ring-emerald-400" placeholder="URL รูปภาพ (ถ้ามี)" />
-                                                    </div>
-
-                                                    {/* Questions list */}
-                                                    <div className="divide-y divide-gray-100">
-                                                        {situation.questions.map((question, qIdx) => {
-                                                            const isQCollapsed = collapsedQuestions.has(`${sitIdx}-${qIdx}`);
-                                                            return (
-                                                                <div key={qIdx} className="scroll-mt-32">
-                                                                    <div className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50/70 transition-colors group">
-                                                                        <div className="w-7 h-7 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0 cursor-pointer" onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}>{questionStartIndex + qIdx + 1}</div>
-                                                                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}>
-                                                                            <p className="text-gray-800 font-medium text-xs leading-relaxed line-clamp-2">{question.question_text || 'คำถามใหม่'}</p>
-                                                                        </div>
-                                                                        <div className="flex items-center gap-1 shrink-0">
-                                                                            <button type="button" onClick={() => removeQuestion(sitIdx, qIdx)} className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-all" title="ลบ"><Trash2 className="w-3.5 h-3.5" /></button>
-                                                                            <div className="w-6 h-6 rounded flex items-center justify-center cursor-pointer hover:bg-gray-100" onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}>
-                                                                                {isQCollapsed ? <ChevronDown className="w-3.5 h-3.5 text-gray-400" /> : <ChevronUp className="w-3.5 h-3.5 text-gray-400" />}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    {!isQCollapsed && (
-                                                                        <div className="px-4 pb-4 pt-1 bg-gray-50/40 space-y-3">
-                                                                            <textarea value={question.question_text} onChange={(e) => updateQuestion(sitIdx, qIdx, 'question_text', e.target.value)} onInput={(e) => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = `${t.scrollHeight}px`; }} ref={(el) => { if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; } }} className="w-full px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none resize-none overflow-hidden text-sm" rows={1} placeholder="โจทย์คำถาม..." required />
-                                                                            <div className="space-y-1.5">
-                                                                                {question.answer_options.map((option, optIdx) => (
-                                                                                    <div key={optIdx} className="flex gap-2 items-center">
-                                                                                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 shrink-0">{String.fromCharCode(65 + optIdx)}</div>
-                                                                                        <input type="text" value={option.option_text} onChange={(e) => updateAnswerOption(sitIdx, qIdx, optIdx, 'option_text', e.target.value)} className="flex-1 px-3 py-1.5 rounded-lg border border-gray-300 focus:ring-1 focus:ring-green-500 outline-none text-sm" placeholder={`ตัวเลือกที่ ${optIdx + 1}`} required />
-                                                                                        <input type="radio" name={`correct-card-${sitIdx}-${qIdx}`} checked={option.is_correct} onChange={() => updateAnswerOption(sitIdx, qIdx, optIdx, 'is_correct', true)} className="w-4 h-4 text-green-600 cursor-pointer shrink-0" required />
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                    <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
-                                                        <button type="button" onClick={() => addQuestion(sitIdx)} className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors">
-                                                            <Plus className="w-3.5 h-3.5" /> เพิ่มคำถาม
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
                             </div>
 
                         ) : (
@@ -1393,27 +1318,8 @@ export default function ItemBankEditPage() {
                                                                     placeholder="รายละเอียดสถานการณ์..."
                                                                     required
                                                                 />
-                                                                <div>
-                                                                    <label className="text-xs font-medium text-gray-500 mb-1 block">URL รูปภาพ (ถ้ามี)</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={situation.situation_image_url || ''}
-                                                                        onChange={(e) => updateSituation(sitIdx, 'situation_image_url', e.target.value)}
-                                                                        className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-sm bg-white"
-                                                                        placeholder="https://example.com/image.jpg"
-                                                                    />
-                                                                </div>
                                                             </div>
                                                         </div>
-                                                        {situation.situation_image_url && (
-                                                            <div className="mt-2 pl-4">
-                                                                <img
-                                                                    src={situation.situation_image_url}
-                                                                    alt="สถานการณ์"
-                                                                    className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm"
-                                                                />
-                                                            </div>
-                                                        )}
                                                     </div>
 
                                                     {/* Question area header */}
@@ -1533,7 +1439,7 @@ export default function ItemBankEditPage() {
                                                                                         {question.answer_options.map((option, optIdx) => (
                                                                                             <div key={optIdx} className="flex gap-2 sm:gap-3 items-center">
                                                                                                 <div className="flex-none flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 text-sm font-bold text-gray-600">
-                                                                                                    {String.fromCharCode(65 + optIdx)}
+                                                                                                    {['ก', 'ข', 'ค', 'ง', 'จ'][optIdx] || String.fromCharCode(65 + optIdx)}
                                                                                                 </div>
                                                                                                 <input
                                                                                                     type="text"

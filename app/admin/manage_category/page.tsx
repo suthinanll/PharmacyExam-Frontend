@@ -288,7 +288,7 @@ export default function CategoriesManagement() {
 
     return (
         <Navbar_admin>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4" suppressHydrationWarning>
+            <div className="max-w-6xl mx-auto px-4 py-6" suppressHydrationWarning>
 
                 {/* Header */}
                 <div className="mb-8">
@@ -298,23 +298,23 @@ export default function CategoriesManagement() {
                             <p className="text-sm text-gray-500">เพิ่ม แก้ไข ลบ และดูชุดข้อสอบที่เชื่อมโยง · {filtered.length} รายการ</p>
                         </div>
                         <button onClick={openCreate}
-                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl transition-colors font-medium text-sm shadow-sm whitespace-nowrap">
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md">
                             <Plus size={18} /> เพิ่มประเภทข้อสอบใหม่
                         </button>
                     </div>
                 </div>
 
                 {/* Toolbar */}
-                <div className="mb-5 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center bg-white p-4  rounded-2xl border border-gray-200 shadow-sm">
                     <div className="flex gap-3 flex-1 flex-wrap">
                         <div className="relative max-w-sm w-full">
                             <input type="text" placeholder="ค้นหาประเภทข้อสอบ..." value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-green-500 focus:border-green-500" />
+                                className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50" />
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         </div>
                         <button onClick={() => setSortOrder(s => s === 'desc' ? 'asc' : 'desc')}
-                            className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium">
+                            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-xl bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium">
                             <ArrowUpDown size={15} />
                             {sortOrder === 'desc' ? 'ใหม่สุด' : 'เก่าสุด'}
                         </button>
@@ -328,7 +328,7 @@ export default function CategoriesManagement() {
                                     ? 'bg-white shadow-sm text-green-700'
                                     : 'text-gray-500 hover:text-gray-700'}`}>
                                 {mode === 'table' ? <List size={16} /> : <LayoutGrid size={16} />}
-                                {mode === 'table' ? 'Table' : 'Card'}
+                                {mode === 'table' ? 'ตาราง' : 'การ์ด'}
                             </button>
                         ))}
                     </div>

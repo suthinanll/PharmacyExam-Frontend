@@ -9,6 +9,7 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
     ResponsiveContainer, Area, AreaChart, ReferenceLine,
     BarChart, Bar, Cell, ComposedChart,
+    Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
 import { CheckCircle2, XCircle, HelpCircle, BookOpen, Info, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -30,6 +31,23 @@ interface Response {
     irt_c: number | null;
 }
 
+interface SubTopicStat {
+    sub_topic_id: number;
+    sub_topic_name: string;
+    correct: number;
+    total: number;
+    accuracy: number;
+}
+
+interface TopicStat {
+    topic_id: number;
+    topic_name: string;
+    correct: number;
+    total: number;
+    accuracy: number;
+    sub_topics: SubTopicStat[];
+}
+
 interface CATResult {
     session_id: number;
     item_bank_name: string;
@@ -43,6 +61,7 @@ interface CATResult {
     passed: boolean;
     stop_reason: string;
     responses: Response[];
+    topic_analysis: TopicStat[];
     pass_percentile: number;
 }
 
@@ -393,6 +412,127 @@ function PosteriorChart({ finalTheta, finalSE, cutScore }: { finalTheta: number;
     );
 }
 
+/** Topic Analysis Chart — เหมือน normal exam */
+function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] }) {
+    if (!topicAnalysis || topicAnalysis.length === 0) return null;
+
+    const radarData = topicAnalysis.map(t => ({
+        subject: t.topic_name.length > 15 ? t.topic_name.substring(0, 15) + '...' : t.topic_name,
+        fullName: t.topic_name,
+        Performance: t.accuracy,
+        fullMark: 100,
+    }));
+
+    return (
+        <div className="bg-white rounded-2xl shadow p-6 mb-6">
+            <h2 className="text-lg font-bold text-gray-800 mb-1">📚 วิเคราะห์ตามหัวข้อ</h2>
+            <p className="text-xs text-gray-400 mb-5">เปอร์เซ็นต์ความถูกต้องในแต่ละหัวข้อ — สีเขียวคือเก่ง สีแดงคือต้องพัฒนา</p>
+
+            {/* Radar Chart + Score List */}
+            <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-start mb-8">
+                {/* Radar Chart */}
+                <div className="w-full lg:w-1/2 h-[320px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                            <PolarGrid stroke="#e5e7eb" />
+                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 12 }} />
+                            <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                            <Tooltip
+                                content={({ active, payload }) => {
+                                    if (active && payload && payload.length) {
+                                        const d = payload[0].payload;
+                                        return (
+                                            <div className="bg-white p-3 shadow-xl border border-gray-100 rounded-xl">
+                                                <p className="font-bold text-gray-800 mb-1">{d.fullName}</p>
+                                                <p className="text-blue-600 font-bold">ความแม่นยำ: {d.Performance}%</p>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                }}
+                            />
+                            <Radar
+                                name="Performance"
+                                dataKey="Performance"
+                                stroke="#3b82f6"
+                                fill="#3b82f6"
+                                fillOpacity={0.4}
+                                dot={{ r: 4, fill: '#3b82f6' }}
+                            />
+                        </RadarChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Score List */}
+                <div className="w-full lg:w-1/2 space-y-3">
+                    <h3 className="font-bold text-gray-800 mb-3 border-b pb-2">คะแนนรายหัวข้อ</h3>
+                    {topicAnalysis.map(topic => (
+                        <div key={topic.topic_id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                            <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold ${
+                                topic.accuracy >= 70 ? 'bg-green-100 text-green-700' :
+                                topic.accuracy >= 50 ? 'bg-amber-100 text-amber-700' :
+                                'bg-red-100 text-red-600'
+                            }`}>
+                                {topic.accuracy >= 70 ? '🏆' : topic.accuracy >= 50 ? '🎯' : '⚠️'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-gray-800 text-sm truncate">{topic.topic_name}</p>
+                                <p className="text-xs text-gray-500">{topic.correct}/{topic.total} ข้อ</p>
+                            </div>
+                            <span className={`font-bold text-sm ${
+                                topic.accuracy >= 70 ? 'text-green-600' :
+                                topic.accuracy >= 50 ? 'text-amber-500' : 'text-red-500'
+                            }`}>{topic.accuracy}%</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Sub-topic detail cards */}
+            <div className="border-t border-gray-100 pt-5 space-y-4">
+                <h3 className="font-bold text-gray-700 text-sm mb-3">รายละเอียดหัวข้อย่อย</h3>
+                {topicAnalysis.map(topic => (
+                    <div key={topic.topic_id}>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="font-semibold text-gray-700 text-sm">{topic.topic_name}</span>
+                            <span className={`text-sm font-bold ${
+                                topic.accuracy >= 70 ? 'text-green-600' :
+                                topic.accuracy >= 50 ? 'text-amber-500' : 'text-red-500'
+                            }`}>{topic.accuracy}%</span>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-full h-1.5 mb-3">
+                            <div
+                                className={`h-1.5 rounded-full ${
+                                    topic.accuracy >= 70 ? 'bg-green-500' :
+                                    topic.accuracy >= 50 ? 'bg-amber-400' : 'bg-red-400'
+                                }`}
+                                style={{ width: `${topic.accuracy}%` }}
+                            />
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {topic.sub_topics.map(st => (
+                                <div
+                                    key={st.sub_topic_id}
+                                    className={`text-xs px-3 py-1.5 rounded-lg border flex items-center gap-1.5 ${
+                                        st.accuracy >= 70
+                                            ? 'bg-green-50 border-green-200 text-green-700'
+                                            : st.accuracy >= 50
+                                            ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                            : 'bg-red-50 border-red-200 text-red-600'
+                                    }`}
+                                >
+                                    <span className="font-medium">{st.sub_topic_name}</span>
+                                    <span className="opacity-60">({st.correct}/{st.total})</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 // ==================== MAIN COMPONENT ====================
 export default function CATResultPage() {
     const params = useParams();
@@ -406,6 +546,17 @@ export default function CATResultPage() {
 
     useEffect(() => {
         if (sessionId) fetchResult();
+
+        // Prevent going back to exam page
+        window.history.pushState(null, "", window.location.href);
+        const handlePopState = () => {
+            router.replace("/user/cat-exam");
+        };
+        window.addEventListener("popstate", handlePopState);
+
+        return () => {
+            window.removeEventListener("popstate", handlePopState);
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sessionId]);
 
@@ -505,6 +656,9 @@ export default function CATResultPage() {
                         <ThetaProgressChart responses={result.responses} cutScore={CUT_SCORE} />
                         <SEConvergenceChart responses={result.responses} targetSE={TARGET_SE} />
                     </div>
+
+                    {/* Topic Analysis — เหมือน normal exam */}
+                    <TopicAnalysisSection topicAnalysis={result.topic_analysis} />
 
                     {/* Row 2 — ICC (full width, prominent for instructors) */}
                     <ICCSection responses={result.responses} finalTheta={result.final_theta} />
