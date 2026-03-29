@@ -1,13 +1,19 @@
 "use client";
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, AlignLeft, X, Info } from 'lucide-react';
-import Link from 'next/link';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar as CalendarIcon,
+  AlignLeft,
+  X,
+  Info,
+} from "lucide-react";
+import Link from "next/link";
 import NoteList from "@/components/note/NoteList";
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from "@/contexts/AuthContext";
 
-// ... (Interface และ categoryColors เหมือนเดิม)
 interface ExamSchedule {
   id: string;
   title: string;
@@ -15,27 +21,68 @@ interface ExamSchedule {
   endDate: Date;
   timeRange: string;
   description: string;
-  category: 'ทฤษฎี' | 'ปฏิบัติ' | 'ทบทวน' | 'สอบจริง' | 'กำหนดการทั่วไป';
+  type_event: string[];
 }
 
-interface Tag { id: number; name: string; }
-interface UserNote { id: string; title: string; content: string; tags: Tag[]; files: string[]; createdAt: number; }
+interface Tag {
+  id: number;
+  name: string;
+}
+interface UserNote {
+  id: string;
+  title: string;
+  content: string;
+  tags: Tag[];
+  files: string[];
+  createdAt: number;
+}
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
-const categoryColors = {
-  'ทฤษฎี': 'bg-blue-100 text-blue-800 border-blue-200',
-  'ปฏิบัติ': 'bg-purple-100 text-purple-800 border-purple-200',
-  'ทบทวน': 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  'สอบจริง': 'bg-red-100 text-red-800 border-red-200',
-  'กำหนดการทั่วไป': 'bg-green-100 text-green-800 border-green-200'
+
+const TYPE_EVENT_STYLES: Record<
+  string,
+  { bg: string; text: string; border: string; dot: string }
+> = {
+  "PLE-IP1, PC1, PHCP1": {
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    border: "border-emerald-300",
+    dot: "bg-emerald-400",
+  },
+  "PLE-IP2": {
+    bg: "bg-teal-50",
+    text: "text-teal-700",
+    border: "border-teal-300",
+    dot: "bg-teal-400",
+  },
+  "PLE-PC2": {
+    bg: "bg-green-50",
+    text: "text-green-700",
+    border: "border-green-300",
+    dot: "bg-green-400",
+  },
+  "PLE-PHCP2": {
+    bg: "bg-lime-50",
+    text: "text-lime-700",
+    border: "border-lime-300",
+    dot: "bg-lime-400",
+  },
 };
+
+const DEFAULT_STYLE = {
+  bg: "bg-gray-100",
+  text: "text-gray-600",
+  border: "border-gray-300",
+  dot: "bg-gray-400",
+};
+
+const getTypeStyle = (type: string) => TYPE_EVENT_STYLES[type] || DEFAULT_STYLE;
 
 const CalenderPage = () => {
   const { getToken } = useAuth();
   const [adminSchedules, setAdminSchedules] = useState<ExamSchedule[]>([]);
   const [userNotes, setUserNotes] = useState<UserNote[]>([]);
 
-  // แก้ไข: ใช้ Date Object ตัวเดียวจัดการทั่งเดือนและปี เพื่อป้องกันการหลุดช่วงปี
   const [viewDate, setViewDate] = useState(new Date());
   const selectedMonth = viewDate.getMonth();
   const selectedYear = viewDate.getFullYear();
@@ -44,16 +91,29 @@ const CalenderPage = () => {
   const [selectedEvent, setSelectedEvent] = useState<ExamSchedule | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
-  const monthsNames = useMemo(() => ([
-    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-  ]), []);
+  const monthsNames = useMemo(
+    () => [
+      "มกราคม",
+      "กุมภาพันธ์",
+      "มีนาคม",
+      "เมษายน",
+      "พฤษภาคม",
+      "มิถุนายน",
+      "กรกฎาคม",
+      "สิงหาคม",
+      "กันยายน",
+      "ตุลาคม",
+      "พฤศจิกายน",
+      "ธันวาคม",
+    ],
+    [],
+  );
 
   const fetchAdminSchedules = useCallback(async () => {
     try {
       const token = getToken();
       const res = await fetch(`${API_URL}/schedules`, {
-        headers: { "Authorization": `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("ดึงข้อมูลล้มเหลว");
       const data = await res.json();
@@ -67,9 +127,9 @@ const CalenderPage = () => {
             title: item.title,
             startDate: start,
             endDate: end,
-            timeRange: `${start.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}`,
-            description: item.description || '',
-            category: 'กำหนดการทั่วไป'
+            timeRange: `${start.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}`,
+            description: item.description || "",
+            type_event: item.type_event || [],
           };
         });
       setAdminSchedules(formatted);
@@ -87,12 +147,17 @@ const CalenderPage = () => {
       });
       const data = await res.json();
       const mapped: UserNote[] = data.map((n: any) => ({
-        id: String(n.note_id), title: n.title, content: n.content,
-        tags: n.tags || [], files: n.files || [],
+        id: String(n.note_id),
+        title: n.title,
+        content: n.content,
+        tags: n.tags || [],
+        files: n.files || [],
         createdAt: new Date(n.created_at).getTime(),
       }));
       setUserNotes(mapped);
-    } catch (err) { console.error("fetchNotes error:", err); }
+    } catch (err) {
+      console.error("fetchNotes error:", err);
+    }
   };
 
   useEffect(() => {
@@ -100,31 +165,30 @@ const CalenderPage = () => {
     fetchAdminSchedules();
   }, [fetchAdminSchedules]);
 
-  // ฟังก์ชันเลื่อนเดือนที่รองรับการเปลี่ยนปีแบบ Dynamic
-  const handlePreviousMonth = () => {
+  const handlePreviousMonth = () =>
     setViewDate(new Date(selectedYear, selectedMonth - 1, 1));
-  };
-
-  const handleNextMonth = () => {
+  const handleNextMonth = () =>
     setViewDate(new Date(selectedYear, selectedMonth + 1, 1));
-  };
 
   const getSchedulesForDate = (date: number) => {
-    const currentCalendarDate = new Date(selectedYear, selectedMonth, date);
-    currentCalendarDate.setHours(0, 0, 0, 0);
-
-    return adminSchedules.filter(s => {
+    const target = new Date(selectedYear, selectedMonth, date);
+    target.setHours(0, 0, 0, 0);
+    return adminSchedules.filter((s) => {
       const start = new Date(s.startDate);
-      const end = new Date(s.endDate);
       start.setHours(0, 0, 0, 0);
+      const end = new Date(s.endDate);
       end.setHours(0, 0, 0, 0);
-      return currentCalendarDate >= start && currentCalendarDate <= end;
+      return target >= start && target <= end;
     });
   };
 
   const isToday = (date: number) => {
     const today = new Date();
-    return today.getDate() === date && today.getMonth() === selectedMonth && today.getFullYear() === selectedYear;
+    return (
+      today.getDate() === date &&
+      today.getMonth() === selectedMonth &&
+      today.getFullYear() === selectedYear
+    );
   };
 
   const renderCalendar = () => {
@@ -132,121 +196,252 @@ const CalenderPage = () => {
     const firstDay = new Date(selectedYear, selectedMonth, 1).getDay();
     const days = [];
 
-    // เติมช่องว่างเดือนก่อนหน้า
+    // ช่องว่างเดือนก่อน
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="min-h-[110px] border border-gray-100 bg-gray-50/30"></div>);
-    }
-
-    // วาดวันที่ในเดือนนั้นๆ
-    for (let date = 1; date <= daysInMonth; date++) {
-      const daySchedules = getSchedulesForDate(date);
-      const todayClass = isToday(date) ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' : 'bg-white hover:bg-gray-50';
-
       days.push(
-        <div key={date} className={`min-h-[110px] border border-gray-200 p-2 transition-all ${todayClass}`}>
-          <div className="flex justify-between items-center mb-2">
-            <span className={`text-sm font-bold ${isToday(date) ? 'text-indigo-700' : 'text-gray-600'}`}>
-              {date}
-            </span>
-            {isToday(date) && (
-              <span className="text-[9px] bg-indigo-600 text-white px-1.5 py-0.5 rounded shadow-sm">วันนี้</span>
-            )}
-          </div>
-          <div className="flex flex-col gap-1">
-            {daySchedules.map(schedule => (
-              <div
-                key={`${schedule.id}-${date}`}
-                onClick={() => { setSelectedEvent(schedule); setIsViewModalOpen(true); }}
-                className={`cursor-pointer truncate text-[10px] p-1.5 rounded border-l-[3px] shadow-sm transition-transform active:scale-95 ${categoryColors[schedule.category] || 'bg-green-50 text-green-800 border-green-500'}`}
-              >
-                <div className="font-bold truncate">{schedule.title}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <div
+          key={`empty-${i}`}
+          className="min-h-[100px] border border-gray-100 bg-gray-50/40"
+        />,
       );
     }
+
+    for (let date = 1; date <= daysInMonth; date++) {
+      const daySchedules = getSchedulesForDate(date);
+      const today = isToday(date);
+
+      days.push(
+        <div
+          key={date}
+          className={`min-h-[100px] border p-1.5 flex flex-col transition-colors
+            ${
+              today
+                ? "border-emerald-400 bg-emerald-50/40 ring-1 ring-emerald-400"
+                : "border-gray-200 bg-white hover:bg-gray-50"
+            }`}
+        >
+          {/* วันที่ */}
+          <div className="flex justify-between items-center mb-1">
+            <span
+              className={`text-xs font-bold ${today ? "text-emerald-700" : "text-gray-500"}`}
+            >
+              {date}
+            </span>
+            {today && (
+              <span className="text-[8px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-semibold">
+                วันนี้
+              </span>
+            )}
+          </div>
+
+          {/* Events */}
+          <div className="flex flex-col gap-0.5 overflow-y-auto max-h-[72px]">
+            {daySchedules.map((schedule) => {
+              // ใช้ type แรกเป็น accent สี event
+              const primaryType = schedule.type_event[0];
+              const style = primaryType
+                ? getTypeStyle(primaryType)
+                : DEFAULT_STYLE;
+              return (
+                <button
+                  key={`${schedule.id}-${date}`}
+                  onClick={() => {
+                    setSelectedEvent(schedule);
+                    setIsViewModalOpen(true);
+                  }}
+                  className={`w-full text-left px-1.5 py-1 rounded border-l-2 text-[9px] font-semibold truncate transition-all hover:opacity-80
+                    ${style.bg} ${style.text} ${style.border}`}
+                >
+                  {/* dot tags */}
+                  {schedule.type_event.length > 0 && (
+                    <div className="flex gap-0.5 mb-0.5">
+                      {schedule.type_event.map((t, i) => (
+                        <span
+                          key={i}
+                          className={`inline-block w-1.5 h-1.5 rounded-full ${getTypeStyle(t).dot}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                  <span className="truncate block">{schedule.title}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>,
+      );
+    }
+
+    // ช่องว่างเดือนถัดไป
+    const remaining = 42 - days.length;
+    for (let day = 1; day <= remaining; day++) {
+      days.push(
+        <div
+          key={`next-${day}`}
+          className="min-h-[100px] border border-gray-100 bg-gray-50/40"
+        />,
+      );
+    }
+
     return days;
   };
 
-  // ... (Note Handlers createNote, updateNote, deleteNote เหมือนเดิม)
+  // ── Note CRUD ────────────────────────────────────────────────────────────────
   const createNote = async (note: any, files?: File[]) => {
     const token = getToken();
     if (!token) return;
-    const formData = new FormData();
-    formData.append("title", note.title);
-    formData.append("content", note.content);
-    formData.append("tagIds", JSON.stringify(note.tags));
-    if (files) files.forEach(file => formData.append("files", file));
-    await fetch(`${API_URL}/notes`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData });
+    const fd = new FormData();
+    fd.append("title", note.title);
+    fd.append("content", note.content);
+    fd.append("tagIds", JSON.stringify(note.tags));
+    if (files) files.forEach((f) => fd.append("files", f));
+    await fetch(`${API_URL}/notes`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    });
     fetchNotes();
   };
 
-  const updateNote = async (note: UserNote, files?: File[], deletedFiles?: string[]) => {
+  const updateNote = async (
+    note: UserNote,
+    files?: File[],
+    deletedFiles?: string[],
+  ) => {
     const token = getToken();
     if (!token) return;
-    const formData = new FormData();
-    formData.append("title", note.title);
-    formData.append("content", note.content);
-    formData.append("tagIds", JSON.stringify(note.tags.map(t => typeof t === 'object' ? (t as any).name : t)));
-    formData.append("deletedFiles", JSON.stringify(deletedFiles || []));
-    if (files) files.forEach((f) => formData.append("files", f));
-    await fetch(`${API_URL}/notes/${note.id}`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` }, body: formData });
+    const fd = new FormData();
+    fd.append("title", note.title);
+    fd.append("content", note.content);
+    fd.append(
+      "tagIds",
+      JSON.stringify(
+        note.tags.map((t) => (typeof t === "object" ? (t as any).name : t)),
+      ),
+    );
+    fd.append("deletedFiles", JSON.stringify(deletedFiles || []));
+    if (files) files.forEach((f) => fd.append("files", f));
+    await fetch(`${API_URL}/notes/${note.id}`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+      body: fd,
+    });
     fetchNotes();
   };
 
   const deleteNote = async (id: string) => {
     const token = getToken();
     if (!token) return;
-    await fetch(`${API_URL}/notes/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    await fetch(`${API_URL}/notes/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
     fetchNotes();
   };
+
+  // ── Unique type_event ทั้งหมดสำหรับ Legend ───────────────────────────────────
+  const allTypes = useMemo(() => {
+    const set = new Set<string>();
+    adminSchedules.forEach((s) => s.type_event.forEach((t) => set.add(t)));
+    return Array.from(set);
+  }, [adminSchedules]);
 
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
+          {/* Breadcrumb */}
           <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
-            <Link href="/user" className="hover:text-blue-600 transition">หน้าหลัก</Link>
+            <Link href="/user" className="hover:text-emerald-600 transition">
+              หน้าหลัก
+            </Link>
             <span className="mx-2">›</span>
             <span className="text-gray-700 font-medium">ปฏิทินการสอบ</span>
           </div>
 
-          <h1 className="text-3xl font-medium text-gray-800 mb-6">ปฏิทินกำหนดการสอบ</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-6">
+            ปฏิทินกำหนดการสอบ
+          </h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* ── Calendar ──────────────────────────────────────────────── */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-xl shadow-xl p-6">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+                {/* Month Nav */}
                 <div className="flex items-center justify-between mb-6">
-                  <button onClick={handlePreviousMonth} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
-                    <ChevronLeft className="w-5 h-5 text-gray-600" />
+                  <button
+                    onClick={handlePreviousMonth}
+                    className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition-colors border border-gray-200"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
                   </button>
-                  {/* แสดงปี พ.ศ. แบบ Dynamic */}
-                  <h2 className="text-2xl font-extrabold text-indigo-700 tracking-tight">
-                    {monthsNames[selectedMonth]} {selectedYear + 543}
+                  <h2 className="text-xl font-bold text-gray-800">
+                    {monthsNames[selectedMonth]}{" "}
+                    <span className="text-emerald-600">
+                      {selectedYear + 543}
+                    </span>
                   </h2>
-                  <button onClick={handleNextMonth} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200 transition-colors">
-                    <ChevronRight className="w-5 h-5 text-gray-600" />
+                  <button
+                    onClick={handleNextMonth}
+                    className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition-colors border border-gray-200"
+                  >
+                    <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-7 border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-                  {['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].map(day => (
-                    <div key={day} className="bg-indigo-600 text-white font-semibold text-center py-3 text-sm border-x border-indigo-500">
+                {/* Grid */}
+                <div className="grid grid-cols-7 rounded-xl overflow-hidden border border-gray-200">
+                  {["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"].map((day, i) => (
+                    <div
+                      key={day}
+                      className={`py-3 text-center text-xs font-semibold bg-gray-50 border-b border-gray-200
+                        ${i === 0 ? "text-red-500" : "text-gray-500"}`}
+                    >
                       {day}
                     </div>
                   ))}
                   {renderCalendar()}
                 </div>
+
                 {/* Legend */}
-                <div className="mt-6 flex flex-wrap gap-4 text-xs font-medium text-gray-500">
-                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-green-100 border border-green-400 rounded-sm"></span> กำหนดการทั่วไป</div>
-                  <div className="flex items-center gap-1.5"><span className="w-3 h-3 bg-indigo-50 border border-indigo-500 rounded-sm"></span> วันนี้</div>
+                <div className="mt-5 pt-4 border-t border-gray-100">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                    ประเภทกำหนดการ
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {/* วันนี้ */}
+                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                      <span className="w-3 h-3 rounded-sm bg-emerald-50 border border-emerald-400 inline-block" />
+                      วันนี้
+                    </div>
+                    {/* Dynamic tags */}
+                    {allTypes.map((type) => {
+                      const style = getTypeStyle(type);
+                      return (
+                        <div
+                          key={type}
+                          className="flex items-center gap-1.5 text-xs text-gray-600"
+                        >
+                          <span
+                            className={`w-2.5 h-2.5 rounded-full inline-block ${style.dot}`}
+                          />
+                          {type}
+                        </div>
+                      );
+                    })}
+                    {allTypes.length === 0 && (
+                      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                        <span className="w-2.5 h-2.5 rounded-full inline-block bg-gray-300" />
+                        กำหนดการทั่วไป
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* ── NoteList ──────────────────────────────────────────────── */}
             <NoteList
               notes={userNotes}
               onSaveNote={createNote}
@@ -259,63 +454,105 @@ const CalenderPage = () => {
         </div>
       </div>
 
-      {/* Modal รายละเอียดกิจกรรม (คงเดิม) */}
+      {/* ── Modal รายละเอียด ──────────────────────────────────────────── */}
       {isViewModalOpen && selectedEvent && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
-            <div className="bg-indigo-600 p-4 flex justify-between items-center text-white">
+            {/* Modal Header */}
+            <div className="bg-emerald-600 px-6 py-4 flex justify-between items-center text-white">
               <div className="flex items-center gap-2">
                 <Info className="w-5 h-5" />
-                <h3 className="font-bold text-lg">รายละเอียดกำหนดการ</h3>
+                <h3 className="font-bold">รายละเอียดกำหนดการ</h3>
               </div>
-              <button onClick={() => setIsViewModalOpen(false)}><X className="w-6 h-6" /></button>
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="p-1 hover:bg-emerald-700 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <div className="p-6 space-y-6">
+
+            <div className="p-6 space-y-5">
+              {/* Title + Tags */}
               <div>
-                <h4 className="text-2xl font-bold text-gray-800 mb-2">{selectedEvent.title}</h4>
-                <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${categoryColors[selectedEvent.category]}`}>
-                  {selectedEvent.category}
+                <h4 className="text-xl font-bold text-gray-800 mb-3">
+                  {selectedEvent.title}
+                </h4>
+                {selectedEvent.type_event.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedEvent.type_event.map((type, i) => {
+                      const style = getTypeStyle(type);
+                      return (
+                        <span
+                          key={i}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border
+                            ${style.bg} ${style.text} ${style.border}`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${style.dot}`}
+                          />
+                          {type}
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">
+                    กำหนดการทั่วไป
+                  </span>
+                )}
+              </div>
+
+              {/* Date */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-center shrink-0">
+                  <CalendarIcon className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                    วันที่
+                  </p>
+                  <p className="text-sm font-medium text-gray-700">
+                    {selectedEvent.startDate.toLocaleDateString("th-TH", {
+                      dateStyle: "long",
+                    })}
+                    {selectedEvent.startDate.toDateString() !==
+                      selectedEvent.endDate.toDateString() &&
+                      ` – ${selectedEvent.endDate.toLocaleDateString("th-TH", { dateStyle: "long" })}`}
+                  </p>
                 </div>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-start gap-4">
-                  <CalendarIcon className="w-5 h-5 text-indigo-600" />
-                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase">วันที่</p>
-                    <p className="text-sm font-medium text-gray-700">
-                      {selectedEvent.startDate.toLocaleDateString('th-TH', { dateStyle: 'long' })}
-                      {selectedEvent.startDate.toDateString() !== selectedEvent.endDate.toDateString() &&
-                        ` - ${selectedEvent.endDate.toLocaleDateString('th-TH', { dateStyle: 'long' })}`}
-                    </p>
-                  </div>
+
+
+              {/* Description */}
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-center shrink-0">
+                  <AlignLeft className="w-4 h-4 text-emerald-600" />
                 </div>
-                <div className="flex items-start gap-4">
-                  <Clock className="w-5 h-5 text-indigo-600" />
-                  <div>
-                    <p className="text-xs font-bold text-gray-400 uppercase">เวลา</p>
-                    <p className="text-sm font-medium text-gray-700">{selectedEvent.timeRange} น.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <AlignLeft className="w-5 h-5 text-indigo-600" />
-                  <div className="flex-1">
-                    <p className="text-xs font-bold text-gray-400 uppercase">รายละเอียด</p>
-                    <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap mt-1 bg-gray-50 p-3 rounded-lg border border-gray-100">
-                      {selectedEvent.description || "ไม่มีรายละเอียดเพิ่มเติมสำหรับกำหนดการนี้"}
-                    </p>
-                  </div>
+                <div className="flex-1">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                    รายละเอียด
+                  </p>
+                  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap bg-gray-50 border border-gray-100 rounded-xl p-3">
+                    {selectedEvent.description || "ไม่มีรายละเอียดเพิ่มเติม"}
+                  </p>
                 </div>
               </div>
-              <button onClick={() => setIsViewModalOpen(false)} className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all">
-                เข้าใจแล้ว
+
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all text-sm"
+              >
+                ปิด
               </button>
             </div>
           </div>
         </div>
       )}
+
       <Footer />
     </>
   );
-}
+};
 
 export default CalenderPage;

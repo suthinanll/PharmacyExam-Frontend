@@ -1,7 +1,7 @@
-"use client"
-import { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
+"use client";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import Swal from 'sweetalert2';
@@ -60,15 +60,19 @@ function TakeExam() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { getToken } = useAuth();
-    const sessionId = searchParams.get('session_id');
-    const itemBankId = searchParams.get('id');
+    const sessionId = searchParams.get("session_id");
+    const itemBankId = searchParams.get("id");
 
     const [itemBank, setItemBank] = useState<ItemBank | null>(null);
     const [questions, setQuestions] = useState<Question[]>([]);
     const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-    const [answers, setAnswers] = useState<{ [key: number]: { option_index: number, start_time: number } }>({});
-    const [questionStartTime, setQuestionStartTime] = useState<number>(Date.now());
+    const [answers, setAnswers] = useState<{
+        [key: number]: { option_index: number; start_time: number };
+    }>({});
+    const [questionStartTime, setQuestionStartTime] = useState<number>(
+        Date.now(),
+    );
     const [timeLeft, setTimeLeft] = useState(0);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
@@ -81,7 +85,7 @@ function TakeExam() {
         if (itemBankId && sessionId) {
             fetchExamData();
         } else {
-            setError('ไม่พบรหัสข้อสอบหรือ session');
+            setError("ไม่พบรหัสข้อสอบหรือ session");
             setLoading(false);
         }
     }, [itemBankId, sessionId]);
@@ -127,11 +131,14 @@ function TakeExam() {
         setLoading(true);
         try {
             const token = getToken();
-            const response = await fetch(`${API_URL}/items-bank/${itemBankId}/items`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await fetch(
+                `${API_URL}/items-bank/${itemBankId}/items`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                },
+            );
 
             if (response.ok) {
                 const data = await response.json();
@@ -159,7 +166,7 @@ function TakeExam() {
 
                         // 4. Finally sort by question display_order within that group
                         return Number(a.display_order || 0) - Number(b.display_order || 0);
-                    }
+                    },
                 );
                 setQuestions(sortedQuestions);
 
@@ -168,11 +175,11 @@ function TakeExam() {
 
                 setLoading(false);
             } else {
-                throw new Error('ไม่สามารถโหลดข้อสอบได้');
+                throw new Error("ไม่สามารถโหลดข้อสอบได้");
             }
         } catch (error) {
-            console.error('Error fetching exam:', error);
-            setError('เกิดข้อผิดพลาดในการโหลดข้อสอบ');
+            console.error("Error fetching exam:", error);
+            setError("เกิดข้อผิดพลาดในการโหลดข้อสอบ");
             setLoading(false);
         }
     };
@@ -195,12 +202,12 @@ function TakeExam() {
 
     const handleTimeUp = () => {
         Swal.fire({
-            title: 'หมดเวลา!',
-            text: 'เวลาในการทำข้อสอบหมดแล้ว ระบบจะส่งข้อสอบอัตโนมัติ',
-            icon: 'warning',
-            confirmButtonColor: '#22c55e',
-            confirmButtonText: 'ตรวจสอบคำตอบ',
-            allowOutsideClick: false
+            title: "หมดเวลา!",
+            text: "เวลาในการทำข้อสอบหมดแล้ว ระบบจะส่งข้อสอบอัตโนมัติ",
+            icon: "warning",
+            confirmButtonColor: "#22c55e",
+            confirmButtonText: "ตรวจสอบคำตอบ",
+            allowOutsideClick: false,
         }).then(() => {
             submitExam();
         });
@@ -210,7 +217,7 @@ function TakeExam() {
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
         const s = seconds % 60;
-        return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
     };
 
     const handleAnswerSelect = (optionIndex: number) => {
@@ -222,8 +229,8 @@ function TakeExam() {
             ...answers,
             [currentQuestion.item_id]: {
                 option_index: optionIndex,
-                start_time: responseTime
-            }
+                start_time: responseTime,
+            },
         });
     };
 
@@ -266,45 +273,53 @@ function TakeExam() {
             // Prepare answers for API
             const answersArray = questions.map((q) => {
                 const answer = answers[q.item_id];
-                const selectedOptionId = answer ? q.answer_options[answer.option_index]?.option_id : null;
+                const selectedOptionId = answer
+                    ? q.answer_options[answer.option_index]?.option_id
+                    : null;
 
                 return {
                     item_id: Number(q.item_id),
-                    selected_option_id: selectedOptionId ? Number(selectedOptionId) : null,
-                    response_time_ms: Number(answer?.start_time || 0)
+                    selected_option_id: selectedOptionId
+                        ? Number(selectedOptionId)
+                        : null,
+                    response_time_ms: Number(answer?.start_time || 0),
                 };
             });
 
             // Submit to API
             const token = getToken();
-            const response = await fetch(`${API_URL}/items-bank/exam/${sessionId}/submit`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+            const response = await fetch(
+                `${API_URL}/items-bank/exam/${sessionId}/submit`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ answers: answersArray }),
                 },
-                body: JSON.stringify({ answers: answersArray })
-            });
+            );
 
             if (response.ok) {
                 const result = await response.json();
 
-                // Show success message
+                submittedRef.current = true; // ✅ เซ็ตก่อนเลย ป้องกัน cancel
+
                 await Swal.fire({
-                    title: 'ส่งข้อสอบสำเร็จ!',
+                    title: "ส่งข้อสอบสำเร็จ!",
                     html: `คะแนนของคุณ: <strong>${result.correct_count}/${result.total_questions}</strong><br/>
-                       <span class="text-2xl font-bold">${result.percentage.toFixed(2)}%</span>`,
-                    icon: 'success',
-                    confirmButtonColor: '#22c55e',
-                    confirmButtonText: 'ดูผลสอบ'
+               <span class="text-2xl font-bold">${result.percentage.toFixed(2)}%</span>`,
+                    icon: "success",
+                    confirmButtonColor: "#22c55e",
+                    confirmButtonText: "ดูผลสอบ",
                 });
 
-                // Redirect to result page
-                submittedRef.current = true;
-                router.push(`/user/examset/take-exam/summarize-exam?session_id=${sessionId}`);
+                router.push(
+                    `/user/examset/take-exam/summarize-exam?session_id=${sessionId}`,
+                );
             } else {
                 // Try to parse error message
-                let errorMessage = 'ไม่สามารถส่งข้อสอบได้';
+                let errorMessage = "ไม่สามารถส่งข้อสอบได้";
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.message || errorMessage;
@@ -315,12 +330,12 @@ function TakeExam() {
                 throw new Error(errorMessage);
             }
         } catch (error: any) {
-            console.error('Error submitting exam:', error);
+            console.error("Error submitting exam:", error);
             Swal.fire({
-                title: 'เกิดข้อผิดพลาด',
-                text: error.message || 'ไม่สามารถส่งข้อสอบได้ กรุณาลองใหม่อีกครั้ง',
-                icon: 'error',
-                confirmButtonColor: '#ef4444'
+                title: "เกิดข้อผิดพลาด",
+                text: error.message || "ไม่สามารถส่งข้อสอบได้ กรุณาลองใหม่อีกครั้ง",
+                icon: "error",
+                confirmButtonColor: "#ef4444",
             });
             setSubmitting(false);
         }
@@ -332,26 +347,26 @@ function TakeExam() {
         // ตรวจสอบว่าตอบครบทุกข้อหรือยัง
         if (unansweredCount > 0) {
             Swal.fire({
-                title: 'ยังตอบไม่ครบ!',
+                title: "ยังตอบไม่ครบ!",
                 html: `คุณยังไม่ได้ตอบ <strong class="text-red-600">${unansweredCount}</strong> ข้อ<br/>กรุณาตอบให้ครบทุกข้อก่อนส่งข้อสอบ`,
-                icon: 'warning',
-                confirmButtonColor: '#3b82f6',
-                confirmButtonText: 'ตกลง'
+                icon: "warning",
+                confirmButtonColor: "#3b82f6",
+                confirmButtonText: "ตกลง",
             });
             return; // หยุดการทำงาน ไม่ให้ส่งข้อสอบ
         }
 
         // ถ้าตอบครบแล้ว ให้ยืนยันการส่ง
         Swal.fire({
-            title: 'ยืนยันการส่งข้อสอบ',
-            text: 'คุณได้ตอบครบทุกข้อแล้ว ต้องการส่งข้อสอบใช่หรือไม่?',
-            icon: 'question',
+            title: "ยืนยันการส่งข้อสอบ",
+            text: "คุณได้ตอบครบทุกข้อแล้ว ต้องการส่งข้อสอบใช่หรือไม่?",
+            icon: "question",
             showCancelButton: true,
-            confirmButtonColor: '#22c55e',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'ส่งข้อสอบ',
-            cancelButtonText: 'ยกเลิก',
-            reverseButtons: true
+            confirmButtonColor: "#22c55e",
+            cancelButtonColor: "#6b7280",
+            confirmButtonText: "ส่งข้อสอบ",
+            cancelButtonText: "ยกเลิก",
+            reverseButtons: true,
         }).then((result) => {
             if (result.isConfirmed) {
                 submitExam();
@@ -364,12 +379,12 @@ function TakeExam() {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (!submitting && questions.length > 0) {
                 e.preventDefault();
-                e.returnValue = '';
+                e.returnValue = "";
             }
         };
 
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
     }, [submitting, questions]);
 
     if (loading) {
@@ -394,8 +409,12 @@ function TakeExam() {
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                     <div className="text-center max-w-md">
                         <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                        <h2 className="text-2xl font-bold text-gray-800 mb-2">เกิดข้อผิดพลาด</h2>
-                        <p className="text-gray-600 mb-6">{error || 'ไม่พบข้อสอบหรือ session'}</p>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                            เกิดข้อผิดพลาด
+                        </h2>
+                        <p className="text-gray-600 mb-6">
+                            {error || "ไม่พบข้อสอบหรือ session"}
+                        </p>
                         <Link
                             href="/user/examset"
                             className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors"
@@ -418,7 +437,6 @@ function TakeExam() {
 
             <div className="min-h-screen bg-gray-50 py-6">
                 <div className="container mx-auto px-4">
-
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* Main Content - Left Side */}
                         <div className="lg:col-span-2">
@@ -520,11 +538,15 @@ function TakeExam() {
                                 {/* Stats */}
                                 <div className="flex justify-between items-center mb-4 pb-4 border-b">
                                     <div className="text-center">
-                                        <p className="text-2xl font-bold text-gray-800">{questions.length}</p>
+                                        <p className="text-2xl font-bold text-gray-800">
+                                            {questions.length}
+                                        </p>
                                         <p className="text-sm text-gray-600">ข้อ</p>
                                     </div>
                                     <div className="text-center">
-                                        <p className={`text-2xl font-bold ${timeLeft < 300 ? 'text-red-500 animate-pulse' : 'text-blue-600'}`}>
+                                        <p
+                                            className={`text-2xl font-bold ${timeLeft < 300 ? "text-red-500 animate-pulse" : "text-blue-600"}`}
+                                        >
                                             {formatTime(timeLeft)}
                                         </p>
                                         <p className="text-sm text-gray-600">เวลาคงเหลือ</p>
@@ -535,9 +557,12 @@ function TakeExam() {
                                 <div className="mb-6">
                                     <div className="flex justify-between mb-2">
                                         <span className="text-sm text-gray-600">
-                                            ตอบแล้ว {Object.keys(answers).length}/{questions.length} ข้อ
+                                            ตอบแล้ว {Object.keys(answers).length}/{questions.length}{" "}
+                                            ข้อ
                                         </span>
-                                        <span className="text-sm text-green-600 font-medium">{Math.round(progress)}%</span>
+                                        <span className="text-sm text-green-600 font-medium">
+                                            {Math.round(progress)}%
+                                        </span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-2">
                                         <div
@@ -560,11 +585,11 @@ function TakeExam() {
                                                 onClick={() => goToQuestionByIndex(index)}
                                                 disabled={submitting}
                                                 className={`aspect-square rounded-lg font-medium text-sm transition-all ${currentQuestionIndex === index
-                                                    ? 'bg-green-500 text-white ring-2 ring-green-300'
-                                                    : answers[q.item_id] !== undefined
-                                                        ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                    } ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        ? "bg-green-500 text-white ring-2 ring-green-300"
+                                                        : answers[q.item_id] !== undefined
+                                                            ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                    } ${submitting ? "opacity-50 cursor-not-allowed" : ""}`}
                                             >
                                                 {index + 1}
                                             </button>
@@ -591,15 +616,24 @@ function TakeExam() {
                                 {/* Navigation Buttons */}
                                 <div className="flex justify-between items-center pb-6">
                                     <button
-                                        onClick={() => currentQuestionIndex > 0 && goToQuestionByIndex(currentQuestionIndex - 1)}
+                                        onClick={() =>
+                                            currentQuestionIndex > 0 &&
+                                            goToQuestionByIndex(currentQuestionIndex - 1)
+                                        }
                                         disabled={currentQuestionIndex === 0 || submitting}
                                         className="px-6 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         ← ย้อนกลับ
                                     </button>
                                     <button
-                                        onClick={() => currentQuestionIndex < questions.length - 1 && goToQuestionByIndex(currentQuestionIndex + 1)}
-                                        disabled={currentQuestionIndex === questions.length - 1 || submitting}
+                                        onClick={() =>
+                                            currentQuestionIndex < questions.length - 1 &&
+                                            goToQuestionByIndex(currentQuestionIndex + 1)
+                                        }
+                                        disabled={
+                                            currentQuestionIndex === questions.length - 1 ||
+                                            submitting
+                                        }
                                         className="px-6 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                     >
                                         ถัดไป →
@@ -626,7 +660,7 @@ function TakeExam() {
                                             กำลังส่งข้อสอบ...
                                         </>
                                     ) : (
-                                        'ส่งข้อสอบ'
+                                        "ส่งข้อสอบ"
                                     )}
                                 </button>
                             </div>
