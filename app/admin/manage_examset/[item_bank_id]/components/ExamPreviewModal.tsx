@@ -257,14 +257,14 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                         <span className="text-sm font-semibold text-blue-700">สถานการณ์</span>
                                     </div>
                                     <div className="p-5">
-                                        {currentQuestion.situation.situation_title && (
-                                            <p className="font-bold text-gray-800 mb-2">
-                                                {currentQuestion.situation.situation_title}
-                                            </p>
+                                        {currentQuestion.situation.situation_text ? (
+                                            <div
+                                                className="prose prose-sm max-w-none text-gray-700 leading-relaxed text-[15px]"
+                                                dangerouslySetInnerHTML={{ __html: currentQuestion.situation.situation_text }}
+                                            />
+                                        ) : (
+                                            <span className="text-gray-400 italic text-sm">ไม่มีรายละเอียดสถานการณ์</span>
                                         )}
-                                        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base">
-                                            {currentQuestion.situation.situation_text}
-                                        </p>
                                         {currentQuestion.situation.situation_image_url && (
                                             <img
                                                 src={currentQuestion.situation.situation_image_url}

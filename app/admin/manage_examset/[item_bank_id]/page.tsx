@@ -15,6 +15,7 @@ import CATGuideModal from '../../cat_management/components/CATGuideModal';
 import DashboardView from './components/DashboardView';
 import SettingsModal from './components/SettingsModal';
 import { useAuth } from "@/contexts/AuthContext";
+import TiptapEditor from '@/components/TiptapEditor';
 
 // Types
 interface AnswerOption {
@@ -1299,24 +1300,11 @@ export default function ItemBankEditPage() {
                                                         <div className="flex items-start gap-3 mb-4">
                                                             <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shrink-0" />
                                                             <div className="flex-1 space-y-3">
-                                                                <textarea
+                                                                <TiptapEditor
                                                                     value={situation.situation_text}
-                                                                    onChange={(e) => updateSituation(sitIdx, 'situation_text', e.target.value)}
-                                                                    onInput={(e) => {
-                                                                        const t = e.target as HTMLTextAreaElement;
-                                                                        t.style.height = 'auto';
-                                                                        t.style.height = `${t.scrollHeight}px`;
-                                                                    }}
-                                                                    ref={(el) => {
-                                                                        if (el) {
-                                                                            el.style.height = 'auto';
-                                                                            el.style.height = `${el.scrollHeight}px`;
-                                                                        }
-                                                                    }}
-                                                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all resize-none overflow-hidden text-[15px] text-gray-700 leading-relaxed bg-white"
-                                                                    rows={1}
+                                                                    onChange={(html) => updateSituation(sitIdx, 'situation_text', html)}
                                                                     placeholder="รายละเอียดสถานการณ์..."
-                                                                    required
+                                                                    minHeight="80px"
                                                                 />
                                                             </div>
                                                         </div>
@@ -1411,24 +1399,11 @@ export default function ItemBankEditPage() {
                                                                                 {/* Question Text */}
                                                                                 <div className="space-y-2">
                                                                                     <label className="text-base font-medium text-gray-700">โจทย์คำถาม <span className="text-red-500">*</span></label>
-                                                                                    <textarea
+                                                                                    <TiptapEditor
                                                                                         value={question.question_text}
-                                                                                        onChange={(e) => updateQuestion(sitIdx, qIdx, 'question_text', e.target.value)}
-                                                                                        onInput={(e) => {
-                                                                                            const t = e.target as HTMLTextAreaElement;
-                                                                                            t.style.height = 'auto';
-                                                                                            t.style.height = `${t.scrollHeight}px`;
-                                                                                        }}
-                                                                                        ref={(el) => {
-                                                                                            if (el) {
-                                                                                                el.style.height = 'auto';
-                                                                                                el.style.height = `${el.scrollHeight}px`;
-                                                                                            }
-                                                                                        }}
-                                                                                        className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all resize-none overflow-hidden text-base"
-                                                                                        rows={1}
+                                                                                        onChange={(html) => updateQuestion(sitIdx, qIdx, 'question_text', html)}
                                                                                         placeholder="กรอกโจทย์คำถาม..."
-                                                                                        required
+                                                                                        minHeight="72px"
                                                                                     />
                                                                                 </div>
 
@@ -1480,12 +1455,11 @@ export default function ItemBankEditPage() {
                                                                                         {/* Explanation - Moved back to advanced options and made optional */}
                                                                                         <div className="space-y-2">
                                                                                             <label className="text-base font-medium text-gray-700">คำอธิบายเฉลย</label>
-                                                                                            <textarea
+                                                                                            <TiptapEditor
                                                                                                 value={question.explanation}
-                                                                                                onChange={(e) => updateQuestion(sitIdx, qIdx, 'explanation', e.target.value)}
-                                                                                                className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all resize-none text-base"
-                                                                                                rows={3}
+                                                                                                onChange={(html) => updateQuestion(sitIdx, qIdx, 'explanation', html)}
                                                                                                 placeholder="อธิบายที่มาของคำตอบ (ถ้ามี)..."
+                                                                                                minHeight="90px"
                                                                                             />
                                                                                         </div>
 

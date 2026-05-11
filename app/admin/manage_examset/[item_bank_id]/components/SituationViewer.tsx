@@ -190,11 +190,14 @@ export default function SituationViewer({
                                 <div className="bg-gradient-to-b from-slate-50 to-white px-5 py-5 border-b border-gray-100">
                                     <div className="flex items-start gap-3">
                                         <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shrink-0" />
-                                        <p className="text-gray-700 whitespace-pre-wrap leading-relaxed text-[15px]">
-                                            {situation.situation_text || (
-                                                <span className="text-gray-400 italic text-sm">ไม่มีรายละเอียดสถานการณ์</span>
-                                            )}
-                                        </p>
+                                        {situation.situation_text ? (
+                                            <div
+                                                className="prose prose-sm max-w-none text-gray-700 leading-relaxed text-[15px]"
+                                                dangerouslySetInnerHTML={{ __html: situation.situation_text }}
+                                            />
+                                        ) : (
+                                            <span className="text-gray-400 italic text-sm">ไม่มีรายละเอียดสถานการณ์</span>
+                                        )}
                                     </div>
                                     {situation.situation_image_url && (
                                         <div className="mt-4 pl-4">
@@ -231,9 +234,10 @@ export default function SituationViewer({
                                                     </div>
 
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-2 pr-2">
-                                                            {question.question_text || 'คำถามใหม่'}
-                                                        </p>
+                                                        <div
+                                                            className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-2 pr-2 prose prose-sm max-w-none"
+                                                            dangerouslySetInnerHTML={{ __html: question.question_text || 'คำถามใหม่' }}
+                                                        />
                                                         {!isQCollapsed && showAnswers && correctIndex >= 0 && (
                                                             <div className="mt-1.5 flex items-center gap-1.5 text-xs text-emerald-600">
                                                                 <CheckCircle className="w-3.5 h-3.5 shrink-0" />
@@ -306,7 +310,10 @@ export default function SituationViewer({
                                                                 <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                                                 <div>
                                                                     <p className="text-xs font-bold text-amber-700 mb-1 uppercase tracking-wide">คำอธิบายเฉลย</p>
-                                                                    <p className="text-amber-800 text-sm leading-relaxed whitespace-pre-wrap">{question.explanation}</p>
+                                                                    <div
+                                                                        className="prose prose-sm max-w-none text-amber-800 leading-relaxed"
+                                                                        dangerouslySetInnerHTML={{ __html: question.explanation }}
+                                                                    />
                                                                 </div>
                                                             </div>
                                                         )}
