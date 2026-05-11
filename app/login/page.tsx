@@ -26,7 +26,8 @@ export default function Page() {
       const data = await res.json();
 
       if (res.ok) {
-        await login(data.accessToken);
+        // ส่ง user data ไปด้วยเลย ไม่ต้องรอ /auth/me อีกรอบ
+        await login(data.accessToken, data.user);
         await Swal.fire({
           icon: "success",
           title: "เข้าสู่ระบบสำเร็จ!",

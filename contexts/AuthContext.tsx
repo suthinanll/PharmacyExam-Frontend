@@ -16,7 +16,7 @@ interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (token: string) => Promise<void>;
+    login: (token: string, userData?: User) => Promise<void>;
     logout: () => Promise<void>;
     getToken: () => string | null;
     refreshUser: () => Promise<void>;
@@ -68,9 +68,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const login = async (token: string) => {
+    const login = async (token: string, userData?: User) => {
         localStorage.setItem('access_token', token);
-        await fetchUser();
+        if (userData) {
+            // Set user immediately from login response — no extra roundtrip needed
+            setUser(userData);
+            setIsLoading(false);
+        } else {
+            await fetchUser();
+        }
     };
 
     const logout = async () => {
