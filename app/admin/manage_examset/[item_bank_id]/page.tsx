@@ -1360,9 +1360,10 @@ export default function ItemBankEditPage() {
                                                                                 className="flex-1 min-w-0 cursor-pointer"
                                                                                 onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
                                                                             >
-                                                                                <p className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-2">
-                                                                                    {question.question_text || 'คำถามใหม่'}
-                                                                                </p>
+                                                                                <div
+                                                                                    className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-2 prose-preview"
+                                                                                    dangerouslySetInnerHTML={{ __html: question.question_text || 'คำถามใหม่' }}
+                                                                                />
                                                                             </div>
 
                                                                             {/* action buttons */}

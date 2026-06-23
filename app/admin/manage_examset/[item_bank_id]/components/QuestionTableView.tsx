@@ -137,7 +137,10 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
                     {/* Question Text */}
                     <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">โจทย์คำถาม</p>
-                        <p className="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium">{question.question_text}</p>
+                        <div
+                            className="text-gray-800 leading-relaxed font-medium"
+                            dangerouslySetInnerHTML={{ __html: question.question_text }}
+                        />
                         {question.question_image_url && (
                             <div className="mt-3">
                                 <img
@@ -444,9 +447,14 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
 
                                         {/* โจทย์ */}
                                         <td className="px-4 py-3 max-w-xs">
-                                            <p className="text-gray-800 line-clamp-2 text-sm leading-relaxed">
-                                                {question.question_text || <span className="text-gray-400 italic">ไม่มีโจทย์</span>}
-                                            </p>
+                                            {question.question_text ? (
+                                                <div
+                                                    className="text-gray-800 line-clamp-2 text-sm leading-relaxed"
+                                                    dangerouslySetInnerHTML={{ __html: question.question_text }}
+                                                />
+                                            ) : (
+                                                <span className="text-gray-400 italic">ไม่มีโจทย์</span>
+                                            )}
                                         </td>
 
                                         {/* หัวข้อย่อย */}

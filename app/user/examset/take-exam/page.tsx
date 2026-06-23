@@ -474,7 +474,12 @@ function TakeExam() {
                                                     src={currentQuestion.situation.situation_image_url}
                                                     alt="situation"
                                                     className="mt-4 rounded-lg max-w-full border border-gray-200 cursor-zoom-in hover:opacity-90 transition-opacity"
-                                                    onClick={() => setPreviewImage(currentQuestion.situation.situation_image_url)}
+                                                    onClick={() => {
+                                                        const url = currentQuestion.situation?.situation_image_url;
+                                                        if (url) {
+                                                            setPreviewImage(url);
+                                                        }
+                                                    }}
                                                 />
                                             )}
                                         </div>
@@ -526,11 +531,16 @@ function TakeExam() {
                                                     : `${process.env.NEXT_PUBLIC_API_URL}${currentQuestion.question_image_url}`}
                                                 alt="question"
                                                 className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white cursor-zoom-in hover:opacity-90 transition-opacity"
-                                                onClick={() => setPreviewImage(
-                                                    currentQuestion.question_image_url.startsWith("http")
-                                                        ? currentQuestion.question_image_url
-                                                        : `${process.env.NEXT_PUBLIC_API_URL}${currentQuestion.question_image_url}`
-                                                )}
+                                                onClick={() => {
+                                                    const url = currentQuestion.question_image_url;
+                                                    if (url) {
+                                                        setPreviewImage(
+                                                            url.startsWith("http")
+                                                                ? url
+                                                                : `${process.env.NEXT_PUBLIC_API_URL}${url}`
+                                                        );
+                                                    }
+                                                }}
                                             />
                                         </div>
                                     )}
