@@ -74,7 +74,7 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
 };
 
 export default function ChatbotPage() {
-  const { getToken } = useAuth();
+  const { getToken, user } = useAuth();
   type Message = {
     id: string;
     sender: "user" | "bot";
@@ -108,31 +108,15 @@ export default function ChatbotPage() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
 
-  // 1. Get User ID from /auth/me
+  // 1. Get User info from AuthContext
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = getToken();
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+    if (user?.user_id) {
+      setUserId(user.user_id);
+      setUserName(`${user.first_name} ${user.last_name || ''}`.trim());
+    }
+  }, [user]);
 
-        if (res.ok) {
-          const data = await res.json();
-          if (data?.user_id) {
-            setUserId(data.user_id);
-            if (data.first_name) {
-              setUserName(`${data.first_name} ${data.last_name || ''}`.trim());
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching /auth/me:", error);
-      }
-    };
-
-    fetchUser();
-
+  useEffect(() => {
     // Check if user has accepted privacy policy
     const hasAccepted = localStorage.getItem('chatbot_privacy_accepted');
     if (!hasAccepted) {

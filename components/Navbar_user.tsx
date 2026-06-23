@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useNotifications, AppNotification } from '@/contexts/NotificationContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 // ---- Notification type helpers ----
 const TYPE_ICON_MAP: Record<number, React.ElementType> = {
@@ -69,21 +70,8 @@ const Navbar = () => {
   const { notifications, unreadCount, isConnected, markAsRead, markAllAsRead, removeNotification } =
     useNotifications();
 
-  // ดึงข้อมูลผู้ใช้
-  const [user, setUser] = useState<{ first_name: string, last_name: string, email: string } | null>(null);
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const token = localStorage.getItem("access_token");
-        if (!token) { setUser(null); return; }
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) { setUser(await res.json()); } else { setUser(null); }
-      } catch (err) { console.error(err); setUser(null); }
-    };
-    fetchUser();
-  }, []);
+  // ดึงข้อมูลผู้ใช้จาก AuthContext
+  const { user } = useAuth();
 
   // logout
   const handleLogout = async () => {
