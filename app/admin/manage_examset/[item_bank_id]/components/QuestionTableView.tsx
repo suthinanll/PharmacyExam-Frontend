@@ -28,6 +28,7 @@ interface Question {
     question_text: string;
     explanation: string;
     sub_topic_id?: number;
+    sub_topic_ids?: number[];
     irt_a_discrimination?: number;
     irt_b_difficulty?: number;
     irt_c_guessing?: number;
@@ -240,16 +241,22 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
         situations.forEach((situation, sitIdx) => {
             situation.questions.forEach((question, qIdx) => {
                 globalNum++;
-                const st = subTopics.find(s => s.sub_topic_id === question.sub_topic_id);
-                const topic = st ? topics.find(t => t.topic_id === st.topic_id) : null;
+                const questionSubTopicIds = question.sub_topic_ids || (question.sub_topic_id ? [question.sub_topic_id] : []);
+                const matchedSubTopics = subTopics.filter(s => questionSubTopicIds.includes(s.sub_topic_id));
+                const subTopicName = matchedSubTopics.map(s => s.sub_topic_name).join(', ');
+                
+                const matchedTopicIds = Array.from(new Set(matchedSubTopics.map(s => s.topic_id)));
+                const matchedTopics = topics.filter(t => matchedTopicIds.includes(t.topic_id));
+                const topicName = matchedTopics.map(t => t.topic_name).join(', ');
+
                 rows.push({
                     globalNum,
                     sitIdx,
                     qIdx,
                     situation,
                     question,
-                    subTopicName: st?.sub_topic_name ?? '',
-                    topicName: topic?.topic_name ?? '',
+                    subTopicName,
+                    topicName,
                 });
             });
         });
@@ -257,22 +264,37 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
     }, [situations, subTopics, topics]);
 
     // Unique sub-topics used
-    const usedSubTopics = useMemo(
-        () => [...new Map(allRows.filter(r => r.subTopicName).map(r => [r.question.sub_topic_id, r.subTopicName])).entries()],
-        [allRows]
-    );
+    const usedSubTopics = useMemo(() => {
+        const subTopicMap = new Map<number, string>();
+        allRows.forEach(row => {
+            const questionSubTopicIds = row.question.sub_topic_ids || (row.question.sub_topic_id ? [row.question.sub_topic_id] : []);
+            questionSubTopicIds.forEach(id => {
+                const st = subTopics.find(s => s.sub_topic_id === id);
+                if (st) {
+                    subTopicMap.set(id, st.sub_topic_name);
+                }
+            });
+        });
+        return Array.from(subTopicMap.entries());
+    }, [allRows, subTopics]);
 
     // Filter + sort
     const rows = useMemo(() => {
         let filtered = allRows;
         if (filterSitIdx !== 'all') filtered = filtered.filter(r => r.sitIdx === filterSitIdx);
-        if (filterSubTopic !== 'all') filtered = filtered.filter(r => r.question.sub_topic_id === filterSubTopic);
+        if (filterSubTopic !== 'all') {
+            filtered = filtered.filter(r => {
+                const questionSubTopicIds = r.question.sub_topic_ids || (r.question.sub_topic_id ? [r.question.sub_topic_id] : []);
+                return questionSubTopicIds.includes(filterSubTopic);
+            });
+        }
         if (search.trim()) {
             const q = search.toLowerCase();
             filtered = filtered.filter(r => r.question.question_text.toLowerCase().includes(q));
         }
         return [...filtered].sort((a, b) => {
-            let va: any, vb: any;
+            let va: string | number = '';
+            let vb: string | number = '';
             switch (sortKey) {
                 case 'globalNum': va = a.globalNum; vb = b.globalNum; break;
                 case 'sitIdx': va = a.sitIdx; vb = b.sitIdx; break;

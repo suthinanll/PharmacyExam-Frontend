@@ -30,6 +30,7 @@ interface Question {
     question_image_url?: string;
     explanation: string;
     sub_topic_id?: number;
+    sub_topic_ids?: number[];
     irt_a_discrimination?: number;
     irt_b_difficulty?: number;
     irt_c_guessing?: number;
@@ -310,6 +311,7 @@ export default function ItemBankEditPage() {
                                 question_image_url: item.question_image_url || '',
                                 explanation: item.explanation,
                                 sub_topic_id: item.sub_topics?.[0]?.sub_topic_id,
+                                sub_topic_ids: item.sub_topics?.map((st: { sub_topic_id: number }) => st.sub_topic_id) || [],
                                 irt_a_discrimination: item.irt_a_discrimination,
                                 irt_b_difficulty: item.irt_b_difficulty,
                                 irt_c_guessing: item.irt_c_guessing,
@@ -427,7 +429,8 @@ export default function ItemBankEditPage() {
                 { option_text: '', is_correct: false },
             ],
             irt_a_discrimination: 1,
-            irt_c_guessing: 0.25
+            irt_c_guessing: 0.25,
+            sub_topic_ids: []
         };
         const newSituations = [...situations];
         newSituations[situationIndex].questions.push(newQuestion);
@@ -802,6 +805,7 @@ export default function ItemBankEditPage() {
                                 question_image_url: question.question_image_url || '',
                                 explanation: question.explanation,
                                 sub_topic_id: question.sub_topic_id ? Number(question.sub_topic_id) : undefined,
+                                sub_topic_ids: question.sub_topic_ids ? question.sub_topic_ids.map(Number) : [],
                                 irt_a_discrimination: question.irt_a_discrimination ? Number(question.irt_a_discrimination) : 0,
                                 irt_b_difficulty: question.irt_b_difficulty ? Number(question.irt_b_difficulty) : 0,
                                 irt_c_guessing: question.irt_c_guessing ? Number(question.irt_c_guessing) : 0,
@@ -831,6 +835,7 @@ export default function ItemBankEditPage() {
                                     question_image_url: q.question_image_url || '',
                                     explanation: q.explanation,
                                     sub_topic_id: q.sub_topic_id ? Number(q.sub_topic_id) : undefined,
+                                    sub_topic_ids: q.sub_topic_ids ? q.sub_topic_ids.map(Number) : [],
                                     irt_a_discrimination: q.irt_a_discrimination ? Number(q.irt_a_discrimination) : 0,
                                     irt_b_difficulty: q.irt_b_difficulty ? Number(q.irt_b_difficulty) : 0,
                                     irt_c_guessing: q.irt_c_guessing ? Number(q.irt_c_guessing) : 0,
@@ -876,6 +881,7 @@ export default function ItemBankEditPage() {
                             question_image_url: q.question_image_url || '',
                             explanation: q.explanation,
                             sub_topic_id: q.sub_topic_id ? Number(q.sub_topic_id) : undefined,
+                            sub_topic_ids: q.sub_topic_ids ? q.sub_topic_ids.map(Number) : [],
                             irt_a_discrimination: q.irt_a_discrimination ? Number(q.irt_a_discrimination) : 0,
                             irt_b_difficulty: q.irt_b_difficulty ? Number(q.irt_b_difficulty) : 0,
                             irt_c_guessing: q.irt_c_guessing ? Number(q.irt_c_guessing) : 0,
@@ -1571,7 +1577,7 @@ export default function ItemBankEditPage() {
                                                                                         {/* Sub Topic */}
                                                                                         <div className="space-y-2">
                                                                                             <div className="flex items-center justify-between">
-                                                                                                <label className="text-base font-medium text-gray-700">หัวข้อย่อย</label>
+                                                                                                <label className="text-base font-medium text-gray-700">หัวข้อย่อย (เลือกได้หลายหัวข้อ)</label>
                                                                                                 <button
                                                                                                     type="button"
                                                                                                     onClick={() => setShowAddSubTopicModal(true)}
@@ -1581,24 +1587,66 @@ export default function ItemBankEditPage() {
                                                                                                     เพิ่มหัวข้อย่อยใหม่
                                                                                                 </button>
                                                                                             </div>
+
+                                                                                            {/* Badges of selected subtopics */}
+                                                                                            {question.sub_topic_ids && question.sub_topic_ids.length > 0 && (
+                                                                                                <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 border border-gray-200 rounded-lg min-h-[42px] items-center">
+                                                                                                    {question.sub_topic_ids.map(id => {
+                                                                                                        const st = subTopics.find(s => s.sub_topic_id === id);
+                                                                                                        if (!st) return null;
+                                                                                                        return (
+                                                                                                            <span
+                                                                                                                key={id}
+                                                                                                                className="inline-flex items-center gap-1 text-xs font-semibold bg-[#e6f7ec] text-[#2e8555] px-2.5 py-1 rounded-full border border-green-200/50"
+                                                                                                            >
+                                                                                                                {st.sub_topic_name}
+                                                                                                                <button
+                                                                                                                    type="button"
+                                                                                                                    onClick={() => {
+                                                                                                                        const updatedIds = (question.sub_topic_ids || []).filter(item => item !== id);
+                                                                                                                        updateQuestion(sitIdx, qIdx, 'sub_topic_ids', updatedIds);
+                                                                                                                        // Keep sub_topic_id in sync
+                                                                                                                        updateQuestion(sitIdx, qIdx, 'sub_topic_id', updatedIds[0] || null);
+                                                                                                                    }}
+                                                                                                                    className="text-[#2e8555] hover:text-red-600 transition-colors p-0.5 rounded-full hover:bg-green-100"
+                                                                                                                >
+                                                                                                                    <X className="w-3 h-3" />
+                                                                                                                </button>
+                                                                                                            </span>
+                                                                                                        );
+                                                                                                    })}
+                                                                                                </div>
+                                                                                            )}
+
                                                                                             <select
-                                                                                                value={question.sub_topic_id || ''}
-                                                                                                onChange={(e) => updateQuestion(sitIdx, qIdx, 'sub_topic_id', e.target.value)}
+                                                                                                value=""
+                                                                                                onChange={(e) => {
+                                                                                                    if (!e.target.value) return;
+                                                                                                    const selectedId = Number(e.target.value);
+                                                                                                    const currentIds = question.sub_topic_ids || [];
+                                                                                                    if (!currentIds.includes(selectedId)) {
+                                                                                                        const updatedIds = [...currentIds, selectedId];
+                                                                                                        updateQuestion(sitIdx, qIdx, 'sub_topic_ids', updatedIds);
+                                                                                                        // Keep sub_topic_id in sync
+                                                                                                        updateQuestion(sitIdx, qIdx, 'sub_topic_id', updatedIds[0] || null);
+                                                                                                    }
+                                                                                                }}
                                                                                                 className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all bg-white text-base"
                                                                                             >
-                                                                                                <option value="">-- เลือกหัวข้อย่อย --</option>
-                                                                                                {topics.map(topic => (
-                                                                                                    <optgroup key={topic.topic_id} label={topic.topic_name}>
-                                                                                                        {subTopics
-                                                                                                            .filter(st => st.topic_id === topic.topic_id)
-                                                                                                            .map(st => (
+                                                                                                <option value="">-- เลือกหัวข้อย่อยเพื่อเพิ่ม --</option>
+                                                                                                {topics.map(topic => {
+                                                                                                    const filteredSubs = subTopics.filter(st => st.topic_id === topic.topic_id && !(question.sub_topic_ids || []).includes(st.sub_topic_id));
+                                                                                                    if (filteredSubs.length === 0) return null;
+                                                                                                    return (
+                                                                                                        <optgroup key={topic.topic_id} label={topic.topic_name}>
+                                                                                                            {filteredSubs.map(st => (
                                                                                                                 <option key={st.sub_topic_id} value={st.sub_topic_id}>
                                                                                                                     {st.sub_topic_name}
                                                                                                                 </option>
-                                                                                                            ))
-                                                                                                        }
-                                                                                                    </optgroup>
-                                                                                                ))}
+                                                                                                            ))}
+                                                                                                        </optgroup>
+                                                                                                    );
+                                                                                                })}
                                                                                             </select>
                                                                                         </div>
 
