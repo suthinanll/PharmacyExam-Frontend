@@ -32,6 +32,7 @@ interface CATItem {
     sub_topic_id: number;
     sub_topic_name: string;
   }>;
+  question_image_url?: string;
 }
 
 interface CATSession {
@@ -485,6 +486,17 @@ export default function CATExamPage() {
                   <p className="text-base lg:text-lg text-gray-800 leading-relaxed font-medium whitespace-pre-wrap">
                     {session.current_item.question_text}
                   </p>
+                  {session.current_item.question_image_url && (
+                    <div className="mt-4">
+                      <img
+                        src={session.current_item.question_image_url.startsWith("http")
+                          ? session.current_item.question_image_url
+                          : `${process.env.NEXT_PUBLIC_API_URL}${session.current_item.question_image_url}`}
+                        alt="question"
+                        className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Options */}

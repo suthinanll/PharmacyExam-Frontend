@@ -30,6 +30,7 @@ interface QuestionResponse {
     response_time_ms: number;
     answer_options: AnswerOption[];
     situation?: Situation;
+    question_image_url?: string;
 }
 
 interface ExamResult {
@@ -211,6 +212,17 @@ const AnswerPage = () => {
                         <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
                             {question.question_text}
                         </p>
+                        {question.question_image_url && (
+                            <div className="mt-4">
+                                <img
+                                    src={question.question_image_url.startsWith("http")
+                                        ? question.question_image_url
+                                        : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`}
+                                    alt="คำถาม"
+                                    className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Options */}

@@ -26,6 +26,7 @@ interface Question {
     sub_topic_id?: number;
     answer_options: AnswerOption[];
     display_order?: number;
+    question_image_url?: string;
 }
 
 interface Situation {
@@ -263,6 +264,18 @@ export default function SituationViewer({
                                                                 {question.question_text}
                                                             </p>
                                                         </div> */}
+
+                                                        {question.question_image_url && (
+                                                            <div className="mb-4">
+                                                                <img
+                                                                    src={question.question_image_url.startsWith("http")
+                                                                        ? question.question_image_url
+                                                                        : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`}
+                                                                    alt="คำถาม"
+                                                                    className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white"
+                                                                />
+                                                            </div>
+                                                        )}
 
                                                         {/* Answer Options */}
                                                         <div className="space-y-2">

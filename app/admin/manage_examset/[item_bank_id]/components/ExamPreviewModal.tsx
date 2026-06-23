@@ -44,6 +44,7 @@ interface Question {
     situation?: Situation;
     answer_options: AnswerOption[];
     sub_topics?: SubTopic[];
+    question_image_url?: string;
 }
 
 interface ItemBank {
@@ -299,6 +300,17 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                 <p className="text-lg text-gray-800 mb-8 leading-relaxed whitespace-pre-wrap font-medium">
                                     {currentQuestion?.question_text}
                                 </p>
+                                {currentQuestion?.question_image_url && (
+                                    <div className="mb-6">
+                                        <img
+                                            src={currentQuestion.question_image_url.startsWith("http")
+                                                ? currentQuestion.question_image_url
+                                                : `${process.env.NEXT_PUBLIC_API_URL}${currentQuestion.question_image_url}`}
+                                            alt="question"
+                                            className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white"
+                                        />
+                                    </div>
+                                )}
 
                                 {/* Options */}
                                 <div className="space-y-3">

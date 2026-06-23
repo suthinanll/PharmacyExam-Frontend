@@ -29,6 +29,7 @@ interface Response {
     irt_a: number | null;
     irt_b: number | null;
     irt_c: number | null;
+    question_image_url?: string;
 }
 
 interface SubTopicStat {
@@ -763,6 +764,17 @@ export default function CATResultPage() {
                                         <h3 className="text-base font-bold text-gray-800 mb-4 leading-relaxed">
                                             {resp.question_text}
                                         </h3>
+                                        {resp.question_image_url && (
+                                            <div className="mb-4">
+                                                <img
+                                                    src={resp.question_image_url.startsWith("http")
+                                                        ? resp.question_image_url
+                                                        : `${process.env.NEXT_PUBLIC_API_URL}${resp.question_image_url}`}
+                                                    alt="question"
+                                                    className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white"
+                                                />
+                                            </div>
+                                        )}
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-5">
                                             {resp.answer_options?.map(opt => {

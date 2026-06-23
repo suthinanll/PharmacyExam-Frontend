@@ -33,6 +33,7 @@ interface Question {
     irt_c_guessing?: number;
     answer_options: AnswerOption[];
     display_order?: number;
+    question_image_url?: string;
 }
 
 interface Situation {
@@ -136,6 +137,17 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
                     <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">โจทย์คำถาม</p>
                         <p className="text-gray-800 leading-relaxed whitespace-pre-wrap font-medium">{question.question_text}</p>
+                        {question.question_image_url && (
+                            <div className="mt-3">
+                                <img
+                                    src={question.question_image_url.startsWith("http")
+                                        ? question.question_image_url
+                                        : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`}
+                                    alt="question"
+                                    className="max-h-48 rounded-lg border border-slate-200 bg-white"
+                                />
+                            </div>
+                        )}
                     </div>
 
                     {/* Answer Options */}

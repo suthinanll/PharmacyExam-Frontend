@@ -27,6 +27,7 @@ interface AnswerOption {
 interface Question {
     item_id?: number;
     question_text: string;
+    question_image_url?: string;
     explanation: string;
     sub_topic_id?: number;
     irt_a_discrimination?: number;
@@ -306,6 +307,7 @@ export default function ItemBankEditPage() {
                             situationsMap.get(sitId)!.questions.push({
                                 item_id: item.item_id,
                                 question_text: item.question_text,
+                                question_image_url: item.question_image_url || '',
                                 explanation: item.explanation,
                                 sub_topic_id: item.sub_topics?.[0]?.sub_topic_id,
                                 irt_a_discrimination: item.irt_a_discrimination,
@@ -797,6 +799,7 @@ export default function ItemBankEditPage() {
                             credentials: 'include',
                             body: JSON.stringify({
                                 question_text: question.question_text,
+                                question_image_url: question.question_image_url || '',
                                 explanation: question.explanation,
                                 sub_topic_id: question.sub_topic_id ? Number(question.sub_topic_id) : undefined,
                                 irt_a_discrimination: question.irt_a_discrimination ? Number(question.irt_a_discrimination) : 0,
@@ -825,6 +828,7 @@ export default function ItemBankEditPage() {
                                 item_bank_id: Number(itemBankId),
                                 questions: newQuestions.map(q => ({
                                     question_text: q.question_text,
+                                    question_image_url: q.question_image_url || '',
                                     explanation: q.explanation,
                                     sub_topic_id: q.sub_topic_id ? Number(q.sub_topic_id) : undefined,
                                     irt_a_discrimination: q.irt_a_discrimination ? Number(q.irt_a_discrimination) : 0,
@@ -869,6 +873,7 @@ export default function ItemBankEditPage() {
                         situation_image_url: situation.situation_image_url || '',
                         questions: situation.questions.map(q => ({
                             question_text: q.question_text,
+                            question_image_url: q.question_image_url || '',
                             explanation: q.explanation,
                             sub_topic_id: q.sub_topic_id ? Number(q.sub_topic_id) : undefined,
                             irt_a_discrimination: q.irt_a_discrimination ? Number(q.irt_a_discrimination) : 0,
@@ -1405,6 +1410,106 @@ export default function ItemBankEditPage() {
                                                                                         placeholder="กรอกโจทย์คำถาม..."
                                                                                         minHeight="72px"
                                                                                     />
+                                                                                </div>
+
+                                                                                {/* Image Upload for Question */}
+                                                                                <div className="space-y-2">
+                                                                                    <label className="text-base font-medium text-gray-700">รูปภาพประกอบ (Optional)</label>
+                                                                                    <div className="flex items-center gap-4">
+                                                                                        {question.question_image_url ? (
+                                                                                            <div className="relative w-48 h-32 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center group">
+                                                                                                <img
+                                                                                                    src={question.question_image_url.startsWith("http")
+                                                                                                        ? question.question_image_url
+                                                                                                        : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`}
+                                                                                                    alt="Question image"
+                                                                                                    className="w-full h-full object-contain"
+                                                                                                />
+                                                                                                <button
+                                                                                                    type="button"
+                                                                                                    onClick={() => updateQuestion(sitIdx, qIdx, 'question_image_url', '')}
+                                                                                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-600 transition-colors"
+                                                                                                >
+                                                                                                    <X className="w-4 h-4" />
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        ) : (
+                                                                                            <label className="flex flex-col items-center justify-center w-48 h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-green-500 transition-all">
+                                                                                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-400">
+                                                                                                    <Plus className="w-6 h-6 mb-2 text-gray-400" />
+                                                                                                    <p className="text-xs font-semibold text-gray-600">คลิกเพื่ออัปโหลดรูปภาพ</p>
+                                                                                                    <p className="text-[10px] text-gray-400 mt-1">PNG, JPG ไม่เกิน 5MB</p>
+                                                                                                </div>
+                                                                                                <input
+                                                                                                    type="file"
+                                                                                                    accept="image/*"
+                                                                                                    onChange={async (e) => {
+                                                                                                        const file = e.target.files?.[0];
+                                                                                                        if (!file) return;
+
+                                                                                                        if (file.size > 5 * 1024 * 1024) {
+                                                                                                            Swal.fire({
+                                                                                                                title: 'ไฟล์มีขนาดใหญ่เกินไป',
+                                                                                                                text: 'กรุณาอัปโหลดไฟล์ขนาดไม่เกิน 5MB',
+                                                                                                                icon: 'warning',
+                                                                                                                confirmButtonColor: '#3b82f6'
+                                                                                                            });
+                                                                                                            return;
+                                                                                                        }
+
+                                                                                                        Swal.fire({
+                                                                                                            title: 'กำลังอัปโหลดรูปภาพ...',
+                                                                                                            allowOutsideClick: false,
+                                                                                                            didOpen: () => {
+                                                                                                                Swal.showLoading();
+                                                                                                            }
+                                                                                                        });
+
+                                                                                                        try {
+                                                                                                            const uploadData = new FormData();
+                                                                                                            uploadData.append("file", file);
+
+                                                                                                            const token = getToken();
+                                                                                                            const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/upload`, {
+                                                                                                                method: 'POST',
+                                                                                                                headers: {
+                                                                                                                    'Authorization': `Bearer ${token}`
+                                                                                                                },
+                                                                                                                body: uploadData
+                                                                                                            });
+
+                                                                                                            if (!uploadRes.ok) throw new Error("อัปโหลดรูปภาพไม่สำเร็จ");
+                                                                                                            const uploadJson = await uploadRes.json();
+                                                                                                            if (uploadJson && uploadJson.url) {
+                                                                                                                updateQuestion(sitIdx, qIdx, 'question_image_url', uploadJson.url);
+                                                                                                                Swal.close();
+                                                                                                                Swal.fire({
+                                                                                                                    toast: true,
+                                                                                                                    position: 'top-end',
+                                                                                                                    icon: 'success',
+                                                                                                                    title: 'อัปโหลดรูปภาพสำเร็จ',
+                                                                                                                    showConfirmButton: false,
+                                                                                                                    timer: 1500
+                                                                                                                });
+                                                                                                            } else {
+                                                                                                                throw new Error("ข้อมูลตอบกลับจากการอัปโหลดไม่ถูกต้อง");
+                                                                                                            }
+                                                                                                        } catch (err: any) {
+                                                                                                            console.error('Upload error:', err);
+                                                                                                            Swal.close();
+                                                                                                            Swal.fire({
+                                                                                                                title: 'เกิดข้อผิดพลาด',
+                                                                                                                text: err.message || 'ไม่สามารถอัปโหลดรูปภาพได้',
+                                                                                                                icon: 'error',
+                                                                                                                confirmButtonColor: '#ef4444'
+                                                                                                            });
+                                                                                                        }
+                                                                                                    }}
+                                                                                                    className="hidden"
+                                                                                                />
+                                                                                            </label>
+                                                                                        )}
+                                                                                    </div>
                                                                                 </div>
 
                                                                                 {/* Answer Options */}
