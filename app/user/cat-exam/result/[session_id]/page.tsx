@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import { useParams, useRouter } from "next/navigation";
@@ -8,10 +8,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
     ResponsiveContainer, Area, AreaChart, ReferenceLine,
-    BarChart, Bar, Cell, ComposedChart,
+    ComposedChart,
     Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
-import { CheckCircle2, XCircle, HelpCircle, BookOpen, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle2, XCircle, HelpCircle, BookOpen, Info, Loader2, Award, Target, AlertTriangle, BarChart3, ClipboardList, RefreshCw } from "lucide-react";
 
 // ==================== TYPES ====================
 interface Response {
@@ -67,15 +67,6 @@ interface CATResult {
 }
 
 // ==================== HELPERS ====================
-function irt3PL(theta: number, a: number, b: number, c: number): number {
-    return c + (1 - c) / (1 + Math.exp(-a * (theta - b)));
-}
-function fisherInfo(theta: number, a: number, b: number, c: number): number {
-    const P = irt3PL(theta, a, b, c);
-    const num = Math.pow(a, 2) * Math.pow(P - c, 2) * (1 - P);
-    const den = Math.pow(1 - c, 2) * P;
-    return den > 0 ? num / den : 0;
-}
 function normalPDF(x: number, mean: number, sd: number): number {
     return Math.exp(-Math.pow(x - mean, 2) / (2 * sd * sd)) / (sd * Math.sqrt(2 * Math.PI));
 }
@@ -84,7 +75,7 @@ const THETA_RANGE = Array.from({ length: 81 }, (_, i) => -4 + i * 0.1);
 
 // ==================== CHART COMPONENTS ====================
 
-/** Chart 1 (existing): θ progress + CI band over items */
+/** Chart 1: θ progress + CI band over items */
 function ThetaProgressChart({ responses, cutScore }: { responses: Response[]; cutScore: number }) {
     const data = responses.map((r, i) => ({
         item: i + 1,
@@ -95,17 +86,16 @@ function ThetaProgressChart({ responses, cutScore }: { responses: Response[]; cu
     }));
 
     return (
-        <div className="bg-white rounded-2xl shadow p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-1">📈 Theta (θ) Trajectory + 95% CI</h2>
-            <p className="text-xs text-gray-400 mb-4">เส้น theta พร้อม confidence band ที่แคบลงเมื่อข้อมูลมากขึ้น</p>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h2 className="text-base font-bold text-gray-800 mb-1">ระดับความสามารถ (θ) ตลอดการสอบ</h2>
+            <p className="text-xs text-gray-400 mb-4">เส้นแสดงระดับ θ พร้อมช่วงความเชื่อมั่น 95% ที่แคบลงเมื่อตอบข้อมากขึ้น</p>
             <ResponsiveContainer width="100%" height={260}>
                 <ComposedChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                     <XAxis dataKey="item" label={{ value: "ข้อที่", position: "insideBottom", offset: -10 }} tick={{ fontSize: 11 }} />
                     <YAxis domain={[-4, 4]} label={{ value: "θ", angle: -90, position: "insideLeft", offset: 10 }} tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(v: any) => v?.toFixed(3)} />
-                    <ReferenceLine y={cutScore} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: "Cut", fill: "#f59e0b", fontSize: 11 }} />
-                    {/* CI band using two lines + area approximation */}
+                    <ReferenceLine y={cutScore} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: "เกณฑ์", fill: "#f59e0b", fontSize: 11 }} />
                     <Area dataKey="ci_high" stroke="none" fill="#3b82f6" fillOpacity={0.12} name="CI Upper" legendType="none" />
                     <Area dataKey="ci_low" stroke="none" fill="#fff" fillOpacity={1} name="CI Lower" legendType="none" />
                     <Line type="monotone" dataKey="theta" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 4, fill: "#2563eb" }} name="θ" />
@@ -118,16 +108,16 @@ function ThetaProgressChart({ responses, cutScore }: { responses: Response[]; cu
     );
 }
 
-/** Chart 2 (NEW — CATsim hallmark): SE Convergence */
+/** Chart 2: SE Convergence */
 function SEConvergenceChart({ responses, targetSE }: { responses: Response[]; targetSE: number }) {
     const data = responses.map((r, i) => ({
         item: i + 1,
         se: r.se_after != null ? +r.se_after.toFixed(3) : null,
     }));
     return (
-        <div className="bg-white rounded-2xl shadow p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-1">📉 SE Convergence Plot</h2>
-            <p className="text-xs text-gray-400 mb-4">Standard Error ลดลงเรื่อยๆ — hallmark การวัดแบบ CAT</p>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h2 className="text-base font-bold text-gray-800 mb-1">ความแม่นยำของการวัด (SE)</h2>
+            <p className="text-xs text-gray-400 mb-4">ค่าความคลาดเคลื่อนมาตรฐานลดลงเรื่อยๆ — ยิ่งต่ำยิ่งแม่นยำ</p>
             <ResponsiveContainer width="100%" height={260}>
                 <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -135,7 +125,7 @@ function SEConvergenceChart({ responses, targetSE }: { responses: Response[]; ta
                     <YAxis domain={[0, 1.5]} label={{ value: "SE", angle: -90, position: "insideLeft", offset: 10 }} tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(v: any) => v?.toFixed(3)} />
                     <ReferenceLine y={targetSE} stroke="#22c55e" strokeDasharray="4 4"
-                        label={{ value: `Target SE (${targetSE})`, fill: "#16a34a", fontSize: 11, position: "right" }} />
+                        label={{ value: `เกณฑ์ (${targetSE})`, fill: "#16a34a", fontSize: 11, position: "right" }} />
                     <Line type="monotone" dataKey="se" stroke="#8b5cf6" strokeWidth={2.5}
                         dot={{ r: 4, fill: "#8b5cf6" }} name="SE(θ)" />
                     <Legend verticalAlign="top" height={24} />
@@ -145,255 +135,17 @@ function SEConvergenceChart({ responses, targetSE }: { responses: Response[]; ta
     );
 }
 
-/** Chart 3 (NEW — CATsim key): ICC Overlay + Individual ICC */
-function ICCSection({ responses, finalTheta }: { responses: Response[]; finalTheta: number }) {
-    const [selectedIdx, setSelectedIdx] = useState<number>(0);
-
-    // Build a shared theta axis for all curves
-    const thetaAxis = THETA_RANGE;
-
-    // Overlay chart: all items overlaid, coloured by correct/incorrect
-    const overlayData = thetaAxis.map(t => {
-        const point: Record<string, number> = { theta: +t.toFixed(2) };
-        responses.forEach((r, i) => {
-            if (r.irt_a != null && r.irt_b != null && r.irt_c != null) {
-                point[`item_${i + 1}`] = +irt3PL(t, r.irt_a, r.irt_b, r.irt_c).toFixed(4);
-            }
-        });
-        return point;
-    });
-
-    // Individual ICC + user theta marker
-    const sel = responses[selectedIdx];
-    const individualData = thetaAxis.map(t => ({
-        theta: +t.toFixed(2),
-        prob: (sel?.irt_a != null && sel.irt_b != null && sel.irt_c != null)
-            ? +irt3PL(t, sel.irt_a, sel.irt_b, sel.irt_c).toFixed(4)
-            : null,
-    }));
-    const pAtTheta = (sel?.irt_a != null && sel.irt_b != null && sel.irt_c != null)
-        ? irt3PL(finalTheta, sel.irt_a, sel.irt_b, sel.irt_c)
-        : null;
-
-    return (
-        <div className="mb-6">
-            <h2 className="text-xl font-bold text-gray-800 mb-1">📈 Item Characteristic Curves (ICC)</h2>
-            <p className="text-xs text-gray-400 mb-4">กราฟ P(θ) ของแต่ละ item จากโมเดล 3PL — เส้นตรงกลางคือ θ สุดท้ายของคุณ</p>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                {/* LEFT: Overlay — all curves */}
-                <div className="bg-white rounded-2xl shadow p-6">
-                    <h3 className="text-sm font-bold text-gray-700 mb-3">ICC Overlay (ทุกข้อ)</h3>
-                    <ResponsiveContainer width="100%" height={280}>
-                        <LineChart data={overlayData} margin={{ top: 8, right: 8, left: -15, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="theta"
-                                label={{ value: "θ", position: "insideBottom", offset: -10 }}
-                                tick={{ fontSize: 10 }}
-                                tickFormatter={v => Number(v) % 1 === 0 ? String(v) : ""} />
-                            <YAxis domain={[0, 1]} label={{ value: "P(θ)", angle: -90, position: "insideLeft", offset: 12 }} tick={{ fontSize: 10 }} />
-                            <Tooltip
-                                formatter={(v: any, name: string) => [v?.toFixed(3), name]}
-                                labelFormatter={l => `θ = ${l}`} />
-                            <ReferenceLine x={finalTheta} stroke="#2563eb" strokeWidth={2}
-                                label={{ value: `θ=${finalTheta.toFixed(2)}`, fill: "#2563eb", fontSize: 11, position: "top" }} />
-                            <ReferenceLine y={0.5} stroke="#9ca3af" strokeDasharray="3 3" />
-                            {responses.map((r, i) => (
-                                <Line
-                                    key={i}
-                                    type="monotone"
-                                    dataKey={`item_${i + 1}`}
-                                    stroke={r.is_correct ? "#22c55e" : "#ef4444"}
-                                    strokeWidth={i === selectedIdx ? 2.5 : 1}
-                                    strokeOpacity={i === selectedIdx ? 1 : 0.35}
-                                    dot={false}
-                                    legendType="none"
-                                    activeDot={false}
-                                />
-                            ))}
-                        </LineChart>
-                    </ResponsiveContainer>
-                    <div className="flex gap-3 justify-center mt-2 text-xs">
-                        <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-green-500 inline-block" />ตอบถูก</span>
-                        <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-red-400 inline-block" />ตอบผิด</span>
-                        <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-blue-500 inline-block border-dashed" />θ คุณ</span>
-                        <span className="flex items-center gap-1 text-gray-400">굵은 = ข้อที่เลือก</span>
-                    </div>
-                </div>
-
-                {/* RIGHT: Individual item ICC */}
-                <div className="bg-white rounded-2xl shadow p-6">
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-sm font-bold text-gray-700">ICC รายข้อ</h3>
-                        <div className="flex items-center gap-1">
-                            <button onClick={() => setSelectedIdx(i => Math.max(0, i - 1))}
-                                disabled={selectedIdx === 0}
-                                className="p-1 rounded-lg hover:bg-gray-100 disabled:opacity-30">
-                                <ChevronLeft size={16} />
-                            </button>
-                            <span className="text-sm font-medium text-gray-700 w-20 text-center">
-                                ข้อ {selectedIdx + 1} / {responses.length}
-                            </span>
-                            <button onClick={() => setSelectedIdx(i => Math.min(responses.length - 1, i + 1))}
-                                disabled={selectedIdx === responses.length - 1}
-                                className="p-1 rounded-lg hover:bg-gray-100 disabled:opacity-30">
-                                <ChevronRight size={16} />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* IRT params display */}
-                    {sel && (
-                        <div className="flex gap-2 mb-3">
-                            {[
-                                { label: "a (discrimination)", value: sel.irt_a, color: "text-orange-600" },
-                                { label: "b (difficulty)", value: sel.irt_b, color: "text-red-600" },
-                                { label: "c (guessing)", value: sel.irt_c, color: "text-gray-500" },
-                            ].map(p => (
-                                <div key={p.label} className="flex-1 bg-gray-50 rounded-xl p-2 text-center">
-                                    <div className={`text-lg font-bold ${p.color}`}>
-                                        {p.value?.toFixed(2) ?? "N/A"}
-                                    </div>
-                                    <div className="text-[10px] text-gray-400 leading-tight mt-0.5">{p.label}</div>
-                                </div>
-                            ))}
-                            <div className="flex-1 bg-blue-50 rounded-xl p-2 text-center">
-                                <div className="text-lg font-bold text-blue-600">
-                                    {pAtTheta != null ? pAtTheta.toFixed(3) : "N/A"}
-                                </div>
-                                <div className="text-[10px] text-gray-400 leading-tight mt-0.5">P(θ={finalTheta.toFixed(1)})</div>
-                            </div>
-                        </div>
-                    )}
-
-                    <ResponsiveContainer width="100%" height={200}>
-                        <AreaChart data={individualData} margin={{ top: 8, right: 8, left: -15, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                            <XAxis dataKey="theta"
-                                label={{ value: "θ", position: "insideBottom", offset: -10 }}
-                                tick={{ fontSize: 10 }}
-                                tickFormatter={v => Number(v) % 1 === 0 ? String(v) : ""} />
-                            <YAxis domain={[0, 1]} label={{ value: "P(θ)", angle: -90, position: "insideLeft", offset: 12 }} tick={{ fontSize: 10 }} />
-                            <Tooltip formatter={(v: any) => v?.toFixed(3)} labelFormatter={l => `θ = ${l}`} />
-                            <ReferenceLine x={finalTheta} stroke="#2563eb" strokeWidth={2}
-                                label={{ value: `θ=${finalTheta.toFixed(2)}`, fill: "#2563eb", fontSize: 11, position: "top" }} />
-                            <ReferenceLine y={0.5} stroke="#9ca3af" strokeDasharray="3 3" />
-                            {sel?.irt_b != null && (
-                                <ReferenceLine x={sel.irt_b} stroke="#f59e0b" strokeDasharray="4 4"
-                                    label={{ value: `b=${sel.irt_b.toFixed(2)}`, fill: "#d97706", fontSize: 11, position: "top" }} />
-                            )}
-                            <Area type="monotone" dataKey="prob"
-                                stroke={sel?.is_correct ? "#22c55e" : "#ef4444"}
-                                fill={sel?.is_correct ? "#dcfce7" : "#fee2e2"}
-                                fillOpacity={0.6}
-                                strokeWidth={2.5}
-                                name="P(θ)" dot={false} />
-                        </AreaChart>
-                    </ResponsiveContainer>
-
-                    {/* Item selector grid */}
-                    <div className="flex flex-wrap gap-1.5 mt-3">
-                        {responses.map((r, i) => (
-                            <button key={i}
-                                onClick={() => setSelectedIdx(i)}
-                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${i === selectedIdx
-                                        ? "ring-2 ring-offset-1 ring-blue-500 " + (r.is_correct ? "bg-green-500 text-white" : "bg-red-500 text-white")
-                                        : r.is_correct ? "bg-green-100 text-green-700 hover:bg-green-200" : "bg-red-100 text-red-700 hover:bg-red-200"
-                                    }`}>
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-/** Chart 4 (NEW): Item Information Contribution per item */
-function ItemInformationChart({ responses }: { responses: Response[] }) {
-    const data = responses.map((r, i) => {
-        const info = (r.irt_a != null && r.irt_b != null && r.irt_c != null)
-            ? +fisherInfo(r.theta_before, r.irt_a, r.irt_b, r.irt_c).toFixed(3)
-            : 0;
-        return { item: i + 1, info, correct: r.is_correct };
-    });
-    return (
-        <div className="bg-white rounded-2xl shadow p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-1">🎯 Fisher Information Contribution</h2>
-            <p className="text-xs text-gray-400 mb-4">ข้อมูลที่แต่ละข้อสอบมอบให้ ณ theta ขณะนั้น (สีเขียว = ตอบถูก)</p>
-            <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="item" label={{ value: "ข้อที่", position: "insideBottom", offset: -10 }} tick={{ fontSize: 11 }} />
-                    <YAxis label={{ value: "I(θ)", angle: -90, position: "insideLeft", offset: 10 }} tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v: any) => v?.toFixed(3)} />
-                    <Bar dataKey="info" name="I(θ)" radius={[4, 4, 0, 0]}>
-                        {data.map((d, i) => (
-                            <Cell key={i} fill={d.correct ? "#22c55e" : "#ef4444"} />
-                        ))}
-                    </Bar>
-                    <Legend verticalAlign="top" height={24}
-                        content={() => (
-                            <div className="flex gap-4 justify-center text-xs mt-1">
-                                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-green-500 inline-block" />ตอบถูก</span>
-                                <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400 inline-block" />ตอบผิด</span>
-                            </div>
-                        )} />
-                </BarChart>
-            </ResponsiveContainer>
-        </div>
-    );
-}
-
-/** Chart 4 (NEW): Item Difficulty Distribution (b-params selected) */
-function ItemDifficultyDistChart({ responses, finalTheta }: { responses: Response[]; finalTheta: number }) {
-    const bins: Record<string, number> = {
-        "< -2": 0, "-2 to -1": 0, "-1 to 0": 0, "0 to 1": 0, "1 to 2": 0, "> 2": 0,
-    };
-    responses.forEach(r => {
-        if (r.irt_b == null) return;
-        const b = r.irt_b;
-        if (b < -2) bins["< -2"]++;
-        else if (b < -1) bins["-2 to -1"]++;
-        else if (b < 0) bins["-1 to 0"]++;
-        else if (b < 1) bins["0 to 1"]++;
-        else if (b < 2) bins["1 to 2"]++;
-        else bins["> 2"]++;
-    });
-    const data = Object.entries(bins).map(([range, count]) => ({ range, count }));
-
-    return (
-        <div className="bg-white rounded-2xl shadow p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-1">📊 Item Difficulty Distribution</h2>
-            <p className="text-xs text-gray-400 mb-4">
-                การกระจายความยาก (b) ของข้อที่ถูกเลือก — ควรกระจุกอยู่ใกล้ θ = {finalTheta.toFixed(2)}
-            </p>
-            <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="range" tick={{ fontSize: 10 }} label={{ value: "b-parameter range", position: "insideBottom", offset: -10 }} />
-                    <YAxis allowDecimals={false} label={{ value: "จำนวนข้อ", angle: -90, position: "insideLeft", offset: 15 }} tick={{ fontSize: 11 }} />
-                    <Tooltip />
-                    <Bar dataKey="count" name="จำนวนข้อ" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                </BarChart>
-            </ResponsiveContainer>
-        </div>
-    );
-}
-
-/** Chart 5 (existing enhanced): Posterior distribution N(θ, SE) */
+/** Chart 3: Posterior distribution N(θ, SE) */
 function PosteriorChart({ finalTheta, finalSE, cutScore }: { finalTheta: number; finalSE: number; cutScore: number }) {
     const data = THETA_RANGE.map(x => ({
         x: +x.toFixed(1),
         y: +normalPDF(x, finalTheta, finalSE).toFixed(4),
     }));
     return (
-        <div className="bg-white rounded-2xl shadow p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-1">📐 Posterior Ability Distribution</h2>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+            <h2 className="text-base font-bold text-gray-800 mb-1">การกระจายความสามารถ</h2>
             <p className="text-xs text-gray-400 mb-4">
-                การแจกแจงความสามารถหลังการสอบ — ยิ่งแคบ ยิ่งแม่นยำ (SE = {finalSE.toFixed(3)})
+                การแจกแจงระดับความสามารถหลังการสอบ — ยิ่งแคบ ยิ่งแม่นยำ (SE = {finalSE.toFixed(3)})
             </p>
             <ResponsiveContainer width="100%" height={260}>
                 <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
@@ -403,7 +155,7 @@ function PosteriorChart({ finalTheta, finalSE, cutScore }: { finalTheta: number;
                     <YAxis hide />
                     <Tooltip formatter={(v: any) => v?.toFixed(4)} labelFormatter={(l) => `θ = ${l}`} />
                     <ReferenceLine x={cutScore.toFixed(1)} stroke="#f59e0b" strokeDasharray="4 4"
-                        label={{ value: "Cut", fill: "#f59e0b", fontSize: 11 }} />
+                        label={{ value: "เกณฑ์", fill: "#f59e0b", fontSize: 11 }} />
                     <ReferenceLine x={finalTheta.toFixed(1)} stroke="#2563eb" strokeWidth={2}
                         label={{ value: `θ=${finalTheta.toFixed(2)}`, fill: "#2563eb", fontSize: 11, position: "top" }} />
                     <Area type="monotone" dataKey="y" stroke="#3b82f6" fill="#bfdbfe" fillOpacity={0.8} name="P(θ|data)" />
@@ -413,7 +165,7 @@ function PosteriorChart({ finalTheta, finalSE, cutScore }: { finalTheta: number;
     );
 }
 
-/** Topic Analysis Chart — เหมือน normal exam */
+/** Topic Analysis Section */
 function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] }) {
     if (!topicAnalysis || topicAnalysis.length === 0) return null;
 
@@ -425,14 +177,13 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
     }));
 
     return (
-        <div className="bg-white rounded-2xl shadow p-6 mb-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-1">📚 วิเคราะห์ตามหัวข้อ</h2>
-            <p className="text-xs text-gray-400 mb-5">เปอร์เซ็นต์ความถูกต้องในแต่ละหัวข้อ — สีเขียวคือเก่ง สีแดงคือต้องพัฒนา</p>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+            <h2 className="text-base font-bold text-gray-800 mb-1">วิเคราะห์ตามหัวข้อ</h2>
+            <p className="text-xs text-gray-400 mb-5">เปอร์เซ็นต์ความถูกต้องในแต่ละหัวข้อหลักและหัวข้อย่อย</p>
 
-            {/* Radar Chart + Score List */}
-            <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-start mb-8">
+            <div className="flex flex-col lg:flex-row gap-8 items-stretch mb-2">
                 {/* Radar Chart */}
-                <div className="w-full lg:w-1/2 h-[320px]">
+                <div className="w-full lg:w-1/2 h-[350px] flex items-center justify-center">
                     <ResponsiveContainer width="100%" height="100%">
                         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                             <PolarGrid stroke="#e5e7eb" />
@@ -455,80 +206,76 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
                             <Radar
                                 name="Performance"
                                 dataKey="Performance"
-                                stroke="#3b82f6"
-                                fill="#3b82f6"
-                                fillOpacity={0.4}
-                                dot={{ r: 4, fill: '#3b82f6' }}
+                                stroke="#22c55e"
+                                fill="#22c55e"
+                                fillOpacity={0.35}
+                                dot={{ r: 4, fill: '#22c55e' }}
                             />
                         </RadarChart>
                     </ResponsiveContainer>
                 </div>
 
-                {/* Score List */}
-                <div className="w-full lg:w-1/2 space-y-3">
+                {/* Score List (Unified nested cards) */}
+                <div className="w-full lg:w-1/2 flex flex-col">
                     <h3 className="font-bold text-gray-800 mb-3 border-b pb-2">คะแนนรายหัวข้อ</h3>
-                    {topicAnalysis.map(topic => (
-                        <div key={topic.topic_id} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                            <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold ${
-                                topic.accuracy >= 70 ? 'bg-green-100 text-green-700' :
-                                topic.accuracy >= 50 ? 'bg-amber-100 text-amber-700' :
-                                'bg-red-100 text-red-600'
-                            }`}>
-                                {topic.accuracy >= 70 ? '🏆' : topic.accuracy >= 50 ? '🎯' : '⚠️'}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-semibold text-gray-800 text-sm truncate">{topic.topic_name}</p>
-                                <p className="text-xs text-gray-500">{topic.correct}/{topic.total} ข้อ</p>
-                            </div>
-                            <span className={`font-bold text-sm ${
-                                topic.accuracy >= 70 ? 'text-green-600' :
-                                topic.accuracy >= 50 ? 'text-amber-500' : 'text-red-500'
-                            }`}>{topic.accuracy}%</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Sub-topic detail cards */}
-            <div className="border-t border-gray-100 pt-5 space-y-4">
-                <h3 className="font-bold text-gray-700 text-sm mb-3">รายละเอียดหัวข้อย่อย</h3>
-                {topicAnalysis.map(topic => (
-                    <div key={topic.topic_id}>
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="font-semibold text-gray-700 text-sm">{topic.topic_name}</span>
-                            <span className={`text-sm font-bold ${
-                                topic.accuracy >= 70 ? 'text-green-600' :
-                                topic.accuracy >= 50 ? 'text-amber-500' : 'text-red-500'
-                            }`}>{topic.accuracy}%</span>
-                        </div>
-                        <div className="w-full bg-gray-100 rounded-full h-1.5 mb-3">
-                            <div
-                                className={`h-1.5 rounded-full ${
-                                    topic.accuracy >= 70 ? 'bg-green-500' :
-                                    topic.accuracy >= 50 ? 'bg-amber-400' : 'bg-red-400'
-                                }`}
-                                style={{ width: `${topic.accuracy}%` }}
-                            />
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {topic.sub_topics.map(st => (
-                                <div
-                                    key={st.sub_topic_id}
-                                    className={`text-xs px-3 py-1.5 rounded-lg border flex items-center gap-1.5 ${
-                                        st.accuracy >= 70
-                                            ? 'bg-green-50 border-green-200 text-green-700'
-                                            : st.accuracy >= 50
-                                            ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                            : 'bg-red-50 border-red-200 text-red-600'
-                                    }`}
-                                >
-                                    <span className="font-medium">{st.sub_topic_name}</span>
-                                    <span className="opacity-60">({st.correct}/{st.total})</span>
+                    <div className="space-y-3 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar flex-1">
+                        {topicAnalysis.map(topic => (
+                            <div key={topic.topic_id} className="p-3.5 rounded-xl border border-gray-100 bg-white hover:bg-gray-50/50 transition-colors space-y-3">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                        topic.accuracy >= 70 ? 'bg-green-100 text-green-700' :
+                                        topic.accuracy >= 50 ? 'bg-amber-100 text-amber-700' :
+                                        'bg-red-100 text-red-600'
+                                    }`}>
+                                        {topic.accuracy >= 70 ? <Award className="w-5 h-5" /> : topic.accuracy >= 50 ? <Target className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-semibold text-gray-800 text-sm truncate">{topic.topic_name}</p>
+                                        <p className="text-xs text-gray-500">{topic.correct}/{topic.total} ข้อ</p>
+                                    </div>
+                                    <span className={`font-bold text-sm ${
+                                        topic.accuracy >= 70 ? 'text-green-600' :
+                                        topic.accuracy >= 50 ? 'text-amber-500' : 'text-red-500'
+                                    }`}>{topic.accuracy}%</span>
                                 </div>
-                            ))}
-                        </div>
+
+                                {/* Progress Bar */}
+                                <div className="w-full bg-gray-100 rounded-full h-1">
+                                    <div
+                                        className={`h-1 rounded-full ${
+                                            topic.accuracy >= 70 ? 'bg-green-500' :
+                                            topic.accuracy >= 50 ? 'bg-amber-400' : 'bg-red-400'
+                                        }`}
+                                        style={{ width: `${topic.accuracy}%` }}
+                                    />
+                                </div>
+
+                                {/* Subtopics */}
+                                {topic.sub_topics && topic.sub_topics.length > 0 && (
+                                    <div className="pt-2 border-t border-gray-50">
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {topic.sub_topics.map(st => (
+                                                <div
+                                                    key={st.sub_topic_id}
+                                                    className={`text-[10px] px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                                                        st.accuracy >= 70
+                                                            ? 'bg-green-50 border-green-200 text-green-700'
+                                                            : st.accuracy >= 50
+                                                            ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                                            : 'bg-red-50 border-red-200 text-red-600'
+                                                    }`}
+                                                >
+                                                    <span className="font-medium">{st.sub_topic_name}</span>
+                                                    <span className="opacity-60">({st.correct}/{st.total})</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
-                ))}
+                </div>
             </div>
         </div>
     );
@@ -588,12 +335,16 @@ export default function CATResultPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4" />
-                    <p className="text-lg text-blue-800">กำลังโหลดผลการสอบ...</p>
+            <>
+                <Navbar_user />
+                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                    <div className="text-center">
+                        <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
+                        <p className="text-gray-600 font-medium">กำลังโหลดผลการสอบ...</p>
+                    </div>
                 </div>
-            </div>
+                <Footer />
+            </>
         );
     }
 
@@ -606,83 +357,98 @@ export default function CATResultPage() {
     const secs = examDuration % 60;
     const accuracy = result.num_items > 0 ? ((result.num_correct / result.num_items) * 100).toFixed(1) : "0.0";
 
-    // Infer target SE from actual SE trajectory (use 0.35 default)
     const TARGET_SE = 0.35;
     const CUT_SCORE = 0.0;
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-gray-50">
             <Navbar_user />
 
-            <div className="container mx-auto px-4 py-8 max-w-6xl">
+            <div className="container mx-auto px-4 py-8 max-w-5xl">
+
+                {/* ── Breadcrumb ───────────────────────────────── */}
+                <div className="flex items-center text-sm text-gray-500 mb-6">
+                    <button onClick={() => router.push("/user")} className="hover:text-green-600 transition">หน้าหลัก</button>
+                    <span className="mx-2">›</span>
+                    <button onClick={() => router.push("/user/cat-exam")} className="hover:text-green-600 transition">สอบแบบปรับตัว</button>
+                    <span className="mx-2">›</span>
+                    <span className="text-gray-700 font-medium">ผลการสอบ</span>
+                </div>
 
                 {/* ── Result Header ───────────────────────────────── */}
-                <div className={`rounded-3xl shadow-2xl p-8 mb-8 text-white ${result.passed
-                    ? "bg-gradient-to-r from-green-500 to-emerald-600"
-                    : "bg-gradient-to-r from-slate-600 to-slate-700"}`}>
-                    <div className="text-center">
-                        <div className="text-6xl mb-3">{result.passed ? "🎉" : "📊"}</div>
-                        <h1 className="text-3xl font-extrabold mb-1">
-                            {result.passed ? "ยินดีด้วย! คุณสอบผ่าน" : "สอบเสร็จสิ้น"}
-                        </h1>
-                        <p className="opacity-80 mb-2">{result.item_bank_name || "คลังข้อสอบรวม (Global Pool)"}</p>
-                        <div className="inline-block bg-white/20 rounded-xl px-4 py-1 text-sm font-medium mb-6">
-                            ⚡ {result.stop_reason || "สอบเสร็จสิ้น"}
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+                        {/* Status icon */}
+                        <div className={`w-16 h-16 shrink-0 rounded-2xl flex items-center justify-center ${
+                            result.passed ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+                        }`}>
+                            {result.passed ? <Award className="w-8 h-8" /> : <AlertTriangle className="w-8 h-8" />}
                         </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
+                                <h1 className="text-xl font-bold text-gray-900">
+                                    {result.passed ? "ยินดีด้วย! คุณผ่านเกณฑ์การสอบ" : "การสอบเสร็จสิ้น"}
+                                </h1>
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                                    result.passed
+                                        ? "bg-green-100 text-green-700"
+                                        : "bg-red-100 text-red-700"
+                                }`}>
+                                    {result.passed ? "ผ่าน" : "ยังไม่ผ่านเกณฑ์"}
+                                </span>
+                            </div>
+                            <p className="text-sm text-gray-500">{result.item_bank_name || "คลังข้อสอบรวม (Global Pool)"}</p>
+                        </div>
+                    </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {[
-                                { label: "θ สุดท้าย", value: result.final_theta.toFixed(2) },
-                                { label: "SE", value: result.final_se.toFixed(3) },
-                                { label: "จำนวนข้อ", value: result.num_items },
-                                { label: "ความแม่นยำ", value: `${accuracy}%` },
-                            ].map(s => (
-                                <div key={s.label} className="bg-white/20 rounded-xl p-4">
-                                    <div className="text-xs opacity-70 mb-1">{s.label}</div>
-                                    <div className="text-2xl font-bold">{s.value}</div>
-                                </div>
-                            ))}
-                        </div>
+                    {/* Stats grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {[
+                            { label: "ตอบถูก", value: `${result.num_correct} / ${result.num_items} ข้อ`, color: "text-green-600", bg: "bg-green-50 border-green-100" },
+                            { label: "ความแม่นยำ", value: `${accuracy}%`, color: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
+                            { label: "ระดับความสามารถ (θ)", value: result.final_theta.toFixed(2), color: result.passed ? "text-green-600" : "text-rose-600", bg: result.passed ? "bg-green-50 border-green-100" : "bg-rose-50 border-rose-100" },
+                            { label: "ความคลาดเคลื่อน (SE)", value: result.final_se.toFixed(3), color: "text-purple-600", bg: "bg-purple-50 border-purple-100" },
+                        ].map(s => (
+                            <div key={s.label} className={`rounded-xl border p-4 text-center ${s.bg}`}>
+                                <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
+                                <div className="text-xs text-gray-500 mt-1">{s.label}</div>
+                            </div>
+                        ))}
                     </div>
                 </div>
 
-                {/* ── CATsim Charts (6 charts) ─────────────────────── */}
-                <div className="mb-8">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">
-                        📊 CATsim Analysis Charts
+                {/* ── Analysis Charts ─────────────────────── */}
+                <div className="mb-6">
+                    <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <BarChart3 className="text-green-600" size={20} />
+                        วิเคราะห์ผลการสอบ
                     </h2>
 
-                    {/* Row 1 */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    {/* Row 1: Theta + SE */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
                         <ThetaProgressChart responses={result.responses} cutScore={CUT_SCORE} />
                         <SEConvergenceChart responses={result.responses} targetSE={TARGET_SE} />
                     </div>
 
-                    {/* Topic Analysis — เหมือน normal exam */}
+                    {/* Topic Analysis */}
                     <TopicAnalysisSection topicAnalysis={result.topic_analysis} />
 
-                    {/* Row 2 — ICC (full width, prominent for instructors) */}
-                    <ICCSection responses={result.responses} finalTheta={result.final_theta} />
-
-                    {/* Row 3 */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                        <ItemInformationChart responses={result.responses} />
-                        <ItemDifficultyDistChart responses={result.responses} finalTheta={result.final_theta} />
-                    </div>
-
-                    {/* Row 4 — Posterior */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Row 2: Posterior + Summary Stats */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                         <PosteriorChart finalTheta={result.final_theta} finalSE={result.final_se} cutScore={CUT_SCORE} />
 
                         {/* Summary stats card */}
-                        <div className="bg-white rounded-2xl shadow p-6">
-                            <h2 className="text-lg font-bold text-gray-800 mb-4">📋 สรุปสถิติ</h2>
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                            <h2 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <ClipboardList className="text-green-600" size={18} />
+                                สรุปสถิติ
+                            </h2>
                             <div className="space-y-3">
                                 {[
-                                    { label: "ตอบถูก", value: result.num_correct, color: "text-green-600" },
-                                    { label: "ตอบผิด", value: result.num_items - result.num_correct, color: "text-red-500" },
-                                    { label: "Standard Error สุดท้าย", value: result.final_se.toFixed(3), color: "text-purple-600" },
-                                    { label: "Percentile", value: `${result.pass_percentile?.toFixed(1) ?? "N/A"}%`, color: "text-blue-600" },
+                                    { label: "ตอบถูก", value: `${result.num_correct} ข้อ`, color: "text-green-600" },
+                                    { label: "ตอบผิด", value: `${result.num_items - result.num_correct} ข้อ`, color: "text-red-500" },
+                                    { label: "ความคลาดเคลื่อนมาตรฐาน (SE)", value: result.final_se.toFixed(3), color: "text-purple-600" },
+                                    { label: "เปอร์เซนไทล์", value: `${result.pass_percentile?.toFixed(1) ?? "N/A"}%`, color: "text-blue-600" },
                                     { label: "เวลาที่ใช้", value: `${mins}:${secs.toString().padStart(2, "0")}`, color: "text-gray-700" },
                                 ].map(s => (
                                     <div key={s.label} className="flex justify-between items-center py-2 border-b border-dashed border-gray-100">
@@ -700,56 +466,53 @@ export default function CATResultPage() {
                 </div>
 
                 {/* ── Actions ──────────────────────────────────────── */}
-                <div className="flex gap-4 justify-center mb-12">
+                <div className="flex gap-4 justify-center mb-10">
                     <button
                         onClick={() => router.push("/user")}
-                        className="px-8 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-300 transition-all"
+                        className="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors shadow-sm"
                     >
                         ← กลับหน้าหลัก
                     </button>
                     <button
-                        onClick={() => router.push("/user/cat-exam/select")}
-                        className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg"
+                        onClick={() => router.push("/user/cat-exam")}
+                        className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-colors shadow-sm flex items-center gap-2"
                     >
-                        🔄 สอบใหม่อีกครั้ง
+                        <RefreshCw size={18} />
+                        สอบใหม่อีกครั้ง
                     </button>
                 </div>
 
                 {/* ── Answer Review ─────────────────────────────────── */}
-                <div>
-                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-                        <BookOpen className="text-blue-600" size={22} />
+                <div className="mb-8">
+                    <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <BookOpen className="text-green-600" size={20} />
                         รีวิวคำตอบ ({result.num_items} ข้อ)
                     </h2>
                     <div className="space-y-3">
                         {result.responses.map((resp, index) => (
-                            <div key={index} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                            <div key={index} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
                                 {/* Collapsed header */}
                                 <button
-                                    className={`w-full px-6 py-4 flex items-center justify-between text-left transition-colors ${resp.is_correct ? "bg-green-50 hover:bg-green-100" : "bg-red-50 hover:bg-red-100"}`}
+                                    className={`w-full px-5 py-4 flex items-center justify-between text-left transition-colors ${resp.is_correct ? "hover:bg-green-50" : "hover:bg-red-50"}`}
                                     onClick={() => toggleItem(index)}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-sm ${resp.is_correct ? "bg-green-500" : "bg-red-500"}`}>
                                             {index + 1}
                                         </div>
-                                        <span className={`font-semibold ${resp.is_correct ? "text-green-700" : "text-red-700"}`}>
+                                        <span className={`font-semibold text-sm ${resp.is_correct ? "text-green-700" : "text-red-700"}`}>
                                             {resp.is_correct ? "✓ ถูกต้อง" : "✗ ไม่ถูกต้อง"}
                                         </span>
                                         <span className="text-gray-400 text-xs line-clamp-1 max-w-xs hidden md:block">
                                             {resp.question_text?.substring(0, 60)}...
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-4 text-xs text-gray-400">
-                                        <span>b = {resp.irt_b?.toFixed(2) ?? "N/A"}</span>
-                                        <span>θ → {resp.theta_after?.toFixed(2) ?? "N/A"}</span>
-                                        <span className="text-blue-400">{expandedItems.has(index) ? "▲" : "▼"}</span>
-                                    </div>
+                                    <span className="text-blue-400 text-sm">{expandedItems.has(index) ? "▲" : "▼"}</span>
                                 </button>
 
                                 {/* Expanded content */}
                                 {expandedItems.has(index) && (
-                                    <div className="p-6">
+                                    <div className="p-6 border-t border-gray-100">
                                         {resp.situation && (
                                             <div className="mb-4 p-4 bg-blue-50 rounded-xl border-l-4 border-blue-400">
                                                 <div className="flex items-center gap-2 text-blue-600 font-bold mb-2 text-sm">
@@ -802,22 +565,13 @@ export default function CATResultPage() {
                                                 {resp.explanation || "ไม่มีคำอธิบายเพิ่มเติมสำหรับข้อนี้"}
                                             </p>
                                         </div>
-
-                                        {/* IRT micro stats */}
-                                        <div className="mt-3 flex gap-4 text-xs text-gray-400">
-                                            <span>a = {resp.irt_a?.toFixed(2) ?? "N/A"}</span>
-                                            <span>b = {resp.irt_b?.toFixed(2) ?? "N/A"}</span>
-                                            <span>c = {resp.irt_c?.toFixed(2) ?? "N/A"}</span>
-                                            <span>I(θ) = {(resp.irt_a != null && resp.irt_b != null && resp.irt_c != null)
-                                                ? fisherInfo(resp.theta_before, resp.irt_a, resp.irt_b, resp.irt_c).toFixed(3)
-                                                : "N/A"}</span>
-                                        </div>
                                     </div>
                                 )}
                             </div>
                         ))}
                     </div>
                 </div>
+
             </div>
 
             <Footer />

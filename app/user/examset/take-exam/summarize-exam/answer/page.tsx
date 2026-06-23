@@ -4,7 +4,7 @@ import { useSearchParams } from 'next/navigation';
 import Navbar_user from "@/components/Navbar_user"
 import Footer from "@/components/Footer"
 import Link from "next/link"
-import { CheckCircle, XCircle, BookOpen, ChevronRight, Loader2, AlertCircle, BarChart3, TrendingUp, X, List } from 'lucide-react';
+import { CheckCircle, CheckCircle2, XCircle, BookOpen, ChevronRight, Loader2, AlertCircle, BarChart3, TrendingUp, X, List, HelpCircle, Info, ChevronsUpDown, ChevronsDownUp, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Types
@@ -72,6 +72,7 @@ const AnswerPage = () => {
     const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
     const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [showAnswers, setShowAnswers] = useState(true);
 
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
@@ -172,46 +173,35 @@ const AnswerPage = () => {
         const isCorrect = question.is_correct;
 
         return (
-            <div id={`question-${index}`} className={`bg-white rounded-lg border shadow-sm overflow-hidden scroll-mt-32 transition-all ${isCorrect ? 'border-gray-200' : 'border-red-200 shadow-red-50'}`}>
+            <div id={`question-${index}`} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden scroll-mt-32 transition-all">
                 {/* Question Header */}
-                <div className={`p-4 border-b flex justify-between items-center transition-colors ${isCorrect ? 'bg-gray-50 border-gray-200' : 'bg-red-50 border-red-100'}`}>
-                    <div className="flex items-start gap-3 flex-1">
-                        <span className={`${isCorrect ? 'bg-blue-600' : 'bg-red-600'} text-white text-[10px] sm:text-xs font-bold px-2.5 py-1 rounded-md flex-shrink-0 mt-0.5 whitespace-nowrap`}>
-                            ข้อที่ {index + 1}
-                        </span>
-                        <div className="flex flex-col gap-1">
-                            <span className={`font-semibold break-words pr-2 text-sm sm:text-base ${isCorrect ? 'text-gray-700' : 'text-red-900'}`}>
-                                {question.question_text.substring(0, 100)}{question.question_text.length > 100 ? '...' : ''}
-                            </span>
-                            <div className={`flex items-center text-[10px] sm:text-xs font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
-                                {isCorrect ? (
-                                    <CheckCircle className="w-3.5 h-3.5 mr-1" />
-                                ) : (
-                                    <XCircle className="w-3.5 h-3.5 mr-1" />
-                                )}
-                                {isCorrect ? 'ตอบถูก' : 'ตอบผิด'}
-                            </div>
+                <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center transition-colors">
+                    <div className="flex items-center gap-3 flex-1">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-sm ${isCorrect ? "bg-green-500" : "bg-red-500"}`}>
+                            {index + 1}
                         </div>
+                        <span className={`font-semibold text-sm ${isCorrect ? "text-green-700" : "text-red-700"}`}>
+                            {isCorrect ? "✓ ถูกต้อง" : "✗ ไม่ถูกต้อง"}
+                        </span>
                     </div>
                     <button
                         onClick={() => fetchQuestionStats(question.item_id)}
                         disabled={loadingStats}
-                        className={`flex items-center gap-1 px-2 py-1 text-[10px] sm:text-xs rounded-md font-medium transition-colors disabled:opacity-50 ${isCorrect
-                            ? 'text-blue-600 hover:text-white hover:bg-blue-600 border border-blue-600'
-                            : 'text-red-600 hover:text-white hover:bg-red-600 border border-red-600'
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl font-bold transition-all disabled:opacity-50 ${isCorrect
+                            ? 'text-green-600 hover:text-white hover:bg-green-600 border border-green-200 bg-green-50/50'
+                            : 'text-red-600 hover:text-white hover:bg-red-600 border border-red-200 bg-red-50/50'
                             }`}
                     >
-                        <BarChart3 className="w-4 h-4" />
-                        สถิติ
+                        <BarChart3 className="w-3.5 h-3.5" />
+                        สถิติคำตอบ
                     </button>
                 </div>
 
-                <div className="p-5 space-y-6">
+                <div className="p-6 space-y-6">
                     {/* Question Content */}
                     <div>
-                        <h6 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">คำถาม</h6>
                         <p 
-                            className="text-gray-800 whitespace-pre-wrap leading-relaxed"
+                            className="text-gray-800 text-sm sm:text-base whitespace-pre-wrap leading-relaxed font-semibold"
                             dangerouslySetInnerHTML={{ __html: question.question_text }}
                         />
                         {question.question_image_url && (
@@ -222,11 +212,16 @@ const AnswerPage = () => {
                                         : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`}
                                     alt="คำถาม"
                                     className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white cursor-zoom-in hover:opacity-90 transition-opacity"
-                                    onClick={() => setPreviewImage(
-                                        question.question_image_url.startsWith("http")
-                                            ? question.question_image_url
-                                            : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`
-                                    )}
+                                    onClick={() => {
+                                        const url = question.question_image_url;
+                                        if (url) {
+                                            setPreviewImage(
+                                                url.startsWith("http")
+                                                    ? url
+                                                    : `${process.env.NEXT_PUBLIC_API_URL}${url}`
+                                            );
+                                        }
+                                    }}
                                 />
                             </div>
                         )}
@@ -234,43 +229,43 @@ const AnswerPage = () => {
 
                     {/* Options */}
                     <div>
-                        <h6 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">ตัวเลือก</h6>
-                        <div className="grid grid-cols-1 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             {question.answer_options.map((option, oIdx) => {
-                                const isUserAnswer = question.selected_option_id != null &&
+                                const selected = question.selected_option_id != null &&
                                     String(option.option_id) === String(question.selected_option_id);
-                                const isCorrectAnswer = option.is_correct;
+                                const correct = option.is_correct;
 
-                                let variantClass = "bg-white border-gray-200";
-                                if (isCorrectAnswer) variantClass = "bg-green-50 border-green-200 text-green-800";
-                                else if (isUserAnswer && !isCorrectAnswer) variantClass = "bg-red-50 border-red-200 text-red-800";
+                                let cls = "border-gray-200 bg-white";
+                                let icon = null;
+                                if (showAnswers) {
+                                    if (selected && correct) { cls = "border-green-500 bg-green-50"; icon = <CheckCircle2 className="text-green-500 shrink-0" size={18} />; }
+                                    else if (selected && !correct) { cls = "border-red-500 bg-red-50"; icon = <XCircle className="text-red-500 shrink-0" size={18} />; }
+                                    else if (correct) { cls = "border-green-400 bg-green-50/40"; icon = <CheckCircle2 className="text-green-400 shrink-0" size={18} />; }
+                                } else {
+                                    if (selected) { cls = "border-green-600 bg-green-50/20"; }
+                                }
 
                                 return (
                                     <div
                                         key={oIdx}
-                                        className={`p-3 rounded-xl border flex items-start gap-3 transition-all ${variantClass}`}
+                                        className={`p-3 rounded-xl border-2 flex items-center gap-3 transition-all ${cls}`}
                                     >
-                                        <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center border flex-shrink-0 ${isCorrectAnswer ? 'border-green-500 bg-green-500 text-white' :
-                                            (isUserAnswer && !isCorrectAnswer) ? 'border-red-500 bg-red-500 text-white' :
-                                                'border-gray-300'
-                                            }`}>
-                                            {isCorrectAnswer && <CheckCircle className="w-3.5 h-3.5" />}
-                                            {isUserAnswer && !isCorrectAnswer && <XCircle className="w-3.5 h-3.5" />}
-                                        </div>
-                                        <div className="flex-1">
+                                        <div className="flex-grow">
                                             <span 
-                                                className={`text-sm break-words ${isCorrectAnswer || (isUserAnswer && !isCorrectAnswer) ? 'font-semibold' : 'text-gray-600'}`}
+                                                className={`text-sm break-words ${selected || (showAnswers && correct) ? 'font-semibold' : 'text-gray-600'}`}
                                                 dangerouslySetInnerHTML={{ __html: option.option_text }}
                                             />
-                                            {isUserAnswer && (
-                                                <span className={`ml-2 py-0.5 px-1.5 rounded text-[10px] font-medium ${isCorrectAnswer
-                                                        ? 'bg-green-200 text-green-800'
-                                                        : 'bg-red-200 text-red-800'
+                                            {selected && (
+                                                <span className={`ml-2 py-0.5 px-1.5 rounded text-[10px] font-bold ${
+                                                    showAnswers
+                                                        ? (correct ? 'bg-green-150 text-green-800' : 'bg-red-150 text-red-800')
+                                                        : 'bg-green-100 text-green-800'
                                                     }`}>
                                                     คำตอบของคุณ
                                                 </span>
                                             )}
                                         </div>
+                                        {icon}
                                     </div>
                                 );
                             })}
@@ -278,14 +273,14 @@ const AnswerPage = () => {
                     </div>
 
                     {/* Explanation */}
-                    {question.explanation && (
-                        <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
+                    {question.explanation && showAnswers && (
+                        <div className="bg-indigo-50/60 p-4 rounded-xl border border-indigo-100">
                             <div className="flex items-center gap-2 mb-2">
-                                <BookOpen className="w-4 h-4 text-blue-600" />
-                                <h6 className="text-xs font-bold text-blue-800 uppercase tracking-widest">คำอธิบายเฉลย</h6>
+                                <HelpCircle className="w-4 h-4 text-indigo-700" />
+                                <h6 className="text-xs font-bold text-indigo-800 uppercase tracking-widest">คำอธิบาย</h6>
                             </div>
                             <p 
-                                className="text-blue-700 text-sm whitespace-pre-wrap leading-relaxed"
+                                className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed"
                                 dangerouslySetInnerHTML={{ __html: question.explanation }}
                             />
                         </div>
@@ -368,11 +363,11 @@ const AnswerPage = () => {
                     <div className="max-w-7xl mx-auto">
                         {/* Breadcrumb */}
                         <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-6">
-                            <Link href="/user" className="hover:text-blue-600 transition">หน้าหลัก</Link>
+                            <Link href="/user" className="hover:text-green-600 transition">หน้าหลัก</Link>
                             <span className="mx-1 sm:mx-2 flex items-center">
                                 <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             </span>
-                            <Link href="/user/examset" className="hover:text-blue-600 transition">คลังข้อสอบ</Link>
+                            <Link href="/user/examset" className="hover:text-green-600 transition">คลังข้อสอบ</Link>
                             <span className="mx-1 sm:mx-2 flex items-center">
                                 <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             </span>
@@ -384,7 +379,7 @@ const AnswerPage = () => {
                             </span>
                             <Link
                                 href={`/user/examset/take-exam/summarize-exam?session_id=${sessionId}`}
-                                className="hover:text-blue-600 transition whitespace-nowrap"
+                                className="hover:text-green-600 transition whitespace-nowrap"
                             >
                                 สรุปผลการสอบ
                             </Link>
@@ -396,31 +391,91 @@ const AnswerPage = () => {
 
                         {/* Header */}
                         <div className="mb-8">
-                            <h1 className="text-3xl font-medium text-gray-800 mb-1">
+                            <h1 className="text-3xl font-bold text-gray-800 mb-1">
                                 เฉลยคำตอบ: {examResult.item_bank_name}
                             </h1>
                             <div className="mt-3 text-sm text-gray-500">
                                 <span>จำนวนทั้งหมด: {examResult.total_questions} ข้อ</span>
                                 <span className="mx-3">|</span>
-                                <span className="text-green-600 font-medium">ตอบถูก: {examResult.correct_count} ข้อ</span>
+                                <span className="text-green-600 font-semibold">ตอบถูก: {examResult.correct_count} ข้อ</span>
                                 <span className="mx-3">|</span>
-                                <span className="text-red-600 font-medium">
+                                <span className="text-red-600 font-semibold">
                                     ตอบผิด: {examResult.total_questions - examResult.correct_count} ข้อ
                                 </span>
+                            </div>
+                        </div>
+
+                        {/* Summary/Control Bar */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-gray-200 rounded-xl px-5 py-3.5 shadow-sm mb-6">
+                            <div className="flex items-center gap-6">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center border border-green-100">
+                                        <BookOpen className="w-4 h-4 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 leading-none mb-0.5">สถานการณ์</p>
+                                        <p className="text-base font-bold text-gray-800 leading-none">{groupQuestionsBySituation().length}</p>
+                                    </div>
+                                </div>
+                                <div className="w-px h-8 bg-gray-100" />
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-lg bg-green-50 flex items-center justify-center border border-green-100">
+                                        <HelpCircle className="w-4 h-4 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 leading-none mb-0.5">คำถามทั้งหมด</p>
+                                        <p className="text-base font-bold text-gray-800 leading-none">{examResult.total_questions} ข้อ</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 flex-wrap">
+                                {/* Collapse / Expand all */}
+                                <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1">
+                                    <button
+                                        onClick={() => setCollapsedGroups(new Set())}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-sm transition-all"
+                                        title="เปิดทุกสถานการณ์"
+                                    >
+                                        <ChevronsUpDown className="w-3.5 h-3.5" />
+                                        เปิดทั้งหมด
+                                    </button>
+                                    <button
+                                        onClick={() => setCollapsedGroups(new Set(groupQuestionsBySituation().map((_, idx) => idx)))}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-sm transition-all"
+                                        title="ยุบทุกสถานการณ์"
+                                    >
+                                        <ChevronsDownUp className="w-3.5 h-3.5" />
+                                        ยุบทั้งหมด
+                                    </button>
+                                </div>
+
+                                {/* Toggle show answers */}
+                                <button
+                                    onClick={() => setShowAnswers(v => !v)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-all
+                                        ${showAnswers
+                                            ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                                        }`}
+                                >
+                                    {showAnswers ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                                    {showAnswers ? 'ซ่อนเฉลย' : 'แสดงเฉลย'}
+                                </button>
                             </div>
                         </div>
 
                         {/* Questions */}
                         <div className="space-y-8">
                             {groupQuestionsBySituation().map((group, groupIndex) => (
-                                <div key={groupIndex} id={`group-${groupIndex}`} className="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden">
+                                <div key={groupIndex} id={`group-${groupIndex}`} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                                     {/* Situation Header */}
-                                    <div className="px-6 py-5 bg-emerald-600 text-white">
+                                    <div className="px-6 py-4.5 bg-gradient-to-r from-green-600 to-emerald-600 text-white">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-3">
                                                 <button
                                                     onClick={() => toggleGroupCollapse(groupIndex)}
-                                                    className="p-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                                                    className="p-1.5 bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
                                                 >
                                                     {collapsedGroups.has(groupIndex) ? (
                                                         <ChevronRight className="w-5 h-5 rotate-90 transition-transform" />
@@ -429,7 +484,7 @@ const AnswerPage = () => {
                                                     )}
                                                 </button>
 
-                                                <h3 className="text-lg font-bold">
+                                                <h3 className="text-base font-bold">
                                                     {group.situation ? `สถานการณ์ที่ ${groupIndex + 1}` : 'คำถามทั่วไป'}
                                                 </h3>
                                             </div>
@@ -443,9 +498,11 @@ const AnswerPage = () => {
                                         <div className="p-6 bg-gray-50 space-y-6">
                                             {/* Situation Detail (if exists) */}
                                             {group.situation && (
-                                                <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
-                                                    <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
-                                                    <h6 className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-3">รายละเอียดสถานการณ์</h6>
+                                                <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100 relative overflow-hidden">
+                                                    <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
+                                                    <h6 className="text-[10px] sm:text-xs font-bold text-blue-700 uppercase tracking-[0.2em] mb-3 flex items-center gap-1">
+                                                        <Info size={14} /> รายละเอียดสถานการณ์
+                                                    </h6>
                                                     {group.situation.situation_title && (
                                                         <p 
                                                             className="font-bold text-gray-800 mb-2"
@@ -453,7 +510,7 @@ const AnswerPage = () => {
                                                         />
                                                     )}
                                                     <p 
-                                                        className="text-gray-800 whitespace-pre-wrap leading-relaxed font-medium"
+                                                        className="text-gray-800 whitespace-pre-wrap leading-relaxed font-semibold text-sm"
                                                         dangerouslySetInnerHTML={{ __html: group.situation.situation_text }}
                                                     />
                                                     {group.situation.situation_image_url && (
@@ -461,7 +518,12 @@ const AnswerPage = () => {
                                                             src={group.situation.situation_image_url}
                                                             alt="Situation"
                                                             className="mt-6 rounded-xl border border-gray-100 shadow-sm max-h-80 object-contain cursor-zoom-in hover:opacity-90 transition-opacity"
-                                                            onClick={() => setPreviewImage(group.situation.situation_image_url)}
+                                                            onClick={() => {
+                                                                const url = group.situation?.situation_image_url;
+                                                                if (url) {
+                                                                    setPreviewImage(url);
+                                                                }
+                                                            }}
                                                         />
                                                     )}
                                                 </div>
@@ -488,9 +550,9 @@ const AnswerPage = () => {
                         <div className="mt-8 flex justify-center">
                             <Link
                                 href={`/user/examset/take-exam/summarize-exam?session_id=${sessionId}`}
-                                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                                className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors shadow-sm"
                             >
-                                กลับไปหน้าสรุปผล
+                                ← กลับไปหน้าสรุปผล
                             </Link>
                         </div>
                     </div>
@@ -600,21 +662,21 @@ const AnswerPage = () => {
                                 <div className="space-y-4">
                                     {/* Main Stats Grid */}
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="bg-blue-50 rounded-xl p-4 text-center">
-                                            <p className="text-sm text-blue-600 font-medium mb-1">จำนวนครั้ง</p>
-                                            <p className="text-3xl font-bold text-blue-700">{selectedQuestionStats.total_attempts}</p>
-                                        </div>
                                         <div className="bg-green-50 rounded-xl p-4 text-center">
-                                            <p className="text-sm text-green-600 font-medium mb-1">ตอบถูก</p>
-                                            <p className="text-3xl font-bold text-green-700">{selectedQuestionStats.total_correct}</p>
+                                            <p className="text-sm text-green-600 font-medium mb-1">จำนวนครั้ง</p>
+                                            <p className="text-3xl font-bold text-green-700">{selectedQuestionStats.total_attempts}</p>
+                                        </div>
+                                        <div className="bg-emerald-50 rounded-xl p-4 text-center">
+                                            <p className="text-sm text-emerald-600 font-medium mb-1">ตอบถูก</p>
+                                            <p className="text-3xl font-bold text-emerald-700">{selectedQuestionStats.total_correct}</p>
                                         </div>
                                     </div>
 
                                     {/* Accuracy */}
-                                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4">
+                                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-xl p-4">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-sm font-medium text-gray-700">ความแม่นยำ</span>
-                                            <span className="text-2xl font-bold text-purple-700">
+                                            <span className="text-2xl font-bold text-green-700">
                                                 {selectedQuestionStats.total_attempts > 0
                                                     ? Math.round((selectedQuestionStats.total_correct / selectedQuestionStats.total_attempts) * 100)
                                                     : 0}%
@@ -622,7 +684,7 @@ const AnswerPage = () => {
                                         </div>
                                         <div className="w-full bg-white rounded-full h-3 overflow-hidden">
                                             <div
-                                                className="bg-gradient-to-r from-purple-500 to-pink-500 h-full transition-all duration-500"
+                                                className="bg-gradient-to-r from-green-500 to-emerald-500 h-full transition-all duration-500"
                                                 style={{
                                                     width: `${selectedQuestionStats.total_attempts > 0
                                                         ? (selectedQuestionStats.total_correct / selectedQuestionStats.total_attempts) * 100

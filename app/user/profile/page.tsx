@@ -86,6 +86,11 @@ const Profile = () => {
         setIsLoading(true);
         try {
             const token = getToken();
+            const updateData = {
+                first_name: formData.first_name,
+                last_name: formData.last_name,
+                tel: formData.tel,
+            };
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
                 method: 'PATCH',
                 headers: {

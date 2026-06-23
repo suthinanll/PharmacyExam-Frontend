@@ -349,9 +349,9 @@ function Summarize() {
                             return (
                                 <div className="mt-4 bg-white rounded-2xl shadow-sm p-6 space-y-8 min-h-[400px]">
                                     {hasData ? (
-                                        <div className="flex flex-col lg:flex-row gap-8 items-center lg:items-start">
+                                        <div className="flex flex-col lg:flex-row gap-8 items-stretch mb-2">
                                             {/* Radar Chart */}
-                                            <div className="w-full lg:w-1/2 h-[350px]">
+                                            <div className="w-full lg:w-1/2 h-[350px] flex items-center justify-center">
                                                 <ResponsiveContainer width="100%" height="100%">
                                                     <RadarChart cx="50%" cy="50%" outerRadius="80%" data={topicPerformance.map(t => ({
                                                         subject: t.topicName.length > 15 ? t.topicName.substring(0, 15) + '...' : t.topicName,
@@ -388,34 +388,68 @@ function Summarize() {
                                                 </ResponsiveContainer>
                                             </div>
 
-                                            {/* Details List */}
-                                            <div className="w-full lg:w-1/2 space-y-4">
-                                                <h3 className="font-bold text-gray-800 mb-4 border-b pb-2">คะแนนรายหัวข้อ</h3>
-                                                <div className="max-h-[300px] overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+                                            {/* Score List (Unified nested cards) */}
+                                            <div className="w-full lg:w-1/2 flex flex-col">
+                                                <h3 className="font-bold text-gray-800 mb-3 border-b pb-2">คะแนนรายหัวข้อ</h3>
+                                                <div className="space-y-3 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar flex-1">
                                                     {topicPerformance.map((topic) => {
                                                         const isStrength = topic.percentage >= 70;
                                                         const isWeakness = topic.percentage < 50;
 
                                                         return (
-                                                            <div key={topic.topicId} className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
-                                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${isStrength ? 'bg-green-100 text-green-600' :
-                                                                    isWeakness ? 'bg-red-100 text-red-600' :
-                                                                        'bg-yellow-100 text-yellow-600'
-                                                                    }`}>
-                                                                    {isStrength ? <Award className="w-5 h-5" /> :
-                                                                        isWeakness ? <AlertTriangle className="w-5 h-5" /> :
-                                                                            <Target className="w-5 h-5" />}
+                                                            <div key={topic.topicId} className="p-3.5 rounded-xl border border-gray-100 bg-white hover:bg-gray-50/50 transition-colors space-y-3">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${isStrength ? 'bg-green-100 text-green-600' :
+                                                                        isWeakness ? 'bg-red-100 text-red-600' :
+                                                                            'bg-yellow-100 text-yellow-600'
+                                                                        }`}>
+                                                                        {isStrength ? <Award className="w-5 h-5" /> :
+                                                                            isWeakness ? <AlertTriangle className="w-5 h-5" /> :
+                                                                                <Target className="w-5 h-5" />}
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className="font-semibold text-gray-800 text-sm truncate">{topic.topicName}</p>
+                                                                        <p className="text-xs text-gray-500">{topic.correct}/{topic.total} ข้อ</p>
+                                                                    </div>
+                                                                    <span className={`font-bold text-sm ${isStrength ? 'text-green-600' :
+                                                                        isWeakness ? 'text-red-600' :
+                                                                            'text-yellow-600'
+                                                                        }`}>{topic.percentage}%</span>
                                                                 </div>
-                                                                <div className="flex-1 min-w-0">
-                                                                    <p className="font-bold text-gray-800 text-sm truncate">{topic.topicName}</p>
-                                                                    <p className="text-xs text-gray-500">{topic.correct}/{topic.total} ข้อ</p>
+
+                                                                {/* Progress Bar */}
+                                                                <div className="w-full bg-gray-100 rounded-full h-1">
+                                                                    <div
+                                                                        className={`h-1 rounded-full ${
+                                                                            topic.percentage >= 70 ? 'bg-green-500' :
+                                                                            topic.percentage >= 50 ? 'bg-yellow-400' : 'bg-red-400'
+                                                                        }`}
+                                                                        style={{ width: `${topic.percentage}%` }}
+                                                                    />
                                                                 </div>
-                                                                <div className={`font-bold ${isStrength ? 'text-green-600' :
-                                                                    isWeakness ? 'text-red-600' :
-                                                                        'text-yellow-600'
-                                                                    }`}>
-                                                                    {topic.percentage}%
-                                                                </div>
+
+                                                                {/* Subtopics */}
+                                                                {topic.subTopics && topic.subTopics.length > 0 && (
+                                                                    <div className="pt-2 border-t border-gray-50">
+                                                                        <div className="flex flex-wrap gap-1.5">
+                                                                            {topic.subTopics.map(st => (
+                                                                                <div
+                                                                                    key={st.subTopicId}
+                                                                                    className={`text-[10px] px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                                                                                        st.percentage >= 70
+                                                                                            ? 'bg-green-50 border-green-200 text-green-700'
+                                                                                            : st.percentage >= 50
+                                                                                            ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                                                                                            : 'bg-red-50 border-red-200 text-red-600'
+                                                                                    }`}
+                                                                                >
+                                                                                    <span className="font-medium">{st.name}</span>
+                                                                                    <span className="opacity-60">({st.correct}/{st.total})</span>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         );
                                                     })}
