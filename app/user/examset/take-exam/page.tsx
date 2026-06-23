@@ -5,7 +5,7 @@ import Link from "next/link";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import Swal from 'sweetalert2';
-import { Loader2, BookOpen, Clock, AlertCircle, ListCheck } from 'lucide-react';
+import { Loader2, BookOpen, Clock, AlertCircle, ListCheck, X, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Types
@@ -78,8 +78,17 @@ function TakeExam() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [flaggedQuestions, setFlaggedQuestions] = useState<{ [key: number]: boolean }>({});
     // Track whether exam was properly submitted (don't cancel on submit)
     const submittedRef = useRef(false);
+
+    const toggleFlagQuestion = (itemId: number) => {
+        setFlaggedQuestions(prev => ({
+            ...prev,
+            [itemId]: !prev[itemId]
+        }));
+    };
 
     // Fetch exam data
     useEffect(() => {
@@ -255,7 +264,7 @@ function TakeExam() {
         // Refresh selected answer for current view
         const currentQ = questions[currentQuestionIndex];
         setSelectedAnswer(newAnswers[currentQ.item_id]?.option_index ?? null);
-        
+
         Swal.fire({
             title: 'Debug Active',
             text: 'เลือกคำตอบให้ครบทุกข้อแล้ว (ข้อ ก.)',
@@ -442,7 +451,7 @@ function TakeExam() {
                         {/* Main Content - Left Side */}
                         <div className="lg:col-span-2">
                             <div className="bg-white rounded-lg shadow-md p-6">
-                                {/* Situation (if exists) */}
+                                 {/* Situation (if exists) */}
                                 {currentQuestion.situation && (
                                     <div className="mb-6 bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
                                         <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-2">
@@ -451,47 +460,64 @@ function TakeExam() {
                                         </div>
                                         <div className="p-5">
                                             {currentQuestion.situation.situation_title && (
-                                                <p className="font-bold text-gray-800 mb-2">
-                                                    {currentQuestion.situation.situation_title}
-                                                </p>
+                                                <p 
+                                                    className="font-bold text-gray-800 mb-2"
+                                                    dangerouslySetInnerHTML={{ __html: currentQuestion.situation.situation_title }}
+                                                />
                                             )}
-                                            <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base">
-                                                {currentQuestion.situation.situation_text}
-                                            </p>
+                                            <p 
+                                                className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base"
+                                                dangerouslySetInnerHTML={{ __html: currentQuestion.situation.situation_text }}
+                                            />
                                             {currentQuestion.situation.situation_image_url && (
                                                 <img
                                                     src={currentQuestion.situation.situation_image_url}
                                                     alt="situation"
-                                                    className="mt-4 rounded-lg max-w-full border border-gray-200"
+                                                    className="mt-4 rounded-lg max-w-full border border-gray-200 cursor-zoom-in hover:opacity-90 transition-opacity"
+                                                    onClick={() => setPreviewImage(currentQuestion.situation.situation_image_url)}
                                                 />
                                             )}
                                         </div>
                                     </div>
                                 )}
 
-                                {/* Question */}
+                                                                {/* Question */}
                                 <div className="mb-6">
-                                    <div className="mb-6 border-b border-gray-100 pb-4">
-                                        <h2 className="text-2xl font-black text-gray-800 mb-2">
-                                            คำถามที่ {currentQuestionIndex + 1}
-                                        </h2>
-                                        {currentQuestion.sub_topics && currentQuestion.sub_topics.length > 0 && (
-                                            <div className="flex flex-wrap gap-2 mt-2">
-                                                {currentQuestion.sub_topics.map((st) => (
-                                                    <span
-                                                        key={st.sub_topic_id}
-                                                        className="text-sm font-medium bg-[#e6f7ec] text-[#2e8555] px-3 py-1 rounded-full"
-                                                    >
-                                                        {st.sub_topic_name}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
+                                    <div className="mb-6 border-b border-gray-100 pb-4 flex justify-between items-center">
+                                        <div>
+                                            <h2 className="text-2xl font-black text-gray-800 mb-2">
+                                                คำถามที่ {currentQuestionIndex + 1}
+                                            </h2>
+                                            {currentQuestion.sub_topics && currentQuestion.sub_topics.length > 0 && (
+                                                <div className="flex flex-wrap gap-2 mt-2">
+                                                    {currentQuestion.sub_topics.map((st) => (
+                                                        <span
+                                                            key={st.sub_topic_id}
+                                                            className="text-sm font-medium bg-[#e6f7ec] text-[#2e8555] px-3 py-1 rounded-full"
+                                                        >
+                                                            {st.sub_topic_name}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => toggleFlagQuestion(currentQuestion.item_id)}
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all border shrink-0 ${
+                                                flaggedQuestions[currentQuestion.item_id]
+                                                    ? "bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-300 shadow-sm"
+                                                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-700 border-gray-200"
+                                            }`}
+                                        >
+                                            <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${flaggedQuestions[currentQuestion.item_id] ? "fill-amber-600 text-amber-600" : ""}`} />
+                                            {flaggedQuestions[currentQuestion.item_id] ? "มาร์คไว้ทบทวนแล้ว" : "มาร์คไว้ทบทวน"}
+                                        </button>
                                     </div>
 
-                                    <p className="text-lg text-gray-800 mb-8 leading-relaxed whitespace-pre-wrap font-medium">
-                                        {currentQuestion.question_text}
-                                    </p>
+                                    <p 
+                                        className="text-lg text-gray-800 mb-8 leading-relaxed whitespace-pre-wrap font-medium"
+                                        dangerouslySetInnerHTML={{ __html: currentQuestion.question_text }}
+                                    />
                                     {currentQuestion.question_image_url && (
                                         <div className="mb-6">
                                             <img
@@ -499,7 +525,12 @@ function TakeExam() {
                                                     ? currentQuestion.question_image_url
                                                     : `${process.env.NEXT_PUBLIC_API_URL}${currentQuestion.question_image_url}`}
                                                 alt="question"
-                                                className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white"
+                                                className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white cursor-zoom-in hover:opacity-90 transition-opacity"
+                                                onClick={() => setPreviewImage(
+                                                    currentQuestion.question_image_url.startsWith("http")
+                                                        ? currentQuestion.question_image_url
+                                                        : `${process.env.NEXT_PUBLIC_API_URL}${currentQuestion.question_image_url}`
+                                                )}
                                             />
                                         </div>
                                     )}
@@ -513,29 +544,27 @@ function TakeExam() {
                                                     key={option.option_id}
                                                     onClick={() => handleAnswerSelect(index)}
                                                     disabled={submitting}
-                                                    className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-150 flex items-center gap-4 group ${
-                                                        isSelected
+                                                    className={`w-full p-4 text-left rounded-xl border-2 transition-all duration-150 flex items-center gap-4 group ${isSelected
                                                             ? 'border-green-500 bg-green-50 shadow-sm'
                                                             : 'border-gray-200 hover:border-green-300 bg-white hover:bg-green-50/30'
-                                                    } ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                        } ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 >
                                                     {/* radio */}
-                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                                                        isSelected ? 'border-green-500' : 'border-gray-300 group-hover:border-green-400'
-                                                    }`}>
+                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${isSelected ? 'border-green-500' : 'border-gray-300 group-hover:border-green-400'
+                                                        }`}>
                                                         {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-green-500" />}
                                                     </div>
 
                                                     {/* label badge */}
-                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 transition-colors ${
-                                                        isSelected ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 group-hover:bg-green-100 group-hover:text-green-700'
-                                                    }`}>
+                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 transition-colors ${isSelected ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 group-hover:bg-green-100 group-hover:text-green-700'
+                                                        }`}>
                                                         {['ก', 'ข', 'ค', 'ง', 'จ'][index] || String.fromCharCode(65 + index)}
                                                     </span>
 
-                                                    <span className="text-gray-800 text-sm lg:text-base leading-relaxed">
-                                                        {option.option_text}
-                                                    </span>
+                                                    <span 
+                                                        className="text-gray-800 text-sm lg:text-base leading-relaxed"
+                                                        dangerouslySetInnerHTML={{ __html: option.option_text }}
+                                                    />
                                                 </button>
                                             );
                                         })}
@@ -592,25 +621,31 @@ function TakeExam() {
                                     </div>
                                     <div className="grid grid-cols-7 gap-2 max-h-96 overflow-y-auto p-1">
                                         {questions.map((q, index) => (
-                                            <button
-                                                key={q.item_id}
-                                                onClick={() => goToQuestionByIndex(index)}
-                                                disabled={submitting}
-                                                className={`aspect-square rounded-lg font-medium text-sm transition-all ${currentQuestionIndex === index
+                                            <div key={q.item_id} className="relative">
+                                                <button
+                                                    onClick={() => goToQuestionByIndex(index)}
+                                                    disabled={submitting}
+                                                    className={`w-full aspect-square rounded-lg font-medium text-sm transition-all ${currentQuestionIndex === index
                                                         ? "bg-green-500 text-white ring-2 ring-green-300"
                                                         : answers[q.item_id] !== undefined
                                                             ? "bg-green-100 text-green-700 hover:bg-green-200"
                                                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                    } ${submitting ? "opacity-50 cursor-not-allowed" : ""}`}
-                                            >
-                                                {index + 1}
-                                            </button>
+                                                        } ${submitting ? "opacity-50 cursor-not-allowed" : ""}`}
+                                                >
+                                                    {index + 1}
+                                                </button>
+                                                {flaggedQuestions[q.item_id] && (
+                                                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-white text-[9px] text-white font-black shadow-sm animate-in zoom-in-50 duration-200">
+                                                        ★
+                                                    </span>
+                                                )}
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
 
                                 {/* Legend */}
-                                <div className="mb-6 text-xs flex items-center gap-4 justify-center">
+                                <div className="mb-6 text-xs flex flex-wrap items-center gap-4 justify-center">
                                     <div className="flex items-center gap-2">
                                         <div className="w-4 h-4 bg-green-500 rounded"></div>
                                         <span className="text-gray-600">ข้อปัจจุบัน</span>
@@ -622,6 +657,10 @@ function TakeExam() {
                                     <div className="flex items-center gap-2">
                                         <div className="w-4 h-4 bg-gray-100 rounded"></div>
                                         <span className="text-gray-600">ยังไม่ตอบ</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-amber-600/10 text-[9px] text-white font-bold">★</span>
+                                        <span className="text-gray-600">ทบทวน</span>
                                     </div>
                                 </div>
 
@@ -680,6 +719,30 @@ function TakeExam() {
                     </div>
                 </div>
             </div>
+
+            {previewImage && (
+                <div 
+                    className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300"
+                    onClick={() => setPreviewImage(null)}
+                >
+                    <div 
+                        className="relative max-w-5xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl p-2 flex flex-col items-center"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setPreviewImage(null)}
+                            className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors z-10 shadow-md"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        <img
+                            src={previewImage}
+                            alt="preview"
+                            className="max-w-full max-h-[85vh] object-contain rounded-lg"
+                        />
+                    </div>
+                </div>
+            )}
 
             <Footer />
         </>

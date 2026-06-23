@@ -71,6 +71,7 @@ const AnswerPage = () => {
     const [showTOC, setShowTOC] = useState(true);
     const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
     const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
@@ -209,9 +210,10 @@ const AnswerPage = () => {
                     {/* Question Content */}
                     <div>
                         <h6 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">คำถาม</h6>
-                        <p className="text-gray-800 whitespace-pre-wrap leading-relaxed">
-                            {question.question_text}
-                        </p>
+                        <p 
+                            className="text-gray-800 whitespace-pre-wrap leading-relaxed"
+                            dangerouslySetInnerHTML={{ __html: question.question_text }}
+                        />
                         {question.question_image_url && (
                             <div className="mt-4">
                                 <img
@@ -219,7 +221,12 @@ const AnswerPage = () => {
                                         ? question.question_image_url
                                         : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`}
                                     alt="คำถาม"
-                                    className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white"
+                                    className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white cursor-zoom-in hover:opacity-90 transition-opacity"
+                                    onClick={() => setPreviewImage(
+                                        question.question_image_url.startsWith("http")
+                                            ? question.question_image_url
+                                            : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`
+                                    )}
                                 />
                             </div>
                         )}
@@ -251,9 +258,10 @@ const AnswerPage = () => {
                                             {isUserAnswer && !isCorrectAnswer && <XCircle className="w-3.5 h-3.5" />}
                                         </div>
                                         <div className="flex-1">
-                                            <span className={`text-sm break-words ${isCorrectAnswer || (isUserAnswer && !isCorrectAnswer) ? 'font-semibold' : 'text-gray-600'}`}>
-                                                {option.option_text}
-                                            </span>
+                                            <span 
+                                                className={`text-sm break-words ${isCorrectAnswer || (isUserAnswer && !isCorrectAnswer) ? 'font-semibold' : 'text-gray-600'}`}
+                                                dangerouslySetInnerHTML={{ __html: option.option_text }}
+                                            />
                                             {isUserAnswer && (
                                                 <span className={`ml-2 py-0.5 px-1.5 rounded text-[10px] font-medium ${isCorrectAnswer
                                                         ? 'bg-green-200 text-green-800'
@@ -276,7 +284,10 @@ const AnswerPage = () => {
                                 <BookOpen className="w-4 h-4 text-blue-600" />
                                 <h6 className="text-xs font-bold text-blue-800 uppercase tracking-widest">คำอธิบายเฉลย</h6>
                             </div>
-                            <p className="text-blue-700 text-sm whitespace-pre-wrap leading-relaxed">{question.explanation}</p>
+                            <p 
+                                className="text-blue-700 text-sm whitespace-pre-wrap leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: question.explanation }}
+                            />
                         </div>
                     )}
                 </div>
@@ -435,14 +446,22 @@ const AnswerPage = () => {
                                                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
                                                     <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500"></div>
                                                     <h6 className="text-[10px] sm:text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-3">รายละเอียดสถานการณ์</h6>
-                                                    <p className="text-gray-800 whitespace-pre-wrap leading-relaxed font-medium">
-                                                        {group.situation.situation_text}
-                                                    </p>
+                                                    {group.situation.situation_title && (
+                                                        <p 
+                                                            className="font-bold text-gray-800 mb-2"
+                                                            dangerouslySetInnerHTML={{ __html: group.situation.situation_title }}
+                                                        />
+                                                    )}
+                                                    <p 
+                                                        className="text-gray-800 whitespace-pre-wrap leading-relaxed font-medium"
+                                                        dangerouslySetInnerHTML={{ __html: group.situation.situation_text }}
+                                                    />
                                                     {group.situation.situation_image_url && (
                                                         <img
                                                             src={group.situation.situation_image_url}
                                                             alt="Situation"
-                                                            className="mt-6 rounded-xl border border-gray-100 shadow-sm max-h-80 object-contain"
+                                                            className="mt-6 rounded-xl border border-gray-100 shadow-sm max-h-80 object-contain cursor-zoom-in hover:opacity-90 transition-opacity"
+                                                            onClick={() => setPreviewImage(group.situation.situation_image_url)}
                                                         />
                                                     )}
                                                 </div>
@@ -657,6 +676,30 @@ const AnswerPage = () => {
                                 ปิด
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {previewImage && (
+                <div 
+                    className="fixed inset-0 bg-black/75 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300"
+                    onClick={() => setPreviewImage(null)}
+                >
+                    <div 
+                        className="relative max-w-5xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl p-2 flex flex-col items-center"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setPreviewImage(null)}
+                            className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors z-10 shadow-md"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        <img
+                            src={previewImage}
+                            alt="preview"
+                            className="max-w-full max-h-[85vh] object-contain rounded-lg"
+                        />
                     </div>
                 </div>
             )}
