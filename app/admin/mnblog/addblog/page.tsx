@@ -263,7 +263,8 @@ function AddBlogPage() {
                         content: draft.content,
                         cover_image_url: draft.imageUrl,
                         categoryIds: draft.categoryIds,
-                        status: 'PUBLISHED'
+                        status: 'PUBLISHED',
+                        author_id: Number(draft.author_id || 10)
                     }),
                 });
             }
