@@ -5,7 +5,7 @@ import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { BookOpen, Loader2, Clock, Hash, Award, AlertTriangle, FlaskConical } from "lucide-react";
+import { BookOpen, Loader2, Clock, Hash, Award, AlertTriangle, FlaskConical, X } from "lucide-react";
 import Swal from "sweetalert2";
 import Link from "next/link";
 
@@ -473,6 +473,7 @@ export default function CATExamPage() {
   const [navigating, setNavigating] = useState(false);
   const sessionIdRef = useRef<number | null>(null);
   const submittedRef = useRef(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // Timer
   useEffect(() => {
@@ -667,10 +668,10 @@ export default function CATExamPage() {
       <Navbar_user />
 
       <div className={`min-h-screen py-5 transition-all duration-[1500ms] ${finalStatus === "passed"
-          ? "bg-green-50/60"
-          : finalStatus === "failed"
-            ? "bg-red-50/60"
-            : "bg-gray-50"
+        ? "bg-green-50/60"
+        : finalStatus === "failed"
+          ? "bg-red-50/60"
+          : "bg-gray-50"
         }`}>
         <div className="container mx-auto px-4 max-w-5xl">
 
@@ -726,7 +727,7 @@ export default function CATExamPage() {
                           <Award className="w-8 h-8" />
                         </div>
                         <div className="text-center sm:text-left">
-                            <h3 className="text-xl font-bold text-emerald-800">มีโอกาสสูงที่จะสอบผ่าน!</h3>
+                          <h3 className="text-xl font-bold text-emerald-800">มีโอกาสสูงที่จะสอบผ่าน!</h3>
                           <p className="text-sm text-emerald-600 font-medium mt-0.5">ระดับความสามารถของคุณผ่านเกณฑ์มาตรฐานการประเมิน</p>
                         </div>
                       </div>
@@ -784,10 +785,10 @@ export default function CATExamPage() {
                         }}
                         disabled={finalStatus === null || navigating}
                         className={`w-full max-w-sm py-4 px-6 rounded-2xl font-bold text-white shadow-sm hover:shadow-md transition-colors flex items-center justify-center gap-2 ${finalStatus === "passed"
-                            ? "bg-green-500 hover:bg-green-600"
-                            : finalStatus === "failed"
-                              ? "bg-red-500 hover:bg-red-600"
-                              : "bg-gray-400 cursor-not-allowed opacity-50"
+                          ? "bg-green-500 hover:bg-green-600"
+                          : finalStatus === "failed"
+                            ? "bg-red-500 hover:bg-red-600"
+                            : "bg-gray-400 cursor-not-allowed opacity-50"
                           } disabled:opacity-40 disabled:cursor-not-allowed`}
                       >
                         {navigating ? (
@@ -813,20 +814,32 @@ export default function CATExamPage() {
                       </div>
                       <div className="p-5">
                         {session.current_item.situation.situation_title && (
-                          <p className="font-bold text-gray-800 mb-2">
-                            {session.current_item.situation.situation_title}
-                          </p>
+                          <p
+                            className="font-bold text-gray-800 mb-2"
+                            dangerouslySetInnerHTML={{ __html: session.current_item.situation.situation_title }}
+                          />
                         )}
-                        <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base">
-                          {session.current_item.situation.situation_text}
-                        </p>
+                        <p
+                          className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base"
+                          dangerouslySetInnerHTML={{ __html: session.current_item.situation.situation_text }}
+                        />
                         {session.current_item.situation.situation_image_url && (
                           <img
                             src={session.current_item.situation.situation_image_url.startsWith("http")
                               ? session.current_item.situation.situation_image_url
                               : `${process.env.NEXT_PUBLIC_API_URL}${session.current_item.situation.situation_image_url}`}
                             alt="situation"
-                            className="mt-4 rounded-lg max-w-full border border-gray-200"
+                            className="mt-4 rounded-lg max-w-full border border-gray-200 cursor-zoom-in hover:opacity-90 transition-opacity"
+                            onClick={() => {
+                              const url = session.current_item.situation?.situation_image_url;
+                              if (url) {
+                                setPreviewImage(
+                                  url.startsWith("http")
+                                    ? url
+                                    : `${process.env.NEXT_PUBLIC_API_URL}${url}`
+                                );
+                              }
+                            }}
                           />
                         )}
                       </div>
@@ -854,9 +867,10 @@ export default function CATExamPage() {
                       </div>
 
                       {/* Question text */}
-                      <p className="text-base lg:text-lg text-gray-800 leading-relaxed font-medium whitespace-pre-wrap">
-                        {session.current_item.question_text}
-                      </p>
+                      <p
+                        className="text-base lg:text-lg text-gray-800 leading-relaxed font-medium whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{ __html: session.current_item.question_text }}
+                      />
                       {session.current_item.question_image_url && (
                         <div className="mt-4">
                           <img
@@ -864,7 +878,17 @@ export default function CATExamPage() {
                               ? session.current_item.question_image_url
                               : `${process.env.NEXT_PUBLIC_API_URL}${session.current_item.question_image_url}`}
                             alt="question"
-                            className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white"
+                            className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white cursor-zoom-in hover:opacity-90 transition-opacity"
+                            onClick={() => {
+                              const url = session.current_item.question_image_url;
+                              if (url) {
+                                setPreviewImage(
+                                  url.startsWith("http")
+                                    ? url
+                                    : `${process.env.NEXT_PUBLIC_API_URL}${url}`
+                                );
+                              }
+                            }}
                           />
                         </div>
                       )}
@@ -899,9 +923,10 @@ export default function CATExamPage() {
                                 {label}
                               </span>
 
-                              <span className="text-gray-800 text-sm lg:text-base leading-relaxed">
-                                {option.option_text}
-                              </span>
+                              <span
+                                className="text-gray-800 text-sm lg:text-base leading-relaxed"
+                                dangerouslySetInnerHTML={{ __html: option.option_text }}
+                              />
                             </button>
                           );
                         })}
@@ -997,6 +1022,31 @@ export default function CATExamPage() {
           <div className="bg-white rounded-2xl p-6 text-center shadow-2xl">
             <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-3" />
             <p className="text-gray-700 font-medium">กำลังคำนวณข้อถัดไปเพื่อคุณ...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Image Preview Modal */}
+      {previewImage && (
+        <div 
+          className="fixed inset-0 bg-black/75 z-[110] flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div 
+            className="relative max-w-5xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl p-2 flex flex-col items-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPreviewImage(null)}
+              className="absolute top-4 right-4 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full transition-colors z-10 shadow-md"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <img
+              src={previewImage}
+              alt="preview"
+              className="max-w-full max-h-[85vh] object-contain rounded-lg"
+            />
           </div>
         </div>
       )}

@@ -315,7 +315,7 @@ export default function ChatbotPage() {
       const botResponse: Message = {
         id: botData.message_id ? botData.message_id.toString() : `bot-${Date.now()}`,
         sender: "bot",
-        text: botData.message_text || data.message || data.response || "No response text",
+        text: botData.message_text || data.message || data.response || "ขออภัยเกิดข้อผิดพลาดจากระบบ",
         created_at: botData.sent_at || new Date().toISOString(),
         animate: true // Enable animation for new messages
       };
