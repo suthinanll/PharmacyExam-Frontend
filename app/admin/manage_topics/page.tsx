@@ -46,7 +46,7 @@ export default function ManageTopicsPage() {
     const { getToken } = useAuth();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<TopicStats | null>(null);
-    const [viewMode, setViewMode] = useState<"table" | "card">("table");
+    const [viewMode, setViewMode] = useState<"list" | "chart">("list");
     const [expandedTopics, setExpandedTopics] = useState<Set<number>>(new Set());
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -90,7 +90,7 @@ export default function ManageTopicsPage() {
         if (savedView) setViewMode(savedView);
     }, [fetchStats]);
 
-    const switchView = (mode: "table" | "card") => {
+    const switchView = (mode: "list" | "chart") => {
         setViewMode(mode);
         localStorage.setItem("topic_viewmode", mode);
     };
