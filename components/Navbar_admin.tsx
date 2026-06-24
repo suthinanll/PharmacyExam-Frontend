@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, X, User, LogOut, ChevronLeft, ChevronRight, FileText, Zap, Layers, List, Calendar, Newspaper, MessageSquare, Settings } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronLeft, ChevronRight, FileText, Zap, Layers, List, Calendar, Newspaper, MessageSquare, Settings, LayoutDashboard  } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import Swal from "sweetalert2";
@@ -79,6 +79,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
   };
 
   const sidebarItems = [
+    { title: "แดชบอร์ด", href: "/admin", icon: LayoutDashboard },
     { title: "คลังข้อสอบ", href: "/admin/manage_examset", icon: FileText },
     { title: "ข้อสอบแบบ (CAT)", href: "/admin/cat_management", icon: Zap },
     { title: "จัดการประเภทข้อสอบ", href: "/admin/manage_category", icon: Layers },
