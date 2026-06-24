@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -447,7 +447,7 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
 
 
 // ==================== MAIN COMPONENT ====================
-export default function CATExamPage() {
+function CATExamPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { getToken } = useAuth();
@@ -1051,5 +1051,20 @@ export default function CATExamPage() {
         </div>
       )}
     </>
+  );
+}
+
+export default function CATExamPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
+          <p className="text-gray-600 font-medium">กำลังเริ่มการสอบ CAT...</p>
+        </div>
+      </div>
+    }>
+      <CATExamPageContent />
+    </Suspense>
   );
 }

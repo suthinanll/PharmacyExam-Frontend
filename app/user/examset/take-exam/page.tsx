@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar_user from "@/components/Navbar_user";
@@ -759,4 +759,14 @@ function TakeExam() {
     );
 }
 
-export default TakeExam;
+export default function TakeExamPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" />
+            </div>
+        }>
+            <TakeExam />
+        </Suspense>
+    );
+}

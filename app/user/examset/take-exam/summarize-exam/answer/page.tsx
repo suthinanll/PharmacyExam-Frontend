@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Navbar_user from "@/components/Navbar_user"
 import Footer from "@/components/Footer"
@@ -57,7 +57,7 @@ interface MasteryData {
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
-const AnswerPage = () => {
+function AnswerPageContent() {
     const searchParams = useSearchParams();
     const { getToken } = useAuth();
     const sessionId = searchParams.get('session_id');
@@ -771,4 +771,17 @@ const AnswerPage = () => {
     )
 }
 
-export default AnswerPage;
+export default function AnswerPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+                    <p className="text-gray-600 font-medium">กำลังโหลดเฉลยคำตอบ...</p>
+                </div>
+            </div>
+        }>
+            <AnswerPageContent />
+        </Suspense>
+    );
+}

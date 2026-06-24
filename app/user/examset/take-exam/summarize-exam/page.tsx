@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar_user from "@/components/Navbar_user";
@@ -491,4 +491,14 @@ function Summarize() {
     );
 }
 
-export default Summarize;
+export default function SummarizePage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+                <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" />
+            </div>
+        }>
+            <Summarize />
+        </Suspense>
+    );
+}
