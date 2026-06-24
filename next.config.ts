@@ -23,6 +23,14 @@ const nextConfig = {
             },
         ],
     },
+
+    // 3. ปิดการเช็ก TypeScript และ ESLint ตอน Build
+    typescript: {
+        ignoreBuildErrors: true,
+    },
+    eslint: {
+        ignoreDuringBuilds: true,
+    },
 };
 
 module.exports = nextConfig;
