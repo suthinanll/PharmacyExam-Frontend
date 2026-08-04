@@ -186,17 +186,14 @@ const PharmacistDashboard = () => {
                 หน้าหลัก
               </Link>
               <span className="mx-2">›</span>
-              <span className="text-gray-700 font-medium">คลังข้อสอบ</span>
+              <span className="text-gray-700 font-medium">ติดตามความคืบหน้า</span>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-2">
+                <h1 className="text-3xl md:text-4xl font-medium text-gray-800 mb-2">
                   ติดตามความคืบหน้า
                 </h1>
-                <p className="text-gray-600">
-                  ภาพรวมการเตรียมสอบใบประกอบวิชาชีพเภสัชกรรม
-                </p>
               </div>
             </div>
           </div>
@@ -207,18 +204,18 @@ const PharmacistDashboard = () => {
               <div className="bg-indigo-100 p-3 rounded-xl">
                 <TrendingUp className="w-6 h-6 text-indigo-600" />
               </div>
-              <h2 className="text-2xl font-bold text-gray-800">อันดับของคุณ</h2>
+              <h2 className="text-2xl font-medium text-gray-800">อันดับของคุณ</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <p className="text-sm text-gray-600 mb-2">อันดับปัจจุบัน</p>
+                <p className="text-lg text-gray-600 mb-2">อันดับปัจจุบัน</p>
                 {loading ? (
                   <Skeleton className="h-12 w-40 mb-3" />
                 ) : (
                   <>
                     <div className="flex items-end gap-2">
-                      <p className="text-5xl font-bold text-indigo-600">
+                      <p className="text-5xl font-medium text-indigo-600">
                         #{data?.ranking?.current_rank || "-"}
                       </p>
                       <p className="text-lg text-gray-500 mb-2">
@@ -228,15 +225,15 @@ const PharmacistDashboard = () => {
                     {data?.ranking && (
                       <div className="mt-3">
                         {data.ranking.rank_change > 0 ? (
-                          <span className="text-green-600 text-sm font-medium flex items-center gap-1">
+                          <span className="text-green-600 text-lg font-medium flex items-center gap-1">
                             ↑ ดีขึ้น {data.ranking.rank_change} อันดับ
                           </span>
                         ) : data.ranking.rank_change < 0 ? (
-                          <span className="text-red-500 text-sm font-medium flex items-center gap-1">
+                          <span className="text-red-500 text-lg font-medium flex items-center gap-1">
                             ↓ ลดลง {Math.abs(data.ranking.rank_change)} อันดับ
                           </span>
                         ) : (
-                          <span className="text-gray-400 text-sm font-medium">อันดับคงที่</span>
+                          <span className="text-gray-400 text-lg font-medium">อันดับคงที่</span>
                         )}
                       </div>
                     )}
@@ -245,7 +242,7 @@ const PharmacistDashboard = () => {
               </div>
 
               <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
-                <p className="text-sm text-gray-600 mb-4">เปรียบเทียบคะแนน</p>
+                <p className="text-lg text-gray-600 mb-4">เปรียบเทียบคะแนน</p>
                 {loading ? (
                   <div className="space-y-3">
                     <Skeleton className="h-4 w-full" />
@@ -259,9 +256,9 @@ const PharmacistDashboard = () => {
                       { label: "คะแนนของคุณ", value: data?.ranking.score_range.user_score ?? 0 },
                     ].map(({ label, value }) => (
                       <div key={label}>
-                        <div className="flex justify-between text-xs mb-1 text-gray-600">
+                        <div className="flex justify-between text-lg mb-1 text-gray-600">
                           <span>{label}</span>
-                          <span className="font-semibold text-gray-800">{value}</span>
+                          <span className="font-normal text-gray-800">{value}</span>
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
@@ -330,7 +327,7 @@ const PharmacistDashboard = () => {
                 {loading ? (
                   <Skeleton className="h-9 w-24 mb-1" />
                 ) : (
-                  <p className={`font-bold mb-1 ${valueClass} ${typeof value === 'string' && value.length > 8 ? 'text-xl' : 'text-3xl'}`}>
+                  <p className={`font-medium mb-1 ${valueClass} ${typeof value === 'string' && value.length > 8 ? 'text-xl' : 'text-3xl'}`}>
                     {value ?? "—"}
                   </p>
                 )}
@@ -343,7 +340,7 @@ const PharmacistDashboard = () => {
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
-                <h2 className="text-xl font-bold text-gray-800 mb-6">วิเคราะห์จุดแข็ง-จุดอ่อน</h2>
+                <h2 className="text-xl font-medium text-gray-800 mb-6">วิเคราะห์จุดแข็ง-จุดอ่อน</h2>
                 {loading ? (
                   <Skeleton className="h-[350px] w-full" />
                 ) : (data?.radar_data?.length ?? 0) === 0 ? (
@@ -380,7 +377,7 @@ const PharmacistDashboard = () => {
               <div className="lg:border-l lg:border-gray-200 lg:pl-8">
                 <div className="flex items-center gap-2 mb-6">
                   <AlertCircle className="w-6 h-6 text-orange-600" />
-                  <h2 className="text-xl font-bold text-gray-800">ควรทบทวนเพิ่มเติม</h2>
+                  <h2 className="text-xl font-medium text-gray-800">ควรทบทวนเพิ่มเติม</h2>
                 </div>
                 {loading ? (
                   <div className="space-y-3">
@@ -401,7 +398,7 @@ const PharmacistDashboard = () => {
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <h3 className="font-bold text-gray-800 text-base">{topic.topic}</h3>
+                                <h3 className="font-medium text-gray-800 text-base">{topic.topic}</h3>
                                 <span className={`text-xs px-2 py-1 rounded-full font-medium whitespace-nowrap ${style.badge}`}>
                                   {topic.priority}
                                 </span>

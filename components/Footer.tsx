@@ -14,21 +14,21 @@ const Footer = () => {
 
                         {/* Left Column: Contact Info */}
                         <div className="space-y-3">
-                            <h3 className="text-xl sm:text-2xl font-medium mb-4">เภสัชพร้อมสอบ</h3>
+                            <h3 className="text-lg sm:text-xl font-medium mb-4">เภสัชพร้อมสอบ</h3>
 
-                            <div className="space-y-2 text-sm sm:text-base">
+                            <div className="space-y-2 text-lg">
                                 <p className="font-medium text-white/90">ติดต่อเรา</p>
 
-                                <p className="text-xs sm:text-sm leading-relaxed">
+                                <p className="text-lg leading-relaxed">
                                     วิทยาลัยการคอมพิวเตอร์<br />
                                     123 ถ.มิตรภาพ ต.ในเมือง อ.เมือง จ.ขอนแก่น 40002
                                 </p>
 
-                                <p className="text-xs sm:text-sm">
+                                <p className="text-lg">
                                     โทรศัพท์ 043-009700 ต่อ 44456, 44457
                                 </p>
 
-                                <p className="text-xs sm:text-sm">
+                                <p className="text-lg">
                                     Hot Line: 089-7102651, 089-7102646
                                 </p>
 
@@ -38,13 +38,13 @@ const Footer = () => {
                                         href="https://facebook.com"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="w-10 h-10 rounded-md bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                                        className="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors duration-200"
                                     >
                                         <Facebook className="w-5 h-5" />
                                     </a>
                                     <a
                                         href="mailto:contact@pharmacy.ac.th"
-                                        className="w-10 h-10 rounded-md bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-200 hover:scale-110"
+                                        className="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors duration-200"
                                     >
                                         <Mail className="w-5 h-5" />
                                     </a>
@@ -56,65 +56,71 @@ const Footer = () => {
                         <div className="grid grid-cols-2 gap-6 sm:gap-8">
                             {/* Links Column 1 */}
                             <div className="space-y-3">
-                                <ul className="space-y-2 text-xs sm:text-sm">
+                                <ul className="space-y-2 text-lg">
                                     <li>
                                         <Link
-                                            href="/"
-                                            className="hover:text-green-200 transition-colors duration-200"
+                                            href="/user"
+                                            className="hover:text-green-200 transition-colors duration-200 font-medium"
+                                        >
+                                            หน้าหลัก
+                                        </Link>
+                                    </li>
+                                    <li>
+                                        <Link
+                                            href="/user/examset"
+                                            className="text-white/90 hover:text-green-200 transition-colors duration-200 font-medium"
                                         >
                                             คลังข้อสอบ
                                         </Link>
+                                        <ul className="ml-4 mt-1.5 space-y-1.5">
+                                            <li>
+                                                <Link
+                                                    href="/user/cat-exam"
+                                                    className="text-lg text-white/80 hover:text-green-200 transition-colors duration-200 font-medium"
+                                                >
+                                                    • ข้อสอบแบบ CAT (Computerized Adaptive Testing)
+                                                </Link>
+                                            </li>
+                                        </ul>
                                     </li>
                                     <li>
                                         <Link
-                                            href="/examset"
-                                            className="text-white/90 hover:text-green-200 transition-colors duration-200"
-                                        >
-                                            โรคและระบบต่างๆ
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link
-                                            href="/examset"
-                                            className="text-white/90 hover:text-green-200 transition-colors duration-200"
-                                        >
-                                            ข้อสอบย้อนหลัง
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link
-                                            href="/followup"
-                                            className="hover:text-green-200 transition-colors duration-200"
+                                            href="/user/calendar"
+                                            className="hover:text-green-200 transition-colors duration-200 font-medium"
                                         >
                                             ปฏิทินการสอบ
                                         </Link>
                                     </li>
+                                </ul>
+                            </div>
+
+                            {/* Links Column 2 */}
+                            <div className="space-y-3">
+                                <ul className="space-y-2 text-lg">
                                     <li>
                                         <Link
-                                            href="/chatbot"
-                                            className="hover:text-green-200 transition-colors duration-200"
+                                            href="/user/chatbot"
+                                            className="hover:text-green-200 transition-colors duration-200 font-medium"
                                         >
                                             แชตบอตผู้ช่วย
                                         </Link>
                                     </li>
                                     <li>
                                         <Link
-                                            href="/chatbot"
-                                            className="hover:text-green-200 transition-colors duration-200"
+                                            href="/user/followup"
+                                            className="hover:text-green-200 transition-colors duration-200 font-medium"
                                         >
                                             ติดตามความคืบหน้า
                                         </Link>
                                     </li>
                                 </ul>
                             </div>
-
-
                         </div>
                     </div>
                 </div>
 
                 <div className="border-t border-white/20 py-4">
-                    <p className="text-xs sm:text-sm text-center text-green-50">
+                    <p className="text-lg text-center text-green-50">
                         College of Computing Khon Kaen University
                     </p>
                 </div>

@@ -227,12 +227,12 @@ const CalenderPage = () => {
           {/* วันที่ */}
           <div className="flex justify-between items-center mb-1">
             <span
-              className={`text-xs font-bold ${today ? "text-emerald-700" : "text-gray-500"}`}
+              className={`text-xs font-medium ${today ? "text-emerald-700" : "text-gray-500"}`}
             >
               {date}
             </span>
             {today && (
-              <span className="text-[8px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-semibold">
+              <span className="text-[8px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-medium">
                 วันนี้
               </span>
             )}
@@ -253,7 +253,7 @@ const CalenderPage = () => {
                     setSelectedEvent(schedule);
                     setIsViewModalOpen(true);
                   }}
-                  className={`w-full text-left px-1.5 py-1 rounded border-l-2 text-[9px] font-semibold truncate transition-all hover:opacity-80
+                  className={`w-full text-left px-1.5 py-1 rounded border-l-2 text-[9px] font-medium truncate transition-all hover:opacity-80
                     ${style.bg} ${style.text} ${style.border}`}
                 >
                   {/* dot tags */}
@@ -364,7 +364,7 @@ const CalenderPage = () => {
             <span className="text-gray-700 font-medium">ปฏิทินการสอบ</span>
           </div>
 
-          <h1 className="text-3xl font-bold text-gray-800 mb-6">
+          <h1 className="text-3xl font-medium text-gray-800 mb-6">
             ปฏิทินกำหนดการสอบ
           </h1>
 
@@ -380,7 +380,7 @@ const CalenderPage = () => {
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
-                  <h2 className="text-xl font-bold text-gray-800">
+                  <h2 className="text-xl font-medium text-gray-800">
                     {monthsNames[selectedMonth]}{" "}
                     <span className="text-emerald-600">
                       {selectedYear + 543}
@@ -399,7 +399,7 @@ const CalenderPage = () => {
                   {["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"].map((day, i) => (
                     <div
                       key={day}
-                      className={`py-3 text-center text-xs font-semibold bg-gray-50 border-b border-gray-200
+                      className={`py-3 text-center text-xs font-medium bg-gray-50 border-b border-gray-200
                         ${i === 0 ? "text-red-500" : "text-gray-500"}`}
                     >
                       {day}
@@ -410,7 +410,7 @@ const CalenderPage = () => {
 
                 {/* Legend */}
                 <div className="mt-5 pt-4 border-t border-gray-100">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">
                     ประเภทกำหนดการ
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -466,7 +466,7 @@ const CalenderPage = () => {
             <div className="bg-emerald-600 px-6 py-4 flex justify-between items-center text-white">
               <div className="flex items-center gap-2">
                 <Info className="w-5 h-5" />
-                <h3 className="font-bold">รายละเอียดกำหนดการ</h3>
+                <h3 className="font-medium">รายละเอียดกำหนดการ</h3>
               </div>
               <button
                 onClick={() => setIsViewModalOpen(false)}
@@ -479,7 +479,7 @@ const CalenderPage = () => {
             <div className="p-6 space-y-5">
               {/* Title + Tags */}
               <div>
-                <h4 className="text-xl font-bold text-gray-800 mb-3">
+                <h4 className="text-xl font-medium text-gray-800 mb-3">
                   {selectedEvent.title}
                 </h4>
                 {selectedEvent.type_event.length > 0 ? (
@@ -489,7 +489,7 @@ const CalenderPage = () => {
                       return (
                         <span
                           key={i}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border
                             ${style.bg} ${style.text} ${style.border}`}
                         >
                           <span
@@ -501,7 +501,7 @@ const CalenderPage = () => {
                     })}
                   </div>
                 ) : (
-                  <span className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-100 text-gray-500 border border-gray-200">
+                  <span className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 text-gray-500 border border-gray-200">
                     กำหนดการทั่วไป
                   </span>
                 )}
@@ -513,7 +513,7 @@ const CalenderPage = () => {
                   <CalendarIcon className="w-4 h-4 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-0.5">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-0.5">
                     วันที่
                   </p>
                   <p className="text-sm font-medium text-gray-700">
@@ -534,7 +534,7 @@ const CalenderPage = () => {
                   <AlignLeft className="w-4 h-4 text-emerald-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-1">
                     รายละเอียด
                   </p>
                   <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap bg-gray-50 border border-gray-100 rounded-xl p-3">
@@ -545,7 +545,7 @@ const CalenderPage = () => {
 
               <button
                 onClick={() => setIsViewModalOpen(false)}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all text-sm"
+                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-xl transition-all text-sm"
               >
                 ปิด
               </button>
