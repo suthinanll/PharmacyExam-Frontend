@@ -8,165 +8,65 @@ import NewsCard from "@/components/News";
 import {
   ChevronRight,
   AlarmClock,
-  Info,
   Calendar,
   LayoutGrid,
   Bookmark,
+  Clock,
+  CheckCircle2,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-const universityLeaderboardData = [
-  { rank: 1, name: "มหาวิทยาลัยเชียงใหม่", score: 85.75 },
-  { rank: 2, name: "มหาวิทยาลัยมหิดล", score: 84.3 },
-  { rank: 3, name: "จุฬาลงกรณ์มหาวิทยาลัย", score: 83.99 },
-  { rank: 4, name: "มหาวิทยาลัยสงขลานครินทร์", score: 81.12 },
-  { rank: 5, name: "มหาวิทยาลัยขอนแก่น", score: 80.5 },
-  { rank: 6, name: "มหาวิทยาลัยเกษตรศาสตร์", score: 79.88 },
-  { rank: 7, name: "มหาวิทยาลัยธรรมศาสตร์", score: 78.9 },
-];
 
-const UniversityLeaderboardCard = ({ rank, name, score }: any) => (
-  <div className="flex items-center justify-between p-3 border-b border-gray-100 last:border-b-0 hover:bg-blue-50 transition-colors duration-150 rounded-lg">
-    <div className="flex items-center space-x-4">
-      <span className="text-lg font-bold w-6 text-center text-gray-500">
-        {String(rank).padStart(2, "0")}
-      </span>
-      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
-        {name.substring(0, 1)}
-      </div>
-      <span className="text-gray-700 font-medium truncate">{name}</span>
-    </div>
-    <div className="text-xl font-extrabold text-blue-700">
-      {score.toFixed(2)}
-    </div>
-  </div>
-);
 
-const UniversityLeaderboard = () => {
-  const top3 = universityLeaderboardData.slice(0, 3);
-  const remaining = universityLeaderboardData.slice(3);
-  const podiumOrder = [top3[1], top3[0], top3[2]];
 
-  const podiumStyles: any = {
-    1: {
-      medal: "🥇",
-      bgColor: "bg-yellow-50",
-      borderColor: "border-yellow-400",
-      textColor: "text-yellow-600",
-      height: "h-40",
-      shadow: "shadow-2xl",
-      ring: "ring-4 ring-yellow-200",
-    },
-    2: {
-      medal: "🥈",
-      bgColor: "bg-gray-50",
-      borderColor: "border-gray-400",
-      textColor: "text-gray-600",
-      height: "h-32",
-      shadow: "shadow-xl",
-      ring: "ring-4 ring-gray-200",
-    },
-    3: {
-      medal: "🥉",
-      bgColor: "bg-orange-50",
-      borderColor: "border-orange-400",
-      textColor: "text-orange-600",
-      height: "h-28",
-      shadow: "shadow-xl",
-      ring: "ring-4 ring-orange-200",
-    },
-  };
+// Upcoming Exam Card Component
+const UpcomingExamCard = ({ exam, index }: { exam: any; index: number }) => {
+  const examDate = new Date(exam.targetStamp);
+  const now = Date.now();
+  const diffMs = exam.targetStamp - now;
+  const daysLeft = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   return (
-    <div className="bg-white rounded-3xl shadow-lg p-6 sm:p-8 md:p-10 mb-10 border border-gray-200">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="bg-yellow-50 p-3 rounded-xl">
-          <span className="text-2xl">🏆</span>
-        </div>
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
-          อันดับคะแนนเฉลี่ยสูงสุด
-          <span className="block text-sm font-normal text-gray-500 mt-1">
-            มหาวิทยาลัย
-          </span>
-        </h2>
-      </div>
-      <div className="relative bg-gray-50 rounded-2xl p-6 mb-8 overflow-hidden">
-        <div className="flex justify-center items-end gap-3 sm:gap-6">
-          {podiumOrder.map((uni) => {
-            const style = podiumStyles[uni.rank];
-            return (
-              <div
-                key={uni.rank}
-                className={`relative flex flex-col items-center ${uni.rank === 1 ? "z-10" : "z-0"}`}
-              >
-                <div
-                  className={`absolute -top-3 ${uni.rank === 1 ? "animate-bounce" : ""}`}
-                >
-                  <div
-                    className={`${style.bgColor} ${style.ring} rounded-full p-2 ${style.shadow}`}
-                  >
-                    <span className="text-3xl sm:text-4xl">{style.medal}</span>
-                  </div>
-                </div>
-                <div
-                  className={`${style.bgColor} ${style.borderColor} border-2 ${style.shadow} rounded-2xl p-4 w-28 sm:w-36 md:w-40 mt-12`}
-                >
-                  <div
-                    className={`${style.textColor} text-2xl font-bold text-center mb-2`}
-                  >
-                    #{uni.rank}
-                  </div>
-                  <div className="text-center mb-3">
-                    <p className="text-xs sm:text-sm font-semibold text-gray-800 line-clamp-2 min-h-[2.5rem]">
-                      {uni.name}
-                    </p>
-                  </div>
-                  <div
-                    className={`bg-white rounded-xl p-2 border ${style.borderColor}`}
-                  >
-                    <p className="text-xs text-gray-500 text-center">คะแนน</p>
-                    <p
-                      className={`text-lg font-bold ${style.textColor} text-center`}
-                    >
-                      {uni.score.toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-                <div
-                  className={`${style.bgColor} ${style.borderColor} border-t-4 ${style.height} w-28 sm:w-36 md:w-40 rounded-b-2xl flex items-end justify-center pb-3 shadow-inner`}
-                >
-                  <span
-                    className={`text-4xl font-bold ${style.textColor} opacity-20`}
-                  >
-                    {uni.rank}
-                  </span>
-                </div>
-              </div>
-            );
+    <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden border border-gray-200">
+      <div className="h-1 bg-blue-500"></div>
+      <div className="p-4">
+        <h3 className="text-base font-medium text-gray-800 mb-2 line-clamp-2">
+          {exam.title}
+        </h3>
+        <p className="text-sm text-gray-500 flex items-center gap-1 mb-3">
+          <Calendar size={14} />
+          {examDate.toLocaleDateString("th-TH", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
           })}
+        </p>
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-700 text-sm font-medium border border-blue-200">
+          <Clock size={14} />
+          {daysLeft > 0 ? `อีก ${daysLeft} วัน` : "วันนี้"}
         </div>
-      </div>
-      <div className="space-y-2">
-        {remaining.map((uni) => (
-          <UniversityLeaderboardCard key={uni.rank} {...uni} />
-        ))}
       </div>
     </div>
   );
 };
 
+// Simple Countdown Hero
 const CountdownHero = ({
   targetDate,
   targetTitle,
   targetDesc,
   timeLeft,
   isExamStarted,
+  upcomingExams,
+  todayExams,
 }: {
   targetDate: number | null;
   targetTitle: string;
   targetDesc: string;
   timeLeft: { days: number; hours: number; minutes: number; seconds: number };
   isExamStarted: boolean | number | null;
+  upcomingExams: any[];
+  todayExams: any[];
 }) => {
   const units = [
     { label: "วัน", val: timeLeft.days },
@@ -175,82 +75,162 @@ const CountdownHero = ({
     { label: "วินาที", val: timeLeft.seconds },
   ];
 
+  // เช็กว่า countdown กำลังนับถึงวันสิ้นสุด (ongoing) หรือวันเริ่มต้น
+  const isOngoing = todayExams.length === 1 && todayExams[0].endStamp && targetDate === todayExams[0].endStamp;
+
   return (
-    <div className="relative overflow-hidden rounded-3xl mb-12 bg-white border border-blue-100 shadow-lg">
-      <div className="flex flex-col items-center justify-center p-8 md:p-12 text-center">
-        {/* Badge */}
-        <div
-          className={`inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-widest border
-          ${
-            isExamStarted
-              ? "bg-red-50 text-red-600 border-red-200"
-              : "bg-blue-50 text-blue-700 border-blue-200"
-          }`}
-        >
-          <AlarmClock size={14} />
-          {isExamStarted
-            ? "กำลังดำเนินการสอบขณะนี้"
-            : "เป้าหมายที่กำลังจะมาถึง"}
-        </div>
-
-        {/* Title */}
-        <h1 className="text-2xl md:text-4xl font-extrabold mb-2 text-blue-900">
-          {targetTitle || "พร้อมรับมือทุกการสอบ"}
-        </h1>
-
-        {/* Date */}
-        <p className="text-gray-500 text-sm flex items-center justify-center gap-2 mb-8 font-medium">
-          <Calendar size={16} />
-          {targetDate
-            ? new Date(targetDate).toLocaleDateString("th-TH", {
-                dateStyle: "long",
-              })
-            : "-"}
-        </p>
-
-        {/* Countdown */}
-        <div className="flex items-center justify-center gap-3 md:gap-5 mb-8 flex-wrap">
-          {units.map((item, idx) => (
-            <div key={idx} className="flex flex-col items-center">
-              <div
-                className="flex flex-col items-center justify-center
-                bg-blue-50 border border-blue-100
-                rounded-xl w-16 h-16 md:w-40 md:h-40 shadow-sm"
-              >
-                <span className="text-2xl md:text-6xl font-black tabular-nums text-blue-900">
-                  {String(item.val).padStart(2, "0")}
-                </span>
-              </div>
-
-              <span className="text-[11px] font-bold text-gray-500 mt-1 uppercase tracking-wider">
-                {item.label}
-              </span>
+    <div className="mb-12">
+      <div className="bg-white rounded-3xl shadow-lg border border-blue-100 overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+          {/* Left: Countdown (2/3) */}
+          <div className="lg:col-span-2 p-8 md:p-12 bg-gradient-to-br from-blue-50 to-white">
+            <div
+              className={`inline-flex items-center gap-2 mb-5 px-4 py-2 rounded-full font-medium text-sm border
+              ${
+                isOngoing
+                  ? "bg-green-50 text-green-700 border-green-200"
+                  : isExamStarted
+                  ? "bg-red-50 text-red-600 border-red-200"
+                  : "bg-blue-50 text-blue-700 border-blue-200"
+              }`}
+            >
+              <AlarmClock size={16} />
+              {isOngoing
+                ? "🔄 กำลังดำเนินการอยู่"
+                : isExamStarted
+                ? "กำลังดำเนินการสอบขณะนี้"
+                : "เป้าหมายที่กำลังจะมาถึง"}
             </div>
-          ))}
-        </div>
 
-        {/* Description */}
-        <div className="max-w-xl w-full p-4 rounded-xl flex items-center gap-3 bg-blue-50 border border-blue-100 mb-7">
-          <Info className="flex-shrink-0 text-blue-500" size={20} />
-          <p className="text-left text-sm italic font-medium leading-relaxed text-gray-700">
-            "{targetDesc}"
-          </p>
-        </div>
+            {/* แสดงหลายกำหนดการในวันเดียวกัน */}
+            {todayExams.length > 1 ? (
+              <div>
+                <h1 className="text-3xl md:text-4xl font-semibold mb-3 text-blue-900">
+                  กำหนดการวันนี้ ({todayExams.length} รายการ)
+                </h1>
+                <p className="text-gray-600 text-base flex items-center gap-2 mb-4 font-medium">
+                  <Calendar size={18} className="text-blue-500" />
+                  {targetDate
+                    ? new Date(targetDate).toLocaleDateString("th-TH", {
+                        dateStyle: "long",
+                      })
+                    : "-"}
+                </p>
+                <div className="mb-6 space-y-3">
+                  {todayExams.map((exam: any, idx: number) => (
+                    <div
+                      key={exam.id}
+                      className="bg-white rounded-xl p-4 border border-blue-200 shadow-sm"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
+                          {idx + 1}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                            {exam.title}
+                          </h3>
+                          {exam.description && (
+                            <p className="text-sm text-gray-600">
+                              {exam.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold mb-3 text-blue-900">
+                  {targetTitle || "พร้อมรับมือทุกการสอบ"}
+                </h1>
 
-        {/* Button */}
-        <a
-          href="/user/calendar"
-          className="inline-flex items-center justify-center px-8 py-3
-          bg-blue-600 text-white hover:bg-blue-700
-          rounded-xl font-bold text-sm transition-all gap-2
-          shadow hover:scale-105"
-        >
-          เปิดดูปฏิทินกิจกรรม
-          <ChevronRight
-            size={18}
-            className="transition-transform group-hover:translate-x-1"
-          />
-        </a>
+                {/* แสดงช่วงเวลาถ้ากำลังดำเนินการ */}
+                {isOngoing && todayExams[0] ? (
+                  <div className="mb-4">
+                    <p className="text-gray-600 text-base flex items-center gap-2 font-medium">
+                      <Calendar size={18} className="text-green-600" />
+                      {new Date(todayExams[0].targetStamp).toLocaleDateString("th-TH", { dateStyle: "long" })}
+                      {" - "}
+                      {new Date(todayExams[0].endStamp).toLocaleDateString("th-TH", { dateStyle: "long" })}
+                    </p>
+                    <p className="text-sm text-green-700 font-medium mt-2 bg-green-50 inline-block px-3 py-1 rounded-full">
+                      ⏱️ เหลือเวลาอีก {timeLeft.days} วัน
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 text-base flex items-center gap-2 mb-8 font-medium">
+                    <Calendar size={18} className="text-blue-500" />
+                    {targetDate
+                      ? new Date(targetDate).toLocaleDateString("th-TH", {
+                          dateStyle: "long",
+                        })
+                      : "-"}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="flex items-center justify-start gap-3 md:gap-5 mb-8 flex-wrap">
+              {units.map((item, idx) => (
+                <div key={idx} className="flex flex-col items-center">
+                  <div className="flex flex-col items-center justify-center bg-blue-600 rounded-2xl w-20 h-20 md:w-28 md:h-28 shadow-lg">
+                    <span className="text-3xl md:text-5xl font-semibold tabular-nums text-white">
+                      {String(item.val).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <span className="text-xs font-medium text-gray-600 mt-2 uppercase">
+                    {item.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="max-w-xl p-4 rounded-xl flex items-start gap-3 bg-blue-50 border border-blue-100">
+              <p className="text-sm font-medium leading-relaxed text-gray-700">
+                {targetDesc}
+              </p>
+            </div>
+
+            <a
+              href="/user/calendar"
+              className="inline-flex items-center justify-center px-6 py-3 mt-6
+              bg-blue-600 text-white hover:bg-blue-700
+              rounded-xl font-medium text-base transition-colors gap-2 shadow-md"
+            >
+              เปิดดูปฏิทินกิจกรรม
+              <ChevronRight size={18} />
+            </a>
+          </div>
+
+          {/* Right: Upcoming Exams List (1/3) */}
+          <div className="lg:col-span-1 bg-gray-50 p-6 border-l border-gray-200">
+            <div className="flex items-center gap-2 mb-4">
+              <Calendar className="text-blue-600" size={20} />
+              <h2 className="text-lg font-semibold text-gray-800">
+                กำหนดการถัดไป
+              </h2>
+            </div>
+            <p className="text-sm text-gray-500 mb-4">
+              {upcomingExams.length} รายการที่กำลังจะมาถึง
+            </p>
+
+            <div className="space-y-3 max-h-[500px] overflow-y-auto">
+              {upcomingExams.length > 0 ? (
+                upcomingExams.slice(0, 4).map((exam, index) => (
+                  <UpcomingExamCard key={exam.id} exam={exam} index={index} />
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-400">
+                  <CheckCircle2 className="mx-auto mb-2" size={32} />
+                  <p className="text-sm">ไม่มีกำหนดการถัดไป</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -272,6 +252,7 @@ const Page = () => {
   const [loadingNews, setLoadingNews] = useState(true);
   const [bookmarkIds, setBookmarkIds] = useState<number[]>([]);
   const [upcomingExams, setUpcomingExams] = useState<any[]>([]);
+  const [todayExams, setTodayExams] = useState<any[]>([]);
 
   const handleBookmarkToggle = async (articleId: number) => {
     try {
@@ -320,47 +301,92 @@ const Page = () => {
 
       if (resSched.ok) {
         const data = await resSched.json();
-        // แก้ไขในฟังก์ชัน fetchData
         const allExams = data
           .filter(
             (item: any) => item.is_public === true || item.is_public === 1,
           )
           .map((item: any) => {
-            // สร้าง Date Object จาก string ที่ได้มา
-            const dateObj = new Date(item.start_time);
-            // บังคับให้เป็นเวลา 00:00:00.000 (เที่ยงคืนตรง) ของวันนั้น
-            dateObj.setHours(0, 0, 0, 0);
+            const startObj = new Date(item.start_time);
+            startObj.setHours(0, 0, 0, 0);
+
+            const endObj = item.end_time ? new Date(item.end_time) : new Date(item.start_time);
+            endObj.setHours(23, 59, 59, 999);
+
             return {
               ...item,
-              targetStamp: dateObj.getTime(), // ใช้ Timestamp ที่เป็นเที่ยงคืนแล้ว
+              targetStamp: startObj.getTime(),
+              endStamp: endObj.getTime(),
             };
           })
           .sort((a: any, b: any) => a.targetStamp - b.targetStamp);
-        const examToday = allExams.find(
-          (exam: any) => new Date(exam.targetStamp).toDateString() === todayStr,
+
+        // เช็กว่ามีกำหนดการที่กำลังดำเนินการอยู่ไหม (now อยู่ระหว่าง start - end)
+        const ongoingExam = allExams.find(
+          (exam: any) => now >= exam.targetStamp && now <= exam.endStamp,
         );
-        if (examToday) {
-          setTargetDate(examToday.targetStamp);
-          setTargetTitle(examToday.title);
+
+        if (ongoingExam) {
+          // กรณีกำลังอยู่ในช่วงกำหนดการ
+          setTargetDate(ongoingExam.endStamp); // countdown ถึงวันสิ้นสุด
+          setTargetTitle(ongoingExam.title);
           setTargetDesc(
-            examToday.description || "เข้าร่วมการทดสอบตามกำหนดการวันนี้",
+            ongoingExam.description || "กำหนดการนี้กำลังดำเนินการอยู่",
           );
-          const remaining = allExams.filter(
-            (e: any) => e.id !== examToday.id && e.targetStamp > now,
-          );
-          setUpcomingExams(remaining.slice(0, 4));
-        } else {
+          setTodayExams([ongoingExam]);
+
           const futureExams = allExams.filter(
-            (exam: any) => exam.targetStamp > now,
+            (e: any) => e.targetStamp > now,
           );
-          if (futureExams.length > 0) {
-            setTargetDate(futureExams[0].targetStamp);
-            setTargetTitle(futureExams[0].title);
-            setTargetDesc(
-              futureExams[0].description ||
-                "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง",
+          setUpcomingExams(futureExams.slice(0, 4));
+        } else {
+          const examToday = allExams.find(
+            (exam: any) => new Date(exam.targetStamp).toDateString() === todayStr,
+          );
+
+          if (examToday) {
+            // หาว่ามีกำหนดการอื่นในวันเดียวกันไหม
+            const allTodayExams = allExams.filter(
+              (exam: any) => new Date(exam.targetStamp).toDateString() === todayStr,
             );
-            setUpcomingExams(futureExams.slice(1, 5));
+
+            setTargetDate(examToday.targetStamp);
+            setTargetTitle(examToday.title);
+            setTargetDesc(
+              examToday.description || "เข้าร่วมการทดสอบตามกำหนดการวันนี้",
+            );
+            setTodayExams(allTodayExams);
+
+            const remaining = allExams.filter(
+              (e: any) => new Date(e.targetStamp).toDateString() !== todayStr && e.targetStamp > now,
+            );
+            setUpcomingExams(remaining.slice(0, 4));
+          } else {
+            const futureExams = allExams.filter(
+              (exam: any) => exam.targetStamp > now,
+            );
+            if (futureExams.length > 0) {
+              const firstExam = futureExams[0];
+              const firstExamDateStr = new Date(firstExam.targetStamp).toDateString();
+
+              // หาทุกกำหนดการที่อยู่ในวันเดียวกับกำหนดการแรก
+              const sameDay = futureExams.filter(
+                (exam: any) => new Date(exam.targetStamp).toDateString() === firstExamDateStr,
+              );
+
+              setTargetDate(firstExam.targetStamp);
+              setTargetTitle(firstExam.title);
+              setTargetDesc(
+                firstExam.description ||
+                  "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง",
+              );
+              setTodayExams(sameDay); // เก็บทุกรายการในวันเดียวกัน
+
+              // upcoming เอาเฉพาะที่ไม่ใช่วันเดียวกัน
+              const remaining = futureExams.filter(
+                (e: any) => new Date(e.targetStamp).toDateString() !== firstExamDateStr,
+              );
+              setUpcomingExams(remaining.slice(0, 4));
+            }
           }
         }
       }
@@ -403,9 +429,24 @@ const Page = () => {
 
       if (distance <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+        setTimeout(() => {
+          if (upcomingExams.length > 0) {
+            const nextExam = upcomingExams[0];
+            setTargetDate(nextExam.targetStamp);
+            setTargetTitle(nextExam.title);
+            setTargetDesc(
+              nextExam.description ||
+                "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง"
+            );
+            setUpcomingExams((prev) => prev.slice(1));
+          } else {
+            fetchData();
+          }
+        }, 2000);
+
         clearInterval(timer);
       } else {
-        // ใช้สูตรคำนวณที่เข้าใจง่ายและลดโอกาสพลาดเรื่องเศษส่วน
         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
         const hours = Math.floor(
           (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
@@ -418,7 +459,8 @@ const Page = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [targetDate]);
+  }, [targetDate, upcomingExams, fetchData]);
+
   const isExamStarted = targetDate && Date.now() >= targetDate;
 
   return (
@@ -432,10 +474,12 @@ const Page = () => {
             targetDesc={targetDesc}
             timeLeft={timeLeft}
             isExamStarted={isExamStarted}
+            upcomingExams={upcomingExams}
+            todayExams={todayExams}
           />
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
-              <LayoutGrid className="text-blue-600" size={28} />{" "}
+              <LayoutGrid className="text-blue-600" size={28} />
               ข่าวสารและประกาศ
             </h2>
           </div>
@@ -476,7 +520,6 @@ const Page = () => {
                       Number(news.article_id),
                     )}
                     onBookmark={() => {
-                      // ไม่ต้องรับ e เพราะตัวลูก (NewsCard) จัดการ stopPropagation ให้แล้ว
                       handleBookmarkToggle(Number(news.article_id));
                     }}
                   />
@@ -485,7 +528,7 @@ const Page = () => {
             ) : (
               <div className="col-span-full py-20 bg-white rounded-[3rem] text-center border-2 border-dashed border-gray-200">
                 <Bookmark className="mx-auto text-gray-200 mb-4" size={60} />
-                <p className="text-gray-400 font-bold text-xl">
+                <p className="text-gray-400 font-semibold text-xl">
                   ไม่พบข้อมูลข่าวสารในขณะนี้
                 </p>
               </div>
@@ -499,3 +542,5 @@ const Page = () => {
 };
 
 export default Page;
+
+

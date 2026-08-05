@@ -144,18 +144,18 @@ const PharmacistDashboard = () => {
     return (
       <>
         <Navbar_user />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md text-center">
-            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold text-gray-800 mb-2">
-              โหลดข้อมูลไม่สำเร็จ
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full border border-red-200">
+            <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-gray-800 text-center mb-2">
+              เกิดข้อผิดพลาด
             </h2>
-            <p className="text-gray-500 text-sm mb-6">{error}</p>
+            <p className="text-gray-600 text-center mb-6">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="bg-indigo-600 text-white px-6 py-2 rounded-xl hover:bg-indigo-700 transition"
+              className="w-full bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition-colors font-medium"
             >
-              ลองใหม่อีกครั้ง
+              ลองอีกครั้ง
             </button>
           </div>
         </div>
@@ -281,8 +281,8 @@ const PharmacistDashboard = () => {
                 icon: <FileText className="w-6 h-6 text-blue-600" />,
                 bg: "bg-blue-100",
                 value: data?.stats.total_exams,
-                label: "ข้อสอบที่ทำ",
-                badge: "ทั้งหมด",
+                label: "จำนวนข้อสอบที่ทำไปแล้ว",
+                badge: "จำนวนชุดทั้งหมด",
                 badgeClass: "text-gray-500 bg-gray-100",
                 valueClass: "text-gray-800",
               },
@@ -290,8 +290,8 @@ const PharmacistDashboard = () => {
                 icon: <CheckCircle className="w-6 h-6 text-green-600" />,
                 bg: "bg-green-100",
                 value: data?.stats.passed_exams,
-                label: "ผ่านเกณฑ์",
-                badge: `${passRate}%`,
+                label: "จำนวนชุดข้อสอบที่ผ่านเกณฑ์",
+                badge: `คิดเป็น ${passRate}%`,
                 badgeClass: "text-green-700 bg-green-100",
                 valueClass: "text-green-600",
               },
@@ -299,7 +299,7 @@ const PharmacistDashboard = () => {
                 icon: <Star className="w-6 h-6 text-yellow-600" />,
                 bg: "bg-yellow-100",
                 value: data?.stats.average_score,
-                label: "คะแนนเฉลี่ย",
+                label: "คะแนนเฉลี่ยรวม",
                 badge: "เฉลี่ย",
                 badgeClass: "text-gray-500 bg-gray-100",
                 valueClass: "text-yellow-600",
@@ -308,8 +308,8 @@ const PharmacistDashboard = () => {
                 icon: <Clock className="w-6 h-6 text-purple-600" />,
                 bg: "bg-purple-100",
                 value: formatStudyTime(data?.stats.study_minutes),
-                label: "เวลาที่ทำข้อสอบ",
-                badge: "สะสม",
+                label: "เวลาสะสมที่ทำข้อสอบ",
+                badge: "ใช้ไปแล้ว",
                 badgeClass: "text-purple-700 bg-purple-100",
                 valueClass: "text-purple-600 text-2xl",
               },
@@ -320,14 +320,14 @@ const PharmacistDashboard = () => {
               >
                 <div className="flex items-center justify-between mb-4">
                   <div className={`${bg} p-3 rounded-xl`}>{icon}</div>
-                  <span className={`text-xs font-medium px-3 py-1 rounded-full ${badgeClass}`}>
+                  <span className={`text-sm font-medium px-3 py-1 rounded-full ${badgeClass}`}>
                     {badge}
                   </span>
                 </div>
                 {loading ? (
                   <Skeleton className="h-9 w-24 mb-1" />
                 ) : (
-                  <p className={`font-medium mb-1 ${valueClass} ${typeof value === 'string' && value.length > 8 ? 'text-xl' : 'text-3xl'}`}>
+                  <p className={`font-medium mb-1 ${valueClass} ${typeof value === 'string' && value.length > 8 ? 'text-2xl' : 'text-3xl'}`}>
                     {value ?? "—"}
                   </p>
                 )}

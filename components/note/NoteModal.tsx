@@ -105,13 +105,13 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
+    <div className="fixed inset-0 bg-gray-900/60 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200">
 
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <div>
-            <h3 className="text-lg font-bold text-slate-800">{isNew ? "สร้างบันทึกใหม่" : "แก้ไขบันทึก"}</h3>
+            <h3 className="text-lg font-medium text-slate-800">{isNew ? "สร้างบันทึกใหม่" : "แก้ไขบันทึก"}</h3>
             <p className="text-xs text-slate-500">รวบรวมเนื้อหาสำคัญสำหรับการสอบ</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
@@ -122,7 +122,7 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
         {/* Body */}
         <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
               <Type className="w-4 h-4 text-indigo-500" /> หัวข้อบันทึก
             </label>
             <input
@@ -134,7 +134,7 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
               <AlignLeft className="w-4 h-4 text-indigo-500" /> เนื้อหาโดยสรุป
             </label>
             <textarea
@@ -147,7 +147,7 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
               <Tag className="w-4 h-4 text-indigo-500" /> ป้ายกำกับ
             </label>
             <input
@@ -159,7 +159,7 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+            <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
               <FileText className="w-4 h-4 text-indigo-500" /> เอกสารแนบ
             </label>
 
@@ -222,13 +222,13 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
         {/* Footer */}
         <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-3">
           {!isNew && (
-            <button onClick={() => onDelete(formData.id)} className="flex items-center justify-center gap-2 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl font-semibold text-sm transition-colors">
+            <button onClick={() => onDelete(formData.id)} className="flex items-center justify-center gap-2 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl font-medium text-sm transition-colors">
               <Trash2 className="w-4 h-4" /> ลบบันทึก
             </button>
           )}
           <div className="flex-grow"></div>
-          <button onClick={onClose} className="px-6 py-2.5 text-slate-600 hover:bg-slate-200 rounded-xl font-semibold text-sm transition-colors">ยกเลิก</button>
-          <button onClick={handleSave} className="flex items-center justify-center gap-2 px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg active:scale-95 transition-all">
+          <button onClick={onClose} className="px-6 py-2.5 text-slate-600 hover:bg-slate-200 rounded-xl font-medium text-sm transition-colors">ยกเลิก</button>
+          <button onClick={handleSave} className="flex items-center justify-center gap-2 px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-sm shadow-lg active:scale-95 transition-all">
             <Save className="w-4 h-4" /> บันทึกข้อมูล
           </button>
         </div>
