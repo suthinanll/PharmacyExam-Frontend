@@ -62,6 +62,13 @@ function formatTime(seconds: number): string {
   return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }
 
+function stripHTML(html: string): string {
+  if (typeof window === 'undefined') return html;
+  const tmp = document.createElement('DIV');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+}
+
 // ==================== BEAKER COMPONENT ====================
 function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
   theta: number;
@@ -818,7 +825,7 @@ export default function CATExamPage() {
                           </p>
                         )}
                         <p className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base">
-                          {session.current_item.situation.situation_text}
+                          {stripHTML(session.current_item.situation.situation_text)}
                         </p>
                         {session.current_item.situation.situation_image_url && (
                           <img
@@ -855,7 +862,7 @@ export default function CATExamPage() {
 
                       {/* Question text */}
                       <p className="text-base lg:text-lg text-gray-800 leading-relaxed font-medium whitespace-pre-wrap">
-                        {session.current_item.question_text}
+                        {stripHTML(session.current_item.question_text)}
                       </p>
                       {session.current_item.question_image_url && (
                         <div className="mt-4">
@@ -900,7 +907,7 @@ export default function CATExamPage() {
                               </span>
 
                               <span className="text-gray-800 text-sm lg:text-base leading-relaxed">
-                                {option.option_text}
+                                {stripHTML(option.option_text)}
                               </span>
                             </button>
                           );

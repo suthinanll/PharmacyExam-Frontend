@@ -16,6 +16,10 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight as PageNext,
+  Target,
+  XCircle,
+  Clock,
+  ChevronDown,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
@@ -61,16 +65,30 @@ type CatExam = {
   id: number;
   name: string;
   totalQuestions: number;
+  correctCount: number;
   theta: number;
   status: "ระดับสูง" | "ปานกลาง" | "ต้องปรับปรุง";
   date: string;
+  responses?: Array<{
+    questionNumber: number;
+    isCorrect: boolean;
+    thetaAfter: number;
+    timeSpent: number;
+  }>;
+};
+
+type ChartPoint = {
+  date: string;
+  theta: number;
+  examName: string;
+  type: "CAT" | "Classical";
 };
 
 type StudentProgress = {
   studentId: number;
   currentTheta: number;
   totalExams: number;
-  chart: Array<{ attempt: string; theta: number }>;
+  chart: ChartPoint[];
   normalExams: NormalExam[];
   catExams: CatExam[];
 };
@@ -87,9 +105,12 @@ export default function StudentTrackingPage() {
   const [students, setStudents] = useState<Student[]>([]);
   const [meta, setMeta] = useState(emptyMeta);
   const [searchQuery, setSearchQuery] = useState("");
+  const [dateFilter, setDateFilter] = useState<"all" | "week" | "month" | "3months">("all");
+  const [alphabetFilter, setAlphabetFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<"CAT" | "NORMAL">("CAT");
+  const [expandedCatExam, setExpandedCatExam] = useState<number | null>(null);
   const [activeData, setActiveData] = useState<StudentProgress | null>(null);
   const [isStudentsLoading, setIsStudentsLoading] = useState(false);
   const [isProgressLoading, setIsProgressLoading] = useState(false);
@@ -118,6 +139,14 @@ export default function StudentTrackingPage() {
 
       if (searchQuery.trim()) {
         params.set("search", searchQuery.trim());
+      }
+
+      if (alphabetFilter !== "all") {
+        params.set("alphabet", alphabetFilter);
+      }
+
+      if (dateFilter !== "all") {
+        params.set("dateFilter", dateFilter);
       }
 
       const response = await fetch(`${API_URL}/admin/students?${params.toString()}`, {
@@ -159,7 +188,7 @@ export default function StudentTrackingPage() {
     } finally {
       setIsStudentsLoading(false);
     }
-  }, [authHeaders, page, searchQuery]);
+  }, [authHeaders, page, searchQuery, alphabetFilter, dateFilter]);
 
   const loadProgress = useCallback(
     async (studentId: number) => {
@@ -177,6 +206,17 @@ export default function StudentTrackingPage() {
         }
 
         const result: StudentProgress = await response.json();
+
+        // Debug logs
+        console.log("📊 [Student Progress] Full Response:", result);
+        console.log("🎯 [CAT Exams] Count:", result.catExams?.length || 0, "Items:", result.catExams);
+        console.log("📚 [Normal Exams] Count:", result.normalExams?.length || 0, "Items:", result.normalExams);
+        console.log("📈 [Chart Data] Count:", result.chart?.length || 0, "Items:", result.chart);
+        console.log("🎓 [Current Theta]:", result.currentTheta);
+        console.log("🔢 [Total Exams]:", result.totalExams);
+        console.log("🔗 [API URL]:", `${API_URL}/admin/students/${studentId}/progress`);
+        console.log("📦 [Raw Response]:", JSON.stringify(result, null, 2));
+
         setActiveData(result);
       } catch (err) {
         setActiveData(null);
@@ -240,6 +280,7 @@ export default function StudentTrackingPage() {
           
           {/* ฝั่งซ้าย: แผงรายชื่อผู้เรียน */}
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-4 order-1">
+            {/* Search bar */}
             <div className="relative">
               <Search className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
               <input
@@ -252,6 +293,64 @@ export default function StudentTrackingPage() {
                 }}
                 className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
               />
+            </div>
+
+            {/* Filter options */}
+            <div className="space-y-3 pb-3 border-b border-gray-100">
+              {/* Alphabet filter */}
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">ตัวอักษร</label>
+                <div className="flex gap-1 flex-wrap">
+                  <button
+                    onClick={() => { setAlphabetFilter("all"); setPage(1); }}
+                    className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
+                      alphabetFilter === "all"
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    ทั้งหมด
+                  </button>
+                  {["ก-ฉ", "ช-ฎ", "ฏ-ณ", "ด-ฟ", "ภ-ฮ", "A-M", "N-Z"].map((range) => (
+                    <button
+                      key={range}
+                      onClick={() => { setAlphabetFilter(range); setPage(1); }}
+                      className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${
+                        alphabetFilter === range
+                          ? "bg-green-600 text-white"
+                          : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      {range}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Date filter */}
+              <div>
+                <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">ทำข้อสอบล่าสุด</label>
+                <div className="flex gap-2">
+                  {[
+                    { value: "all", label: "ทั้งหมด" },
+                    { value: "week", label: "7 วัน" },
+                    { value: "month", label: "30 วัน" },
+                    { value: "3months", label: "90 วัน" }
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setDateFilter(opt.value as typeof dateFilter); setPage(1); }}
+                      className={`flex-1 py-1.5 px-2 text-xs font-medium rounded-lg transition-all ${
+                        dateFilter === opt.value
+                          ? "bg-green-600 text-white"
+                          : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* กล่องรายชื่อนักเรียนแบบเลื่อนได้ */}
@@ -339,7 +438,7 @@ export default function StudentTrackingPage() {
               <div className="relative space-y-4 sm:space-y-6">
                 {isProgressLoading && (
                   <div className="absolute inset-0 z-20 bg-white/70 backdrop-blur-[1px] rounded-2xl flex items-start justify-center pt-24">
-                    <div className="flex items-center gap-3 bg-white border border-gray-100 shadow-sm rounded-2xl px-5 py-3 text-sm font-bold text-gray-600 shadow-lg">
+                    <div className="flex items-center gap-3 bg-white border border-gray-100 rounded-2xl px-5 py-3 text-sm font-bold text-gray-600 shadow-lg">
                       <Loader2 className="w-5 h-5 animate-spin text-green-600" />
                       กำลังดึงข้อมูลผลการเรียน...
                     </div>
@@ -381,24 +480,86 @@ export default function StudentTrackingPage() {
                     </div>
                     <h3 className="text-xs sm:text-sm font-bold text-gray-800">ไทม์ไลน์การเติบโตระดับความเข้าใจ (IRT Theta)</h3>
                   </div>
-                  <div className="h-44 sm:h-48 w-full">
+                  <div className="h-56 sm:h-64 w-full">
                     {activeData.chart.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={activeData.chart} margin={{ top: 5, right: 5, left: -28, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#fcfcfc" />
-                          <XAxis dataKey="attempt" tick={{ fill: "#9CA3AF", fontSize: 9 }} axisLine={false} />
-                          <YAxis domain={[-3, 3]} tick={{ fill: "#9CA3AF", fontSize: 9 }} axisLine={false} />
-                          <Tooltip formatter={(value: number) => [value, "ระดับ Theta"]} />
-                          <ReferenceLine y={0} stroke="#E5E7EB" />
-                          <Line type="monotone" dataKey="theta" stroke="#10B981" strokeWidth={2.5} dot={{ fill: "#10B981", r: 3.5 }} />
+                        <LineChart data={activeData.chart} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
+                          <XAxis
+                            dataKey="date"
+                            tick={{ fill: "#9CA3AF", fontSize: 10 }}
+                            axisLine={false}
+                            angle={-45}
+                            textAnchor="end"
+                            height={60}
+                          />
+                          <YAxis domain={[-3, 3]} tick={{ fill: "#9CA3AF", fontSize: 10 }} axisLine={false} />
+                          <Tooltip
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0].payload;
+                                return (
+                                  <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-lg">
+                                    <p className="text-xs font-bold text-gray-800 mb-1">{data.examName}</p>
+                                    <p className="text-xs text-gray-500 mb-1">{data.date}</p>
+                                    <p className="text-xs">
+                                      <span className={`font-bold ${data.type === "CAT" ? "text-blue-600" : "text-emerald-600"}`}>
+                                        {data.type}
+                                      </span>
+                                      {" • Theta: "}
+                                      <span className="font-bold">{data.theta.toFixed(2)}</span>
+                                    </p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <ReferenceLine y={0} stroke="#E5E7EB" strokeDasharray="3 3" />
+                          <Line
+                            type="monotone"
+                            dataKey="theta"
+                            stroke="#3B82F6"
+                            strokeWidth={2.5}
+                            dot={(props: any) => {
+                              const { cx, cy, payload, index } = props;
+                              const color = payload.type === "CAT" ? "#3B82F6" : "#10B981";
+                              return (
+                                <circle
+                                  key={`dot-${index}-${payload.date}`}
+                                  cx={cx}
+                                  cy={cy}
+                                  r={4}
+                                  fill={color}
+                                  stroke="#fff"
+                                  strokeWidth={2}
+                                />
+                              );
+                            }}
+                            name="Theta"
+                          />
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
                       <div className="h-full flex items-center justify-center text-xs text-gray-400">
-                        ยังไม่มีประวัติ Theta จากการสอบ CAT
+                        ยังไม่มีประวัติ Theta จากการสอบ
                       </div>
                     )}
                   </div>
+
+                  {/* Legend */}
+                  {activeData.chart.length > 0 && (
+                    <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                        <span className="text-xs text-gray-600">CAT</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
+                        <span className="text-xs text-gray-600">Classical</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* แท็บสลับประเภทบาร์คะแนนสอบ (ปรับขนาด Font ให้เล็กลงบน Mobile) */}
@@ -434,40 +595,100 @@ export default function StudentTrackingPage() {
                       activeData.catExams.length === 0 ? (
                         <p className="text-xs text-gray-400 text-center py-8">ไม่มีประวัติสอบ CAT ของผู้เรียนรายนี้</p>
                       ) : (
-                        activeData.catExams.map((exam, index) => (
-                          <div key={exam.id} className="space-y-2.5">
-                            {index > 0 && <hr className="border-gray-100/70 my-2" />}
-                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 text-xs">
-                              <span className="font-bold text-gray-800 break-words">
-                                {exam.name} <span className="font-normal text-gray-400 block sm:inline">({exam.totalQuestions} ข้อ)</span>
-                              </span>
-                              <span className={`font-black px-2 py-0.5 rounded-md text-[11px] self-start sm:self-auto whitespace-nowrap ${getStatusColor(exam.status)}`}>
-                                Theta: {exam.theta > 0 ? `+${exam.theta}` : exam.theta} ({exam.status})
-                              </span>
-                            </div>
-                            <div className="relative w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-                              <div className="absolute inset-0 flex">
-                                <div className="w-1/3 h-full bg-red-400/10 border-r border-dashed border-gray-200" />
-                                <div className="w-1/3 h-full bg-amber-400/10 border-r border-dashed border-gray-200" />
-                                <div className="w-1/3 h-full bg-emerald-400/10" />
+                        activeData.catExams.map((exam, index) => {
+                          const isExpanded = expandedCatExam === exam.id;
+                          const accuracy = exam.totalQuestions > 0
+                            ? ((exam.correctCount / exam.totalQuestions) * 100).toFixed(1)
+                            : "0";
+
+                          return (
+                            <div key={exam.id} className="space-y-2.5">
+                              {index > 0 && <hr className="border-gray-100/70 my-2" />}
+
+                              {/* Header with expand button */}
+                              <div
+                                className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 text-xs cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2"
+                                onClick={() => setExpandedCatExam(isExpanded ? null : exam.id)}
+                              >
+                                <span className="font-bold text-gray-800 break-words flex items-center gap-2">
+                                  {exam.name}
+                                  <span className="font-normal text-gray-400">({exam.correctCount}/{exam.totalQuestions} ข้อ • {accuracy}%)</span>
+                                  <ChevronDown
+                                    className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                  />
+                                </span>
+                                <span className={`font-black px-2 py-0.5 rounded-md text-[11px] self-start sm:self-auto whitespace-nowrap ${getStatusColor(exam.status)}`}>
+                                  Theta: {exam.theta > 0 ? `+${exam.theta.toFixed(2)}` : exam.theta.toFixed(2)} ({exam.status})
+                                </span>
                               </div>
-                              <div
-                                className="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-500"
-                                style={{ width: `${calculateThetaProgress(exam.theta)}%` }}
-                              />
-                              <div
-                                className="absolute top-1/2 h-5 w-1.5 -translate-y-1/2 rounded-full bg-gray-900 shadow-sm transition-all duration-500"
-                                style={{ left: `calc(${calculateThetaProgress(exam.theta)}% - 3px)` }}
-                              />
+
+                              {/* Progress bar */}
+                              <div className="relative w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                                <div className="absolute inset-0 flex">
+                                  <div className="w-1/3 h-full bg-red-400/10 border-r border-dashed border-gray-200" />
+                                  <div className="w-1/3 h-full bg-amber-400/10 border-r border-dashed border-gray-200" />
+                                  <div className="w-1/3 h-full bg-emerald-400/10" />
+                                </div>
+                                <div
+                                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-500"
+                                  style={{ width: `${calculateThetaProgress(exam.theta)}%` }}
+                                />
+                                <div
+                                  className="absolute top-1/2 h-5 w-1.5 -translate-y-1/2 rounded-full bg-gray-900 shadow-sm transition-all duration-500"
+                                  style={{ left: `calc(${calculateThetaProgress(exam.theta)}% - 3px)` }}
+                                />
+                              </div>
+                              <div className="flex justify-between text-[9px] text-gray-400 font-medium px-0.5">
+                                <span>ต้องปรับปรุง (&lt; -1.0)</span>
+                                <span>ปานกลาง</span>
+                                <span>ระดับสูง (&gt; 1.0)</span>
+                              </div>
+                              <p className="text-[9px] text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
+
+                              {/* Expanded responses */}
+                              {isExpanded && exam.responses && exam.responses.length > 0 && (
+                                <div className="mt-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
+                                  <h4 className="text-xs font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                    <Target className="w-3.5 h-3.5" />
+                                    การพัฒนา Theta แต่ละข้อ
+                                  </h4>
+                                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                                    {exam.responses.map((resp, idx) => (
+                                      <div
+                                        key={idx}
+                                        className="flex items-center gap-2 bg-white rounded-lg p-2 border border-gray-100 text-[10px]"
+                                      >
+                                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 font-bold">
+                                          {resp.questionNumber}
+                                        </div>
+                                        <div
+                                          className={`flex items-center justify-center w-6 h-6 rounded-full ${
+                                            resp.isCorrect
+                                              ? "bg-green-100 text-green-600"
+                                              : "bg-red-100 text-red-600"
+                                          }`}
+                                        >
+                                          {resp.isCorrect ? (
+                                            <CheckCircle className="w-3 h-3" />
+                                          ) : (
+                                            <XCircle className="w-3 h-3" />
+                                          )}
+                                        </div>
+                                        <div className="flex-1">
+                                          <span className="font-bold text-gray-700">θ = {resp.thetaAfter.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1 text-gray-500">
+                                          <Clock className="w-3 h-3" />
+                                          {resp.timeSpent}s
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            <div className="flex justify-between text-[9px] text-gray-400 font-medium px-0.5">
-                              <span>ต้องปรับปรุง (&lt; -1.0)</span>
-                              <span>ปานกลาง</span>
-                              <span>ระดับสูง (&gt; 1.0)</span>
-                            </div>
-                            <p className="text-[9px] text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
-                          </div>
-                        ))
+                          );
+                        })
                       )
                     )}
 

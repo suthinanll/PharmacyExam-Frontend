@@ -357,7 +357,7 @@ export default function CATManagement() {
                                                 if (i === 0 && page > 1) return <span key="start" className="w-10 h-10 flex items-center justify-center text-gray-400">...</span>;
                                                 if (i === 4 && page < totalPages) return <span key="end" className="w-10 h-10 flex items-center justify-center text-gray-400">...</span>;
                                                 return (
-                                                    <button key={page} onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                                                    <button key={`page-${i}-${page}`} onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                                                         className={`w-10 h-10 text-sm font-bold border rounded-xl transition-all ${page === currentPage ? 'bg-green-600 text-white border-green-600 shadow-lg shadow-green-200' : 'bg-white text-gray-600 border-gray-200 hover:border-green-600 hover:text-green-600'}`}>
                                                         {page}
                                                     </button>
