@@ -72,6 +72,14 @@ const Navbar = () => {
   // ดึงข้อมูลผู้ใช้จาก AuthContext
   const { user } = useAuth();
 
+  // 🔍 DEBUG: ตรวจสอบข้อมูล user
+  useEffect(() => {
+    console.log('=== Navbar user data ===');
+    console.log('user:', user);
+    console.log('user?.profile_picture:', user?.profile_picture);
+    console.log('=======================');
+  }, [user]);
+
   // logout
   const handleLogout = async () => {
     const result = await Swal.fire({
@@ -307,9 +315,17 @@ const Navbar = () => {
               >
                 <span className="absolute -inset-1.5"></span>
                 <span className="sr-only">Open user menu</span>
-                <div className="size-8 sm:size-9 md:size-10 rounded-full bg-white flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 ring-2 ring-green-400/30">
-                  <User className="w-4 sm:w-5 h-4 sm:h-5 text-green-600" />
-                </div>
+                {user?.profile_picture ? (
+                  <img
+                    src={user.profile_picture}
+                    alt="Profile"
+                    className="size-8 sm:size-9 md:size-10 rounded-full object-cover shadow-lg hover:shadow-xl transition-shadow duration-200 ring-2 ring-green-400/30"
+                  />
+                ) : (
+                  <div className="size-8 sm:size-9 md:size-10 rounded-full bg-white flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 ring-2 ring-green-400/30">
+                    <User className="w-4 sm:w-5 h-4 sm:h-5 text-green-600" />
+                  </div>
+                )}
               </button>
 
               {isProfileDropdownOpen && (

@@ -1,8 +1,8 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-import { LockKeyhole, Eye, EyeOff } from "lucide-react"; // แนะนำให้ลง lucide-react
+import { LockKeyhole, Eye, EyeOff, Shield, Check, X } from "lucide-react";
 
 export default function ResetPasswordPage() {
     const searchParams = useSearchParams();
@@ -12,6 +12,48 @@ export default function ResetPasswordPage() {
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
+
+    // Password Strength States
+    const [passwordStrength, setPasswordStrength] = useState({
+        minLength: false,
+        hasUpperCase: false,
+        hasLowerCase: false,
+        hasNumber: false,
+        hasSpecialChar: false,
+    });
+
+    // เช็คความแข็งแรงของรหัสผ่าน
+    useEffect(() => {
+        setPasswordStrength({
+            minLength: password.length >= 8,
+            hasUpperCase: /[A-Z]/.test(password),
+            hasLowerCase: /[a-z]/.test(password),
+            hasNumber: /[0-9]/.test(password),
+            hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+        });
+    }, [password]);
+
+    // คำนวณ Password Strength Score
+    const getPasswordScore = () => {
+        const scores = Object.values(passwordStrength).filter(Boolean).length;
+        return scores;
+    };
+
+    const getPasswordStrengthColor = () => {
+        const score = getPasswordScore();
+        if (score <= 2) return "bg-red-500";
+        if (score <= 3) return "bg-yellow-500";
+        if (score <= 4) return "bg-blue-500";
+        return "bg-green-500";
+    };
+
+    const getPasswordStrengthText = () => {
+        const score = getPasswordScore();
+        if (score <= 2) return "อ่อนแอ";
+        if (score <= 3) return "ปานกลาง";
+        if (score <= 4) return "ดี";
+        return "แข็งแรงมาก";
+    };
 
     const handleReset = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -25,11 +67,14 @@ export default function ResetPasswordPage() {
         }
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ token, newPassword: password }),
-            });
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`,
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token, newPassword: password }),
+                },
+            );
 
             const data = await res.json();
             if (res.ok) {
@@ -54,20 +99,23 @@ export default function ResetPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4"
+        <div
+            className="min-h-screen flex items-center justify-center bg-slate-50 px-4"
             style={{
                 backgroundImage: " url('/bg-login.png')",
-                backgroundSize: 'cover',
-                backgroundPosition: 'center'
-            }}>
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+            }}
+        >
             <div className="bg-white shadow-2xs rounded-2xl p-8 w-full max-w-md border border-white/60 backdrop-blur-sm relative overflow-hidden">
-
                 <div className="relative">
                     <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-6 text-green-600 shadow-inner">
                         <LockKeyhole size={32} />
                     </div>
 
-                    <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-2">ตั้งรหัสผ่านใหม่</h1>
+                    <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-2">
+                        ตั้งรหัสผ่านใหม่
+                    </h1>
                     <p className="text-center text-gray-500 text-sm mb-8">
                         กรุณากำหนดรหัสผ่านใหม่ที่ปลอดภัยและจำได้ง่าย
                     </p>
@@ -94,11 +142,30 @@ export default function ResetPasswordPage() {
                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
                             </div>
+                            {password && (
+                                <div className="space-y-2 mt-4">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full transition-all duration-300 ${getPasswordStrengthColor()}`}
+                                                style={{ width: `${(getPasswordScore() / 5) * 100}%` }}
+                                            ></div>
+                                        </div>
+                                        <span
+                                            className={`text-xs font-medium ${getPasswordScore() < 4 ? "text-red-600" : "text-green-600"}`}
+                                        >
+                                            {getPasswordStrengthText()}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* ยืนยันรหัสผ่าน */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-700 ml-1">ยืนยันรหัสผ่านอีกครั้ง</label>
+                            <label className="text-sm font-medium text-gray-700 ml-1">
+                                ยืนยันรหัสผ่านอีกครั้ง
+                            </label>
                             <input
                                 type={showPassword ? "text" : "password"}
                                 className="w-full border border-gray-200 rounded-2xl px-4 py-3.5 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm hover:border-gray-300"
@@ -107,6 +174,37 @@ export default function ResetPasswordPage() {
                                 onChange={(e) => setConfirmPassword(e.target.value)}
                                 required
                             />
+                        </div>
+                        {/* Password Checklist */}
+                        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                            <div className="flex items-center gap-2 mb-3">
+                                <Shield className="w-4 h-4 text-gray-600" />
+                                <p className="text-xs font-semibold text-gray-700">
+                                    ความปลอดภัยของรหัสผ่าน
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <ChecklistItem
+                                    checked={passwordStrength.minLength}
+                                    text="ความยาวอย่างน้อย 8 ตัวอักษร"
+                                />
+                                <ChecklistItem
+                                    checked={passwordStrength.hasUpperCase}
+                                    text="มีตัวอักษรพิมพ์ใหญ่ (A-Z)"
+                                />
+                                <ChecklistItem
+                                    checked={passwordStrength.hasLowerCase}
+                                    text="มีตัวอักษรพิมพ์เล็ก (a-z)"
+                                />
+                                <ChecklistItem
+                                    checked={passwordStrength.hasNumber}
+                                    text="มีตัวเลข (0-9)"
+                                />
+                                <ChecklistItem
+                                    checked={passwordStrength.hasSpecialChar}
+                                    text="มีอักขระพิเศษ (!@#$%...)"
+                                />
+                            </div>
                         </div>
 
                         {/* ข้อความแจ้งเตือนเล็กๆ */}
@@ -125,6 +223,29 @@ export default function ResetPasswordPage() {
                     </form>
                 </div>
             </div>
+        </div>
+    );
+}
+
+// Component สำหรับ Checklist Item
+function ChecklistItem({ checked, text }: { checked: boolean; text: string }) {
+    return (
+        <div className="flex items-center gap-2">
+            <div
+                className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${checked ? "bg-green-500" : "bg-gray-300"
+                    }`}
+            >
+                {checked ? (
+                    <Check className="w-3 h-3 text-white" />
+                ) : (
+                    <X className="w-3 h-3 text-gray-500" />
+                )}
+            </div>
+            <span
+                className={`text-xs ${checked ? "text-green-700 font-medium" : "text-gray-600"}`}
+            >
+                {text}
+            </span>
         </div>
     );
 }
