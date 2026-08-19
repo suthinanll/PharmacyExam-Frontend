@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 "use client"
 import Navbar_user from "@/components/Navbar_user"
+import NavbarGuest from "@/components/Navbar_guest"
 import Footer from "@/components/Footer"
 import SearchBar from "@/components/SearchBar"
 import { useState, useEffect } from "react"
@@ -9,6 +10,7 @@ import { useRouter } from "next/navigation"
 import { Loader2, BookOpen, Clock } from "lucide-react"
 import Swal from "sweetalert2"
 import { useAuth } from '@/contexts/AuthContext'
+import { useRequireLogin } from '@/utils/requireAuth'
 
 // Types
 interface Category {
@@ -31,7 +33,8 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 
 const examset = () => {
   const router = useRouter();
-  const { getToken } = useAuth();
+  const { getToken, isAuthenticated } = useAuth();
+  const { requireLogin } = useRequireLogin();
   const [categories, setCategories] = useState<Category[]>([]);
   const [itemBanks, setItemBanks] = useState<ItemBank[]>([]);
   const [filteredBanks, setFilteredBanks] = useState<ItemBank[]>([]);
@@ -162,6 +165,12 @@ const examset = () => {
   };
 
   const handleStartExam = async (itemBankId: number, bankName: string) => {
+    // Guest: ต้อง login ก่อนถึงเริ่มทำข้อสอบได้
+    if (!isAuthenticated) {
+      requireLogin('เริ่มทำข้อสอบ');
+      return;
+    }
+
     const result = await Swal.fire({
       title: 'เริ่มทำข้อสอบ',
       html: `คุณต้องการเริ่มทำข้อสอบ<br/><strong>${bankName}</strong><br/>ใช่หรือไม่?`,
@@ -239,11 +248,19 @@ const examset = () => {
   if (loading) {
     return (
       <>
-        <Navbar_user />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600 font-medium">กำลังโหลดข้อมูล...</p>
+        {isAuthenticated ? <Navbar_user /> : <NavbarGuest />}
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-5xl mx-auto px-4 space-y-6">
+            <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+                  <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
+                  <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200" />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
         <Footer />
@@ -253,13 +270,13 @@ const examset = () => {
 
   return (
     <>
-      <Navbar_user />
+      {isAuthenticated ? <Navbar_user /> : <NavbarGuest />}
       <div className="min-h-screen bg-gray-50">
         <div className="max-w-5xl mx-auto px-4 py-8">
           <div className="max-w-7xl mx-auto">
             {/* Breadcrumb */}
             <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
-              <Link href="/user" className="hover:text-blue-600 cursor-pointer transition">
+              <Link href={isAuthenticated ? "/user" : "/"} className="hover:text-blue-600 cursor-pointer transition">
                 หน้าหลัก
               </Link>
               <span className="mx-2">›</span>
@@ -315,9 +332,14 @@ const examset = () => {
             {/* Exam List */}
             <div className="space-y-4">
               {searching ? (
-                <div className="text-center py-12">
-                  <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-4" />
-                  <p className="text-gray-500">กำลังค้นหา...</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
+                      <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+                      <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
+                      <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200" />
+                    </div>
+                  ))}
                 </div>
               ) : filteredBanks.map((bank) => (
                 <div

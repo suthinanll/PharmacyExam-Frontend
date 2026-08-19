@@ -54,3 +54,32 @@ body {
     background-position: 0% 50%;
   }
 }
+
+/* ─── Tiptap & Prose Rich Text Lists ─── */
+.prose ul, .tiptap ul, [data-type="bulletList"] {
+  list-style-type: disc !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.prose ol, .tiptap ol, [data-type="orderedList"] {
+  list-style-type: decimal !important;
+  padding-left: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.prose li, .tiptap li {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.prose blockquote, .tiptap blockquote {
+  border-left: 4px solid #10b981 !important;
+  padding-left: 1rem !important;
+  font-style: italic !important;
+  color: #4b5563 !important;
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+}

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import Navbar from "@/components/Navbar_user";
+import NavbarGuest from "@/components/Navbar_guest";
 import Footer from "@/components/Footer";
 import {
   ChevronLeft,
@@ -9,10 +10,13 @@ import {
   AlignLeft,
   X,
   Info,
+  Bookmark,
+  LogIn,
 } from "lucide-react";
 import Link from "next/link";
 import NoteList from "@/components/note/NoteList";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRequireLogin } from "@/utils/requireAuth";
 
 interface ExamSchedule {
   id: string;
@@ -79,7 +83,8 @@ const DEFAULT_STYLE = {
 const getTypeStyle = (type: string) => TYPE_EVENT_STYLES[type] || DEFAULT_STYLE;
 
 const CalenderPage = () => {
-  const { getToken } = useAuth();
+  const { getToken, isAuthenticated } = useAuth();
+  const { requireLogin } = useRequireLogin();
   const [adminSchedules, setAdminSchedules] = useState<ExamSchedule[]>([]);
   const [userNotes, setUserNotes] = useState<UserNote[]>([]);
 
@@ -112,10 +117,15 @@ const CalenderPage = () => {
   const fetchAdminSchedules = useCallback(async () => {
     try {
       const token = getToken();
-      const res = await fetch(`${API_URL}/schedules`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("ดึงข้อมูลล้มเหลว");
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const res = await fetch(`${API_URL}/schedules`, { headers });
+      if (!res.ok) {
+        console.error("fetchAdminSchedules error: status", res.status);
+        return;
+      }
       const data = await res.json();
       const formatted: ExamSchedule[] = data
         .filter((item: any) => item.is_public === true || item.is_public === 1)
@@ -352,12 +362,12 @@ const CalenderPage = () => {
 
   return (
     <>
-      <Navbar />
+      {isAuthenticated ? <Navbar /> : <NavbarGuest />}
       <div className="min-h-screen bg-gray-50 py-8 px-4">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumb */}
           <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
-            <Link href="/user" className="hover:text-emerald-600 transition">
+            <Link href={isAuthenticated ? "/user" : "/"} className="hover:text-emerald-600 transition">
               หน้าหลัก
             </Link>
             <span className="mx-2">›</span>
@@ -445,15 +455,33 @@ const CalenderPage = () => {
               </div>
             </div>
 
-            {/* ── NoteList ──────────────────────────────────────────────── */}
-            <NoteList
-              notes={userNotes}
-              onSaveNote={createNote}
-              onUpdateNote={updateNote}
-              onDeleteNote={deleteNote}
-              tagFilter={tagFilter}
-              setTagFilter={setTagFilter}
-            />
+            {/* ── NoteList (เฉพาะ user ที่ login) ──────────────────────── */}
+            {isAuthenticated ? (
+              <NoteList
+                notes={userNotes}
+                onSaveNote={createNote}
+                onUpdateNote={updateNote}
+                onDeleteNote={deleteNote}
+                tagFilter={tagFilter}
+                setTagFilter={setTagFilter}
+              />
+            ) : (
+              <div className="bg-white rounded-xl shadow-xl p-6 border border-slate-100 flex flex-col items-center justify-center text-center h-fit lg:sticky lg:top-24">
+                <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4">
+                  <Bookmark className="w-8 h-8 text-indigo-400" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800 mb-1">บันทึกสรุป</h3>
+                <p className="text-sm text-gray-500 leading-relaxed mb-5">
+                  เข้าสู่ระบบเพื่อสร้างและบันทึกโน้ตสรุปการเรียนรู้ของคุณ
+                </p>
+                <button
+                  onClick={() => requireLogin('บันทึกสรุป')}
+                  className="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition flex items-center gap-1.5"
+                >
+                  <LogIn className="w-4 h-4" /> เข้าสู่ระบบ
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

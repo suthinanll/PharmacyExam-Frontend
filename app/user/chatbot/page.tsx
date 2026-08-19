@@ -91,7 +91,6 @@ export default function ChatbotPage() {
 
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const [userId, setUserId] = useState<any>(null);
 
   const [userName, setUserName] = useState<string>("");
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -111,7 +110,6 @@ export default function ChatbotPage() {
   // 1. Get User info from AuthContext
   useEffect(() => {
     if (user?.user_id) {
-      setUserId(user.user_id);
       setUserName(`${user.first_name} ${user.last_name || ''}`.trim());
     }
   }, [user]);
@@ -124,12 +122,12 @@ export default function ChatbotPage() {
     }
   }, []);
 
-  // 2. Fetch sessions when userId is available
+  // 2. Fetch sessions when user.user_id is available
   useEffect(() => {
-    if (userId) {
+    if (user?.user_id) {
       fetchSessions();
     }
-  }, [userId]);
+  }, [user?.user_id]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -153,10 +151,11 @@ export default function ChatbotPage() {
   }, [sidebarOpen]);
 
   const fetchSessions = async () => {
-    if (!userId) return;
+    const currentUserId = user?.user_id;
+    if (!currentUserId) return;
     try {
       const token = getToken();
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/session/${userId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/session/${currentUserId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -273,6 +272,11 @@ export default function ChatbotPage() {
   };
 
   const handleSendMessage = async () => {
+    const currentUserId = user?.user_id;
+    if (!currentUserId) {
+      console.error("Cannot send message: user_id is missing");
+      return;
+    }
     if (!input.trim()) return;
 
     const userMessage: Message = {
@@ -300,13 +304,17 @@ export default function ChatbotPage() {
           "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({
-          user_id: userId,
+          user_id: currentUserId,
           session_id: currentSessionId,
           message: input
         }),
       });
 
-      if (!response.ok) throw new Error("Failed to send message");
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("SendMessage API failed:", response.status, errorText);
+        throw new Error(`Failed to send message: ${response.status} - ${errorText}`);
+      }
 
       const data = await response.json();
       console.log("SendMessage Response:", data);
@@ -749,8 +757,16 @@ export default function ChatbotPage() {
                 )}
 
                 {isMessageLoading ? (
-                  <div className="flex justify-center py-10">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                  <div className="py-6 space-y-3">
+                    {[1, 2].map((i) => (
+                      <div key={i} className="flex items-end gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+                        <div className="space-y-2 flex-1 max-w-[70%]">
+                          <div className="h-3.5 w-full animate-pulse rounded-lg bg-gray-200" />
+                          <div className="h-3.5 w-2/3 animate-pulse rounded-lg bg-gray-200" />
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   messages.length === 0 && !fetchError ? (

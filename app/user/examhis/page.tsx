@@ -5,10 +5,12 @@ import Navbar from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import Link from "next/link";
 import {
-    Loader2, Search, X, Filter, History,
+    Search, X, Filter, History,
     BookOpen, Brain, Clock, CheckCircle2, XCircle,
     ChevronRight, BarChart3, TrendingUp, CalendarDays,
+    Layers, Sparkles, Award
 } from "lucide-react";
+import PageSkeleton from "@/components/Skeleton";
 
 // ─────────────────── Types ───────────────────
 interface Category {
@@ -36,11 +38,15 @@ interface ExamRecord {
     num_correct?: number;
     passed?: boolean;
     stop_reason?: string;
+    // MST exam
+    total_items?: number;
+    total_correct?: number;
+    routing_path?: string[];
     // tag
-    examType: "NORMAL" | "CAT";
+    examType: "NORMAL" | "CAT" | "MST";
 }
 
-type TabType = "ALL" | "NORMAL" | "CAT";
+type TabType = "ALL" | "NORMAL" | "CAT" | "MST";
 type StatusFilter = "ALL" | "PASSED" | "FAILED";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -51,9 +57,11 @@ function formatDateThai(d: string) {
     const m = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
     return `${date.getDate()} ${m[date.getMonth()]} ${date.getFullYear() + 543}`;
 }
+
 function formatTime(d: string) {
     return new Date(d).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" });
 }
+
 function calcDuration(start: string, end?: string) {
     if (!end) return "—";
     const ms = new Date(end).getTime() - new Date(start).getTime();
@@ -64,8 +72,9 @@ function calcDuration(start: string, end?: string) {
         ? `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
         : `${m}:${String(s).padStart(2, "0")}`;
 }
+
 function isPassed(exam: ExamRecord): boolean {
-    if (exam.examType === "CAT") return exam.passed ?? false;
+    if (exam.examType === "CAT" || exam.examType === "MST") return exam.passed ?? false;
     return (exam.final_score ?? 0) >= 50;
 }
 
@@ -78,18 +87,33 @@ function ScoreBadge({ exam }: { exam: ExamRecord }) {
                 <div className="text-xl font-bold text-purple-700">
                     θ {theta != null ? theta.toFixed(2) : "—"}
                 </div>
-                <div className={`text-xs font-semibold mt-0.5 ${exam.passed ? "text-green-600" : "text-red-500"}`}>
+                <div className={`text-xs font-semibold mt-0.5 ${exam.passed ? "text-emerald-600" : "text-rose-500"}`}>
                     {exam.passed ? "ผ่าน" : "ไม่ผ่าน"}
                 </div>
             </div>
         );
     }
+
+    if (exam.examType === "MST") {
+        const theta = exam.final_theta;
+        return (
+            <div className="text-center">
+                <div className="text-xl font-bold text-indigo-700">
+                    θ {theta != null ? theta.toFixed(2) : "—"}
+                </div>
+                <div className={`text-xs font-semibold mt-0.5 ${exam.passed ? "text-emerald-600" : "text-rose-500"}`}>
+                    {exam.passed ? "ผ่าน" : "ไม่ผ่าน"}
+                </div>
+            </div>
+        );
+    }
+
     const pct = Math.round(exam.final_score ?? 0);
-    const color = pct >= 70 ? "text-green-700" : pct >= 50 ? "text-amber-600" : "text-red-600";
+    const color = pct >= 70 ? "text-emerald-700" : pct >= 50 ? "text-amber-600" : "text-rose-600";
     return (
         <div className="text-center">
             <div className={`text-xl font-bold ${color}`}>{pct}%</div>
-            <div className={`text-xs font-semibold mt-0.5 ${pct >= 50 ? "text-green-600" : "text-red-500"}`}>
+            <div className={`text-xs font-semibold mt-0.5 ${pct >= 50 ? "text-emerald-600" : "text-rose-500"}`}>
                 {pct >= 50 ? "ผ่าน" : "ไม่ผ่าน"}
             </div>
         </div>
@@ -102,20 +126,73 @@ function StatBar({ records }: { records: ExamRecord[] }) {
     const passed = records.filter(isPassed).length;
     const normal = records.filter((r) => r.examType === "NORMAL").length;
     const cat = records.filter((r) => r.examType === "CAT").length;
+    const mst = records.filter((r) => r.examType === "MST").length;
+
+    const stats = [
+        {
+            title: "ทั้งหมด",
+            value: total,
+            description: "รอบการสอบ",
+            icon: <History className="w-5 h-5" />,
+            iconBg: "bg-slate-100 text-slate-700",
+            valColor: "text-gray-900",
+        },
+        {
+            title: "สอบผ่าน",
+            value: passed,
+            description: total > 0 ? `${Math.round((passed / total) * 100)}% อัตราผ่าน` : "0% อัตราผ่าน",
+            icon: <CheckCircle2 className="w-5 h-5" />,
+            iconBg: "bg-emerald-100 text-emerald-600",
+            valColor: "text-emerald-600",
+        },
+        {
+            title: "สอบปกติ",
+            value: normal,
+            description: "ชุดข้อสอบมาตรฐาน",
+            icon: <BookOpen className="w-5 h-5" />,
+            iconBg: "bg-blue-100 text-blue-600",
+            valColor: "text-blue-600",
+        },
+        {
+            title: "สอบ CAT",
+            value: cat,
+            description: "Adaptive รายข้อ",
+            icon: <Brain className="w-5 h-5" />,
+            iconBg: "bg-purple-100 text-purple-600",
+            valColor: "text-purple-600",
+        },
+        {
+            title: "สอบ MST",
+            value: mst,
+            description: "Adaptive รายด่าน",
+            icon: <Layers className="w-5 h-5" />,
+            iconBg: "bg-indigo-100 text-indigo-600",
+            valColor: "text-indigo-600",
+        },
+    ];
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            {[
-                { label: "ทั้งหมด", value: total, icon: <History size={18} />, color: "bg-slate-100 text-slate-700" },
-                { label: "ผ่าน", value: passed, icon: <CheckCircle2 size={18} />, color: "bg-green-50 text-green-700" },
-                { label: "สอบปกติ", value: normal, icon: <BookOpen size={18} />, color: "bg-blue-50 text-blue-700" },
-                { label: "สอบ CAT", value: cat, icon: <Brain size={18} />, color: "bg-purple-50 text-purple-700" },
-            ].map((s) => (
-                <div key={s.label} className={`rounded-xl px-4 py-3 flex items-center gap-3 ${s.color}`}>
-                    {s.icon}
-                    <div>
-                        <div className="text-2xl font-bold leading-none">{s.value}</div>
-                        <div className="text-xs mt-0.5 opacity-70">{s.label}</div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 mb-6">
+            {stats.map((s) => (
+                <div
+                    key={s.title}
+                    className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md flex flex-col justify-between"
+                >
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                            {s.title}
+                        </span>
+                        <div className={`p-2.5 rounded-xl flex items-center justify-center ${s.iconBg}`}>
+                            {s.icon}
+                        </div>
+                    </div>
+                    <div className="mt-2.5">
+                        <div className={`text-2xl sm:text-3xl font-black tracking-tight ${s.valColor}`}>
+                            {s.value}
+                        </div>
+                        <div className="text-[11px] font-medium text-gray-400 mt-0.5">
+                            {s.description}
+                        </div>
                     </div>
                 </div>
             ))}
@@ -129,6 +206,7 @@ export default function ExamHistoryPage() {
 
     const [normalRecords, setNormalRecords] = useState<ExamRecord[]>([]);
     const [catRecords, setCatRecords] = useState<ExamRecord[]>([]);
+    const [mstRecords, setMstRecords] = useState<ExamRecord[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -148,14 +226,18 @@ export default function ExamHistoryPage() {
         Promise.allSettled([
             fetch(`${API_URL}/items-bank/exam/history?exam_type=NORMAL`, { headers }).then((r) => r.json()),
             fetch(`${API_URL}/cat/history`, { headers }).then((r) => r.json()),
+            fetch(`${API_URL}/mst/history`, { headers }).then((r) => r.json()),
             fetch(`${API_URL}/items-bank/exam/categories`, { headers }).then((r) => r.json()),
         ])
-            .then(([normalRes, catRes, catRes2]) => {
+            .then(([normalRes, catRes, mstRes, catRes2]) => {
                 if (normalRes.status === "fulfilled" && Array.isArray(normalRes.value)) {
                     setNormalRecords(normalRes.value.map((d: any) => ({ ...d, examType: "NORMAL" as const })));
                 }
                 if (catRes.status === "fulfilled" && Array.isArray(catRes.value)) {
                     setCatRecords(catRes.value.map((d: any) => ({ ...d, examType: "CAT" as const })));
+                }
+                if (mstRes.status === "fulfilled" && Array.isArray(mstRes.value)) {
+                    setMstRecords(mstRes.value.map((d: any) => ({ ...d, examType: "MST" as const })));
                 }
                 if (catRes2.status === "fulfilled" && Array.isArray(catRes2.value)) {
                     setCategories(catRes2.value);
@@ -163,20 +245,21 @@ export default function ExamHistoryPage() {
             })
             .catch(() => setError("ไม่สามารถโหลดประวัติการสอบได้"))
             .finally(() => setLoading(false));
-    }, []);
+    }, [getToken]);
 
     // ── Combine + Filter ──
     const allRecords = useMemo(() => {
-        return [...normalRecords, ...catRecords].sort(
+        return [...normalRecords, ...catRecords, ...mstRecords].sort(
             (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
         );
-    }, [normalRecords, catRecords]);
+    }, [normalRecords, catRecords, mstRecords]);
 
     const filtered = useMemo(() => {
         let src: ExamRecord[] =
             activeTab === "ALL" ? allRecords
                 : activeTab === "NORMAL" ? normalRecords
-                    : catRecords;
+                    : activeTab === "CAT" ? catRecords
+                        : mstRecords;
 
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
@@ -188,11 +271,12 @@ export default function ExamHistoryPage() {
         if (selectedCats.length > 0) {
             src = src.filter((r) =>
                 r.examType === "CAT" ||
+                r.examType === "MST" ||
                 r.categories?.some((c) => selectedCats.includes(c.category_id))
             );
         }
         return src;
-    }, [allRecords, normalRecords, catRecords, activeTab, searchQuery, statusFilter, selectedCats]);
+    }, [allRecords, normalRecords, catRecords, mstRecords, activeTab, searchQuery, statusFilter, selectedCats]);
 
     const hasFilter = searchQuery || statusFilter !== "ALL" || selectedCats.length > 0;
 
@@ -209,12 +293,7 @@ export default function ExamHistoryPage() {
     if (loading) return (
         <>
             <Navbar />
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
-                    <p className="text-gray-500 font-medium">กำลังโหลดประวัติการสอบ...</p>
-                </div>
-            </div>
+            <PageSkeleton variant="list" stats={5} />
             <Footer />
         </>
     );
@@ -224,12 +303,12 @@ export default function ExamHistoryPage() {
             <Navbar />
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
                 <div className="text-center max-w-sm bg-white rounded-2xl shadow p-8">
-                    <XCircle className="w-14 h-14 text-red-400 mx-auto mb-4" />
+                    <XCircle className="w-14 h-14 text-rose-400 mx-auto mb-4" />
                     <h2 className="text-xl font-bold text-gray-800 mb-2">เกิดข้อผิดพลาด</h2>
                     <p className="text-gray-500 mb-5">{error}</p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-medium transition"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-medium transition"
                     >
                         ลองใหม่
                     </button>
@@ -247,52 +326,65 @@ export default function ExamHistoryPage() {
 
                     {/* Breadcrumb */}
                     <div className="flex items-center text-sm text-gray-400 mb-5 gap-1">
-                        <Link href="/user" className="hover:text-green-600 transition">หน้าหลัก</Link>
+                        <Link href="/user" className="hover:text-emerald-600 transition">หน้าหลัก</Link>
                         <ChevronRight size={14} />
                         <span className="text-gray-700 font-medium">ประวัติการสอบ</span>
                     </div>
 
                     {/* Header */}
                     <div className="flex items-center gap-3 mb-6">
-                        <div className="w-11 h-11 bg-green-100 rounded-xl flex items-center justify-center">
-                            <History className="text-green-600" size={22} />
+                        <div className="w-11 h-11 bg-emerald-100 rounded-xl flex items-center justify-center">
+                            <History className="text-emerald-600" size={22} />
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900">ประวัติการสอบ</h1>
-                            <p className="text-sm text-gray-400">ประวัติการทำข้อสอบทั้งหมดของคุณ</p>
+                            <p className="text-sm text-gray-400">ประวัติการทำข้อสอบทั้งหมดของคุณ (ปกติ, CAT, และ MST)</p>
                         </div>
                     </div>
 
-                    {/* Stats */}
+                    {/* Stats Summary Bar */}
                     <StatBar records={allRecords} />
 
                     {/* Tabs */}
-                    <div className="flex bg-white rounded-xl shadow-sm border border-gray-100 p-1 mb-5 gap-1">
+                    <div className="flex bg-white rounded-2xl shadow-sm border border-gray-100 p-1.5 mb-5 gap-1">
                         {([
-                            { key: "ALL", label: "ทั้งหมด", count: allRecords.length },
-                            { key: "NORMAL", label: "สอบปกติ", count: normalRecords.length },
-                            { key: "CAT", label: "CAT Adaptive", count: catRecords.length },
-                        ] as { key: TabType; label: string; count: number }[]).map((t) => (
-                            <button
-                                key={t.key}
-                                onClick={() => { setActiveTab(t.key); clearFilters(); }}
-                                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${activeTab === t.key
-                                    ? "bg-green-600 text-white shadow-sm"
-                                    : "text-gray-500 hover:bg-gray-50"
+                            { key: "ALL", label: "ทั้งหมด", count: allRecords.length, icon: null },
+                            { key: "NORMAL", label: "สอบปกติ", count: normalRecords.length, icon: BookOpen },
+                            { key: "CAT", label: "CAT (รายข้อ)", count: catRecords.length, icon: Brain },
+                            { key: "MST", label: "MST (รายด่าน)", count: mstRecords.length, icon: Layers },
+                        ] as { key: TabType; label: string; count: number; icon: any }[]).map((t) => {
+                            const IconComp = t.icon;
+                            const isSelected = activeTab === t.key;
+                            return (
+                                <button
+                                    key={t.key}
+                                    onClick={() => { setActiveTab(t.key); clearFilters(); }}
+                                    className={`flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                                        isSelected
+                                            ? t.key === "CAT"
+                                                ? "bg-purple-600 text-white shadow-sm"
+                                                : t.key === "MST"
+                                                ? "bg-indigo-600 text-white shadow-sm"
+                                                : t.key === "NORMAL"
+                                                ? "bg-blue-600 text-white shadow-sm"
+                                                : "bg-emerald-600 text-white shadow-sm"
+                                            : "text-gray-500 hover:bg-gray-50"
                                     }`}
-                            >
-                                {t.key === "NORMAL" && <BookOpen size={14} />}
-                                {t.key === "CAT" && <Brain size={14} />}
-                                {t.label}
-                                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${activeTab === t.key ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>
-                                    {t.count}
-                                </span>
-                            </button>
-                        ))}
+                                >
+                                    {IconComp && <IconComp size={14} />}
+                                    <span>{t.label}</span>
+                                    <span className={`text-[11px] px-1.5 py-0.5 rounded-full font-bold ${
+                                        isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
+                                    }`}>
+                                        {t.count}
+                                    </span>
+                                </button>
+                            );
+                        })}
                     </div>
 
                     {/* Search + Filter bar */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-5">
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-5">
                         <div className="flex gap-3">
                             <div className="relative flex-1">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -301,7 +393,7 @@ export default function ExamHistoryPage() {
                                     placeholder="ค้นหาชื่อชุดข้อสอบ..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-9 pr-9 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent"
+                                    className="w-full pl-9 pr-9 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                                 />
                                 {searchQuery && (
                                     <button
@@ -314,10 +406,11 @@ export default function ExamHistoryPage() {
                             </div>
                             <button
                                 onClick={() => setShowFilter(!showFilter)}
-                                className={`px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-all ${showFilter || hasFilter
-                                    ? "bg-green-600 text-white"
-                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                    }`}
+                                className={`px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-all ${
+                                    showFilter || hasFilter
+                                        ? "bg-emerald-600 text-white"
+                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                }`}
                             >
                                 <Filter size={16} />
                                 <span className="hidden sm:inline">ตัวกรอง</span>
@@ -340,12 +433,13 @@ export default function ExamHistoryPage() {
                                             <button
                                                 key={s}
                                                 onClick={() => setStatusFilter(s)}
-                                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${statusFilter === s
-                                                    ? s === "PASSED" ? "bg-green-600 text-white"
-                                                        : s === "FAILED" ? "bg-red-500 text-white"
-                                                            : "bg-gray-800 text-white"
-                                                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                                    }`}
+                                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                                                    statusFilter === s
+                                                        ? s === "PASSED" ? "bg-emerald-600 text-white"
+                                                            : s === "FAILED" ? "bg-rose-500 text-white"
+                                                                : "bg-gray-800 text-white"
+                                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                                }`}
                                             >
                                                 {s === "ALL" ? "ทั้งหมด" : s === "PASSED" ? "✅ ผ่าน" : "❌ ไม่ผ่าน"}
                                             </button>
@@ -356,16 +450,17 @@ export default function ExamHistoryPage() {
                                 {/* Category */}
                                 {categories.length > 0 && (activeTab === "NORMAL" || activeTab === "ALL") && (
                                     <div>
-                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">ประเภท</p>
+                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">หมวดวิชา</p>
                                         <div className="flex flex-wrap gap-2">
                                             {categories.map((c) => (
                                                 <button
                                                     key={c.category_id}
                                                     onClick={() => toggleCat(c.category_id)}
-                                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${selectedCats.includes(c.category_id)
-                                                        ? "bg-indigo-600 text-white"
-                                                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                                        }`}
+                                                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                                                        selectedCats.includes(c.category_id)
+                                                            ? "bg-indigo-600 text-white"
+                                                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                                    }`}
                                                 >
                                                     {c.category_name}
                                                 </button>
@@ -378,9 +473,9 @@ export default function ExamHistoryPage() {
                                     <div className="flex justify-end">
                                         <button
                                             onClick={clearFilters}
-                                            className="text-sm text-red-500 hover:text-red-600 font-medium flex items-center gap-1"
+                                            className="text-sm text-rose-500 hover:text-rose-600 font-medium flex items-center gap-1"
                                         >
-                                            <X size={14} /> ล้างทั้งหมด
+                                            <X size={14} /> ล้างตัวกรองทั้งหมด
                                         </button>
                                     </div>
                                 )}
@@ -403,7 +498,7 @@ export default function ExamHistoryPage() {
                                     <p className="text-gray-600 font-medium mb-4">ไม่พบผลลัพธ์ที่ตรงกัน</p>
                                     <button
                                         onClick={clearFilters}
-                                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-medium text-sm transition"
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-medium text-sm transition"
                                     >
                                         ล้างตัวกรอง
                                     </button>
@@ -411,10 +506,10 @@ export default function ExamHistoryPage() {
                             ) : (
                                 <>
                                     <BarChart3 className="w-14 h-14 text-gray-300 mx-auto mb-4" />
-                                    <p className="text-gray-600 font-medium mb-4">ยังไม่มีประวัติการสอบ</p>
+                                    <p className="text-gray-600 font-medium mb-4">ยังไม่มีประวัติการสอบในหมวดหมู่นี้</p>
                                     <Link
                                         href="/user/examset"
-                                        className="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-xl font-medium text-sm transition"
+                                        className="inline-block bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-medium text-sm transition"
                                     >
                                         เริ่มทำข้อสอบ
                                     </Link>
@@ -426,36 +521,70 @@ export default function ExamHistoryPage() {
                             {filtered.map((exam) => {
                                 const passed = isPassed(exam);
                                 const isCAT = exam.examType === "CAT";
+                                const isMST = exam.examType === "MST";
+
                                 const title = isCAT
-                                    ? "การสอบแบบ CAT (Adaptive)"
-                                    : exam.item_bank_name || "ไม่ระบุชื่อ";
+                                    ? "การสอบแบบ CAT (Adaptive รายข้อ)"
+                                    : isMST
+                                    ? exam.item_bank_name || "การสอบแบบ MST (Adaptive รายด่าน)"
+                                    : exam.item_bank_name || "ชุดข้อสอบมาตรฐาน";
 
                                 return (
                                     <div
                                         key={`${exam.examType}-${exam.session_id}`}
-                                        className={`bg-white rounded-xl shadow-sm border-l-4 transition-all hover:shadow-md ${passed ? "border-green-400" : "border-red-400"
-                                            }`}
+                                        className={`bg-white rounded-2xl shadow-sm border-l-4 transition-all hover:shadow-md ${
+                                            passed ? "border-emerald-500" : "border-rose-400"
+                                        }`}
                                     >
                                         <div className="p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                                            
                                             {/* Icon */}
-                                            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${isCAT ? "bg-purple-100" : "bg-blue-100"}`}>
-                                                {isCAT
-                                                    ? <Brain className="text-purple-600" size={20} />
-                                                    : <BookOpen className="text-blue-600" size={20} />
-                                                }
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
+                                                isCAT
+                                                    ? "bg-purple-100 text-purple-600"
+                                                    : isMST
+                                                    ? "bg-indigo-100 text-indigo-600"
+                                                    : "bg-blue-100 text-blue-600"
+                                            }`}>
+                                                {isCAT ? (
+                                                    <Brain size={22} />
+                                                ) : isMST ? (
+                                                    <Layers size={22} />
+                                                ) : (
+                                                    <BookOpen size={22} />
+                                                )}
                                             </div>
 
                                             {/* Main info */}
                                             <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <h3 className="font-bold text-gray-900 text-base truncate">{title}</h3>
-                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex-shrink-0 ${isCAT ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>
-                                                        {isCAT ? "CAT" : "NORMAL"}
+                                                <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                                                    <h3 className="font-bold text-gray-900 text-base truncate">
+                                                        {title}
+                                                    </h3>
+                                                    <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase shrink-0 ${
+                                                        isCAT
+                                                            ? "bg-purple-100 text-purple-700"
+                                                            : isMST
+                                                            ? "bg-indigo-100 text-indigo-700"
+                                                            : "bg-blue-100 text-blue-700"
+                                                    }`}>
+                                                        {isCAT ? "CAT Adaptive" : isMST ? "MST Adaptive" : "NORMAL"}
                                                     </span>
                                                 </div>
 
-                                                {/* Categories */}
-                                                {exam.categories && exam.categories.length > 0 && (
+                                                {/* Routing Path (for MST) */}
+                                                {isMST && exam.routing_path && exam.routing_path.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1 mb-2">
+                                                        {exam.routing_path.map((path, idx) => (
+                                                            <span key={idx} className="text-[11px] px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-medium border border-slate-200">
+                                                                {path}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Categories (for Normal) */}
+                                                {!isCAT && !isMST && exam.categories && exam.categories.length > 0 && (
                                                     <div className="flex flex-wrap gap-1.5 mb-2">
                                                         {exam.categories.map((c) => (
                                                             <span key={c.category_id} className="text-[11px] px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded font-medium border border-indigo-100">
@@ -478,13 +607,19 @@ export default function ExamHistoryPage() {
                                                         </span>
                                                     )}
                                                     {isCAT && exam.num_items != null && (
-                                                        <span className="flex items-center gap-1 text-purple-500 font-medium">
+                                                        <span className="flex items-center gap-1 text-purple-600 font-medium">
                                                             <TrendingUp size={12} />
                                                             {exam.num_items} ข้อ · {exam.num_correct}/{exam.num_items} ถูก
                                                         </span>
                                                     )}
-                                                    {!isCAT && exam.total_questions != null && (
-                                                        <span className="flex items-center gap-1 text-blue-500 font-medium">
+                                                    {isMST && exam.total_items != null && (
+                                                        <span className="flex items-center gap-1 text-indigo-600 font-medium">
+                                                            <TrendingUp size={12} />
+                                                            {exam.total_items} ข้อ · {exam.total_correct}/{exam.total_items} ถูก
+                                                        </span>
+                                                    )}
+                                                    {!isCAT && !isMST && exam.total_questions != null && (
+                                                        <span className="flex items-center gap-1 text-blue-600 font-medium">
                                                             {exam.correct_count ?? 0}/{exam.total_questions} ถูก
                                                         </span>
                                                     )}
@@ -492,17 +627,27 @@ export default function ExamHistoryPage() {
                                             </div>
 
                                             {/* Score + Action */}
-                                            <div className="flex items-center gap-4 sm:gap-5 flex-shrink-0">
+                                            <div className="flex items-center gap-4 sm:gap-5 shrink-0">
                                                 <div className="min-w-[64px]">
                                                     <ScoreBadge exam={exam} />
                                                 </div>
                                                 <Link
-                                                    href={isCAT
-                                                        ? `/user/cat-exam/result/${exam.session_id}`
-                                                        : `/user/examset/take-exam/summarize-exam?session_id=${exam.session_id}`}
-                                                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap"
+                                                    href={
+                                                        isCAT
+                                                            ? `/user/cat-exam/result/${exam.session_id}`
+                                                            : isMST
+                                                            ? `/user/mst-exam/result/${exam.session_id}`
+                                                            : `/user/examset/take-exam/summarize-exam?session_id=${exam.session_id}`
+                                                    }
+                                                    className={`px-4 py-2 text-white text-sm font-semibold rounded-xl transition-all shadow-xs hover:shadow-md whitespace-nowrap ${
+                                                        isCAT
+                                                            ? "bg-purple-600 hover:bg-purple-700"
+                                                            : isMST
+                                                            ? "bg-indigo-600 hover:bg-indigo-700"
+                                                            : "bg-emerald-600 hover:bg-emerald-700"
+                                                    }`}
                                                 >
-                                                    ดูผล →
+                                                    ดูผลสอบ →
                                                 </Link>
                                             </div>
                                         </div>

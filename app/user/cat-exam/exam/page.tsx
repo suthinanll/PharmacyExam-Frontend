@@ -21,6 +21,7 @@ interface CATItem {
     option_id: number;
     option_text: string;
     is_correct: boolean;
+    option_image_url?: string;
   }>;
   situation?: {
     situation_id: number;
@@ -647,10 +648,16 @@ function CATExamPageContent() {
     return (
       <>
         <Navbar_user />
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
-            <p className="text-gray-600 font-medium">กำลังเริ่มการสอบ CAT...</p>
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-4xl mx-auto px-4 space-y-6">
+            <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+              <div className="h-5 w-3/4 animate-pulse rounded bg-gray-200" />
+              <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
+              ))}
+            </div>
           </div>
         </div>
         <Footer />
@@ -806,7 +813,7 @@ function CATExamPageContent() {
               ) : (
                 <>
                   {/* STEP 1: Situation */}
-                  {session.current_item.situation && (
+                  {session.current_item.situation && ((session.current_item.situation.situation_text && session.current_item.situation.situation_text.replace(/<[^>]*>/g, '').trim() !== '') || (session.current_item.situation.situation_image_url && session.current_item.situation.situation_image_url.trim() !== '') || (session.current_item.situation.situation_title && session.current_item.situation.situation_title.trim() !== '')) && (
                     <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
                       <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-2">
                         <BookOpen className="w-4 h-4 text-blue-600" />
@@ -923,10 +930,32 @@ function CATExamPageContent() {
                                 {label}
                               </span>
 
-                              <span
-                                className="text-gray-800 text-sm lg:text-base leading-relaxed"
-                                dangerouslySetInnerHTML={{ __html: option.option_text }}
-                              />
+                              <div className="flex-1 text-left">
+                                {option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' && (
+                                  <span
+                                    className="text-gray-800 text-sm lg:text-base leading-relaxed block"
+                                    dangerouslySetInnerHTML={{ __html: option.option_text }}
+                                  />
+                                )}
+                                {option.option_image_url && option.option_image_url.trim() !== '' && (
+                                  <div className={option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' ? "mt-2" : ""}>
+                                    <img
+                                      src={option.option_image_url.startsWith("http")
+                                        ? option.option_image_url
+                                        : `${process.env.NEXT_PUBLIC_API_URL}${option.option_image_url}`}
+                                      alt={`ตัวเลือก ${label}`}
+                                      className="max-h-40 rounded-lg border border-gray-200 bg-white cursor-pointer hover:opacity-90 transition-opacity object-contain"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const url = option.option_image_url!.startsWith("http")
+                                          ? option.option_image_url!
+                                          : `${process.env.NEXT_PUBLIC_API_URL}${option.option_image_url}`;
+                                        setPreviewImage(url);
+                                      }}
+                                    />
+                                  </div>
+                                )}
+                              </div>
                             </button>
                           );
                         })}
@@ -1019,9 +1048,14 @@ function CATExamPageContent() {
       {/* Loading Overlay */}
       {loading && session && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100]">
-          <div className="bg-white rounded-2xl p-6 text-center shadow-2xl">
-            <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-3" />
-            <p className="text-gray-700 font-medium">กำลังคำนวณข้อถัดไปเพื่อคุณ...</p>
+          <div className="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-md mx-4">
+            <div className="space-y-3">
+              <div className="h-5 w-3/4 animate-pulse rounded bg-gray-200" />
+              <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
+              <div className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
+              <div className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
+              <div className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
+            </div>
           </div>
         </div>
       )}
@@ -1057,10 +1091,14 @@ function CATExamPageContent() {
 export default function CATExamPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
-          <p className="text-gray-600 font-medium">กำลังเริ่มการสอบ CAT...</p>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 space-y-6">
+          <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
+            ))}
+          </div>
         </div>
       </div>
     }>

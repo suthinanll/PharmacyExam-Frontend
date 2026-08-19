@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar_user';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 interface NewsDetail {
     article_id: number;
@@ -51,9 +52,13 @@ const NewsDetailPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-            </div>
+            <>
+                <Navbar />
+                <div className="bg-gray-50 min-h-[70vh] flex items-center justify-center">
+                    <LoadingSpinner text="กำลังโหลดรายละเอียดข่าว..." size="lg" />
+                </div>
+                <Footer />
+            </>
         );
     }
 

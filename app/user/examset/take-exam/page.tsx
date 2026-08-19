@@ -8,11 +8,14 @@ import Swal from 'sweetalert2';
 import { Loader2, BookOpen, Clock, AlertCircle, ListCheck, X, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
+import ImagePreviewModal from '@/components/ImagePreviewModal';
+
 // Types
 interface AnswerOption {
     option_id: number;
     option_text: string;
     is_correct: boolean;
+    option_image_url?: string;
 }
 
 interface SubTopic {
@@ -154,27 +157,33 @@ function TakeExam() {
                 const data = await response.json();
                 setItemBank(data);
 
-                // Sort questions strictly by Situation Order and then Question Order
+                // Sort questions by their actual display_order in item_bank_items
+                // For questions with a situation: use the situation's first item display_order
+                // For standalone questions: use the item's own display_order
+                // Both values are from item_bank_items table → same scale → correct ordering
                 const sortedQuestions = (data.items || []).sort(
                     (a: Question, b: Question) => {
-                        // 1. Get numeric orders
-                        const sitOrderA = Number(a.situation?.display_order ?? 0);
-                        const sitOrderB = Number(b.situation?.display_order ?? 0);
-
-                        // 2. Compare Situation display_order
-                        if (sitOrderA !== sitOrderB) {
-                            return sitOrderA - sitOrderB;
+                        // Standalone items (no situation) sort purely by their own display_order
+                        if (!a.situation && !b.situation) {
+                            return Number(a.display_order || 0) - Number(b.display_order || 0);
                         }
 
-                        // 3. If situation display_order is same, MUST group by situation_id
-                        // to prevent questions from different situations with same order from interleaving
-                        const sitIdA = a.situation?.situation_id ?? 0;
-                        const sitIdB = b.situation?.situation_id ?? 0;
+                        // If one has situation and one doesn't, sort by display_order directly
+                        // (both display_order values are from item_bank_items — same scale)
+                        if (!a.situation || !b.situation) {
+                            return Number(a.display_order || 0) - Number(b.display_order || 0);
+                        }
+
+                        // Both have situations: group by situation first
+                        const sitIdA = a.situation.situation_id;
+                        const sitIdB = b.situation.situation_id;
+
                         if (sitIdA !== sitIdB) {
-                            return sitIdA - sitIdB;
+                            // Sort situations by the item's display_order (first item in each group)
+                            return Number(a.display_order || 0) - Number(b.display_order || 0);
                         }
 
-                        // 4. Finally sort by question display_order within that group
+                        // Same situation: sort by question display_order within the group
                         return Number(a.display_order || 0) - Number(b.display_order || 0);
                     },
                 );
@@ -401,10 +410,17 @@ function TakeExam() {
         return (
             <>
                 <Navbar_user />
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-                        <p className="text-gray-600 font-medium">กำลังโหลดข้อสอบ...</p>
+                <div className="min-h-screen bg-gray-50 py-8">
+                    <div className="max-w-4xl mx-auto px-4 space-y-6">
+                        <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+                            <div className="h-5 w-3/4 animate-pulse rounded bg-gray-200" />
+                            <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
+                            ))}
+                            <div className="h-12 w-full animate-pulse rounded-xl bg-gray-300" />
+                        </div>
                     </div>
                 </div>
                 <Footer />
@@ -571,10 +587,32 @@ function TakeExam() {
                                                         {['ก', 'ข', 'ค', 'ง', 'จ'][index] || String.fromCharCode(65 + index)}
                                                     </span>
 
-                                                    <span 
-                                                        className="text-gray-800 text-sm lg:text-base leading-relaxed"
-                                                        dangerouslySetInnerHTML={{ __html: option.option_text }}
-                                                    />
+                                                    <div className="flex-1 text-left">
+                                                        {option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' && (
+                                                            <span 
+                                                                className="text-gray-800 text-sm lg:text-base leading-relaxed block"
+                                                                dangerouslySetInnerHTML={{ __html: option.option_text }}
+                                                            />
+                                                        )}
+                                                        {option.option_image_url && option.option_image_url.trim() !== '' && (
+                                                            <div className={option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' ? "mt-2" : ""}>
+                                                                <img
+                                                                    src={option.option_image_url.startsWith("http")
+                                                                        ? option.option_image_url
+                                                                        : `${process.env.NEXT_PUBLIC_API_URL}${option.option_image_url}`}
+                                                                    alt={`ตัวเลือก ${['ก', 'ข', 'ค', 'ง', 'จ'][index] || index + 1}`}
+                                                                    className="max-h-40 rounded-lg border border-gray-200 bg-white cursor-pointer hover:opacity-90 transition-opacity object-contain"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        const url = option.option_image_url!.startsWith("http")
+                                                                            ? option.option_image_url!
+                                                                            : `${process.env.NEXT_PUBLIC_API_URL}${option.option_image_url}`;
+                                                                        setPreviewImage(url);
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </button>
                                             );
                                         })}
@@ -630,32 +668,50 @@ function TakeExam() {
                                         <h3 className="text-sm font-semibold text-gray-700">เลือกข้อ</h3>
                                     </div>
                                     <div className="grid grid-cols-7 gap-2 max-h-96 overflow-y-auto p-1">
-                                        {questions.map((q, index) => (
-                                            <div key={q.item_id} className="relative">
-                                                <button
-                                                    onClick={() => goToQuestionByIndex(index)}
-                                                    disabled={submitting}
-                                                    className={`w-full aspect-square rounded-lg font-medium text-sm transition-all ${currentQuestionIndex === index
-                                                        ? "bg-green-500 text-white ring-2 ring-green-300"
-                                                        : answers[q.item_id] !== undefined
-                                                            ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                                        } ${submitting ? "opacity-50 cursor-not-allowed" : ""}`}
-                                                >
-                                                    {index + 1}
-                                                </button>
-                                                {flaggedQuestions[q.item_id] && (
-                                                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-white text-[9px] text-white font-black shadow-sm animate-in zoom-in-50 duration-200">
-                                                        ★
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
+                                        {questions.map((q, index) => {
+                                            const isActive = currentQuestionIndex === index;
+                                            const isAnswered = answers[q.item_id] !== undefined;
+
+                                            // แสดง ring เฉพาะข้อที่อยู่ใน situation เดียวกับข้อปัจจุบัน
+                                            const currentSituationId = questions[currentQuestionIndex]?.situation?.situation_id;
+                                            const isInCurrentSituationGroup =
+                                                currentSituationId !== undefined &&
+                                                q.situation?.situation_id === currentSituationId;
+
+                                            const bgClass = isActive
+                                                ? "bg-green-500 text-white"
+                                                : isAnswered
+                                                    ? "bg-green-100 text-green-700 hover:bg-green-200"
+                                                    : "bg-gray-100 text-gray-700 hover:bg-gray-200";
+
+                                            const ringClass = isActive
+                                                ? "ring-2 ring-green-300"
+                                                : isInCurrentSituationGroup
+                                                    ? "ring-2 ring-green-500 ring-offset-1"
+                                                    : "";
+
+                                            return (
+                                                <div key={q.item_id} className="relative">
+                                                    <button
+                                                        onClick={() => goToQuestionByIndex(index)}
+                                                        disabled={submitting}
+                                                        title={q.situation ? `สถานการณ์เดียวกัน` : undefined}
+                                                        className={`w-full aspect-square rounded-lg font-medium text-sm transition-all ${bgClass} ${ringClass} ${submitting ? "opacity-50 cursor-not-allowed" : ""}`}
+                                                    >
+                                                        {index + 1}
+                                                    </button>
+                                                    {flaggedQuestions[q.item_id] && (
+                                                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-white text-[9px] text-white font-black shadow-sm animate-in zoom-in-50 duration-200">
+                                                            ★
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
-                                {/* Legend */}
-                                <div className="mb-6 text-xs flex flex-wrap items-center gap-4 justify-center">
+                                <div className="mb-6 text-xs flex flex-wrap items-center gap-x-4 gap-y-2 justify-center">
                                     <div className="flex items-center gap-2">
                                         <div className="w-4 h-4 bg-green-500 rounded"></div>
                                         <span className="text-gray-600">ข้อปัจจุบัน</span>
@@ -671,6 +727,10 @@ function TakeExam() {
                                     <div className="flex items-center gap-1.5">
                                         <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-amber-600/10 text-[9px] text-white font-bold">★</span>
                                         <span className="text-gray-600">ทบทวน</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-4 h-4 bg-gray-100 rounded ring-2 ring-green-500 ring-offset-1"></div>
+                                        <span className="text-gray-600">มีสถานการณ์</span>
                                     </div>
                                 </div>
 
@@ -762,8 +822,15 @@ function TakeExam() {
 export default function TakeExamPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto" />
+            <div className="min-h-screen bg-gray-50 py-8">
+                <div className="max-w-4xl mx-auto px-4 space-y-6">
+                    <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
+                        ))}
+                    </div>
+                </div>
             </div>
         }>
             <TakeExam />

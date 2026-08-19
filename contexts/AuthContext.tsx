@@ -68,11 +68,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const login = async (token: string, userData?: User) => {
+    const login = async (token: string, userData?: any) => {
         localStorage.setItem('access_token', token);
         if (userData) {
-            // Set user immediately from login response — no extra roundtrip needed
-            setUser(userData);
+            // Normalize userData to ensure both id and user_id are set correctly
+            const normalizedUser = {
+                ...userData,
+                user_id: userData.user_id ?? userData.id,
+                id: userData.id ?? userData.user_id,
+            };
+            setUser(normalizedUser);
             setIsLoading(false);
         } else {
             await fetchUser();
@@ -98,13 +103,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         }
 
-        // Clear all auth-related localStorage keys
+        // Clear all auth-related storage keys
         localStorage.removeItem('access_token');
         localStorage.removeItem('user'); // Remove old/stale user key if exists
         localStorage.removeItem('last_active_session_id'); // Clear chatbot session
+        sessionStorage.removeItem('token'); // Remove old/stale session key if exists
 
         setUser(null);
-        router.push('/login');
+        router.push('/'); // หลังออกจากระบบ → กลับไปหน้าแรก (guest homepage)
     };
 
     const refreshUser = async () => {

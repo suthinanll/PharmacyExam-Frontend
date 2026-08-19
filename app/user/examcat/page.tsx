@@ -1275,10 +1275,13 @@ export default function PharmacyCATSystem() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center h-96">
-              <div className="text-center">
-                <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-lg text-gray-600">กำลังคำนวณข้อสอบถัดไป...</p>
+            <div className="p-6">
+              <div className="bg-green-50 rounded-2xl p-6 space-y-4">
+                <div className="h-5 w-3/4 animate-pulse rounded bg-gray-200" />
+                <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-14 w-full animate-pulse rounded-xl bg-gray-200" />
+                ))}
               </div>
             </div>
           ) : (

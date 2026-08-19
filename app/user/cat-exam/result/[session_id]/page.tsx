@@ -11,21 +11,29 @@ import {
     ComposedChart,
     Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
-import { CheckCircle2, XCircle, HelpCircle, BookOpen, Info, Loader2, Award, Target, AlertTriangle, BarChart3, ClipboardList, RefreshCw } from "lucide-react";
+import { CheckCircle2, XCircle, HelpCircle, BookOpen, Info, Award, Target, AlertTriangle, BarChart3, ClipboardList, RefreshCw } from "lucide-react";
 
 // ==================== TYPES ====================
+import ImagePreviewModal from '@/components/ImagePreviewModal';
+
 interface Response {
     item_id: number;
+    question_number: number;
+    theta_estimate: number;
+    sem: number;
     is_correct: boolean;
-    theta_before: number;
-    theta_after: number;
-    se_after: number;
+    theta_before?: number;
+    theta_after?: number;
+    se_after?: number;
+    response_time_ms?: number;
+    response_time_seconds?: number;
     selected_option_id: number;
-    response_time_ms: number;
+    topic_name: string;
+    sub_topic_name: string;
     question_text: string;
     explanation: string;
     situation?: { situation_text: string; situation_image_url?: string };
-    answer_options: Array<{ option_id: number; option_text: string; is_correct: boolean }>;
+    answer_options: Array<{ option_id: number; option_text: string; is_correct: boolean; option_image_url?: string }>;
     irt_a: number | null;
     irt_b: number | null;
     irt_c: number | null;
@@ -291,6 +299,7 @@ export default function CATResultPage() {
     const [loading, setLoading] = useState(true);
     const [result, setResult] = useState<CATResult | null>(null);
     const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     useEffect(() => {
         if (sessionId) fetchResult();
@@ -337,10 +346,22 @@ export default function CATResultPage() {
         return (
             <>
                 <Navbar_user />
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
-                        <p className="text-gray-600 font-medium">กำลังโหลดผลการสอบ...</p>
+                <div className="min-h-screen bg-gray-50 py-8">
+                    <div className="max-w-4xl mx-auto px-4 space-y-6">
+                        <div className="h-8 w-56 animate-pulse rounded-lg bg-gray-200" />
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-2">
+                                    <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
+                                    <div className="h-8 w-2/3 animate-pulse rounded bg-gray-200" />
+                                </div>
+                            ))}
+                        </div>
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
+                            <div className="h-4 w-1/3 animate-pulse rounded bg-gray-200" />
+                            <div className="h-3.5 w-full animate-pulse rounded bg-gray-200" />
+                            <div className="h-3.5 w-5/6 animate-pulse rounded bg-gray-200" />
+                        </div>
                     </div>
                 </div>
                 <Footer />
@@ -550,7 +571,29 @@ export default function CATResultPage() {
                                                 else if (correct) { cls = "border-green-400 bg-green-50/40"; icon = <CheckCircle2 className="text-green-400 shrink-0" size={18} />; }
                                                 return (
                                                     <div key={opt.option_id} className={`p-3 rounded-xl border-2 flex items-center gap-2 ${cls}`}>
-                                                        <span className="flex-1 text-sm">{opt.option_text}</span>
+                                                        <div className="flex-1 text-sm">
+                                                            {opt.option_text && opt.option_text.replace(/<[^>]*>/g, '').trim() !== '' && (
+                                                                <span>{opt.option_text}</span>
+                                                            )}
+                                                            {opt.option_image_url && opt.option_image_url.trim() !== '' && (
+                                                                <div className={opt.option_text && opt.option_text.replace(/<[^>]*>/g, '').trim() !== '' ? "mt-2" : ""}>
+                                                                    <img
+                                                                        src={opt.option_image_url.startsWith("http")
+                                                                            ? opt.option_image_url
+                                                                            : `${process.env.NEXT_PUBLIC_API_URL}${opt.option_image_url}`}
+                                                                        alt="option image"
+                                                                        className="max-h-32 rounded-lg border border-gray-200 bg-white cursor-pointer hover:opacity-90 transition-opacity object-contain"
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            const url = opt.option_image_url!.startsWith("http")
+                                                                                ? opt.option_image_url!
+                                                                                : `${process.env.NEXT_PUBLIC_API_URL}${opt.option_image_url}`;
+                                                                            setPreviewImage(url);
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                         {icon}
                                                     </div>
                                                 );
@@ -574,6 +617,7 @@ export default function CATResultPage() {
 
             </div>
 
+            <ImagePreviewModal src={previewImage} onClose={() => setPreviewImage(null)} />
             <Footer />
         </div>
     );

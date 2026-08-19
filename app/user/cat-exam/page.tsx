@@ -19,6 +19,7 @@ import {
     Loader2,
     CheckCircle2,
 } from "lucide-react";
+import PageSkeleton from "@/components/Skeleton";
 import Swal from "sweetalert2";
 import Link from "next/link";
 
@@ -178,12 +179,7 @@ export default function CATSetupPage() {
         return (
             <>
                 <Navbar_user />
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-4" />
-                        <p className="text-gray-600 font-medium">กำลังเตรียมการทดสอบ CAT...</p>
-                    </div>
-                </div>
+                <PageSkeleton variant="plain" />
                 <Footer />
             </>
         );

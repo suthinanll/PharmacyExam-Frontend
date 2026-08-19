@@ -127,9 +127,16 @@ const Profile = () => {
     };
 
     if (!user) return (
-        <div className="flex flex-col items-center justify-center min-h-screen space-y-4 bg-gray-50 px-4">
-            <Loader2 className="w-10 h-10 animate-spin text-gray-400" />
-            <p className="text-gray-400 font-medium tracking-wide text-center">กำลังดึงข้อมูลโปรไฟล์...</p>
+        <div className="min-h-screen bg-gray-50 py-10">
+            <div className="max-w-3xl mx-auto px-4 space-y-5">
+                <div className="h-8 w-56 animate-pulse rounded-lg bg-gray-200" />
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+                    <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+                    <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
+                    <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+                    <div className="h-4 w-2/5 animate-pulse rounded bg-gray-200" />
+                </div>
+            </div>
         </div>
     );
 

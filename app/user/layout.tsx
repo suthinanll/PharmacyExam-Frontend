@@ -1,17 +1,26 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { FullScreenSkeleton } from '@/components/Skeleton';
+
+// หน้าให้ guest เข้าดูได้ (ดูข้อมูลได้ แต่ทำข้อสอบ/เพิ่มโน้ตต้อง login ก่อน)
+const GUEST_VIEWABLE_PATHS = ['/user/examset', '/user/calendar'];
 
 export default function UserLayout({ children }: { children: React.ReactNode }) {
     const { user, isAuthenticated, isLoading } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
+
+    const isGuestViewable = GUEST_VIEWABLE_PATHS.includes(pathname);
 
     useEffect(() => {
         if (!isLoading) {
+            // หน้า guest-viewable: ทุกคนเข้าดูได้ (หน้าเองจะจัดการ login เมื่อทำ action)
+            if (isGuestViewable) return;
+
             if (!isAuthenticated) {
                 router.push('/login');
             } else if (user?.role_id !== 1) {
@@ -28,20 +37,14 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
                 router.push('/admin');
             }
         }
-    }, [isLoading, isAuthenticated, user, router]);
+    }, [isLoading, isAuthenticated, user, router, isGuestViewable]);
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="flex flex-col items-center">
-                    <Loader2 className="w-10 h-10 text-blue-600 animate-spin mb-4" />
-                    <p className="text-gray-600 font-medium">กำลังโหลด...</p>
-                </div>
-            </div>
-        );
+        return <FullScreenSkeleton />;
     }
 
-    if (!isAuthenticated || user?.role_id !== 1) {
+    // หน้า guest-viewable ให้แสดงได้ทุกกรณี ส่วนหน้าอื่นยังคง guard เหมือนเดิม
+    if (!isGuestViewable && (!isAuthenticated || user?.role_id !== 1)) {
         return null;
     }
 

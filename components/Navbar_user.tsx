@@ -71,7 +71,7 @@ const Navbar = () => {
     useNotifications();
 
   // ดึงข้อมูลผู้ใช้จาก AuthContext
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   // logout
   const handleLogout = async () => {
@@ -85,9 +85,8 @@ const Navbar = () => {
     });
     if (result.isConfirmed) {
       try {
-        sessionStorage.removeItem("token");
         await Swal.fire({ icon: 'success', title: 'ออกจากระบบเรียบร้อย', showConfirmButton: false, timer: 1500 });
-        router.push('/login');
+        await logout();
       } catch (err) {
         console.error(err);
         Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถออกจากระบบได้' });
@@ -102,7 +101,9 @@ const Navbar = () => {
       href: '/user/examset',
       label: 'คลังข้อสอบ',
       submenu: [
-        { href: '/user/cat-exam', label: 'ข้อสอบแบบ CAT (Cumputerized-Adaptive-Testing)' }
+        { href: '/user/examset', label: 'ชุดข้อสอบมาตรฐาน (Standard Exam)' },
+        { href: '/user/cat-exam', label: 'ข้อสอบแบบปรับเหมาะรายข้อ (CAT)' },
+        { href: '/user/mst-exam', label: 'ข้อสอบแบบปรับเหมาะรายด่าน (MST)' }
       ]
     },
     { href: '/user/calendar', label: 'ปฏิทินการสอบ' },

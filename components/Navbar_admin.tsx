@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Menu, X, User, LogOut, ChevronLeft, ChevronRight, FileText, Zap, Layers, List, Calendar, Newspaper, MessageSquare, Settings, LayoutDashboard  } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -67,8 +67,6 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [loadingLogout, setLoadingLogout] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
-
 
 
   // Save collapse state to localStorage
@@ -82,7 +80,8 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
     { title: "แดชบอร์ด", href: "/admin", icon: LayoutDashboard },
     { title: "คลังข้อสอบ", href: "/admin/manage_examset", icon: FileText },
     { title: "ข้อสอบแบบ (CAT)", href: "/admin/cat_management", icon: Zap },
-    { title: "จัดการประเภทข้อสอบ", href: "/admin/manage_category", icon: Layers },
+    { title: "ข้อสอบแบบ (MST)", href: "/admin/mst_management", icon: Layers },
+    { title: "จัดการประเภทข้อสอบ", href: "/admin/manage_category", icon: List },
     { title: "จัดการหัวข้อ", href: "/admin/manage_topics", icon: List },
     { title: "ปฏิทินกำหนดการ", href: "/admin/manage_calendar", icon: Calendar },
     { title: "บล็อกข่าวสาร", href: "/admin/mnblog", icon: Newspaper },
@@ -95,6 +94,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === href;
+    if (href ==="/admin") return pathname === href;
     if (href === "/settings" || href === "/profile") return pathname === href;
     return pathname.startsWith(href);
   };
@@ -106,13 +106,11 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
   };
 
   // ดึงข้อมูลผู้ใช้จาก AuthContext
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const handleConfirmLogout = async () => {
     setLoadingLogout(true);
     try {
-      sessionStorage.removeItem("token");
-
       await Swal.fire({
         icon: "success",
         title: "ออกจากระบบเรียบร้อย",
@@ -122,7 +120,7 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
 
       setIsLogoutModalOpen(false);
       setLoadingLogout(false);
-      router.push("/login");
+      await logout();
     } catch (err) {
       console.error(err);
       setLoadingLogout(false);

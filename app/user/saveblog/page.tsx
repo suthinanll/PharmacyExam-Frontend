@@ -6,6 +6,7 @@ import Search from '@/components/SearchBar';
 import Image from 'next/image';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 interface BookmarkItem {
   bookmark_id: number;
@@ -96,8 +97,8 @@ function SaveBlog() {
           </div>
           <div className="relative min-h-[400px]">
             {loading ? (
-              <div key="loading-state" className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              <div key="loading-state" className="py-12">
+                <LoadingSpinner text="กำลังโหลดข่าวที่บันทึกไว้..." size="md" />
               </div>
             ) : savedNews.length > 0 ? (
               <div key="grid-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
