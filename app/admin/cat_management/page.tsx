@@ -60,6 +60,19 @@ function diffLabel(b: number | null): { label: string; color: string } {
     return               { label: 'ยากมาก',   color: '#dc2626' };
 }
 
+function getPaginationItems(current: number, total: number): (number | string)[] {
+    if (total <= 7) {
+        return Array.from({ length: total }, (_, i) => i + 1);
+    }
+    if (current <= 4) {
+        return [1, 2, 3, 4, 5, '...', total];
+    }
+    if (current >= total - 3) {
+        return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+    }
+    return [1, '...', current - 1, current, current + 1, '...', total];
+}
+
 // ======================== ICC CHART ========================
 function ICCChart({ a, b, c }: { a: number; b: number; c: number }) {
     const data = THETA_RANGE.map(t => ({
@@ -226,7 +239,20 @@ export default function CATManagement() {
     }).sort((a, b) => (sortOrder === 'desc' ? b.item_id - a.item_id : a.item_id - b.item_id));
 
     const perPage = viewMode === 'card' ? 9 : 10;
-    const totalPages = Math.ceil(filtered.length / perPage);
+    const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+
+    // Reset to page 1 on filter/search change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, selectedBankId, catFilter, sortOrder, viewMode]);
+
+    // Keep currentPage within valid bounds
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+        }
+    }, [totalPages, currentPage]);
+
     const currentItems = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
     const allPageChecked = currentItems.length > 0 && currentItems.every(i => checkedIds.has(i.item_id));
 
@@ -682,27 +708,66 @@ export default function CATManagement() {
 
                 {/* ── Pagination ── */}
                 {totalPages > 1 && (
-                    <div className="flex justify-end items-center gap-1.5 mt-5">
-                        <button disabled={currentPage === 1}
-                            onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0 }); }}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-500 disabled:opacity-30 hover:bg-gray-50 bg-white text-sm">
-                            <ChevronLeft size={15} />
-                        </button>
-                        {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
-                            let p = currentPage <= 3 ? i + 1 : currentPage >= totalPages - 2 ? totalPages - 6 + i : currentPage - 3 + i;
-                            p = Math.max(1, Math.min(totalPages, p));
-                            return (
-                                <button key={`${i}-${p}`} onClick={() => { setCurrentPage(p); window.scrollTo({ top: 0 }); }}
-                                    className={`w-8 h-8 text-xs font-medium border rounded-lg transition-colors ${p === currentPage ? 'bg-green-600 text-white border-green-600' : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'}`}>
-                                    {p}
-                                </button>
-                            );
-                        })}
-                        <button disabled={currentPage === totalPages}
-                            onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0 }); }}
-                            className="w-8 h-8 flex items-center justify-center border border-gray-200 rounded-lg text-gray-500 disabled:opacity-30 hover:bg-gray-50 bg-white">
-                            <ChevronRight size={15} />
-                        </button>
+                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-gray-100">
+                        <div className="text-xs text-gray-500">
+                            แสดงข้อที่ <span className="font-semibold text-gray-800">{(currentPage - 1) * perPage + 1}</span> -{' '}
+                            <span className="font-semibold text-gray-800">{Math.min(currentPage * perPage, filtered.length)}</span> จากทั้งหมด{' '}
+                            <span className="font-semibold text-gray-800">{filtered.length}</span> ข้อ (หน้า {currentPage}/{totalPages})
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                disabled={currentPage === 1}
+                                onClick={() => {
+                                    setCurrentPage(p => Math.max(1, p - 1));
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-medium transition cursor-pointer"
+                            >
+                                <ChevronLeft size={14} />
+                                <span className="hidden sm:inline">ก่อนหน้า</span>
+                            </button>
+
+                            {getPaginationItems(currentPage, totalPages).map((p, idx) => {
+                                if (typeof p === 'string') {
+                                    return (
+                                        <span key={`dots-${idx}`} className="w-8 h-8 flex items-center justify-center text-xs text-gray-400">
+                                            ...
+                                        </span>
+                                    );
+                                }
+
+                                const isActive = p === currentPage;
+                                return (
+                                    <button
+                                        key={`page-${p}`}
+                                        onClick={() => {
+                                            setCurrentPage(p);
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        className={`w-8 h-8 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
+                                            isActive
+                                                ? 'bg-green-600 text-white shadow-xs'
+                                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-900'
+                                        }`}
+                                    >
+                                        {p}
+                                    </button>
+                                );
+                            })}
+
+                            <button
+                                disabled={currentPage === totalPages}
+                                onClick={() => {
+                                    setCurrentPage(p => Math.min(totalPages, p + 1));
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-medium transition cursor-pointer"
+                            >
+                                <span className="hidden sm:inline">ถัดไป</span>
+                                <ChevronRight size={14} />
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
