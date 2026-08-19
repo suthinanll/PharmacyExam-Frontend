@@ -153,7 +153,7 @@ export default function MSTAdminManagementPage() {
     return (
         <Navbar_admin>
             <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
-                
+
                 {/* ── Page Header ── */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -278,13 +278,12 @@ export default function MSTAdminManagementPage() {
                         </div>
                     ) : readiness ? (
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                            
+
                             {/* Status box */}
-                            <div className={`md:col-span-4 p-4 rounded-xl border flex flex-col justify-center ${
-                                readiness.is_ready
+                            <div className={`md:col-span-4 p-4 rounded-xl border flex flex-col justify-center ${readiness.is_ready
                                     ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
                                     : 'bg-amber-50/70 border-amber-200 text-amber-900'
-                            }`}>
+                                }`}>
                                 <div className="flex items-center gap-2 font-bold text-sm">
                                     {readiness.is_ready ? (
                                         <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -332,7 +331,7 @@ export default function MSTAdminManagementPage() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    
+
                     {/* ── Routing Pathway Distribution (Left) ── */}
                     <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
                         <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
@@ -440,7 +439,7 @@ export default function MSTAdminManagementPage() {
                                 {analytics && analytics.recent_sessions && analytics.recent_sessions.length > 0 ? (
                                     analytics.recent_sessions.map((s) => (
                                         <tr key={s.session_id} className="hover:bg-slate-50/60 transition">
-                                            <td className="py-3.5 px-4 font-mono font-semibold text-gray-500">#{s.session_id}</td>
+                                            <td className="py-3.5 px-4  font-semibold text-gray-500">#{s.session_id}</td>
                                             <td className="py-3.5 px-4 font-semibold text-gray-900">{s.user_name}</td>
                                             <td className="py-3.5 px-4">
                                                 <div className="flex flex-wrap gap-1">
@@ -451,18 +450,17 @@ export default function MSTAdminManagementPage() {
                                                     ))}
                                                 </div>
                                             </td>
-                                            <td className="py-3.5 px-4 text-center font-mono font-bold text-indigo-700">
+                                            <td className="py-3.5 px-4 text-center  font-bold text-indigo-700">
                                                 {s.final_theta !== null ? s.final_theta.toFixed(2) : '-'}
                                             </td>
                                             <td className="py-3.5 px-4 text-center text-gray-700 font-semibold">
                                                 {s.total_correct}/{s.total_items}
                                             </td>
                                             <td className="py-3.5 px-4 text-center">
-                                                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                                                    s.passed
+                                                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${s.passed
                                                         ? 'bg-emerald-100 text-emerald-700'
                                                         : 'bg-rose-100 text-rose-700'
-                                                }`}>
+                                                    }`}>
                                                     {s.passed ? 'ผ่าน' : 'ไม่ผ่าน'}
                                                 </span>
                                             </td>

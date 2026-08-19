@@ -48,18 +48,18 @@ export default function ManageTopicsPage() {
     const { getToken } = useAuth();
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState<TopicStats | null>(null);
-    
+
     // View modes: 'accordion' | 'master_detail' | 'grid' | 'analytics'
     const [viewMode, setViewMode] = useState<"accordion" | "master_detail" | "grid" | "analytics">("accordion");
-    
+
     // Search, Filter & Sort
     const [searchTerm, setSearchTerm] = useState("");
     const [sortBy, setSortBy] = useState<"items_desc" | "items_asc" | "name_asc" | "subtopics_desc">("items_desc");
     const [filterStatus, setFilterStatus] = useState<"all" | "has_items" | "empty">("all");
-    
+
     // Selection for master-detail view
     const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
-    
+
     // Expanded set for accordion view
     const [expandedTopics, setExpandedTopics] = useState<Set<number>>(new Set());
 
@@ -88,7 +88,7 @@ export default function ManageTopicsPage() {
             if (res.ok) {
                 const data: TopicStats = await res.json();
                 setStats(data);
-                
+
                 // Auto select first topic for master-detail if none selected
                 if (data.by_topic.length > 0 && !selectedTopicId) {
                     setSelectedTopicId(data.by_topic[0].topic_id);
@@ -137,9 +137,9 @@ export default function ManageTopicsPage() {
     const totalSubTopicsCount = useMemo(() => {
         return stats?.by_topic.reduce((sum, t) => sum + (t.sub_topics?.length || 0), 0) || 0;
     }, [stats]);
-    
+
     const totalItemsCount = stats?.total_items || 0;
-    
+
     const avgItemsPerTopic = useMemo(() => {
         if (totalTopicsCount === 0) return 0;
         return (totalItemsCount / totalTopicsCount).toFixed(1);
@@ -153,7 +153,7 @@ export default function ManageTopicsPage() {
     // Filter & Sort Topics
     const processedTopics = useMemo(() => {
         if (!stats?.by_topic) return [];
-        
+
         let result = stats.by_topic.filter(t => {
             // Search filter
             const query = searchTerm.toLowerCase().trim();
@@ -413,10 +413,10 @@ export default function ManageTopicsPage() {
                 <div className="bg-white p-1.5 rounded-2xl border border-gray-200 shadow-sm mb-4 flex items-center justify-between gap-2 overflow-x-auto">
                     <div className="flex gap-1.5 w-full">
                         {[
-                            { id: "accordion",     label: "รายการ (Accordion)", icon: List },
+                            { id: "accordion", label: "รายการ (Accordion)", icon: List },
                             { id: "master_detail", label: "แยกข้าง (Master-Detail)", icon: Columns },
-                            { id: "grid",          label: "การ์ด (Grid)", icon: LayoutGrid },
-                            { id: "analytics",     label: "สถิติ (Analytics)", icon: PieChartIcon },
+                            { id: "grid", label: "การ์ด (Grid)", icon: LayoutGrid },
+                            { id: "analytics", label: "สถิติ (Analytics)", icon: PieChartIcon },
                         ].map(tab => {
                             const Icon = tab.icon;
                             const isActive = viewMode === tab.id;
@@ -424,11 +424,10 @@ export default function ManageTopicsPage() {
                                 <button
                                     key={tab.id}
                                     onClick={() => switchView(tab.id as any)}
-                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
-                                        isActive
+                                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${isActive
                                             ? "bg-green-600 text-white shadow-md shadow-green-100"
                                             : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-                                    }`}
+                                        }`}
                                 >
                                     <Icon size={15} />
                                     {tab.label}
@@ -603,7 +602,7 @@ export default function ManageTopicsPage() {
                                                                 <tbody className="divide-y divide-gray-50">
                                                                     {t.sub_topics.map((st, idx) => (
                                                                         <tr key={st.sub_topic_id} className="hover:bg-gray-50/80 transition-colors">
-                                                                            <td className="px-4 py-3 text-xs text-gray-400 font-mono">{idx + 1}</td>
+                                                                            <td className="px-4 py-3 text-xs text-gray-400 ">{idx + 1}</td>
                                                                             <td className="px-4 py-3 text-sm font-medium text-gray-900">{st.sub_topic_name}</td>
                                                                             <td className="px-4 py-3 text-xs text-gray-500 max-w-xs truncate">{st.description || "—"}</td>
                                                                             <td className="px-4 py-3 text-center">
@@ -660,11 +659,10 @@ export default function ManageTopicsPage() {
                                                 <div
                                                     key={t.topic_id}
                                                     onClick={() => setSelectedTopicId(t.topic_id)}
-                                                    className={`p-3 rounded-xl cursor-pointer border transition-all flex items-center justify-between ${
-                                                        isSelected
+                                                    className={`p-3 rounded-xl cursor-pointer border transition-all flex items-center justify-between ${isSelected
                                                             ? "bg-green-50 border-green-300 shadow-sm"
                                                             : "bg-white border-gray-100 hover:bg-gray-50"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     <div className="min-w-0 flex-1 pr-2">
                                                         <h4 className={`text-sm font-semibold truncate ${isSelected ? "text-green-900" : "text-gray-800"}`}>
@@ -674,9 +672,8 @@ export default function ManageTopicsPage() {
                                                             {t.sub_topics?.length || 0} หัวข้อย่อย
                                                         </p>
                                                     </div>
-                                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${
-                                                        isSelected ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600"
-                                                    }`}>
+                                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full shrink-0 ${isSelected ? "bg-green-600 text-white" : "bg-gray-100 text-gray-600"
+                                                        }`}>
                                                         {t.item_count || 0} ข้อ
                                                     </span>
                                                 </div>

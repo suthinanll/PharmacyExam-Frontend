@@ -135,7 +135,7 @@ export default function MSTSetupPage() {
 
             <div className="min-h-screen bg-slate-50 py-8">
                 <div className="max-w-6xl mx-auto px-4 space-y-8">
-                    
+
                     {/* Breadcrumb */}
                     <div className="flex items-center text-sm text-gray-500">
                         <Link href="/user" className="hover:text-green-600 transition">หน้าหลัก</Link>
@@ -216,7 +216,7 @@ export default function MSTSetupPage() {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        
+
                         {/* ── Configuration Card (Left) ── */}
                         <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
                             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -255,11 +255,10 @@ export default function MSTSetupPage() {
                                     <button
                                         type="button"
                                         onClick={() => setTotalStages(2)}
-                                        className={`p-4 rounded-xl border-2 text-left transition-all ${
-                                            totalStages === 2
+                                        className={`p-4 rounded-xl border-2 text-left transition-all ${totalStages === 2
                                                 ? "border-indigo-600 bg-indigo-50/60 shadow-sm"
                                                 : "border-slate-200 hover:border-slate-300 bg-white"
-                                        }`}
+                                            }`}
                                     >
                                         <div className="font-bold text-gray-900 text-sm">2 ด่าน (มาตรฐาน)</div>
                                         <div className="text-xs text-gray-500 mt-1">Stage 1: Routing &rarr; Stage 2: Targeted</div>
@@ -267,11 +266,10 @@ export default function MSTSetupPage() {
                                     <button
                                         type="button"
                                         onClick={() => setTotalStages(3)}
-                                        className={`p-4 rounded-xl border-2 text-left transition-all ${
-                                            totalStages === 3
+                                        className={`p-4 rounded-xl border-2 text-left transition-all ${totalStages === 3
                                                 ? "border-indigo-600 bg-indigo-50/60 shadow-sm"
                                                 : "border-slate-200 hover:border-slate-300 bg-white"
-                                        }`}
+                                            }`}
                                     >
                                         <div className="font-bold text-gray-900 text-sm">3 ด่าน (ละเอียด)</div>
                                         <div className="text-xs text-gray-500 mt-1">Stage 1 &rarr; Stage 2 &rarr; Stage 3 (Fine-tuning)</div>
@@ -293,11 +291,10 @@ export default function MSTSetupPage() {
                                             key={count}
                                             type="button"
                                             onClick={() => setItemsPerStage(count)}
-                                            className={`py-2.5 px-3 rounded-xl border text-sm font-semibold transition ${
-                                                itemsPerStage === count
+                                            className={`py-2.5 px-3 rounded-xl border text-sm font-semibold transition ${itemsPerStage === count
                                                     ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
                                                     : "bg-slate-50 text-gray-700 border-slate-200 hover:bg-slate-100"
-                                            }`}
+                                                }`}
                                         >
                                             {count} ข้อ
                                         </button>
@@ -368,13 +365,12 @@ export default function MSTSetupPage() {
                                                     {item.item_bank_name || "คลังข้อสอบรวม"}
                                                 </span>
                                                 <span
-                                                    className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                                                        item.status === "COMPLETED"
+                                                    className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${item.status === "COMPLETED"
                                                             ? item.passed
                                                                 ? "bg-emerald-100 text-emerald-700"
                                                                 : "bg-rose-100 text-rose-700"
                                                             : "bg-amber-100 text-amber-700"
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {item.status === "COMPLETED"
                                                         ? item.passed
@@ -390,7 +386,7 @@ export default function MSTSetupPage() {
                                             </div>
 
                                             {item.final_theta !== undefined && item.final_theta !== null && (
-                                                <div className="text-xs font-mono font-semibold text-indigo-700 pt-1 border-t border-slate-200/60 flex justify-between items-center">
+                                                <div className="text-xs  font-semibold text-indigo-700 pt-1 border-t border-slate-200/60 flex justify-between items-center">
                                                     <span>ความสามารถ (θ): {item.final_theta.toFixed(2)}</span>
                                                     <span className="text-indigo-600 flex items-center gap-0.5">
                                                         ดูผลสอบ <ChevronRight className="w-3.5 h-3.5" />

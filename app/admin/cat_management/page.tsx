@@ -35,10 +35,10 @@ const THETA_RANGE = Array.from({ length: 81 }, (_, i) => +(-4 + i * 0.1).toFixed
 
 const PRESETS = [
     { label: 'ง่ายมาก', b: -2.0, c: 0.20, color: '#059669', bg: '#ecfdf5', border: '#a7f3d0' },
-    { label: 'ง่าย',    b: -1.0, c: 0.20, color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
-    { label: 'ปานกลาง', b:  0.0, c: 0.20, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
-    { label: 'ยาก',     b:  1.0, c: 0.20, color: '#ea580c', bg: '#fff7ed', border: '#fed7aa' },
-    { label: 'ยากมาก',  b:  2.0, c: 0.20, color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
+    { label: 'ง่าย', b: -1.0, c: 0.20, color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+    { label: 'ปานกลาง', b: 0.0, c: 0.20, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
+    { label: 'ยาก', b: 1.0, c: 0.20, color: '#ea580c', bg: '#fff7ed', border: '#fed7aa' },
+    { label: 'ยากมาก', b: 2.0, c: 0.20, color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
 ];
 
 // ======================== HELPERS ========================
@@ -54,10 +54,19 @@ function stripHTML(html: string) {
 function diffLabel(b: number | null): { label: string; color: string } {
     if (b === null) return { label: 'ยังไม่ระบุ', color: '#9ca3af' };
     if (b <= -1.5) return { label: 'ง่ายมาก', color: '#059669' };
-    if (b <= -0.5) return { label: 'ง่าย',    color: '#2563eb' };
-    if (b <=  0.5) return { label: 'ปานกลาง', color: '#d97706' };
-    if (b <=  1.5) return { label: 'ยาก',     color: '#ea580c' };
-    return               { label: 'ยากมาก',   color: '#dc2626' };
+    if (b <= -0.5) return { label: 'ง่าย', color: '#2563eb' };
+    if (b <= 0.5) return { label: 'ปานกลาง', color: '#d97706' };
+    if (b <= 1.5) return { label: 'ยาก', color: '#ea580c' };
+    return { label: 'ยากมาก', color: '#dc2626' };
+}
+
+function getDifficultyCategory(b: number | null, calibrated: boolean): string {
+    if (!calibrated || b === null) return 'unspecified';
+    if (b <= -1.5) return 'very_easy';
+    if (b <= -0.5) return 'easy';
+    if (b <= 0.5) return 'medium';
+    if (b <= 1.5) return 'hard';
+    return 'very_hard';
 }
 
 function getPaginationItems(current: number, total: number): (number | string)[] {
@@ -125,7 +134,7 @@ function SliderField({
                         const v = parseFloat(e.target.value);
                         if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v)));
                     }}
-                    className="w-20 text-center border border-gray-200 rounded-lg px-2 py-1.5 text-sm font-mono font-semibold focus:outline-none focus:ring-2 focus:border-transparent"
+                    className="w-20 text-center border border-gray-200 rounded-lg px-2 py-1.5 text-sm  font-semibold focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ color, '--tw-ring-color': color + '40' } as any}
                 />
             </div>
@@ -175,6 +184,7 @@ export default function CATManagement() {
 
     const [searchTerm, setSearchTerm] = useState('');
     const [catFilter, setCatFilter] = useState<'all' | 'set' | 'unset'>('all');
+    const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
     const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
     const [currentPage, setCurrentPage] = useState(1);
@@ -226,6 +236,15 @@ export default function CATManagement() {
     const uncalibratedCount = bankItems.length - calibratedCount;
     const isReady = calibratedCount >= 20;
 
+    const difficultyCounts = {
+        all: bankItems.length,
+        very_easy: bankItems.filter(i => i.irt_calibrated && i.irt_b_difficulty !== null && i.irt_b_difficulty <= -1.5).length,
+        easy: bankItems.filter(i => i.irt_calibrated && i.irt_b_difficulty !== null && i.irt_b_difficulty > -1.5 && i.irt_b_difficulty <= -0.5).length,
+        medium: bankItems.filter(i => i.irt_calibrated && i.irt_b_difficulty !== null && i.irt_b_difficulty > -0.5 && i.irt_b_difficulty <= 0.5).length,
+        hard: bankItems.filter(i => i.irt_calibrated && i.irt_b_difficulty !== null && i.irt_b_difficulty > 0.5 && i.irt_b_difficulty <= 1.5).length,
+        very_hard: bankItems.filter(i => i.irt_calibrated && i.irt_b_difficulty !== null && i.irt_b_difficulty > 1.5).length,
+    };
+
     const bankList = allBanks.length > 0 ? allBanks
         : Array.from(new Map(allItems.filter(i => i.item_bank).map(i => [i.item_bank.item_bank_id, i.item_bank])).values());
 
@@ -235,6 +254,10 @@ export default function CATManagement() {
         if (q && !text.includes(q) && !(item.item_bank?.bank_name || '').toLowerCase().includes(q)) return false;
         if (catFilter === 'set' && !item.irt_calibrated) return false;
         if (catFilter === 'unset' && item.irt_calibrated) return false;
+        if (difficultyFilter !== 'all') {
+            const diffCat = getDifficultyCategory(item.irt_b_difficulty, item.irt_calibrated);
+            if (diffCat !== difficultyFilter) return false;
+        }
         return true;
     }).sort((a, b) => (sortOrder === 'desc' ? b.item_id - a.item_id : a.item_id - b.item_id));
 
@@ -244,7 +267,7 @@ export default function CATManagement() {
     // Reset to page 1 on filter/search change
     useEffect(() => {
         setCurrentPage(1);
-    }, [searchTerm, selectedBankId, catFilter, sortOrder, viewMode]);
+    }, [searchTerm, selectedBankId, catFilter, difficultyFilter, sortOrder, viewMode]);
 
     // Keep currentPage within valid bounds
     useEffect(() => {
@@ -432,8 +455,8 @@ export default function CATManagement() {
                         {/* Filter tabs */}
                         <div className="flex bg-gray-100 rounded-lg p-0.5 gap-0.5 text-xs">
                             {[
-                                { k: 'all',   l: `ทั้งหมด`, n: bankItems.length },
-                                { k: 'set',   l: `ระบุแล้ว`, n: calibratedCount },
+                                { k: 'all', l: `ทั้งหมด`, n: bankItems.length },
+                                { k: 'set', l: `ระบุแล้ว`, n: calibratedCount },
                                 { k: 'unset', l: `ยังไม่ระบุ`, n: uncalibratedCount },
                             ].map(f => (
                                 <button key={f.k}
@@ -444,6 +467,23 @@ export default function CATManagement() {
                                     <span className={`text-[10px] px-1 py-0.5 rounded ${catFilter === f.k ? 'bg-gray-100 text-gray-600' : 'bg-gray-200/60 text-gray-500'}`}>{f.n}</span>
                                 </button>
                             ))}
+                        </div>
+
+                        {/* Difficulty filter dropdown */}
+                        <div className="relative">
+                            <select
+                                value={difficultyFilter}
+                                onChange={e => { setDifficultyFilter(e.target.value); setCurrentPage(1); }}
+                                className="appearance-none pl-3 pr-8 py-2 border border-gray-200 rounded-lg text-xs font-medium bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer shadow-2xs"
+                            >
+                                <option value="all">ทุกระดับความยาก ({bankItems.length})</option>
+                                <option value="very_easy">🟢 ง่ายมาก ({difficultyCounts.very_easy})</option>
+                                <option value="easy">🔵 ง่าย ({difficultyCounts.easy})</option>
+                                <option value="medium">🟡 ปานกลาง ({difficultyCounts.medium})</option>
+                                <option value="hard">🟠 ยาก ({difficultyCounts.hard})</option>
+                                <option value="very_hard">🔴 ยากมาก ({difficultyCounts.very_hard})</option>
+                            </select>
+                            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                         </div>
 
                         {/* Sort */}
@@ -536,7 +576,7 @@ export default function CATManagement() {
                 {/* ── Content ── */}
                 {loading ? (
                     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                        {[1,2,3,4,5].map(i => (
+                        {[1, 2, 3, 4, 5].map(i => (
                             <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-gray-50 animate-pulse">
                                 <div className="w-4 h-4 bg-gray-200 rounded" />
                                 <div className="w-10 h-3 bg-gray-200 rounded" />
@@ -596,7 +636,7 @@ export default function CATManagement() {
                                                         className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer accent-blue-600"
                                                     />
                                                 </td>
-                                                <td className="px-4 py-3.5 text-xs text-gray-400 font-mono">{item.item_id}</td>
+                                                <td className="px-4 py-3.5 text-xs text-gray-400 ">{item.item_id}</td>
                                                 <td className="px-4 py-3.5">
                                                     <span className="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded-md whitespace-nowrap">
                                                         {item.item_bank?.bank_name || '—'}
@@ -609,14 +649,14 @@ export default function CATManagement() {
                                                 </td>
                                                 <td className="px-4 py-3.5 text-center">
                                                     {item.irt_b_difficulty !== null
-                                                        ? <span className="text-sm font-semibold font-mono" style={{ color: '#7c3aed' }}>
+                                                        ? <span className="text-sm font-semibold " style={{ color: '#7c3aed' }}>
                                                             {item.irt_b_difficulty > 0 ? '+' : ''}{item.irt_b_difficulty.toFixed(2)}
                                                         </span>
                                                         : <span className="text-xs text-gray-300">—</span>}
                                                 </td>
                                                 <td className="px-4 py-3.5 text-center">
                                                     {item.irt_c_guessing !== null
-                                                        ? <span className="text-sm font-semibold font-mono" style={{ color: '#be185d' }}>
+                                                        ? <span className="text-sm font-semibold " style={{ color: '#be185d' }}>
                                                             {item.irt_c_guessing.toFixed(2)}
                                                         </span>
                                                         : <span className="text-xs text-gray-300">—</span>}
@@ -683,13 +723,13 @@ export default function CATManagement() {
                                             <div className="flex gap-3">
                                                 <div>
                                                     <p className="text-[10px] text-gray-400 mb-0.5">ความยาก b</p>
-                                                    <p className="text-sm font-bold font-mono" style={{ color: '#7c3aed' }}>
+                                                    <p className="text-sm font-bold " style={{ color: '#7c3aed' }}>
                                                         {item.irt_b_difficulty !== null ? `${item.irt_b_difficulty > 0 ? '+' : ''}${item.irt_b_difficulty.toFixed(2)}` : '—'}
                                                     </p>
                                                 </div>
                                                 <div>
                                                     <p className="text-[10px] text-gray-400 mb-0.5">การเดา c</p>
-                                                    <p className="text-sm font-bold font-mono" style={{ color: '#be185d' }}>
+                                                    <p className="text-sm font-bold " style={{ color: '#be185d' }}>
                                                         {item.irt_c_guessing !== null ? item.irt_c_guessing.toFixed(2) : '—'}
                                                     </p>
                                                 </div>
@@ -745,11 +785,10 @@ export default function CATManagement() {
                                             setCurrentPage(p);
                                             window.scrollTo({ top: 0, behavior: 'smooth' });
                                         }}
-                                        className={`w-8 h-8 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
-                                            isActive
+                                        className={`w-8 h-8 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${isActive
                                                 ? 'bg-green-600 text-white shadow-xs'
                                                 : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-900'
-                                        }`}
+                                            }`}
                                     >
                                         {p}
                                     </button>
@@ -823,7 +862,7 @@ export default function CATManagement() {
                                                 <span className="w-1.5 h-1.5 rounded-full shrink-0"
                                                     style={{ backgroundColor: active ? '#fff' : p.color }} />
                                                 {p.label}
-                                                <span className="opacity-70 font-mono text-[10px]">
+                                                <span className="opacity-70  text-[10px]">
                                                     b={p.b > 0 ? `+${p.b}` : p.b}
                                                 </span>
                                             </button>

@@ -50,7 +50,7 @@ export function MSTStageHeader({
 
           {/* Center: Timer & Progress Status */}
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-mono font-medium shadow-inner">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm  font-medium shadow-inner">
               <Clock className="w-4 h-4 text-indigo-500 animate-pulse" />
               <span>{formatTime(elapsedTime)}</span>
             </div>
