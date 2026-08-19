@@ -2,6 +2,7 @@
 "use client";
 
 import Navbar_admin from "@/components/Navbar_admin";
+import Toast from "@/components/Toast";
 import {
     ChevronLeft,
     Save,
@@ -18,8 +19,7 @@ import {
     ListOrdered,
     Quote,
     Minus,
-    Zap,
-    Link as LinkIcon
+    X,
 } from "lucide-react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -28,30 +28,22 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import LinkExtension from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
 
 interface BlogFormData {
     tempId: number;
     title: string;
     imageUrl: string;
+    imageFile?: File | null;
     content: string;
     categoryIds: number[];
     sourceUrl?: string;
     author_id?: number;
+    isUploading?: boolean;
 }
 
-const TiptapToolbar = ({ editor }: { editor: any }) => {
+const TiptapToolbar = ({ editor, onAddLink, onAddImage }: { editor: any; onAddLink: () => void; onAddImage: () => void }) => {
     if (!editor) return null;
-
-    const addLink = () => {
-        const url = window.prompt("ใส่ URL ของลิงก์:");
-        if (url)
-            editor
-                .chain()
-                .focus()
-                .extendMarkRange("link")
-                .setLink({ href: url })
-                .run();
-    };
 
     const btnClass = (activeName: string, attrs = {}) =>
         `p-1.5 rounded transition-colors ${editor.isActive(activeName, attrs) ? "bg-green-100 text-green-600" : "text-gray-500 hover:bg-gray-100"}`;
@@ -77,8 +69,11 @@ const TiptapToolbar = ({ editor }: { editor: any }) => {
             <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded">
                 <Minus className="w-4 h-4" />
             </button>
-            <button type="button" onClick={addLink} className={btnClass("link")}>
+            <button type="button" onClick={onAddLink} className={btnClass("link")}>
                 <Link2 className="w-4 h-4" />
+            </button>
+            <button type="button" onClick={onAddImage} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded">
+                <ImageIcon className="w-4 h-4" />
             </button>
         </div>
     );
@@ -95,10 +90,15 @@ const DraftCard = ({
     onUpdate: (id: number, field: keyof BlogFormData, value: any) => void;
     onRemove: (id: number) => void;
 }) => {
+    const { getToken } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const editor = useEditor({
-        extensions: [StarterKit, LinkExtension.configure({ openOnClick: false })],
+        extensions: [
+            StarterKit,
+            LinkExtension.configure({ openOnClick: false }),
+            Image.configure({ inline: true })
+        ],
         content: draft.content,
         immediatelyRender: false,
         onUpdate: ({ editor }) => {
@@ -112,12 +112,61 @@ const DraftCard = ({
         }
     }, [draft.content, editor]);
 
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const fakeUrl = URL.createObjectURL(file);
-            onUpdate(draft.tempId, "imageUrl", fakeUrl);
+        if (!file) return;
+
+        // Validation
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        if (file.size > MAX_SIZE) {
+            alert("ไฟล์ต้องไม่เกิน 5MB");
+            return;
         }
+
+        if (!file.type.startsWith('image/')) {
+            alert("กรุณาเลือกไฟล์ภาพเท่านั้น");
+            return;
+        }
+
+        // Show preview immediately
+        const previewUrl = URL.createObjectURL(file);
+        onUpdate(draft.tempId, "imageUrl", previewUrl);
+        onUpdate(draft.tempId, "imageFile", file);
+        onUpdate(draft.tempId, "isUploading", true);
+
+        try {
+            const token = getToken();
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/upload`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!response.ok) throw new Error("อัปโหลดไม่สำเร็จ");
+
+            const data = await response.json();
+            // แก้: เพิ่ม API_URL ข้างหน้าถ้า Backend ส่งมาแค่ /uploads/...
+            const fullUrl = data.url.startsWith('http')
+                ? data.url
+                : `${process.env.NEXT_PUBLIC_API_URL}${data.url}`;
+            onUpdate(draft.tempId, "imageUrl", fullUrl);
+        } catch (error) {
+            console.error(error);
+            alert("อัปโหลดรูปภาพไม่สำเร็จ");
+            onUpdate(draft.tempId, "imageUrl", "");
+        } finally {
+            onUpdate(draft.tempId, "isUploading", false);
+            onUpdate(draft.tempId, "imageFile", null);
+        }
+    };
+
+    const removeImage = () => {
+        onUpdate(draft.tempId, "imageUrl", "");
+        onUpdate(draft.tempId, "imageFile", null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     return (
@@ -143,7 +192,17 @@ const DraftCard = ({
                     />
 
                     <div className="border-t pt-4">
-                        <TiptapToolbar editor={editor} />
+                        <TiptapToolbar
+                            editor={editor}
+                            onAddLink={() => {
+                                setLinkModalOpen(true);
+                                setLinkModalEditor(editor);
+                            }}
+                            onAddImage={() => {
+                                setImageModalOpen(true);
+                                setImageModalEditor(editor);
+                            }}
+                        />
                         <EditorContent
                             editor={editor}
                             className="prose prose-sm max-w-none min-h-[180px] outline-none text-gray-700"
@@ -163,16 +222,39 @@ const DraftCard = ({
                 </div>
 
                 <div className="lg:col-span-4 border-l border-gray-50 pl-0 lg:pl-6 space-y-4">
-                    <div
-                        onClick={() => fileInputRef.current?.click()}
-                        className="relative aspect-video bg-gray-50 rounded-2xl overflow-hidden border-2 border-dashed border-gray-200 flex items-center justify-center group/img cursor-pointer hover:bg-gray-100 transition-colors"
-                    >
+                    <div className="relative aspect-video bg-gray-50 rounded-2xl overflow-hidden border-2 border-dashed border-gray-200 group/img">
                         {draft.imageUrl ? (
-                            <img src={draft.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                            <>
+                                <img
+                                    src={draft.imageUrl}
+                                    alt="Preview"
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='225'%3E%3Crect fill='%23f3f4f6' width='400' height='225'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='18' x='50%25' y='50%25' text-anchor='middle' dominant-baseline='middle'%3ERูปภาพไม่พร้อมใช้งาน%3C/text%3E%3C/svg%3E";
+                                    }}
+                                />
+                                {draft.isUploading && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                                        <Loader2 className="w-8 h-8 text-white animate-spin" />
+                                    </div>
+                                )}
+                                <button
+                                    type="button"
+                                    onClick={removeImage}
+                                    className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover/img:opacity-100 transition-opacity hover:bg-red-600"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </>
                         ) : (
-                            <div className="text-center text-gray-400">
-                                <Upload className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                                <p className="text-[10px] font-bold uppercase tracking-widest">Upload Cover</p>
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"
+                            >
+                                <div className="text-center text-gray-400">
+                                    <Upload className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                                    <p className="text-[10px] font-bold uppercase tracking-widest">Upload Cover</p>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -181,7 +263,7 @@ const DraftCard = ({
                     <input
                         type="text"
                         placeholder="หรือวาง URL รูปภาพ..."
-                        value={draft.imageUrl}
+                        value={draft.imageUrl.startsWith('blob:') ? '' : draft.imageUrl}
                         onChange={(e) => onUpdate(draft.tempId, "imageUrl", e.target.value)}
                         className="w-full text-[10px] border-gray-200 rounded-lg focus:ring-green-500 py-1"
                     />
@@ -195,20 +277,73 @@ function AddBlogPage() {
     const { getToken } = useAuth();
     const router = useRouter();
 
-    // แก้ไข: ใช้ drafts เป็น state หลักเพื่อให้สอดคล้องกับฟังก์ชันที่มี
     const [drafts, setDrafts] = useState<BlogFormData[]>([
         {
             tempId: Date.now(),
             title: "",
             imageUrl: "",
+            imageFile: null,
             content: "",
             categoryIds: [1],
             sourceUrl: "",
-            author_id: 10
+            author_id: 10,
+            isUploading: false
         }
     ]);
 
     const [isSaving, setIsSaving] = useState(false);
+    const [toast, setToast] = useState<{ type: "success" | "error" | "warning" | "info"; message: string } | null>(null);
+    const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Modal states for Link and Image
+    const [linkModalOpen, setLinkModalOpen] = useState(false);
+    const [linkModalEditor, setLinkModalEditor] = useState<any>(null);
+    const [linkUrl, setLinkUrl] = useState("");
+
+    const [imageModalOpen, setImageModalOpen] = useState(false);
+    const [imageModalEditor, setImageModalEditor] = useState<any>(null);
+    const [imageUrl, setImageUrl] = useState("");
+
+    // Auto-save ทุก 30 วินาที
+    useEffect(() => {
+        const saveToLocalStorage = () => {
+            const draftsToSave = drafts.map(d => ({
+                ...d,
+                imageFile: null, // ไม่เก็บ File object
+                isUploading: false
+            }));
+            localStorage.setItem('blog-drafts', JSON.stringify(draftsToSave));
+            setToast({ type: "info", message: "บันทึกแบบร่างอัตโนมัติแล้ว" });
+        };
+
+        if (autoSaveTimerRef.current) {
+            clearTimeout(autoSaveTimerRef.current);
+        }
+
+        autoSaveTimerRef.current = setTimeout(saveToLocalStorage, 30000);
+
+        return () => {
+            if (autoSaveTimerRef.current) {
+                clearTimeout(autoSaveTimerRef.current);
+            }
+        };
+    }, [drafts]);
+
+    // โหลด draft จาก localStorage ตอนเริ่มต้น
+    useEffect(() => {
+        const saved = localStorage.getItem('blog-drafts');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (parsed.length > 0) {
+                    setDrafts(parsed);
+                    setToast({ type: "info", message: "โหลดแบบร่างที่บันทึกไว้แล้ว" });
+                }
+            } catch (e) {
+                console.error('Failed to parse saved drafts:', e);
+            }
+        }
+    }, []);
 
     const addNewDraft = () => {
         setDrafts(prev => [
@@ -217,10 +352,12 @@ function AddBlogPage() {
                 tempId: Date.now(),
                 title: "",
                 imageUrl: "",
+                imageFile: null,
                 content: "",
                 sourceUrl: "",
                 author_id: 10,
                 categoryIds: [1],
+                isUploading: false
             },
         ]);
     };
@@ -242,17 +379,26 @@ function AddBlogPage() {
  
 
     const handleSubmitAll = async () => {
-        if (drafts.some(d => !d.title)) {
-            alert("กรุณากรอกหัวข้อข่าวให้ครบทุกรายการ");
+        // Validation
+        const emptyTitles = drafts.filter(d => !d.title.trim());
+        if (emptyTitles.length > 0) {
+            setToast({ type: "warning", message: "กรุณากรอกหัวข้อข่าวให้ครบทุกรายการ" });
+            return;
+        }
+
+        const uploading = drafts.filter(d => d.isUploading);
+        if (uploading.length > 0) {
+            setToast({ type: "warning", message: "กรุณารอการอัปโหลดรูปภาพให้เสร็จก่อน" });
             return;
         }
 
         setIsSaving(true);
         try {
             const token = getToken();
-            // ตัวอย่าง: ส่งทีละรายการ (หรือปรับเป็น Bulk Insert ตาม Backend)
+            let successCount = 0;
+
             for (const draft of drafts) {
-                await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -267,12 +413,21 @@ function AddBlogPage() {
                         author_id: Number(draft.author_id || 10)
                     }),
                 });
+
+                if (response.ok) {
+                    successCount++;
+                } else {
+                    throw new Error(`บันทึกข่าว "${draft.title}" ไม่สำเร็จ`);
+                }
             }
 
-            alert("บันทึกข่าวสารทั้งหมดเรียบร้อยแล้ว!");
-            router.push('/admin/mnblog');
+            // ล้าง localStorage หลังบันทึกสำเร็จ
+            localStorage.removeItem('blog-drafts');
+
+            setToast({ type: "success", message: `บันทึกข่าวสารสำเร็จ ${successCount} รายการ!` });
+            setTimeout(() => router.push('/admin/mnblog'), 1500);
         } catch (error: any) {
-            alert(error.message);
+            setToast({ type: "error", message: error.message || "เกิดข้อผิดพลาดในการบันทึก" });
         } finally {
             setIsSaving(false);
         }
@@ -325,6 +480,94 @@ function AddBlogPage() {
                     <Plus className="w-5 h-5" /> เพิ่มรายการในคิว
                 </button>
             </div>
+
+            {toast && (
+                <Toast
+                    type={toast.type}
+                    message={toast.message}
+                    onClose={() => setToast(null)}
+                />
+            )}
+
+            {/* Link Modal */}
+            {linkModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                        <h3 className="text-lg font-bold text-gray-800 mb-4">เพิ่มลิงก์</h3>
+                        <input
+                            type="url"
+                            value={linkUrl}
+                            onChange={(e) => setLinkUrl(e.target.value)}
+                            placeholder="https://example.com"
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                            autoFocus
+                        />
+                        <div className="flex gap-2 justify-end">
+                            <button
+                                onClick={() => {
+                                    setLinkModalOpen(false);
+                                    setLinkUrl("");
+                                }}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (linkUrl && linkModalEditor) {
+                                        linkModalEditor.chain().focus().extendMarkRange("link").setLink({ href: linkUrl }).run();
+                                    }
+                                    setLinkModalOpen(false);
+                                    setLinkUrl("");
+                                }}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                            >
+                                เพิ่ม
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Image Modal */}
+            {imageModalOpen && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                        <h3 className="text-lg font-bold text-gray-800 mb-4">เพิ่มรูปภาพในเนื้อหา</h3>
+                        <input
+                            type="url"
+                            value={imageUrl}
+                            onChange={(e) => setImageUrl(e.target.value)}
+                            placeholder="https://example.com/image.jpg"
+                            className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                            autoFocus
+                        />
+                        <div className="flex gap-2 justify-end">
+                            <button
+                                onClick={() => {
+                                    setImageModalOpen(false);
+                                    setImageUrl("");
+                                }}
+                                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            >
+                                ยกเลิก
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (imageUrl && imageModalEditor) {
+                                        imageModalEditor.chain().focus().setImage({ src: imageUrl }).run();
+                                    }
+                                    setImageModalOpen(false);
+                                    setImageUrl("");
+                                }}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                            >
+                                เพิ่ม
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </Navbar_admin>
     );
 }

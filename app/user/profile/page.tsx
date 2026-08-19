@@ -1,21 +1,22 @@
 "use client"
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
-import { User, Mail, Phone, Loader2, Edit3, Save, X, School } from "lucide-react";
-import { useState, useEffect } from 'react';
+import { User, Mail, Phone, Loader2, Edit3, Save, X, School, AlertCircle, Camera, Upload } from "lucide-react";
+import { useState, useEffect, useRef } from 'react';
 import Swal from "sweetalert2";
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
 
 const Profile = () => {
-    const { getToken } = useAuth();
+    const { getToken, refreshUser } = useAuth();
     const [user, setUser] = useState<{
         first_name: string,
         last_name: string,
         email: string,
         tel: string,
         university?: { id: number, name: string },
-        role?: { id: number, name: string }
+        role?: { id: number, name: string },
+        profile_picture?: string
     } | null>(null);
 
     const [formData, setFormData] = useState({
@@ -27,6 +28,9 @@ const Profile = () => {
 
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -38,6 +42,10 @@ const Profile = () => {
                 });
                 if (res.ok) {
                     const data = await res.json();
+                    // แก้ URL รูปโปรไฟล์ให้เป็น absolute URL
+                    if (data.profile_picture && !data.profile_picture.startsWith('http')) {
+                        data.profile_picture = `${process.env.NEXT_PUBLIC_API_URL}${data.profile_picture}`;
+                    }
                     setUser(data);
                 } else if (res.status === 401) {
                     // ถ้า Token หมดอายุให้เตะออกไปหน้า Login
@@ -69,7 +77,7 @@ const Profile = () => {
 
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         const confirm = await Swal.fire({
             title: "บันทึกการเปลี่ยนแปลง?",
             text: "ข้อมูลโปรไฟล์ของคุณจะถูกอัปเดต",
@@ -97,7 +105,7 @@ const Profile = () => {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                 },
-                body: JSON.stringify(updateData), // ส่งแค่ชื่อ นามสกุล และเบอร์โทร
+                body: JSON.stringify(updateData),
             });
 
             if (res.ok) {
@@ -108,8 +116,7 @@ const Profile = () => {
                     timer: 1500,
                     showConfirmButton: false
                 });
-                setIsEditing(false); // ปิดโหมดแก้ไข
-                // อัปเดต State user ในหน้าปัจจุบันโดยไม่ต้อง reload ทั้งหน้า (เพื่อความลื่นไหล)
+                setIsEditing(false);
                 setUser(prev => prev ? { ...prev, ...updateData } : null);
             } else {
                 const errorData = await res.json();
@@ -123,6 +130,87 @@ const Profile = () => {
             });
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // จัดการอัปโหลดรูปโปรไฟล์
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // ตรวจสอบประเภทไฟล์
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            Swal.fire({
+                icon: "error",
+                title: "ไฟล์ไม่ถูกต้อง",
+                text: "กรุณาเลือกไฟล์รูปภาพ (JPG, PNG, GIF, WebP)",
+            });
+            return;
+        }
+
+        // ตรวจสอบขนาดไฟล์ (สูงสุด 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            Swal.fire({
+                icon: "error",
+                title: "ไฟล์ใหญ่เกินไป",
+                text: "กรุณาเลือกรูปที่มีขนาดไม่เกิน 5MB",
+            });
+            return;
+        }
+
+        // แสดง preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPreviewImage(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        // อัปโหลดไปยัง backend
+        setIsUploadingImage(true);
+        try {
+            const formData = new FormData();
+            formData.append('profile_picture', file);
+
+            const token = getToken();
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile/picture`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                await Swal.fire({
+                    icon: "success",
+                    title: "อัปโหลดสำเร็จ!",
+                    text: "รูปโปรไฟล์ของคุณถูกอัปเดตแล้ว",
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                // อัปเดตรูปใน state
+                setUser(prev => prev ? { ...prev, profile_picture: data.profile_picture } : null);
+                setPreviewImage(null);
+
+                // Refresh user data ใน AuthContext
+                await refreshUser();
+            } else {
+                throw new Error(data.message || "อัปโหลดไม่สำเร็จ");
+            }
+        } catch (err: any) {
+            console.error("Upload error:", err);
+            Swal.fire({
+                icon: "error",
+                title: "เกิดข้อผิดพลาด",
+                text: err.message || "ไม่สามารถอัปโหลดรูปได้ กรุณาลองใหม่อีกครั้ง"
+            });
+            setPreviewImage(null);
+        } finally {
+            setIsUploadingImage(false);
         }
     };
 
@@ -140,6 +228,13 @@ const Profile = () => {
         </div>
     );
 
+    // ตรวจสอบข้อมูลที่ยังไม่ครบ
+    const missingFields = [];
+    if (!user.first_name) missingFields.push('ชื่อจริง');
+    if (!user.last_name) missingFields.push('นามสกุล');
+    if (!user.tel) missingFields.push('เบอร์โทรศัพท์');
+    if (!user.university) missingFields.push('มหาวิทยาลัย');
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar_user />
@@ -152,16 +247,83 @@ const Profile = () => {
                         <span className="text-gray-700 font-medium">โปรไฟล์ของฉัน</span>
                     </div>
 
+                    {/* แจ้งเตือนข้อมูลที่ยังไม่ครบ */}
+                    {missingFields.length > 0 && (
+                        <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="text-sm font-semibold text-amber-900 mb-1">
+                                    กรุณาเพิ่มข้อมูลให้ครบถ้วน
+                                </h3>
+                                <p className="text-xs text-amber-700">
+                                    ข้อมูลที่ยังไม่ครบ: <span className="font-medium">{missingFields.join(', ')}</span>
+                                </p>
+                                <p className="text-xs text-amber-600 mt-1">
+                                    การกรอกข้อมูลให้ครบจะช่วยให้คุณใช้งานระบบได้เต็มประสิทธิภาพ
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 
                         <div className="px-5 py-6 md:px-8 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-white">
-                            <div className="flex items-center gap-4">
-                                <div className="hidden xs:flex w-12 h-12 bg-indigo-50 rounded-full items-center justify-center flex-shrink-0">
-                                    <User className="w-6 h-6 text-indigo-600" />
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
+                                {/* รูปโปรไฟล์พร้อมปุ่มอัปโหลด */}
+                                <div className="relative group">
+                                    <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-indigo-100 flex-shrink-0">
+                                        {previewImage ? (
+                                            <img
+                                                src={previewImage}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : user.profile_picture ? (
+                                            <img
+                                                src={user.profile_picture}
+                                                alt="Profile"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full bg-indigo-50 flex items-center justify-center">
+                                                <User className="w-10 h-10 text-indigo-600" />
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* ปุ่มเปลี่ยนรูป */}
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isUploadingImage}
+                                        className="absolute bottom-0 right-0 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isUploadingImage ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                        ) : (
+                                            <Camera className="w-4 h-4" />
+                                        )}
+                                    </button>
+
+                                    {/* Hidden file input */}
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                        onChange={handleImageChange}
+                                        className="hidden"
+                                    />
                                 </div>
+
                                 <div>
                                     <h1 className="text-lg md:text-xl font-bold text-gray-900">โปรไฟล์ผู้ใช้งาน</h1>
                                     <p className="text-xs md:text-sm text-gray-500">จัดการข้อมูลส่วนตัวของคุณ</p>
+                                    {isUploadingImage && (
+                                        <p className="text-xs text-indigo-600 mt-1 flex items-center gap-1">
+                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                            กำลังอัปโหลด...
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
@@ -216,9 +378,16 @@ const Profile = () => {
                                         value={formData.first_name}
                                         readOnly={!isEditing}
                                         onChange={handleInputChange}
+                                        placeholder={!formData.first_name ? "กรุณากรอกชื่อจริง" : ""}
                                         className={`w-full px-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
                                             }`}
                                     />
+                                    {!formData.first_name && !isEditing && (
+                                        <p className="text-xs text-amber-600 flex items-center gap-1">
+                                            <AlertCircle className="w-3 h-3" />
+                                            ยังไม่ได้กรอกชื่อจริง
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">นามสกุล</label>
@@ -228,9 +397,16 @@ const Profile = () => {
                                         value={formData.last_name}
                                         readOnly={!isEditing}
                                         onChange={handleInputChange}
+                                        placeholder={!formData.last_name ? "กรุณากรอกนามสกุล" : ""}
                                         className={`w-full px-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
                                             }`}
                                     />
+                                    {!formData.last_name && !isEditing && (
+                                        <p className="text-xs text-amber-600 flex items-center gap-1">
+                                            <AlertCircle className="w-3 h-3" />
+                                            ยังไม่ได้กรอกนามสกุล
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
                                     <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">อีเมล (ไม่สามารถแก้ไขได้)</label>
@@ -259,6 +435,12 @@ const Profile = () => {
                                                 }`}
                                         />
                                     </div>
+                                    {!formData.tel && !isEditing && (
+                                        <p className="text-xs text-amber-600 flex items-center gap-1">
+                                            <AlertCircle className="w-3 h-3" />
+                                            ยังไม่ได้กรอกเบอร์โทรศัพท์
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="md:col-span-2 pt-4">
@@ -271,8 +453,13 @@ const Profile = () => {
                                             </div>
                                         </div>
                                         <div className="h-px w-full bg-gray-200 sm:hidden"></div>
-
                                     </div>
+                                    {!user.university && (
+                                        <p className="text-xs text-amber-600 flex items-center gap-1 mt-2">
+                                            <AlertCircle className="w-3 h-3" />
+                                            ยังไม่ได้ระบุมหาวิทยาลัย (กรุณาติดต่อผู้ดูแลระบบ)
+                                        </p>
+                                    )}
                                 </div>
                             </form>
                         </div>

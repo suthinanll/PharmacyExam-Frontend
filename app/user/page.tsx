@@ -26,6 +26,7 @@ const Page = () => {
   const [loadingNews, setLoadingNews] = useState(true);
   const [bookmarkIds, setBookmarkIds] = useState<number[]>([]);
   const [upcomingExams, setUpcomingExams] = useState<any[]>([]);
+  const [todayExams, setTodayExams] = useState<any[]>([]);
 
   const handleBookmarkToggle = async (articleId: number) => {
     try {
@@ -74,47 +75,100 @@ const Page = () => {
 
       if (resSched.ok) {
         const data = await resSched.json();
-        // แก้ไขในฟังก์ชัน fetchData
         const allExams = data
           .filter(
             (item: any) => item.is_public === true || item.is_public === 1,
           )
           .map((item: any) => {
-            // สร้าง Date Object จาก string ที่ได้มา
-            const dateObj = new Date(item.start_time);
-            // บังคับให้เป็นเวลา 00:00:00.000 (เที่ยงคืนตรง) ของวันนั้น
-            dateObj.setHours(0, 0, 0, 0);
+            const startObj = new Date(item.start_time);
+            startObj.setHours(0, 0, 0, 0);
+
+            const endObj = item.end_time
+              ? new Date(item.end_time)
+              : new Date(item.start_time);
+            endObj.setHours(23, 59, 59, 999);
+
             return {
               ...item,
-              targetStamp: dateObj.getTime(), // ใช้ Timestamp ที่เป็นเที่ยงคืนแล้ว
+              targetStamp: startObj.getTime(),
+              endStamp: endObj.getTime(),
             };
           })
           .sort((a: any, b: any) => a.targetStamp - b.targetStamp);
-        const examToday = allExams.find(
-          (exam: any) => new Date(exam.targetStamp).toDateString() === todayStr,
+
+        // เช็กว่ามีกำหนดการที่กำลังดำเนินการอยู่ไหม (now อยู่ระหว่าง start - end)
+        const ongoingExam = allExams.find(
+          (exam: any) => now >= exam.targetStamp && now <= exam.endStamp,
         );
-        if (examToday) {
-          setTargetDate(examToday.targetStamp);
-          setTargetTitle(examToday.title);
+
+        if (ongoingExam) {
+          setTargetDate(ongoingExam.endStamp);
+          setTargetTitle(ongoingExam.title);
           setTargetDesc(
-            examToday.description || "เข้าร่วมการทดสอบตามกำหนดการวันนี้",
+            ongoingExam.description || "กำหนดการนี้กำลังดำเนินการอยู่",
           );
-          const remaining = allExams.filter(
-            (e: any) => e.id !== examToday.id && e.targetStamp > now,
-          );
-          setUpcomingExams(remaining.slice(0, 4));
+          setTodayExams([ongoingExam]);
+
+          const futureExams = allExams.filter((e: any) => e.targetStamp > now);
+          setUpcomingExams(futureExams.slice(0, 4));
         } else {
-          const futureExams = allExams.filter(
-            (exam: any) => exam.targetStamp > now,
+          const examToday = allExams.find(
+            (exam: any) =>
+              new Date(exam.targetStamp).toDateString() === todayStr,
           );
-          if (futureExams.length > 0) {
-            setTargetDate(futureExams[0].targetStamp);
-            setTargetTitle(futureExams[0].title);
-            setTargetDesc(
-              futureExams[0].description ||
-                "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง",
+
+          if (examToday) {
+            // หาว่ามีกำหนดการอื่นในวันเดียวกันไหม
+            const allTodayExams = allExams.filter(
+              (exam: any) =>
+                new Date(exam.targetStamp).toDateString() === todayStr,
             );
-            setUpcomingExams(futureExams.slice(1, 5));
+
+            setTargetDate(examToday.targetStamp);
+            setTargetTitle(examToday.title);
+            setTargetDesc(
+              examToday.description || "เข้าร่วมการทดสอบตามกำหนดการวันนี้",
+            );
+            setTodayExams(allTodayExams);
+
+            const remaining = allExams.filter(
+              (e: any) =>
+                new Date(e.targetStamp).toDateString() !== todayStr &&
+                e.targetStamp > now,
+            );
+            setUpcomingExams(remaining.slice(0, 4));
+          } else {
+            const futureExams = allExams.filter(
+              (exam: any) => exam.targetStamp > now,
+            );
+            if (futureExams.length > 0) {
+              const firstExam = futureExams[0];
+              const firstExamDateStr = new Date(
+                firstExam.targetStamp,
+              ).toDateString();
+
+              // หาทุกกำหนดการที่อยู่ในวันเดียวกับกำหนดการแรก
+              const sameDay = futureExams.filter(
+                (exam: any) =>
+                  new Date(exam.targetStamp).toDateString() ===
+                  firstExamDateStr,
+              );
+
+              setTargetDate(firstExam.targetStamp);
+              setTargetTitle(firstExam.title);
+              setTargetDesc(
+                firstExam.description ||
+                  "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง",
+              );
+              setTodayExams(sameDay); // เก็บทุกรายการในวันเดียวกัน
+
+              // upcoming เอาเฉพาะที่ไม่ใช่วันเดียวกัน
+              const remaining = futureExams.filter(
+                (e: any) =>
+                  new Date(e.targetStamp).toDateString() !== firstExamDateStr,
+              );
+              setUpcomingExams(remaining.slice(0, 4));
+            }
           }
         }
       }
@@ -157,9 +211,24 @@ const Page = () => {
 
       if (distance <= 0) {
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+        setTimeout(() => {
+          if (upcomingExams.length > 0) {
+            const nextExam = upcomingExams[0];
+            setTargetDate(nextExam.targetStamp);
+            setTargetTitle(nextExam.title);
+            setTargetDesc(
+              nextExam.description ||
+                "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง",
+            );
+            setUpcomingExams((prev) => prev.slice(1));
+          } else {
+            fetchData();
+          }
+        }, 2000);
+
         clearInterval(timer);
       } else {
-        // ใช้สูตรคำนวณที่เข้าใจง่ายและลดโอกาสพลาดเรื่องเศษส่วน
         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
         const hours = Math.floor(
           (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
@@ -172,7 +241,8 @@ const Page = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [targetDate]);
+  }, [targetDate, upcomingExams, fetchData]);
+
   const isExamStarted = targetDate && Date.now() >= targetDate;
 
   return (
@@ -186,10 +256,12 @@ const Page = () => {
             targetDesc={targetDesc}
             timeLeft={timeLeft}
             isExamStarted={isExamStarted}
+            upcomingExams={upcomingExams}
+            todayExams={todayExams}
           />
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
-              <LayoutGrid className="text-blue-600" size={28} />{" "}
+              <LayoutGrid className="text-blue-600" size={28} />
               ข่าวสารและประกาศ
             </h2>
           </div>
@@ -225,7 +297,6 @@ const Page = () => {
                       Number(news.article_id),
                     )}
                     onBookmark={() => {
-                      // ไม่ต้องรับ e เพราะตัวลูก (NewsCard) จัดการ stopPropagation ให้แล้ว
                       handleBookmarkToggle(Number(news.article_id));
                     }}
                   />
@@ -234,7 +305,7 @@ const Page = () => {
             ) : (
               <div className="col-span-full py-20 bg-white rounded-[3rem] text-center border-2 border-dashed border-gray-200">
                 <Bookmark className="mx-auto text-gray-200 mb-4" size={60} />
-                <p className="text-gray-400 font-bold text-xl">
+                <p className="text-gray-400 font-semibold text-xl">
                   ไม่พบข้อมูลข่าวสารในขณะนี้
                 </p>
               </div>

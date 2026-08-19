@@ -10,6 +10,7 @@ interface User {
     email: string;
     tel?: string;
     role_id: number;
+    profile_picture?: string;
 }
 
 interface AuthContextType {
@@ -54,6 +55,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (response.ok) {
                 const userData = await response.json();
+                // แก้ปัญหา Google rate limit: เปลี่ยน s96-c เป็น s200-c และเพิ่ม cache buster
+                if (userData.profile_picture && userData.profile_picture.includes('googleusercontent.com')) {
+                    userData.profile_picture = userData.profile_picture.replace('=s96-c', '=s200-c');
+                }
+                // แก้ URL รูปโปรไฟล์ที่อัปโหลดเองให้เป็น absolute URL
+                if (userData.profile_picture && !userData.profile_picture.startsWith('http')) {
+                    userData.profile_picture = `${API_URL}${userData.profile_picture}`;
+                }
                 setUser(userData);
             } else {
                 // Token invalid or expired

@@ -63,6 +63,13 @@ function formatTime(seconds: number): string {
   return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }
 
+function stripHTML(html: string): string {
+  if (typeof window === 'undefined') return html;
+  const tmp = document.createElement('DIV');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+}
+
 // ==================== BEAKER COMPONENT ====================
 function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
   theta: number;

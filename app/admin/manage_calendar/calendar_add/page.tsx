@@ -1,7 +1,7 @@
 "use client";
 
 import Navbar_admin from "@/components/Navbar_admin";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ChevronLeft, Plus, X, Calendar, CheckCircle2, Save, Send } from "lucide-react";
 import Link from "next/link";
 import Swal from "sweetalert2";
@@ -25,14 +25,22 @@ interface CalendarEvent {
 
 function Page() {
   const { getToken } = useAuth();
+  const idCounterRef = useRef(1);
+
   const [events, setEvents] = useState<CalendarEvent[]>([
     { id: Date.now(), title: "", description: "", startDate: "", endDate: "", type_event: [] },
   ]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
 
   const addNewEvent = () => {
+    idCounterRef.current += 1;
     setEvents([...events, {
-      id: Date.now(), title: "", description: "", startDate: "", endDate: "", type_event: [],
+      id: Date.now() + idCounterRef.current,
+      title: "",
+      description: "",
+      startDate: "",
+      endDate: "",
+      type_event: [],
     }]);
   };
 
@@ -56,31 +64,122 @@ function Page() {
 
   const saveSchedules = async (isPublished: boolean) => {
     const token = getToken();
-    const isValid = events.every((e) => e.title.trim() && e.startDate && e.type_event.length > 0);
-    if (!isValid && isPublished) {
-      Swal.fire("ข้อมูลไม่ครบ", "กรุณาระบุชื่อ วันที่ และเลือกประเภทหลักสูตร", "warning");
+
+    // กรองเฉพาะ event ที่มี title (ไม่ว่างเปล่า)
+    const validEvents = events.filter((e) => e.title && e.title.trim());
+
+    if (validEvents.length === 0) {
+      Swal.fire("ไม่มีข้อมูล", "ไม่มีกำหนดการที่สามารถบันทึกได้", "warning");
       return;
     }
+
+    // แสดงคำเตือนถ้ามี event ที่ title ว่าง
+    const emptyCount = events.length - validEvents.length;
+    if (emptyCount > 0) {
+      const result = await Swal.fire({
+        title: "พบข้อมูลไม่ครบ",
+        html: `มีกำหนดการที่ไม่มีชื่อ ${emptyCount} รายการ<br/>จะข้ามรายการเหล่านี้และบันทึกเฉพาะ ${validEvents.length} รายการที่สมบูรณ์<br/><br/>ต้องการดำเนินการต่อหรือไม่?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "ดำเนินการต่อ",
+        cancelButtonText: "ยกเลิก"
+      });
+
+      if (!result.isConfirmed) return;
+    }
+
+    const isValid = validEvents.every((e) => e.startDate && e.type_event.length > 0);
+    if (!isValid && isPublished) {
+      Swal.fire("ข้อมูลไม่ครบ", "กรุณาระบุวันที่และเลือกประเภทหลักสูตรให้ครบทุกรายการ", "warning");
+      return;
+    }
+
     try {
-      Swal.fire({ title: isPublished ? "กำลังเผยแพร่..." : "กำลังบันทึกร่าง...", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      const responses = await Promise.all(
-        events.map((e) =>
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify({
-              title: e.title,
-              description: e.description,
-              startDate: e.startDate,
-              endDate: e.endDate || e.startDate,
-              is_public: isPublished,
-              type_event: e.type_event,
-            }),
+      Swal.fire({
+        title: isPublished ? "กำลังเผยแพร่..." : "กำลังบันทึกร่าง...",
+        html: `กำลังบันทึก 0/${validEvents.length} รายการ`,
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading()
+      });
+
+      // แบ่งเป็น batch ละ 3 รายการ (ลดลงอีก)
+      const BATCH_SIZE = 3;
+      let successCount = 0;
+      let failCount = 0;
+      const errors: any[] = [];
+
+      for (let i = 0; i < validEvents.length; i += BATCH_SIZE) {
+        const batch = validEvents.slice(i, i + BATCH_SIZE);
+
+        const responses = await Promise.all(
+          batch.map(async (e) => {
+            try {
+              const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify({
+                  title: e.title,
+                  description: e.description,
+                  startDate: e.startDate,
+                  endDate: e.endDate || e.startDate,
+                  is_public: isPublished,
+                  type_event: e.type_event,
+                }),
+              });
+
+              if (!res.ok) {
+                const errorText = await res.text();
+                errors.push({
+                  title: e.title,
+                  status: res.status,
+                  message: errorText,
+                });
+                console.error(`Failed to save "${e.title}":`, res.status, errorText);
+              }
+
+              return res;
+            } catch (err) {
+              errors.push({
+                title: e.title,
+                error: String(err),
+              });
+              console.error(`Network error for "${e.title}":`, err);
+              return { ok: false };
+            }
           })
-        )
-      );
-      if (responses.every((r) => r.ok)) {
-        await Swal.fire({ title: "สำเร็จ", text: "บันทึกข้อมูลเรียบร้อยแล้ว", icon: "success", timer: 1500, showConfirmButton: false });
+        );
+
+        // นับผลลัพธ์
+        responses.forEach(r => {
+          if (r && r.ok) successCount++;
+          else failCount++;
+        });
+
+        // อัพเดทความคืบหน้า
+        Swal.update({
+          html: `กำลังบันทึก ${successCount + failCount}/${validEvents.length} รายการ<br/>สำเร็จ: ${successCount}, ล้มเหลว: ${failCount}`
+        });
+
+        // รอ 2000ms (2 วินาที) ก่อน batch ถัดไป เพื่อหลีกเลี่ยง rate limit
+        if (i + BATCH_SIZE < validEvents.length) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+
+      // แสดง error log
+      if (errors.length > 0) {
+        console.error("=== บันทึกล้มเหลว ===");
+        console.table(errors);
+      }
+
+      if (failCount === 0) {
+        await Swal.fire({
+          title: "สำเร็จ",
+          text: `บันทึกข้อมูลครบทั้ง ${successCount} รายการ`,
+          icon: "success",
+          timer: 2000,
+          showConfirmButton: false
+        });
         window.location.href = "/admin/manage_calendar";
       } else {
         // Find the first failed response and extract error message
@@ -112,8 +211,9 @@ function Page() {
       Swal.close();
       if (data) {
         const existing = events.filter((e) => e.title.trim());
-        const newEvents = data.map((e: any) => ({
-          id: Date.now() + Math.random(),
+        const baseTime = Date.now();
+        const newEvents = data.map((e: any, idx: number) => ({
+          id: baseTime + idx,
           title: e.title || "",
           description: e.description || "",
           startDate: e.startDate || "",

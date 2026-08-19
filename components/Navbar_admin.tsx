@@ -58,7 +58,11 @@ const LogoutConfirmationModal = ({
   );
 };
 
-export default function Navbar_admin({ children }: { children: React.ReactNode }) {
+export default function Navbar_admin({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
@@ -131,19 +135,24 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
     }
   };
 
-
   return (
     <div
-      className={`flex h-screen bg-gray-50 overflow-hidden ${isCollapsed ? 'sidebar-collapsed' : ''}`}
+      className={`flex h-screen bg-gray-50 overflow-hidden ${isCollapsed ? "sidebar-collapsed" : ""}`}
     >
       {/* Sidebar - Desktop */}
       <aside
-        className={`hidden lg:flex lg:flex-col bg-white border-r border-gray-200 fixed h-full transition-all duration-300 z-30 ${isCollapsed ? "w-20" : "w-64 xl:w-72"
-          }`}
+        className={`hidden lg:flex lg:flex-col bg-white border-r border-gray-200 fixed h-full transition-all duration-300 z-30 ${
+          isCollapsed ? "w-20" : "w-64 xl:w-72"
+        }`}
       >
-        <div className={`p-4 h-20 border-b border-gray-200 flex items-center ${isCollapsed ? "justify-center" : "justify-between"}`}>
+        <div
+          className={`p-4 h-20 border-b border-gray-200 flex items-center ${isCollapsed ? "justify-center" : "justify-between"}`}
+        >
           {!isCollapsed && (
-            <Link href="/admin" className="block hover:opacity-80 transition-opacity truncate">
+            <Link
+              href="/admin"
+              className="block hover:opacity-80 transition-opacity truncate"
+            >
               <h1 className="text-lg font-semibold text-green-700 whitespace-nowrap">
                 เภสัชพร้อมสอบ
               </h1>
@@ -154,7 +163,11 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
             className={`p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-green-700 transition-colors ${isCollapsed ? "" : "ml-2"}`}
             title={isCollapsed ? "ขยายแถบเมนู" : "หุบแถบเมนู"}
           >
-            {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            {isCollapsed ? (
+              <ChevronRight size={20} />
+            ) : (
+              <ChevronLeft size={20} />
+            )}
           </button>
         </div>
 
@@ -166,14 +179,19 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg group ${isActive(item.href)
-                    ? "bg-gray-100 text-green-700 font-bold"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
-                    } ${isCollapsed ? "justify-center" : ""}`}
+                  className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg group ${
+                    isActive(item.href)
+                      ? "bg-gray-100 text-green-700 font-bold"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
+                  } ${isCollapsed ? "justify-center" : ""}`}
                   title={isCollapsed ? item.title : ""}
                 >
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${isActive(item.href) ? "text-green-700" : "text-gray-400 group-hover:text-green-700"}`} />
-                  {!isCollapsed && <span className="text-sm truncate">{item.title}</span>}
+                  <Icon
+                    className={`w-5 h-5 flex-shrink-0 ${isActive(item.href) ? "text-green-700" : "text-gray-400 group-hover:text-green-700"}`}
+                  />
+                  {!isCollapsed && (
+                    <span className="text-sm truncate">{item.title}</span>
+                  )}
                 </Link>
               );
             })}
@@ -187,26 +205,34 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg group ${isActive(item.href)
-                      ? "bg-gray-100 text-green-700 font-bold"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
-                      } ${isCollapsed ? "justify-center" : ""}`}
+                    className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg group ${
+                      isActive(item.href)
+                        ? "bg-gray-100 text-green-700 font-bold"
+                        : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
+                    } ${isCollapsed ? "justify-center" : ""}`}
                     title={isCollapsed ? item.title : ""}
                   >
-                    <Icon className={`w-5 h-5 flex-shrink-0 ${isActive(item.href) ? "text-green-700" : "text-gray-400 group-hover:text-green-700"}`} />
-                    {!isCollapsed && <span className="text-sm truncate">{item.title}</span>}
+                    <Icon
+                      className={`w-5 h-5 flex-shrink-0 ${isActive(item.href) ? "text-green-700" : "text-gray-400 group-hover:text-green-700"}`}
+                    />
+                    {!isCollapsed && (
+                      <span className="text-sm truncate">{item.title}</span>
+                    )}
                   </Link>
                 );
               })}
 
               <button
                 onClick={handleLogoutClick}
-                className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 ${isCollapsed ? "justify-center" : ""
-                  }`}
+                className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 ${
+                  isCollapsed ? "justify-center" : ""
+                }`}
                 title={isCollapsed ? "ออกจากระบบ" : ""}
               >
                 <LogOut className="w-5 h-5 flex-shrink-0" />
-                {!isCollapsed && <span className="text-sm font-medium">ออกจากระบบ</span>}
+                {!isCollapsed && (
+                  <span className="text-sm font-medium">ออกจากระบบ</span>
+                )}
               </button>
             </div>
           </div>
@@ -215,8 +241,9 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
         <div className="p-4 border-t border-gray-200 bg-white">
           <Link
             href="/admin/settingp"
-            className={`flex items-center gap-3 p-2 rounded-xl transition-all duration-200 ${isActive("/admin/settingp") ? "bg-gray-100" : "hover:bg-gray-50"
-              } ${isCollapsed ? "justify-center" : ""}`}
+            className={`flex items-center gap-3 p-2 rounded-xl transition-all duration-200 ${
+              isActive("/admin/settingp") ? "bg-gray-100" : "hover:bg-gray-50"
+            } ${isCollapsed ? "justify-center" : ""}`}
             title={isCollapsed ? `${user?.first_name} ${user?.last_name}` : ""}
           >
             <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200">
@@ -236,8 +263,9 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
 
       {/* Main Content */}
       <div
-        className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${isCollapsed ? "lg:ml-20" : "lg:ml-64 xl:ml-72"
-          }`}
+        className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${
+          isCollapsed ? "lg:ml-20" : "lg:ml-64 xl:ml-72"
+        }`}
       >
         <header className="lg:hidden bg-white shadow-md sticky top-0 z-50">
           <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
@@ -253,7 +281,11 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
                 className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                 aria-label="Toggle menu"
               >
-                {isMobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
+                {isMobileMenuOpen ? (
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                ) : (
+                  <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+                )}
               </button>
             </div>
           </div>
@@ -266,10 +298,11 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
-                      ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
-                      : "text-green-600 hover:bg-gray-50 hover:text-green-700"
-                      }`}
+                    className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
+                      isActive(item.href)
+                        ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
+                        : "text-green-600 hover:bg-gray-50 hover:text-green-700"
+                    }`}
                   >
                     {item.title}
                   </Link>
@@ -281,10 +314,11 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
                       key={item.href}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
-                        ? "bg-gray-100 text-green-700 font-bold border-l-4 border-green-700"
-                        : "text-green-600 hover:bg-gray-50 hover:text-green-700"
-                        }`}
+                      className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
+                        isActive(item.href)
+                          ? "bg-gray-100 text-green-700 font-bold border-l-4 border-green-700"
+                          : "text-green-600 hover:bg-gray-50 hover:text-green-700"
+                      }`}
                     >
                       {item.title}
                     </Link>
@@ -310,8 +344,12 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
                         <User className="w-6 h-6 text-green-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-green-700 truncate">{user?.first_name} {user?.last_name}</p>
-                        <p className="text-xs text-green-600 truncate">{user?.email}</p>
+                        <p className="text-sm font-bold text-green-700 truncate">
+                          {user?.first_name} {user?.last_name}
+                        </p>
+                        <p className="text-xs text-green-600 truncate">
+                          {user?.email}
+                        </p>
                       </div>
                     </Link>
                   </div>
@@ -321,7 +359,9 @@ export default function Navbar_admin({ children }: { children: React.ReactNode }
           )}
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-7 lg:p-8">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-7 lg:p-8">
+          {children}
+        </main>
       </div>
 
       <LogoutConfirmationModal

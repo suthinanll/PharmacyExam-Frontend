@@ -285,7 +285,7 @@ const examset = () => {
 
             {/* Header */}
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-800 mb-4">คลังข้อสอบ</h1>
+              <h1 className="text-3xl font-medium text-gray-800 mb-4">คลังข้อสอบ</h1>
               <SearchBar onSearch={handleSearch} />
             </div>
 
@@ -353,7 +353,7 @@ const examset = () => {
                           <BookOpen className="w-6 h-6 text-blue-600" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-xl font-bold text-gray-800 mb-2">
+                          <h3 className="text-xl font-medium text-gray-800 mb-2">
                             {bank.bank_name}
                           </h3>
                           <p className="text-gray-600 text-sm mb-3">
@@ -366,7 +366,7 @@ const examset = () => {
                               {bank.categories.map((cat) => (
                                 <span
                                   key={cat.category_id}
-                                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-700"
+                                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700"
                                 >
                                   {cat.category_name}
                                 </span>
@@ -394,7 +394,7 @@ const examset = () => {
                     <button
                       onClick={() => handleStartExam(bank.item_bank_id, bank.bank_name)}
                       disabled={startingExam === bank.item_bank_id}
-                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold px-8 py-3 rounded-xl transition-all duration-300 w-full lg:w-auto text-center shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium px-8 py-3 rounded-xl transition-all duration-300 w-full lg:w-auto text-center shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {startingExam === bank.item_bank_id ? (
                         <>
@@ -417,7 +417,7 @@ const examset = () => {
                   <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <BookOpen className="w-12 h-12 text-gray-400" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-700 mb-2">
+                  <h3 className="text-xl font-medium text-gray-700 mb-2">
                     {searchQuery ? 'ไม่พบข้อสอบที่ค้นหา' : 'ไม่มีข้อสอบในหมวดนี้'}
                   </h3>
                   <p className="text-gray-500">
