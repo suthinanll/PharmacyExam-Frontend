@@ -100,11 +100,18 @@ export default function ChatbotPage() {
   const [isMessageLoading, setIsMessageLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
-  const [editContent, setEditContent] = useState("");
-  const [isEditLoading, setIsEditLoading] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Auto-expand textarea based on content
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      const scrollHeight = textareaRef.current.scrollHeight;
+      textareaRef.current.style.height = `${Math.min(Math.max(scrollHeight, 52), 170)}px`;
+    }
+  }, [input]);
 
 
   // 1. Get User info from AuthContext
@@ -418,124 +425,16 @@ export default function ChatbotPage() {
   };
 
   const startEditing = (msg: Message) => {
-    setEditingMessageId(msg.id);
-    setEditContent(msg.text);
-  };
-
-  const cancelEditing = () => {
-    setEditingMessageId(null);
-    setEditContent("");
-  };
-
-  const saveEdit = async (messageId: string) => {
-    console.log("Saving edit for ID:", messageId, "Content:", editContent);
-    if (!editContent.trim()) {
-      console.warn("Edit content is empty");
-      return;
-    }
-
-    // 1. Optimistic UI Update
-    // Close edit mode immediately
-    setEditingMessageId(null);
-    setEditContent("");
-
-    // Store original messages in case of error (optional rollback could be added)
-    const previousMessages = [...messages];
-
-    // Update the message list immediately
-    setMessages((prev) => {
-      const editedIndex = prev.findIndex(m => m.id === messageId);
-      if (editedIndex === -1) return prev;
-
-      const updated = [...prev];
-      // Update User Text
-      updated[editedIndex] = { ...updated[editedIndex], text: editContent };
-
-      // Check for next bot message to "Reset" it
-      const nextMsgIndex = editedIndex + 1;
-      const hasNextBotMsg = nextMsgIndex < updated.length && updated[nextMsgIndex].sender === "bot";
-
-      if (hasNextBotMsg) {
-        // Remove the old bot message temporarily to show "Loading" state
-        // If it's the last message, this interacts perfectly with global isLoading
-        updated.splice(nextMsgIndex, 1);
-      }
-      return updated;
-    });
-
-    // Show persistent loading (like sending a normal message)
-    setIsLoading(true);
-
-    try {
-      const token = getToken();
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/message/${messageId}`, {
-        method: 'PUT',
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          message: editContent,
-        }),
-      });
-
-      console.log("Save response status:", response.status);
-
-      if (!response.ok) {
-        throw new Error("Failed to edit message");
-      }
-
-      const data = await response.json();
-      console.log("Save success data:", data);
-
-      setMessages((prev) => {
-        // We need to find the index again because state might have changed (though unlikely during 'await')
-        // Note: We are finding based on the *User Message ID* which is stable.
-        const editedIndex = prev.findIndex(m => m.id === messageId);
-        if (editedIndex === -1) return prev;
-
-        const updated = [...prev];
-
-        // Ensure User content is synced (already done optimistically, but good to ensure)
-        updated[editedIndex] = { ...updated[editedIndex], text: editContent };
-
-        const botData = data.bot || data.bot_response;
-
-        if (botData) {
-          const newBotMessage: Message = {
-            id: botData.message_id ? botData.message_id.toString() : `bot-${Date.now()}`,
-            sender: "bot",
-            text: botData.message_text || botData.message || "...",
-            created_at: botData.sent_at || new Date().toISOString(),
-            animate: true
-          };
-
-          // Insert the new bot message right after the edited message
-          // Check if there's ALREADY a bot message there (e.g. if optimistic remove failed, or we are replacing)
-          const nextMsgIndex = editedIndex + 1;
-          const isNextBot = nextMsgIndex < updated.length && updated[nextMsgIndex].sender === "bot";
-
-          if (isNextBot) {
-            updated[nextMsgIndex] = newBotMessage;
-          } else {
-            updated.splice(nextMsgIndex, 0, newBotMessage);
-          }
+    setInput(msg.text);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+      const len = msg.text.length;
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.setSelectionRange(len, len);
+          textareaRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
         }
-
-        return updated;
-      });
-
-    } catch (error) {
-      console.error("Edit message error:", error);
-      // Rollback or show error
-      setMessages(previousMessages); // Revert on failure
-      Swal.fire({
-        icon: 'error',
-        title: 'เกิดข้อผิดพลาด',
-        text: 'ไม่สามารถแก้ไขข้อความได้'
-      });
-    } finally {
-      setIsLoading(false);
+      }, 50);
     }
   };
 
@@ -780,46 +679,16 @@ export default function ChatbotPage() {
                           <BotMessage content={msg.text} animate={msg.animate} />
                         ) : (
                           <div className="flex flex-col items-end gap-1 max-w-[85%] sm:max-w-xl w-full">
-                            {editingMessageId === msg.id ? (
-                              <div className="px-4 py-3 rounded-2xl shadow-sm text-sm break-words whitespace-pre-wrap bg-green-50 text-gray-900 border border-green-200 rounded-tr-sm">
-                                <textarea
-                                  value={editContent}
-                                  onChange={(e) => setEditContent(e.target.value)}
-                                  className="w-full text-gray-700 focus:outline-none resize-none bg-transparent disabled:opacity-50"
-                                  rows={2}
-                                  autoFocus
-                                  disabled={isEditLoading}
-                                />
-                                <div className="flex justify-end gap-2 mt-2">
-                                  <button
-                                    onClick={cancelEditing}
-                                    className="px-3 py-1 text-xs text-gray-500 hover:bg-gray-100 rounded-md transition-colors"
-                                    disabled={isEditLoading}
-                                  >
-                                    ยกเลิก
-                                  </button>
-                                  <button
-                                    onClick={() => saveEdit(msg.id)}
-                                    className="px-3 py-1 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center gap-1 disabled:opacity-70"
-                                    disabled={isEditLoading}
-                                  >
-                                    {isEditLoading && <span className="animate-spin inline-block w-3 h-3 border-2 border-white/30 border-t-white rounded-full"></span>}
-                                    บันทึก
-                                  </button>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="bg-green-600 text-white px-5 py-3 rounded-2xl rounded-tr-sm shadow-md relative group">
-                                <p className="whitespace-pre-wrap">{msg.text}</p>
-                                <button
-                                  onClick={() => startEditing(msg)}
-                                  className="absolute -top-3 -right-3 p-1.5 bg-white text-green-600 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-green-50 border border-green-100 scale-90 hover:scale-100 z-10"
-                                  title="แก้ไขข้อความ"
-                                >
-                                  <Pencil size={14} />
-                                </button>
-                              </div>
-                            )}
+                            <div className="bg-green-600 text-white px-5 py-3 rounded-2xl rounded-tr-sm shadow-md relative group">
+                              <p className="whitespace-pre-wrap">{msg.text}</p>
+                              <button
+                                onClick={() => startEditing(msg)}
+                                className="absolute -top-3 -right-3 p-1.5 bg-white text-green-600 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-green-50 border border-green-100 scale-90 hover:scale-100 z-10 cursor-pointer"
+                                title="คัดลอกข้อความนี้มาแก้ไขและถามใหม่"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                            </div>
                             <span className="text-[10px] text-gray-500 mr-1">
                               {msg.created_at ? new Date(msg.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
                             </span>
@@ -851,24 +720,23 @@ export default function ChatbotPage() {
 
           {/* Input Area */}
           <div className="p-4 bg-white border-t border-gray-100 px-4 sm:px-6">
-            <div className="max-w-4xl mx-auto relative flex items-center">
+            <div className="max-w-4xl mx-auto relative flex items-end bg-gray-50 border border-gray-200 focus-within:border-green-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-green-100 rounded-2xl shadow-2xs transition-all p-1.5">
               <textarea
+                ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyPress}
-                placeholder="พิมพ์ข้อความ..."
-                className="w-full pl-5 pr-16 py-4 bg-gray-50 border-0 rounded-full focus:ring-2 focus:ring-green-100 focus:bg-white transition-all resize-none shadow-sm text-gray-800"
+                placeholder="พิมพ์ข้อความ... (Shift + Enter เพื่อขึ้นบรรทัดใหม่)"
+                className="w-full pl-4 pr-12 py-3 bg-transparent border-0 focus:ring-0 focus:outline-hidden resize-none text-gray-800 text-sm sm:text-base max-h-44 overflow-y-auto leading-relaxed"
                 rows={1}
-                style={{ minHeight: '56px' }}
+                style={{ minHeight: '48px' }}
               />
 
               <button
                 onClick={handleSendMessage}
                 disabled={!input.trim() || isLoading}
-                className="absolute right-2 flex items-center justify-center
-                 w-10 h-10 bg-green-600 text-white rounded-full
-                 hover:bg-green-700 disabled:opacity-50
-                 transition-colors shadow-sm"
+                className="flex items-center justify-center w-10 h-10 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-40 transition-colors shadow-2xs shrink-0 cursor-pointer mb-1 mr-1"
+                title="ส่งข้อความ"
               >
                 <SendHorizonal size={18} />
               </button>
