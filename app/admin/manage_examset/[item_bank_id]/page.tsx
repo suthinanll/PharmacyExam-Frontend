@@ -288,11 +288,14 @@ export default function ItemBankEditPage() {
             if (response.ok) {
                 const data = await response.json();
                 const situationsMap = new Map<number, Situation>();
+                // standalone items (situation === null) — each gets its own wrapper
+                const standaloneItems: Situation[] = [];
 
                 if (data.items && Array.isArray(data.items)) {
                     data.items.forEach((item: any) => {
                         if (item.situation) {
                             const sitId = item.situation.situation_id;
+                            const itemOrder = item.display_order ?? 0;
 
                             if (!situationsMap.has(sitId)) {
                                 situationsMap.set(sitId, {
@@ -301,8 +304,16 @@ export default function ItemBankEditPage() {
                                     situation_text: item.situation.situation_text,
                                     situation_image_url: item.situation.situation_image_url,
                                     questions: [],
-                                    display_order: item.situation.display_order || 0 // เก็บ display_order ไว้ด้วย
+                                    // ใช้ display_order ของ item แรกใน situation (จาก item_bank_items)
+                                    // เพื่อให้ sort บน scale เดียวกับ standalone items
+                                    display_order: itemOrder
                                 });
+                            } else {
+                                // ถ้า item นี้มี display_order น้อยกว่า ให้ใช้แทน (เอา minimum)
+                                const existing = situationsMap.get(sitId)!;
+                                if (itemOrder < (existing.display_order ?? 0)) {
+                                    existing.display_order = itemOrder;
+                                }
                             }
 
                             situationsMap.get(sitId)!.questions.push({
@@ -318,16 +329,37 @@ export default function ItemBankEditPage() {
                                 answer_options: item.answer_options || [],
                                 display_order: item.display_order
                             });
+                        } else {
+                            // standalone question — ไม่มี situation ให้ wrap เป็น Situation ว่าง
+                            standaloneItems.push({
+                                temporary_id: `existing_standalone_${item.item_id}`,
+                                situation_text: '',
+                                situation_image_url: '',
+                                questions: [{
+                                    item_id: item.item_id,
+                                    question_text: item.question_text,
+                                    question_image_url: item.question_image_url || '',
+                                    explanation: item.explanation,
+                                    sub_topic_id: item.sub_topics?.[0]?.sub_topic_id,
+                                    sub_topic_ids: item.sub_topics?.map((st: { sub_topic_id: number }) => st.sub_topic_id) || [],
+                                    irt_a_discrimination: item.irt_a_discrimination,
+                                    irt_b_difficulty: item.irt_b_difficulty,
+                                    irt_c_guessing: item.irt_c_guessing,
+                                    answer_options: item.answer_options || [],
+                                    display_order: item.display_order
+                                }],
+                                // ใช้ display_order จาก item_bank_items ตรงๆ (scale เดียวกับ situation groups)
+                                display_order: item.display_order ?? 0
+                            });
                         }
                     });
                 }
 
-                // เรียงสถานการณ์ตาม display_order
-                const sortedSituations = Array.from(situationsMap.values()).sort((a, b) => {
-                    const orderA = a.display_order || 0;
-                    const orderB = b.display_order || 0;
-                    return orderA - orderB;
-                });
+                // เรียงทุก group รวมกันตาม display_order จาก item_bank_items (scale เดียวกัน)
+                const sortedSituations = [
+                    ...Array.from(situationsMap.values()),
+                    ...standaloneItems
+                ].sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
 
                 setSituations(sortedSituations);
                 initialSituationsHash.current = JSON.stringify(sortedSituations);
@@ -353,6 +385,40 @@ export default function ItemBankEditPage() {
             const element = situationRefs.current[index];
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
+    };
+
+    const addStandaloneQuestion = () => {
+        const newStandaloneSituation: Situation = {
+            temporary_id: `temp_standalone_${Date.now()}_${Math.random()}`,
+            situation_text: '',
+            situation_image_url: '',
+            questions: [
+                {
+                    question_text: '',
+                    explanation: '',
+                    answer_options: [
+                        { option_text: '', is_correct: true },
+                        { option_text: '', is_correct: false },
+                        { option_text: '', is_correct: false },
+                        { option_text: '', is_correct: false },
+                        { option_text: '', is_correct: false },
+                    ],
+                    irt_a_discrimination: 1,
+                    irt_c_guessing: 0.25,
+                    sub_topic_ids: []
+                }
+            ]
+        };
+        const newSituations = [...situations, newStandaloneSituation];
+        setSituations(newSituations);
+
+        setTimeout(() => {
+            const index = newSituations.length - 1;
+            const element = situationRefs.current[index];
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
         }, 100);
     };
@@ -728,10 +794,14 @@ export default function ItemBankEditPage() {
         // Validation
         for (let i = 0; i < situations.length; i++) {
             const sit = situations[i];
-            if (!sit.situation_text.trim()) {
+            const hasContent = Boolean(
+                (sit.situation_text && sit.situation_text.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim() !== '') ||
+                (sit.situation_image_url && sit.situation_image_url.trim() !== '')
+            );
+            if (sit.questions.length > 1 && !hasContent) {
                 Swal.fire({
-                    title: 'กรุณากรอกข้อมูล',
-                    text: `กรุณากรอกรายละเอียดสถานการณ์ที่ ${i + 1}`,
+                    title: 'กรุณากรอกข้อมูลสถานการณ์',
+                    text: `ชุดคำถามกลุ่มนี้มีหลายข้อ กรุณากรอกรายละเอียดสถานการณ์ร่วมที่ ${i + 1}`,
                     icon: 'warning',
                     confirmButtonColor: '#3b82f6'
                 });
@@ -870,60 +940,118 @@ export default function ItemBankEditPage() {
 
                     updatedSituationCount++;
                 } else {
-                    // สร้าง situation ใหม่พร้อมคำถาม
-                    console.log(`🆕 Creating new situation ${sitIdx + 1}...`);
-                    const data = {
-                        item_bank_id: Number(itemBankId),
-                        situation_text: situation.situation_text,
-                        situation_image_url: situation.situation_image_url || '',
-                        questions: situation.questions.map(q => ({
-                            question_text: q.question_text,
-                            question_image_url: q.question_image_url || '',
-                            explanation: q.explanation,
-                            sub_topic_id: q.sub_topic_id ? Number(q.sub_topic_id) : undefined,
-                            sub_topic_ids: q.sub_topic_ids ? q.sub_topic_ids.map(Number) : [],
-                            irt_a_discrimination: q.irt_a_discrimination ? Number(q.irt_a_discrimination) : 0,
-                            irt_b_difficulty: q.irt_b_difficulty ? Number(q.irt_b_difficulty) : 0,
-                            irt_c_guessing: q.irt_c_guessing ? Number(q.irt_c_guessing) : 0,
-                            answer_options: q.answer_options
-                        }))
-                    };
+                    // ตรวจสอบว่าเป็น existing standalone questions (โหลดจาก DB แต่ไม่มี situation_id)
+                    // หรือเป็น new standalone questions ที่เพิ่งสร้าง
+                    const existingQuestions = situation.questions.filter(q => q.item_id);
+                    const newQuestions = situation.questions.filter(q => !q.item_id);
 
-                    const response = await fetch(`${API_URL}/items-bank/bulk-questions`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        credentials: 'include',
-                        body: JSON.stringify(data)
-                    });
-
-                    if (!response.ok) {
-                        const result = await response.json();
-                        throw new Error(Array.isArray(result.message) ? result.message.join(', ') : result.message);
-                    }
-
-                    // อัพเดท state ด้วย situation_id และ item_ids ที่ได้จาก backend
-                    const createdData = await response.json();
-                    console.log(`✅ Created situation with ID: ${createdData.situation_id}`);
-
-                    if (createdData.situation_id) {
-                        updatedSituations[sitIdx].situation_id = createdData.situation_id;
-                        // อัพเดท temporary_id ให้ตรงกับ situation_id เพื่อความ consistent
-                        updatedSituations[sitIdx].temporary_id = `existing_${createdData.situation_id}`;
-                        // อัพเดท item_ids ของคำถามด้วย
-                        if (createdData.items && Array.isArray(createdData.items)) {
-                            createdData.items.forEach((item: any, qIdx: number) => {
-                                if (updatedSituations[sitIdx].questions[qIdx]) {
-                                    updatedSituations[sitIdx].questions[qIdx].item_id = item.item_id;
-                                    console.log(`  ✅ Question ${qIdx + 1} assigned item_id: ${item.item_id}`);
-                                }
+                    if (existingQuestions.length > 0 && newQuestions.length === 0) {
+                        // ทุก question มี item_id → เป็น existing standalone ที่โหลดมา → update เท่านั้น ห้าม create ซ้ำ
+                        for (const question of existingQuestions) {
+                            await fetch(`${API_URL}/items-bank/item/${question.item_id}`, {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                credentials: 'include',
+                                body: JSON.stringify({
+                                    question_text: question.question_text,
+                                    question_image_url: question.question_image_url || '',
+                                    explanation: question.explanation,
+                                    sub_topic_id: question.sub_topic_id ? Number(question.sub_topic_id) : undefined,
+                                    sub_topic_ids: question.sub_topic_ids ? question.sub_topic_ids.map(Number) : [],
+                                    irt_a_discrimination: question.irt_a_discrimination ? Number(question.irt_a_discrimination) : 0,
+                                    irt_b_difficulty: question.irt_b_difficulty ? Number(question.irt_b_difficulty) : 0,
+                                    irt_c_guessing: question.irt_c_guessing ? Number(question.irt_c_guessing) : 0,
+                                    answer_options: question.answer_options
+                                })
                             });
                         }
-                    }
+                        updatedSituationCount++;
+                    } else {
+                        // มี new questions → สร้างใหม่ผ่าน bulk-questions
+                        // (กรณีที่มีทั้ง existing + new questions ใน standalone เดียวกัน ให้ update existing ก่อน)
+                        for (const question of existingQuestions) {
+                            await fetch(`${API_URL}/items-bank/item/${question.item_id}`, {
+                                method: 'PATCH',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                credentials: 'include',
+                                body: JSON.stringify({
+                                    question_text: question.question_text,
+                                    question_image_url: question.question_image_url || '',
+                                    explanation: question.explanation,
+                                    sub_topic_id: question.sub_topic_id ? Number(question.sub_topic_id) : undefined,
+                                    sub_topic_ids: question.sub_topic_ids ? question.sub_topic_ids.map(Number) : [],
+                                    irt_a_discrimination: question.irt_a_discrimination ? Number(question.irt_a_discrimination) : 0,
+                                    irt_b_difficulty: question.irt_b_difficulty ? Number(question.irt_b_difficulty) : 0,
+                                    irt_c_guessing: question.irt_c_guessing ? Number(question.irt_c_guessing) : 0,
+                                    answer_options: question.answer_options
+                                })
+                            });
+                        }
 
-                    createdSituationCount++;
+                        // สร้าง situation ใหม่พร้อมคำถามใหม่
+                        console.log(`🆕 Creating new situation ${sitIdx + 1}...`);
+                        const data = {
+                            item_bank_id: Number(itemBankId),
+                            situation_text: situation.situation_text,
+                            situation_image_url: situation.situation_image_url || '',
+                            questions: newQuestions.map(q => ({
+                                question_text: q.question_text,
+                                question_image_url: q.question_image_url || '',
+                                explanation: q.explanation,
+                                sub_topic_id: q.sub_topic_id ? Number(q.sub_topic_id) : undefined,
+                                sub_topic_ids: q.sub_topic_ids ? q.sub_topic_ids.map(Number) : [],
+                                irt_a_discrimination: q.irt_a_discrimination ? Number(q.irt_a_discrimination) : 0,
+                                irt_b_difficulty: q.irt_b_difficulty ? Number(q.irt_b_difficulty) : 0,
+                                irt_c_guessing: q.irt_c_guessing ? Number(q.irt_c_guessing) : 0,
+                                answer_options: q.answer_options
+                            }))
+                        };
+
+                        const response = await fetch(`${API_URL}/items-bank/bulk-questions`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            credentials: 'include',
+                            body: JSON.stringify(data)
+                        });
+
+                        if (!response.ok) {
+                            const result = await response.json();
+                            throw new Error(Array.isArray(result.message) ? result.message.join(', ') : result.message);
+                        }
+
+                        // อัพเดท state ด้วย situation_id และ item_ids ที่ได้จาก backend
+                        const createdData = await response.json();
+                        console.log(`✅ Created situation with ID: ${createdData.situation_id}`);
+
+                        if (createdData.situation_id) {
+                            updatedSituations[sitIdx].situation_id = createdData.situation_id;
+                            updatedSituations[sitIdx].temporary_id = `existing_${createdData.situation_id}`;
+                            if (createdData.items && Array.isArray(createdData.items)) {
+                                // map new questions เข้ากับ item_ids ที่สร้างใหม่
+                                const newQuestionIndices = updatedSituations[sitIdx].questions
+                                    .map((q, idx) => !q.item_id ? idx : -1)
+                                    .filter(idx => idx !== -1);
+                                createdData.items.forEach((item: any, idx: number) => {
+                                    const qIdx = newQuestionIndices[idx];
+                                    if (qIdx !== undefined && updatedSituations[sitIdx].questions[qIdx]) {
+                                        updatedSituations[sitIdx].questions[qIdx].item_id = item.item_id;
+                                        console.log(`  ✅ Question ${qIdx + 1} assigned item_id: ${item.item_id}`);
+                                    }
+                                });
+                            }
+                        }
+
+                        createdSituationCount++;
+                    }
                 }
             }
 
@@ -1156,6 +1284,7 @@ export default function ItemBankEditPage() {
                     situations={situations}
                     itemBankId={itemBankId}
                     onAddSituation={addSituation}
+                    onAddStandaloneQuestion={addStandaloneQuestion}
                     onSettingsClick={() => setShowSettingsModal(true)}
                     onCATGuideClick={() => setShowCATGuide(true)}
                     isEditing={isEditing}
@@ -1220,6 +1349,8 @@ export default function ItemBankEditPage() {
                         scrollToSituation={scrollToSituation}
                         collapsedSituations={collapsedSituations}
                         onExpandSituation={expandSituation}
+                        onAddSituation={isEditing ? addSituation : undefined}
+                        onAddStandaloneQuestion={isEditing ? addStandaloneQuestion : undefined}
                     />
                 )}
 
@@ -1261,78 +1392,89 @@ export default function ItemBankEditPage() {
                                     const isCollapsed = collapsedSituations.has(sitIdx);
                                     // Calculate the starting question number for this situation
                                     const questionStartIndex = situations.slice(0, sitIdx).reduce((acc, s) => acc + s.questions.length, 0);
+                                    const hasSituationContent = Boolean(
+                                        (situation.situation_text && situation.situation_text.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim() !== '') ||
+                                        (situation.situation_image_url && situation.situation_image_url.trim() !== '')
+                                    );
+
                                     return (
                                         <div
                                             key={situation.temporary_id || situation.situation_id || sitIdx}
                                             ref={(el) => { situationRefs.current[sitIdx] = el; }}
-                                            className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden scroll-mt-32 transition-shadow hover:shadow-md"
+                                            className={hasSituationContent ? "bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden scroll-mt-32 transition-shadow hover:shadow-md" : "scroll-mt-32 bg-white rounded-2xl shadow-sm border border-blue-200/80 overflow-hidden"}
                                         >
-                                            {/* Situation Header */}
-                                            <div className="flex items-center justify-between px-5 py-4 select-none group">
-                                                {/* Left: badge + title — click to collapse */}
-                                                <div
-                                                    className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
-                                                    onClick={() => toggleSituationCollapse(sitIdx)}
-                                                >
-                                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
-                                                        {sitIdx + 1}
-                                                    </div>
-                                                    <div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-bold text-gray-800">สถานการณ์ที่ {sitIdx + 1}</span>
-                                                            {situation.situation_id
-                                                                ? <span className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">บันทึกแล้ว</span>
-                                                                : <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">ใหม่</span>
-                                                            }
+                                            {/* Situation Header (Only when situation has content) */}
+                                            {hasSituationContent && (
+                                                <div className="flex items-center justify-between px-5 py-4 select-none group">
+                                                    {/* Left: badge + title — click to collapse */}
+                                                    <div
+                                                        className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                                                        onClick={() => toggleSituationCollapse(sitIdx)}
+                                                    >
+                                                        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+                                                            {sitIdx + 1}
                                                         </div>
-                                                        <p className="text-xs text-gray-500 mt-0.5">{situation.questions.length} คำถาม</p>
-                                                    </div>
-                                                </div>
-
-                                                {/* Right: action buttons */}
-                                                <div className="flex items-center gap-2 shrink-0">
-                                                    <div className="hidden sm:flex items-center gap-1 py-1 px-2 bg-gray-50 rounded-lg border border-gray-100">
-                                                        <button type="button" onClick={() => moveSituation(sitIdx, 'up')} disabled={sitIdx === 0} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="ย้ายขึ้น"><ArrowUp className="w-4 h-4" /></button>
-                                                        <div className="w-[1px] h-3 bg-gray-200"></div>
-                                                        <button type="button" onClick={() => moveSituation(sitIdx, 'down')} disabled={sitIdx === situations.length - 1} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="ย้ายลง"><ArrowDown className="w-4 h-4" /></button>
-                                                    </div>
-                                                    <button type="button" onClick={() => removeSituation(sitIdx)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="ลบสถานการณ์"><Trash2 className="w-5 h-5" /></button>
-                                                    <button type="button" onClick={() => toggleSituationCollapse(sitIdx)} className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
-                                                        {isCollapsed ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronUp className="w-4 h-4 text-gray-500" />}
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            {/* Situation Body + Questions */}
-                                            {!isCollapsed && (
-                                                <div className="border-t border-gray-100">
-                                                    {/* Situation text & image — same style as SituationViewer body */}
-                                                    <div className="bg-gradient-to-b from-slate-50 to-white px-5 py-5 border-b border-gray-100">
-                                                        <div className="flex items-start gap-3 mb-4">
-                                                            <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shrink-0" />
-                                                            <div className="flex-1 space-y-3">
-                                                                <TiptapEditor
-                                                                    value={situation.situation_text}
-                                                                    onChange={(html) => updateSituation(sitIdx, 'situation_text', html)}
-                                                                    placeholder="รายละเอียดสถานการณ์..."
-                                                                    minHeight="80px"
-                                                                />
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="font-bold text-gray-800">สถานการณ์ที่ {sitIdx + 1}</span>
+                                                                {situation.situation_id
+                                                                    ? <span className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">บันทึกแล้ว</span>
+                                                                    : <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">ใหม่</span>
+                                                                }
                                                             </div>
+                                                            <p className="text-xs text-gray-500 mt-0.5">{situation.questions.length} คำถาม</p>
                                                         </div>
                                                     </div>
 
-                                                    {/* Question area header */}
-                                                    <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
-                                                        <h4 className="text-sm font-bold text-gray-700">คำถาม</h4>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => addQuestion(sitIdx)}
-                                                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg font-medium text-xs transition-all active:scale-95"
-                                                        >
-                                                            <Plus className="w-3.5 h-3.5" />
-                                                            เพิ่มคำถาม
+                                                    {/* Right: action buttons */}
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <div className="hidden sm:flex items-center gap-1 py-1 px-2 bg-gray-50 rounded-lg border border-gray-100">
+                                                            <button type="button" onClick={() => moveSituation(sitIdx, 'up')} disabled={sitIdx === 0} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="ย้ายขึ้น"><ArrowUp className="w-4 h-4" /></button>
+                                                            <div className="w-[1px] h-3 bg-gray-200"></div>
+                                                            <button type="button" onClick={() => moveSituation(sitIdx, 'down')} disabled={sitIdx === situations.length - 1} className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors" title="ย้ายลง"><ArrowDown className="w-4 h-4" /></button>
+                                                        </div>
+                                                        <button type="button" onClick={() => removeSituation(sitIdx)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all" title="ลบสถานการณ์"><Trash2 className="w-5 h-5" /></button>
+                                                        <button type="button" onClick={() => toggleSituationCollapse(sitIdx)} className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors">
+                                                            {isCollapsed ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronUp className="w-4 h-4 text-gray-500" />}
                                                         </button>
                                                     </div>
+                                                </div>
+                                            )}
+
+                                            {/* Situation Body + Questions */}
+                                            {(!isCollapsed || !hasSituationContent) && (
+                                                <div className={hasSituationContent ? "border-t border-gray-100" : ""}>
+                                                    {/* Situation text & image — same style as SituationViewer body */}
+                                                    {hasSituationContent && (
+                                                        <div className="bg-gradient-to-b from-slate-50 to-white px-5 py-5 border-b border-gray-100">
+                                                            <div className="flex items-start gap-3 mb-4">
+                                                                <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shrink-0" />
+                                                                <div className="flex-1 space-y-3">
+                                                                    <TiptapEditor
+                                                                        value={situation.situation_text}
+                                                                        onChange={(html) => updateSituation(sitIdx, 'situation_text', html)}
+                                                                        placeholder="รายละเอียดสถานการณ์..."
+                                                                        minHeight="80px"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Question area header (Only when situation has content) */}
+                                                    {hasSituationContent && (
+                                                        <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
+                                                            <h4 className="text-sm font-bold text-gray-700">คำถาม</h4>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => addQuestion(sitIdx)}
+                                                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg font-medium text-xs transition-all active:scale-95"
+                                                            >
+                                                                <Plus className="w-3.5 h-3.5" />
+                                                                เพิ่มคำถาม
+                                                            </button>
+                                                        </div>
+                                                    )}
 
                                                     {situation.questions.length === 0 ? (
                                                         <div className="bg-white border-2 border-dashed border-gray-200 rounded-xl p-8 text-center mx-5 my-4">
@@ -1345,11 +1487,11 @@ export default function ItemBankEditPage() {
                                                                 const isQCollapsed = collapsedQuestions.has(`${sitIdx}-${qIdx}`);
                                                                 return (
                                                                     <div id={`question-${sitIdx}-${qIdx}`} key={qIdx} className="scroll-mt-32">
-                                                                        {/* Question Header — เหมือน SituationViewer */}
-                                                                        <div className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50/70 transition-colors group">
+                                                                        {/* Question Header */}
+                                                                        <div className={`flex items-center gap-3 px-5 py-4 transition-colors group ${!hasSituationContent ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'hover:bg-gray-50/70'}`}>
                                                                             {/* number badge */}
                                                                             <div
-                                                                                className="w-8 h-8 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0 cursor-pointer"
+                                                                                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs shrink-0 cursor-pointer ${!hasSituationContent ? 'border-blue-300 bg-blue-600 text-white' : 'border-blue-200 bg-blue-50 text-blue-700'}`}
                                                                                 onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
                                                                             >
                                                                                 {questionStartIndex + qIdx + 1}
@@ -1360,10 +1502,15 @@ export default function ItemBankEditPage() {
                                                                                 className="flex-1 min-w-0 cursor-pointer"
                                                                                 onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
                                                                             >
-                                                                                <div
-                                                                                    className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-2 prose-preview"
-                                                                                    dangerouslySetInnerHTML={{ __html: question.question_text || 'คำถามใหม่' }}
-                                                                                />
+                                                                                <div className="flex items-center gap-2">
+                                                                                    {!hasSituationContent && (
+                                                                                        <span className="text-xs font-semibold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded shrink-0">คำถามเดี่ยว</span>
+                                                                                    )}
+                                                                                    <div
+                                                                                        className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-1 prose-preview flex-1"
+                                                                                        dangerouslySetInnerHTML={{ __html: question.question_text || 'คำถามใหม่' }}
+                                                                                    />
+                                                                                </div>
                                                                             </div>
 
                                                                             {/* action buttons */}
@@ -1371,8 +1518,8 @@ export default function ItemBankEditPage() {
                                                                                 <div className="flex items-center gap-0.5 py-0.5 px-1 bg-gray-50 rounded border border-gray-100">
                                                                                     <button
                                                                                         type="button"
-                                                                                        onClick={() => moveQuestion(sitIdx, qIdx, 'up')}
-                                                                                        disabled={qIdx === 0}
+                                                                                        onClick={() => hasSituationContent ? moveQuestion(sitIdx, qIdx, 'up') : moveSituation(sitIdx, 'up')}
+                                                                                        disabled={hasSituationContent ? qIdx === 0 : sitIdx === 0}
                                                                                         className="p-1 text-gray-400 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                                         title="ย้ายขึ้น"
                                                                                     >
@@ -1380,8 +1527,8 @@ export default function ItemBankEditPage() {
                                                                                     </button>
                                                                                     <button
                                                                                         type="button"
-                                                                                        onClick={() => moveQuestion(sitIdx, qIdx, 'down')}
-                                                                                        disabled={qIdx === situation.questions.length - 1}
+                                                                                        onClick={() => hasSituationContent ? moveQuestion(sitIdx, qIdx, 'down') : moveSituation(sitIdx, 'down')}
+                                                                                        disabled={hasSituationContent ? qIdx === situation.questions.length - 1 : sitIdx === situations.length - 1}
                                                                                         className="p-1 text-gray-400 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                                         title="ย้ายลง"
                                                                                     >
@@ -1390,9 +1537,9 @@ export default function ItemBankEditPage() {
                                                                                 </div>
                                                                                 <button
                                                                                     type="button"
-                                                                                    onClick={() => removeQuestion(sitIdx, qIdx)}
+                                                                                    onClick={() => hasSituationContent ? removeQuestion(sitIdx, qIdx) : removeSituation(sitIdx)}
                                                                                     className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                                                                    title="ลบคำถาม"
+                                                                                    title={hasSituationContent ? "ลบคำถาม" : "ลบคำถามเดี่ยว"}
                                                                                 >
                                                                                     <Trash2 className="w-4 h-4" />
                                                                                 </button>

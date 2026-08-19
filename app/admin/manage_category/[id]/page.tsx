@@ -152,10 +152,18 @@ export default function EditCategory() {
     if (fetching) {
         return (
             <Navbar_admin>
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-                        <p className="text-gray-600 font-medium">กำลังโหลดข้อมูล...</p>
+                <div className="min-h-screen bg-gray-50 py-8">
+                    <div className="max-w-3xl mx-auto px-4 space-y-5">
+                        <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+                            {[1, 2, 3].map((i) => (
+                                <div key={i} className="space-y-2">
+                                    <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+                                    <div className="h-10 w-full animate-pulse rounded-lg bg-gray-200" />
+                                </div>
+                            ))}
+                            <div className="h-10 w-32 animate-pulse rounded-xl bg-gray-300" />
+                        </div>
                     </div>
                 </div>
             </Navbar_admin>

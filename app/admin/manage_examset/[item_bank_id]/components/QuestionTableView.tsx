@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import ImagePreviewModal from '@/components/ImagePreviewModal';
 import {
     CheckCircle,
     X,
@@ -21,6 +22,7 @@ interface AnswerOption {
     option_id?: number;
     option_text: string;
     is_correct: boolean;
+    option_image_url?: string;
 }
 
 interface Question {
@@ -92,6 +94,7 @@ function difficultyLabel(b?: number): { label: string; color: string } {
 function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => void }) {
     const { question, situation, globalNum, subTopicName, topicName } = row;
     const correctIndex = question.answer_options.findIndex(o => o.is_correct);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -138,43 +141,73 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
                     <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">โจทย์คำถาม</p>
                         <div
-                            className="text-gray-800 leading-relaxed font-medium"
+                            className="prose prose-sm max-w-none text-gray-800 font-medium leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-200"
                             dangerouslySetInnerHTML={{ __html: question.question_text }}
                         />
-                        {question.question_image_url && (
+                        {question.question_image_url && question.question_image_url.trim() !== '' && question.question_image_url !== '-' && (
                             <div className="mt-3">
                                 <img
                                     src={question.question_image_url.startsWith("http")
                                         ? question.question_image_url
                                         : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`}
                                     alt="question"
-                                    className="max-h-48 rounded-lg border border-slate-200 bg-white"
+                                    className="max-h-48 rounded-lg border border-slate-200 bg-white cursor-pointer hover:opacity-90 transition-opacity object-contain"
+                                    onClick={() => {
+                                        const url = question.question_image_url!.startsWith("http")
+                                            ? question.question_image_url!
+                                            : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`;
+                                        setPreviewImage(url);
+                                    }}
                                 />
                             </div>
                         )}
                     </div>
 
-                    {/* Answer Options */}
+                    {/* Options */}
                     <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">ตัวเลือก</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">ตัวเลือกคำตอบ</p>
                         <div className="space-y-2">
                             {question.answer_options.map((opt, idx) => (
                                 <div
                                     key={idx}
-                                    className={`flex items-start gap-3 p-3 rounded-xl border transition-colors
-                                        ${opt.is_correct
+                                    className={`p-3 rounded-xl border transition-colors ${
+                                        opt.is_correct
                                             ? 'bg-emerald-50 border-emerald-300'
                                             : 'bg-gray-50 border-gray-200'
-                                        }`}
+                                    }`}
                                 >
-                                    <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold
-                                        ${opt.is_correct ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600 border border-gray-300'}`}>
-                                        {OPTION_LABELS[idx] || idx + 1}
-                                    </span>
-                                    <span className={`text-sm leading-relaxed flex-1 ${opt.is_correct ? 'text-emerald-800 font-medium' : 'text-gray-700'}`}>
-                                        {opt.option_text || <span className="text-gray-400 italic">ไม่มีข้อมูล</span>}
-                                    </span>
-                                    {opt.is_correct && <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />}
+                                    <div className="flex items-start gap-3">
+                                        <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
+                                            opt.is_correct ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600 border border-gray-300'
+                                        }`}>
+                                            {OPTION_LABELS[idx] || idx + 1}
+                                        </span>
+                                        <div className="flex-1">
+                                            {opt.option_text && opt.option_text.trim() !== '' && (
+                                                <span className={`text-sm leading-relaxed block ${opt.is_correct ? 'text-emerald-800 font-medium' : 'text-gray-700'}`}>
+                                                    {opt.option_text}
+                                                </span>
+                                            )}
+                                            {opt.option_image_url && opt.option_image_url.trim() !== '' && (
+                                                <div className={opt.option_text && opt.option_text.trim() !== '' ? "mt-2" : ""}>
+                                                    <img
+                                                        src={opt.option_image_url.startsWith("http")
+                                                            ? opt.option_image_url
+                                                            : `${process.env.NEXT_PUBLIC_API_URL}${opt.option_image_url}`}
+                                                        alt={`Option ${idx + 1} image`}
+                                                        className="max-h-28 rounded-lg border border-gray-200 bg-white cursor-pointer hover:opacity-90 transition-opacity object-contain"
+                                                        onClick={() => {
+                                                            const url = opt.option_image_url!.startsWith("http")
+                                                                ? opt.option_image_url!
+                                                                : `${process.env.NEXT_PUBLIC_API_URL}${opt.option_image_url}`;
+                                                            setPreviewImage(url);
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                        {opt.is_correct && <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />}
+                                    </div>
                                 </div>
                             ))}
                         </div>

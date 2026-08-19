@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Swal from 'sweetalert2';
-import { Loader2, Save, X, AlertCircle } from 'lucide-react';
+import { Loader2, Save, X, FileSpreadsheet, Upload, CheckCircle2, HelpCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface Category {
@@ -24,6 +24,9 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
+    const [excelFile, setExcelFile] = useState<File | null>(null);
+    const [showGuide, setShowGuide] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -95,6 +98,29 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
         }));
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (!file.name.match(/\.(xlsx|xls)$/i)) {
+                Swal.fire({
+                    title: 'รูปแบบไฟล์ไม่ถูกต้อง',
+                    text: 'กรุณาเลือกไฟล์ Excel (.xlsx หรือ .xls) เท่านั้น',
+                    icon: 'error',
+                    confirmButtonColor: '#ef4444'
+                });
+                return;
+            }
+            setExcelFile(file);
+        }
+    };
+
+    const handleRemoveFile = () => {
+        setExcelFile(null);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -119,10 +145,22 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
             return;
         }
 
+        if (formData.is_active && !excelFile) {
+            Swal.fire({
+                title: 'ไม่สามารถเปิดใช้งานได้',
+                text: 'ต้องมีอย่างน้อย 1 คำถาม/สถานการณ์ ถึงจะสามารถเปิดใช้งานชุดข้อสอบได้',
+                icon: 'warning',
+                confirmButtonColor: '#3b82f6'
+            });
+            return;
+        }
+
         setLoading(true);
 
         try {
             const token = getToken();
+
+            // 1. Create Item Bank
             const response = await fetch(`${API_URL}/items-bank`, {
                 method: 'POST',
                 headers: {
@@ -133,23 +171,59 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                 body: JSON.stringify(formData)
             });
 
-            if (response.ok) {
-                await Swal.fire({
-                    title: 'สำเร็จ!',
-                    text: 'สร้างชุดข้อสอบสำเร็จ',
-                    icon: 'success',
-                    confirmButtonColor: '#22c55e',
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                handleReset();
-                onSuccess();
-                onClose();
-            } else {
+            if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.message || 'ไม่สามารถสร้างชุดข้อสอบได้');
             }
+
+            const createdBank = await response.json();
+            const itemBankId = createdBank.item_bank_id;
+
+            // 2. Import Excel file if provided
+            let importMsg = '';
+            if (excelFile) {
+                const excelFormData = new FormData();
+                excelFormData.append('file', excelFile);
+
+                const importRes = await fetch(`${API_URL}/items-bank/${itemBankId}/import-excel`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    credentials: 'include',
+                    body: excelFormData
+                });
+
+                if (importRes.ok) {
+                    const importResult = await importRes.json();
+                    importMsg = ` และนำเข้าข้อสอบ ${importResult.items_count} ข้อสำเร็จ`;
+                    if (importResult.created_topics_count > 0 || importResult.created_sub_topics_count > 0) {
+                        importMsg += ` (สร้างหัวข้อใหม่ ${importResult.created_topics_count + importResult.created_sub_topics_count} หัวข้อ)`;
+                    }
+                } else {
+                    const errorData = await importRes.json();
+                    console.error('Excel Import Warning:', errorData);
+                    Swal.fire({
+                        title: 'สร้างชุดข้อสอบสำเร็จ แต่การนำเข้าข้อสอบล้มเหลว',
+                        text: errorData.message || 'เกิดข้อผิดพลาดในการประมวลผลไฟล์ Excel สามารถเพิ่มข้อสอบทีหลังได้ในหน้าแก้ไข',
+                        icon: 'warning',
+                        confirmButtonColor: '#f59e0b'
+                    });
+                }
+            }
+
+            await Swal.fire({
+                title: 'สำเร็จ!',
+                text: `สร้างชุดข้อสอบสำเร็จ${importMsg}`,
+                icon: 'success',
+                confirmButtonColor: '#22c55e',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            handleReset();
+            onSuccess();
+            onClose();
         } catch (error: any) {
             console.error('Error creating item bank:', error);
             Swal.fire({
@@ -171,6 +245,8 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
             is_active: false,
             category_ids: []
         });
+        setExcelFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
     const handleClose = () => {
@@ -189,7 +265,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                 <div className="bg-green-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
                     <div>
                         <h2 className="text-xl font-semibold text-white">สร้างชุดข้อสอบใหม่</h2>
-                        <p className="text-green-100 text-sm mt-0.5">กรอกข้อมูลเพื่อสร้างชุดข้อสอบใหม่</p>
+                        <p className="text-green-100 text-sm mt-0.5">กรอกข้อมูลและอัปโหลดไฟล์ข้อสอบจาก Excel (ตัวเลือก)</p>
                     </div>
                     <button
                         onClick={handleClose}
@@ -258,9 +334,10 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                             ประเภทข้อสอบ
                         </label>
                         {loadingCategories ? (
-                            <div className="flex items-center justify-center py-8">
-                                <Loader2 className="w-6 h-6 animate-spin text-green-600" />
-                                <span className="ml-2 text-gray-600">กำลังโหลดประเภทข้อสอบ...</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div key={i} className="h-12 w-full animate-pulse rounded-lg bg-gray-200" />
+                                ))}
                             </div>
                         ) : categories.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2">
@@ -296,16 +373,88 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                         )}
                     </div>
 
-                    {/* Status Note */}
-                    {/* <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg flex items-start gap-3">
-                        <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                        <div>
-                            <p className="text-sm font-semibold text-amber-900">บันทึกเป็นแบบร่าง</p>
-                            <p className="text-xs text-amber-700 mt-1">
-                                ชุดข้อสอบที่สร้างใหม่จะถูกตั้งเป็น "แบบร่าง" (ปิดการใช้งาน) โดยอัตโนมัติ คุณสามารถเปิดใช้งานได้ภายหลังจากการเพิ่มข้อสอบครบถ้วนแล้ว
-                            </p>
+                    {/* Section: Upload Excel File */}
+                    <div className="border-t border-gray-200 pt-6">
+                        <div className="flex items-center justify-between mb-3">
+                            <label className="block text-sm font-semibold text-gray-800 flex items-center gap-2">
+                                <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+                                นำเข้าข้อสอบจากไฟล์ Excel (ตัวเลือกเสริม)
+                            </label>
+                            <button
+                                type="button"
+                                onClick={() => setShowGuide(!showGuide)}
+                                className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 font-medium"
+                            >
+                                <HelpCircle className="w-4 h-4" />
+                                {showGuide ? 'ซ่อนโครงสร้างคอลัมน์' : 'ดูโครงสร้างคอลัมน์ Excel'}
+                            </button>
                         </div>
-                    </div> */}
+
+                        {/* Guide Panel */}
+                        {showGuide && (
+                            <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 space-y-2">
+                                <p className="font-semibold text-sm text-emerald-950">📌 หัวตารางที่รองรับในไฟล์ Excel (.xlsx / .xls):</p>
+                                <ul className="list-disc list-inside space-y-1 text-emerald-800">
+                                    <li><b>ข้อที่</b> (No.) | <b>สถานการณ์</b> (เว้นว่างได้ถ้าไม่มีสถานการณ์)</li>
+                                    <li><b>หัวข้อหลัก</b> (Main Topic) | <b>หัวข้อย่อย</b> (Sub Topic) *(ระบบสร้างให้อัตโนมัติหากไม่มีในฐานข้อมูล)*</li>
+                                    <li><b>คำถาม</b> (Question) | <b>รูปภาพคำถาม</b> / <b>รูปภาพสถานการณ์</b> (ใส่ URL หรือฝังรูปใน Excel ได้เลย)</li>
+                                    <li><b>ตัวเลือก 1</b> ถึง <b>ตัวเลือก 5</b></li>
+                                    <li><b>เฉลย</b> (Answer Key) *(รองรับ: 1-5, ก-จ, ข้อ ก - ข้อ จ, A-E)*</li>
+                                    <li><b>คำอธิบายเฉลย</b> (Answer Text / Explanation) *(เว้นว่างได้)*</li>
+                                </ul>
+                            </div>
+                        )}
+
+                        {/* File Upload Box */}
+                        {!excelFile ? (
+                            <div
+                                onClick={() => fileInputRef.current?.click()}
+                                className="border-2 border-dashed border-gray-300 hover:border-emerald-500 hover:bg-emerald-50/50 rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2"
+                            >
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept=".xlsx, .xls"
+                                    onChange={handleFileChange}
+                                    className="hidden"
+                                />
+                                <div className="p-3 bg-emerald-100 rounded-full text-emerald-600 mb-1">
+                                    <Upload className="w-6 h-6" />
+                                </div>
+                                <p className="text-sm font-medium text-gray-700">
+                                    คลิกเพื่อเลือกไฟล์ Excel หรือลากไฟล์มาวางที่นี่
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                    รองรับเฉพาะไฟล์ .xlsx และ .xls (ขนาดไม่เกิน 50MB)
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-between p-4 bg-emerald-50 border-2 border-emerald-500 rounded-xl">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                    <div className="p-2 bg-emerald-600 rounded-lg text-white shrink-0">
+                                        <FileSpreadsheet className="w-6 h-6" />
+                                    </div>
+                                    <div className="truncate">
+                                        <p className="text-sm font-semibold text-gray-900 truncate">
+                                            {excelFile.name}
+                                        </p>
+                                        <p className="text-xs text-emerald-700 flex items-center gap-1 mt-0.5">
+                                            <CheckCircle2 className="w-3.5 h-3.5" />
+                                            พร้อมนำเข้าพร้อมกับการสร้างชุดข้อสอบ ({(excelFile.size / 1024).toFixed(1)} KB)
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleRemoveFile}
+                                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-2 shrink-0"
+                                    title="ยกเลิกไฟล์"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </form>
 
                 {/* Footer */}
@@ -328,12 +477,12 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                         {loading ? (
                             <>
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                กำลังสร้าง...
+                                {excelFile ? 'กำลังสร้างและนำเข้าข้อสอบ...' : 'กำลังสร้าง...'}
                             </>
                         ) : (
                             <>
                                 <Save className="w-5 h-5" />
-                                สร้างชุดข้อสอบ
+                                {excelFile ? 'สร้างชุดข้อสอบและนำเข้า Excel' : 'สร้างชุดข้อสอบ'}
                             </>
                         )}
                     </button>
@@ -342,3 +491,4 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
         </div>
     );
 }
+

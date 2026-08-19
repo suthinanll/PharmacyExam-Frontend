@@ -4,8 +4,7 @@ import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect } from "react";
 import {
   Plus, Search, ChevronLeft, ChevronRight, ArrowUpDown,
-  LayoutGrid, List, Clock, Tag, Calendar, CheckCircle, XCircle,
-  Loader2
+  LayoutGrid, List, Clock, Tag, Calendar, CheckCircle, XCircle
 } from "lucide-react";
 import Link from "next/link";
 import CreateItemBankModal from "./components/CreateItemBankModal";
@@ -246,12 +245,38 @@ function Page() {
 
         {/* Content */}
         {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <Loader2 className="w-10 h-10 text-green-600 animate-spin mb-4" />
-              <p className="text-gray-600 font-medium">กำลังโหลด</p>
+          viewMode === "table" ? (
+            <div className="bg-white rounded-2xl overflow-hidden border border-gray-200">
+              <div className="bg-gray-100 px-5 py-3.5 grid gap-6 border-b border-gray-200" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
+                {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+                  <div key={i} className="h-3 w-16 animate-pulse rounded bg-gray-200" />
+                ))}
+              </div>
+              <div className="divide-y divide-gray-100">
+                {[1, 2, 3, 4, 5, 6].map((r) => (
+                  <div key={r} className="px-5 py-4 grid gap-6 items-center" style={{ gridTemplateColumns: "repeat(7, 1fr)" }}>
+                    {[1, 2, 3, 4, 5, 6, 7].map((c) => (
+                      <div key={c} className={`h-3.5 animate-pulse rounded bg-gray-200 ${c === 1 ? "w-3/4" : "w-1/2"}`} />
+                    ))}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+                  <div className="h-1.5 w-full bg-gray-200" />
+                  <div className="p-5 space-y-3">
+                    <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+                    <div className="h-2.5 w-full animate-pulse rounded bg-gray-200" />
+                    <div className="h-2.5 w-5/6 animate-pulse rounded bg-gray-200" />
+                    <div className="h-9 w-full animate-pulse rounded-xl bg-gray-200 mt-2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         ) : viewMode === "table" ? (
 
           /* ── TABLE VIEW ── */

@@ -148,9 +148,16 @@ export default function EditBlogDetail() {
 
     if (isLoading) return (
         <Navbar_admin>
-            <div className="flex flex-col items-center justify-center h-[60vh]">
-                <Loader2 className="animate-spin text-green-600 mb-2" size={40} />
-                <p className="text-gray-500">กำลังโหลดข้อมูล...</p>
+            <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+                <div className="h-8 w-3/4 animate-pulse rounded-lg bg-gray-200" />
+                <div className="h-3 w-40 animate-pulse rounded bg-gray-200" />
+                <div className="h-64 w-full animate-pulse rounded-2xl bg-gray-200" />
+                <div className="space-y-3">
+                    <div className="h-3.5 w-full animate-pulse rounded bg-gray-200" />
+                    <div className="h-3.5 w-11/12 animate-pulse rounded bg-gray-200" />
+                    <div className="h-3.5 w-full animate-pulse rounded bg-gray-200" />
+                    <div className="h-3.5 w-4/5 animate-pulse rounded bg-gray-200" />
+                </div>
             </div>
         </Navbar_admin>
     );

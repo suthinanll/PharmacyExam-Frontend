@@ -82,9 +82,17 @@ function Page() {
       if (responses.every((r) => r.ok)) {
         await Swal.fire({ title: "สำเร็จ", text: "บันทึกข้อมูลเรียบร้อยแล้ว", icon: "success", timer: 1500, showConfirmButton: false });
         window.location.href = "/admin/manage_calendar";
-      } else throw new Error();
-    } catch {
-      Swal.fire("เกิดข้อผิดพลาด", "ไม่สามารถบันทึกข้อมูลได้", "error");
+      } else {
+        // Find the first failed response and extract error message
+        const failedResponse = responses.find((r) => !r.ok);
+        if (failedResponse) {
+          const errorData = await failedResponse.json();
+          throw new Error(errorData.message || "ไม่สามารถบันทึกข้อมูลได้");
+        }
+        throw new Error("ไม่สามารถบันทึกข้อมูลได้");
+      }
+    } catch (error: any) {
+      Swal.fire("เกิดข้อผิดพลาด", error.message || "ไม่สามารถบันทึกข้อมูลได้", "error");
     }
   };
 

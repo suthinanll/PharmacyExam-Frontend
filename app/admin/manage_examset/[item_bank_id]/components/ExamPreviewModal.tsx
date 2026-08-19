@@ -13,11 +13,14 @@ import {
     ListCheck,
 } from 'lucide-react';
 
+import ImagePreviewModal from '@/components/ImagePreviewModal';
+
 // ─── Types ──────────────────────────────────────────────────
 interface AnswerOption {
     option_id: number;
     option_text: string;
     is_correct: boolean;
+    option_image_url?: string;
 }
 
 interface SubTopic {
@@ -78,6 +81,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
     const [answers, setAnswers] = useState<Record<number, number>>({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     // ── Fetch when opened ──────────────────────────────────
     useEffect(() => {
@@ -218,11 +222,12 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
 
                 {/* ── Body ────────────────────────────────────── */}
                 {loading ? (
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="text-center">
-                            <Loader2 className="w-12 h-12 animate-spin text-green-600 mx-auto mb-3" />
-                            <p className="text-gray-500 font-medium">กำลังโหลดข้อสอบ...</p>
-                        </div>
+                    <div className="p-6 space-y-4">
+                        <div className="h-5 w-3/4 animate-pulse rounded bg-gray-200" />
+                        <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
+                        ))}
                     </div>
                 ) : error ? (
                     <div className="flex-1 flex items-center justify-center">
@@ -251,26 +256,32 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                         <div className="lg:flex-1 lg:overflow-y-auto p-5 lg:p-8">
 
                             {/* Situation */}
-                            {currentQuestion?.situation && (
+                            {currentQuestion?.situation && ((currentQuestion.situation.situation_text && currentQuestion.situation.situation_text.replace(/<[^>]*>/g, '').trim() !== '') || (currentQuestion.situation.situation_image_url && currentQuestion.situation.situation_image_url.trim() !== '')) && (
                                 <div className="mb-6 bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
                                     <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-2">
                                         <BookOpen className="w-4 h-4 text-blue-600" />
                                         <span className="text-sm font-semibold text-blue-700">สถานการณ์</span>
                                     </div>
                                     <div className="p-5">
-                                        {currentQuestion.situation.situation_text ? (
+                                        {currentQuestion.situation.situation_text && currentQuestion.situation.situation_text.replace(/<[^>]*>/g, '').trim() !== '' && (
                                             <div
                                                 className="prose prose-sm max-w-none text-gray-700 leading-relaxed text-[15px]"
                                                 dangerouslySetInnerHTML={{ __html: currentQuestion.situation.situation_text }}
                                             />
-                                        ) : (
-                                            <span className="text-gray-400 italic text-sm">ไม่มีรายละเอียดสถานการณ์</span>
                                         )}
-                                        {currentQuestion.situation.situation_image_url && (
+                                        {currentQuestion.situation.situation_image_url && currentQuestion.situation.situation_image_url.trim() !== '' && (
                                             <img
-                                                src={currentQuestion.situation.situation_image_url}
+                                                src={currentQuestion.situation.situation_image_url.startsWith("http")
+                                                    ? currentQuestion.situation.situation_image_url
+                                                    : `${process.env.NEXT_PUBLIC_API_URL}${currentQuestion.situation.situation_image_url}`}
                                                 alt="situation"
-                                                className="mt-4 rounded-lg max-w-full border border-gray-200"
+                                                className="mt-4 rounded-lg max-w-full border border-gray-200 cursor-pointer hover:opacity-90 transition-opacity"
+                                                onClick={() => {
+                                                    const url = currentQuestion.situation?.situation_image_url;
+                                                    if (url) {
+                                                        setPreviewImage(url.startsWith("http") ? url : `${process.env.NEXT_PUBLIC_API_URL}${url}`);
+                                                    }
+                                                }}
                                             />
                                         )}
                                     </div>
@@ -338,9 +349,31 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                                     {OPTION_LABELS[idx] || String.fromCharCode(65 + idx)}
                                                 </span>
 
-                                                <span className="text-gray-800 text-sm lg:text-base leading-relaxed">
-                                                    {option.option_text}
-                                                </span>
+                                                <div className="flex-1 text-left">
+                                                    {option.option_text && option.option_text.trim() !== '' && (
+                                                        <span className="text-gray-800 text-sm lg:text-base leading-relaxed block">
+                                                            {option.option_text}
+                                                        </span>
+                                                    )}
+                                                    {option.option_image_url && option.option_image_url.trim() !== '' && (
+                                                        <div className={option.option_text && option.option_text.trim() !== '' ? "mt-2" : ""}>
+                                                            <img
+                                                                src={option.option_image_url.startsWith("http")
+                                                                    ? option.option_image_url
+                                                                    : `${process.env.NEXT_PUBLIC_API_URL}${option.option_image_url}`}
+                                                                alt={`ตัวเลือก ${idx + 1}`}
+                                                                className="max-h-36 rounded-lg border border-gray-200 bg-white cursor-pointer hover:opacity-90 transition-opacity object-contain"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    const url = option.option_image_url!.startsWith("http")
+                                                                        ? option.option_image_url!
+                                                                        : `${process.env.NEXT_PUBLIC_API_URL}${option.option_image_url}`;
+                                                                    setPreviewImage(url);
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </button>
                                         );
                                     })}
@@ -455,6 +488,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                     </div>
                 )}
             </div>
+            <ImagePreviewModal src={previewImage} onClose={() => setPreviewImage(null)} />
         </div>
     );
 }

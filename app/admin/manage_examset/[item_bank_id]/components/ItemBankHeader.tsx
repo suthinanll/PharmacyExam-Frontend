@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowLeft, Settings, Plus, FileText, Clock, CheckCircle, XCircle, Layers, Edit2, ChevronLeft, ChevronRight, X, HelpCircle, Save, Ban } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Settings, Plus, FileText, Clock, CheckCircle, XCircle, Layers, Edit2, ChevronLeft, ChevronRight, X, HelpCircle, Save, Ban, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -25,6 +25,7 @@ interface ItemBankHeaderProps {
     situations: Situation[];
     itemBankId: string;
     onAddSituation: () => void;
+    onAddStandaloneQuestion?: () => void;
     onSettingsClick: () => void;
     onCATGuideClick: () => void;
     isEditing: boolean;
@@ -41,6 +42,7 @@ export default function ItemBankHeader({
     situations,
     itemBankId,
     onAddSituation,
+    onAddStandaloneQuestion,
     onSettingsClick,
     onCATGuideClick,
     isEditing,
@@ -52,6 +54,7 @@ export default function ItemBankHeader({
     onUploadPdf
 }: ItemBankHeaderProps) {
     const router = useRouter();
+    const [showCreateDropdown, setShowCreateDropdown] = useState(false);
 
     return (
         <>
@@ -103,14 +106,6 @@ export default function ItemBankHeader({
                     <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto mt-2 sm:mt-0">
                         {!isEditing ? (
                             <>
-                                {/* <button
-                                    onClick={onSettingsClick}
-                                    className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-white text-gray-700 hover:bg-gray-50 border border-gray-200 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
-                                >
-                                    <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-                                    <span className="hidden sm:inline">ตั้งค่า</span>
-                                </button> */}
-
                                 <button
                                     onClick={onCATGuideClick}
                                     className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
@@ -128,23 +123,65 @@ export default function ItemBankHeader({
                                 </button>
                             </>
                         ) : (
-                            <>
-                                
-
+                            <div className="relative">
                                 <button
-                                    onClick={onAddSituation}
-                                    className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
+                                    type="button"
+                                    onClick={() => setShowCreateDropdown(!showCreateDropdown)}
+                                    className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all font-semibold text-sm sm:text-base shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
                                 >
-                                    <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                                    เพิ่มสถานการณ์
+                                    <Plus className="w-5 h-5" />
+                                    <span>สร้าง</span>
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${showCreateDropdown ? 'rotate-180' : ''}`} />
                                 </button>
-                               
-                            </>
+
+                                {showCreateDropdown && (
+                                    <div
+                                        className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                                        onMouseLeave={() => setShowCreateDropdown(false)}
+                                    >
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowCreateDropdown(false);
+                                                onAddSituation();
+                                            }}
+                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors font-medium cursor-pointer"
+                                        >
+                                            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                                <Layers className="w-4 h-4" />
+                                            </div>
+                                            <div>
+                                                <div className="font-semibold">สร้างสถานการณ์ใหม่</div>
+                                                <div className="text-xs text-gray-400 font-normal">ข้อสอบที่มีบริบท/โจทย์ยาวร่วมกัน</div>
+                                            </div>
+                                        </button>
+
+                                        <div className="my-1 border-t border-gray-100" />
+
+                                        {onAddStandaloneQuestion && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowCreateDropdown(false);
+                                                    onAddStandaloneQuestion();
+                                                }}
+                                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center gap-3 transition-colors font-medium cursor-pointer"
+                                            >
+                                                <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                                                    <FileText className="w-4 h-4" />
+                                                </div>
+                                                <div>
+                                                    <div className="font-semibold">สร้างคำถาม (ไม่มีสถานการณ์)</div>
+                                                    <div className="text-xs text-gray-400 font-normal">คำถามเดี่ยวแบบช้อยส์ทั่วไป</div>
+                                                </div>
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 </div>
-
-
             </div>
         </>
     );

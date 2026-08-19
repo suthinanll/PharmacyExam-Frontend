@@ -3,7 +3,7 @@
 
 import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Search, Clock, Loader2, ImageOff, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Search, Clock, ImageOff, Trash2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -142,8 +142,10 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
       </div>
 
       {isActionLoading && (
-        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center rounded-2xl z-20">
-          <Loader2 className="animate-spin text-green-600" />
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] rounded-2xl z-20 p-4">
+          <div className="h-2 w-full bg-gray-200 animate-pulse rounded-full mb-3" />
+          <div className="h-2 w-2/3 bg-gray-200 animate-pulse rounded-full mb-3" />
+          <div className="h-2 w-full bg-gray-200 animate-pulse rounded-full" />
         </div>
       )}
     </div>
@@ -246,9 +248,17 @@ function Page() {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center py-32 text-gray-300">
-            <Loader2 className="w-12 h-12 animate-spin mb-4 text-green-500 opacity-40" />
-            <p className="font-bold uppercase tracking-widest text-xs">Synchronizing Data...</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="h-44 bg-gray-200 animate-pulse" />
+                <div className="p-4 space-y-3">
+                  <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
+                  <div className="h-3 w-full animate-pulse rounded bg-gray-100" />
+                  <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
+                </div>
+              </div>
+            ))}
           </div>
         ) : filteredBlogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

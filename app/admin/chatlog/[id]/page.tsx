@@ -2,7 +2,7 @@
 
 import Navbar_admin from "@/components/Navbar_admin";
 import Link from "next/link";
-import { ChevronLeft, Loader2, User, Bot } from "lucide-react"; // เพิ่ม Icons
+import { ChevronLeft, User, Bot } from "lucide-react"; // เพิ่ม Icons
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 
@@ -76,8 +76,21 @@ function ChatDetailPage() {
     if (loading) {
         return (
             <Navbar_admin>
-                 <div className="flex justify-center items-center h-screen bg-gray-50">
-                    <Loader2 className="w-10 h-10 animate-spin text-green-600" />
+                <div className="min-h-screen bg-gray-50 py-8">
+                    <div className="max-w-4xl mx-auto px-4 space-y-6">
+                        <div className="h-8 w-56 animate-pulse rounded-lg bg-gray-200" />
+                        <div className="space-y-4">
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="flex items-end gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+                                    <div className="space-y-2 flex-1 max-w-[70%]">
+                                        <div className="h-3.5 w-full animate-pulse rounded-lg bg-gray-200" />
+                                        <div className="h-3.5 w-2/3 animate-pulse rounded-lg bg-gray-200" />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </Navbar_admin>
         );

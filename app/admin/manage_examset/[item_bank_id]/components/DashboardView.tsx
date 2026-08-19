@@ -29,7 +29,7 @@ import {
     ArrowLeft,
     Eye
 } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
+
 import ExamPreviewModal from './ExamPreviewModal';
 import Link from 'next/link';
 import SettingsModal from './SettingsModal';
@@ -125,6 +125,16 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
         const previousStatus = data.item_bank.is_active;
         const newStatus = !previousStatus;
 
+        if (newStatus && (!data.stats || data.stats.total_items === 0)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'ไม่สามารถเปิดใช้งานได้',
+                text: 'ต้องมีอย่างน้อย 1 คำถาม/สถานการณ์ ถึงจะสามารถเปิดใช้งานชุดข้อสอบได้',
+                confirmButtonColor: '#059669'
+            });
+            return;
+        }
+
         // Optimistic update with functional state to ensure reliability
         setData(prev => {
             if (!prev) return null;
@@ -170,9 +180,10 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                 // Call onUpdate to sync with parent
                 if (onUpdate) onUpdate();
             } else {
-                throw new Error('Failed to update status');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to update status');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error updating status:', error);
             // Revert on error
             setData(prev => {
@@ -185,18 +196,38 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                     }
                 };
             });
-            Toast.fire({
-                icon: 'error',
-                title: 'เกิดข้อผิดพลาดในการเปลี่ยนสถานะ'
+            Swal.fire({
+                icon: 'warning',
+                title: 'ไม่สามารถเปิดใช้งานได้',
+                text: error.message || 'เกิดข้อผิดพลาดในการเปลี่ยนสถานะ',
+                confirmButtonColor: '#059669'
             });
         }
     };
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                <Loader2 className="w-12 h-12 text-green-600 animate-spin mb-4" />
-                <p className="text-gray-500 font-medium">กำลังโหลดข้อมูล...</p>
+            <div className="min-h-[60vh] space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-3">
+                            <div className="w-10 h-10 rounded-lg bg-gray-200 animate-pulse" />
+                            <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+                            <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
+                        </div>
+                    ))}
+                </div>
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+                    {[1, 2, 3].map((r) => (
+                        <div key={r} className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-lg bg-gray-200 animate-pulse" />
+                            <div className="flex-1 space-y-2">
+                                <div className="h-3.5 w-3/4 animate-pulse rounded bg-gray-200" />
+                                <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     }

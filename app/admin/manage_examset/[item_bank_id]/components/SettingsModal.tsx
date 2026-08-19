@@ -263,8 +263,13 @@ export default function SettingsModal({
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4 bg-black/30 animate-in fade-in duration-200" suppressHydrationWarning>
             <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-gray-200">
                 {fetching ? (
-                    <div className="flex items-center justify-center h-64">
-                        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+                    <div className="p-8 space-y-4">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="space-y-2">
+                                <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+                                <div className="h-10 w-full animate-pulse rounded-lg bg-gray-200" />
+                            </div>
+                        ))}
                     </div>
                 ) : (
                     <div className="p-8 sm:p-8">

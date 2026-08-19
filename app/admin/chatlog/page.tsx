@@ -103,7 +103,17 @@ export default function ChatbotKnowledgePage() {
                 removeSelectedFile();
                 fetchDocuments();
             } else {
-                throw new Error();
+                // ดึงข้อความ error จริงจาก backend มาแสดง (เพื่อ debug ตอน deploy)
+                let serverMsg = `HTTP ${res.status}`;
+                try {
+                    const errBody = await res.json();
+                    if (errBody?.message) {
+                        serverMsg = Array.isArray(errBody.message)
+                            ? errBody.message.join(", ")
+                            : errBody.message;
+                    }
+                } catch { /* ignore parse errors */ }
+                throw new Error(serverMsg);
             }
         } catch (error) {
             console.error("Upload error:", error);
@@ -270,11 +280,17 @@ export default function ChatbotKnowledgePage() {
 
                 {/* ─── Documents Table ─── */}
                 {loading ? (
-                    <div className="flex items-center justify-center h-64">
-                        <div className="text-center">
-                            <Loader2 className="w-10 h-10 text-green-600 animate-spin mb-4" />
-                            <p className="text-gray-600 font-medium">กำลังโหลด</p>
-                        </div>
+                    <div className="space-y-3">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex items-center gap-4">
+                                <div className="w-11 h-11 rounded-xl bg-gray-200 animate-pulse shrink-0" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
+                                    <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
+                                </div>
+                                <div className="w-8 h-8 rounded-lg bg-gray-200 animate-pulse shrink-0" />
+                            </div>
+                        ))}
                     </div>
                 ) : documents.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400">

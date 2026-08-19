@@ -12,11 +12,13 @@ import {
     Eye,
     EyeOff,
 } from 'lucide-react';
+import ImagePreviewModal from '@/components/ImagePreviewModal';
 
 interface AnswerOption {
     option_id?: number;
     option_text: string;
     is_correct: boolean;
+    option_image_url?: string;
 }
 
 interface Question {
@@ -61,6 +63,7 @@ export default function SituationViewer({
     onExpandAll,
 }: SituationViewerProps) {
     const [showAnswers, setShowAnswers] = useState(true);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     const totalQuestions = situations.reduce((acc, s) => acc + s.questions.length, 0);
 
@@ -144,6 +147,133 @@ export default function SituationViewer({
             {situations.map((situation, sitIdx) => {
                 const isCollapsed = collapsedSituations.has(sitIdx);
                 const questionStartIndex = situations.slice(0, sitIdx).reduce((acc, s) => acc + s.questions.length, 0);
+                const hasSituationContent = Boolean(
+                    (situation.situation_text && situation.situation_text.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim() !== '') ||
+                    (situation.situation_image_url && situation.situation_image_url.trim() !== '')
+                );
+
+                if (!hasSituationContent) {
+                    // Render questions directly without situation wrapper card if situation is empty
+                    return (
+                        <div key={sitIdx} className="space-y-4">
+                            {situation.questions.map((question, qIdx) => {
+                                const isQCollapsed = collapsedQuestions.has(`${sitIdx}-${qIdx}`);
+                                const globalNum = questionStartIndex + qIdx + 1;
+                                const correctIndex = question.answer_options.findIndex(o => o.is_correct);
+
+                                return (
+                                    <div
+                                        id={`question-${sitIdx}-${qIdx}`}
+                                        key={qIdx}
+                                        className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden scroll-mt-32"
+                                    >
+                                        <div
+                                            className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-gray-50/70 transition-colors group"
+                                            onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
+                                        >
+                                            <div className="w-8 h-8 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0 mt-0.5">
+                                                {globalNum}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div
+                                                    className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-2 pr-2 prose prose-sm max-w-none"
+                                                    dangerouslySetInnerHTML={{ __html: question.question_text || 'คำถามใหม่' }}
+                                                />
+                                                {!isQCollapsed && showAnswers && correctIndex >= 0 && (
+                                                    <div className="mt-1.5 flex items-center gap-1.5 text-xs text-emerald-600">
+                                                        <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                                                        <span className="font-medium">เฉลย: ข้อ {OPTION_LABELS[correctIndex] || correctIndex + 1}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="w-7 h-7 rounded-lg bg-transparent group-hover:bg-gray-100 flex items-center justify-center transition-colors shrink-0">
+                                                {isQCollapsed
+                                                    ? <ChevronDown className="w-4 h-4 text-gray-400" />
+                                                    : <ChevronUp className="w-4 h-4 text-gray-400" />
+                                                }
+                                            </div>
+                                        </div>
+
+                                        {!isQCollapsed && (
+                                            <div className="px-5 pb-5 bg-gray-50/40 border-t border-gray-100">
+                                                {question.question_image_url && question.question_image_url.trim() !== '' && question.question_image_url !== '-' && (
+                                                    <div className="mb-4 mt-4">
+                                                        <img
+                                                            src={question.question_image_url.startsWith("http")
+                                                                ? question.question_image_url
+                                                                : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`}
+                                                            alt="คำถาม"
+                                                            className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white cursor-pointer hover:opacity-90 transition-opacity"
+                                                            onClick={() => setPreviewImage(
+                                                                question.question_image_url!.startsWith("http")
+                                                                    ? question.question_image_url!
+                                                                    : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`
+                                                            )}
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                <div className="space-y-2 mt-4">
+                                                    {question.answer_options.map((option, oIdx) => {
+                                                        const label = OPTION_LABELS[oIdx] || String.fromCharCode(65 + oIdx);
+                                                        const isCorrect = option.is_correct;
+                                                        const revealCorrect = showAnswers && isCorrect;
+
+                                                        return (
+                                                            <div
+                                                                key={oIdx}
+                                                                className={`p-3.5 rounded-xl border transition-colors ${
+                                                                    revealCorrect
+                                                                        ? 'bg-emerald-50 border-emerald-300 shadow-sm'
+                                                                        : 'bg-white border-gray-200'
+                                                                }`}
+                                                            >
+                                                                <div className="flex items-start gap-3">
+                                                                    <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border ${
+                                                                        revealCorrect
+                                                                            ? 'bg-emerald-500 text-white border-emerald-500'
+                                                                            : 'bg-gray-100 text-gray-600 border-gray-200'
+                                                                    }`}>
+                                                                        {label}
+                                                                    </span>
+                                                                    <div className="flex-1">
+                                                                        {option.option_text && option.option_text.trim() !== '' && (
+                                                                            <span className={`text-sm leading-relaxed break-words block ${
+                                                                                revealCorrect ? 'text-emerald-800 font-medium' : 'text-gray-700'
+                                                                            }`}>
+                                                                                {option.option_text}
+                                                                            </span>
+                                                                        )}
+                                                                    </div>
+                                                                    {revealCorrect && (
+                                                                        <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                {question.explanation && (
+                                                    <div className="mt-4 flex gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+                                                        <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                                                        <div>
+                                                            <p className="text-xs font-bold text-amber-700 mb-1 uppercase tracking-wide">คำอธิบายเฉลย</p>
+                                                            <div
+                                                                className="prose prose-sm max-w-none text-amber-800 leading-relaxed"
+                                                                dangerouslySetInnerHTML={{ __html: question.explanation }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    );
+                }
 
                 return (
                     <div
@@ -157,7 +287,6 @@ export default function SituationViewer({
                             onClick={() => toggleSituationCollapse(sitIdx)}
                         >
                             <div className="flex items-center gap-3">
-                                {/* index badge */}
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
                                     {sitIdx + 1}
                                 </div>
@@ -189,23 +318,28 @@ export default function SituationViewer({
                             <div className="border-t border-gray-100">
                                 {/* ── Situation Body ─────────────────── */}
                                 <div className="bg-gradient-to-b from-slate-50 to-white px-5 py-5 border-b border-gray-100">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shrink-0" />
-                                        {situation.situation_text ? (
+                                    {situation.situation_text && situation.situation_text.replace(/<[^>]*>/g, '').trim() !== '' && (
+                                        <div className="flex items-start gap-3">
+                                            <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shrink-0" />
                                             <div
                                                 className="prose prose-sm max-w-none text-gray-700 leading-relaxed text-[15px]"
                                                 dangerouslySetInnerHTML={{ __html: situation.situation_text }}
                                             />
-                                        ) : (
-                                            <span className="text-gray-400 italic text-sm">ไม่มีรายละเอียดสถานการณ์</span>
-                                        )}
-                                    </div>
-                                    {situation.situation_image_url && (
-                                        <div className="mt-4 pl-4">
+                                        </div>
+                                    )}
+                                    {situation.situation_image_url && situation.situation_image_url.trim() !== '' && (
+                                        <div className={situation.situation_text && situation.situation_text.replace(/<[^>]*>/g, '').trim() !== '' ? "mt-4 pl-4" : "pl-4"}>
                                             <img
-                                                src={situation.situation_image_url}
+                                                src={situation.situation_image_url.startsWith("http")
+                                                    ? situation.situation_image_url
+                                                    : `${process.env.NEXT_PUBLIC_API_URL}${situation.situation_image_url}`}
                                                 alt="สถานการณ์"
-                                                className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm"
+                                                className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm cursor-pointer hover:opacity-90 transition-opacity"
+                                                onClick={() => setPreviewImage(
+                                                    situation.situation_image_url!.startsWith("http")
+                                                        ? situation.situation_image_url!
+                                                        : `${process.env.NEXT_PUBLIC_API_URL}${situation.situation_image_url}`
+                                                )}
                                             />
                                         </div>
                                     )}
@@ -229,7 +363,6 @@ export default function SituationViewer({
                                                     className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-gray-50/70 transition-colors group"
                                                     onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
                                                 >
-                                                    {/* number */}
                                                     <div className="w-8 h-8 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0 mt-0.5">
                                                         {globalNum}
                                                     </div>
@@ -258,21 +391,19 @@ export default function SituationViewer({
                                                 {/* Question Detail */}
                                                 {!isQCollapsed && (
                                                     <div className="px-5 pb-5 bg-gray-50/40">
-                                                        {/* full question text */}
-                                                        {/* <div className="mb-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                                                            <p className="text-gray-800 whitespace-pre-wrap leading-relaxed text-sm">
-                                                                {question.question_text}
-                                                            </p>
-                                                        </div> */}
-
-                                                        {question.question_image_url && (
+                                                        {question.question_image_url && question.question_image_url.trim() !== '' && question.question_image_url !== '-' && (
                                                             <div className="mb-4">
                                                                 <img
                                                                     src={question.question_image_url.startsWith("http")
                                                                         ? question.question_image_url
                                                                         : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`}
                                                                     alt="คำถาม"
-                                                                    className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white"
+                                                                    className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white cursor-pointer hover:opacity-90 transition-opacity"
+                                                                    onClick={() => setPreviewImage(
+                                                                        question.question_image_url!.startsWith("http")
+                                                                            ? question.question_image_url!
+                                                                            : `${process.env.NEXT_PUBLIC_API_URL}${question.question_image_url}`
+                                                                    )}
                                                                 />
                                                             </div>
                                                         )}
@@ -287,31 +418,35 @@ export default function SituationViewer({
                                                                 return (
                                                                     <div
                                                                         key={oIdx}
-                                                                        className={`flex items-start gap-3 p-3.5 rounded-xl border transition-colors
-                                                                            ${revealCorrect
+                                                                        className={`p-3.5 rounded-xl border transition-colors ${
+                                                                            revealCorrect
                                                                                 ? 'bg-emerald-50 border-emerald-300 shadow-sm'
                                                                                 : 'bg-white border-gray-200'
-                                                                            }`}
+                                                                        }`}
                                                                     >
-                                                                        {/* label */}
-                                                                        <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border
-                                                                            ${revealCorrect
-                                                                                ? 'bg-emerald-500 text-white border-emerald-500'
-                                                                                : 'bg-gray-100 text-gray-600 border-gray-200'
+                                                                        <div className="flex items-start gap-3">
+                                                                            <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border ${
+                                                                                revealCorrect
+                                                                                    ? 'bg-emerald-500 text-white border-emerald-500'
+                                                                                    : 'bg-gray-100 text-gray-600 border-gray-200'
                                                                             }`}>
-                                                                            {label}
-                                                                        </span>
+                                                                                {label}
+                                                                            </span>
 
-                                                                        <span className={`text-sm leading-relaxed flex-1 break-words
-                                                                            ${revealCorrect ? 'text-emerald-800 font-medium' : 'text-gray-700'}`}>
-                                                                            {option.option_text || (
-                                                                                <span className="text-gray-400 italic">ไม่มีข้อมูลตัวเลือก</span>
+                                                                            <div className="flex-1">
+                                                                                {option.option_text && option.option_text.trim() !== '' && (
+                                                                                    <span className={`text-sm leading-relaxed break-words block ${
+                                                                                        revealCorrect ? 'text-emerald-800 font-medium' : 'text-gray-700'
+                                                                                    }`}>
+                                                                                        {option.option_text}
+                                                                                    </span>
+                                                                                )}
+                                                                            </div>
+
+                                                                            {revealCorrect && (
+                                                                                <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
                                                                             )}
-                                                                        </span>
-
-                                                                        {revealCorrect && (
-                                                                            <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-                                                                        )}
+                                                                        </div>
                                                                     </div>
                                                                 );
                                                             })}
@@ -341,6 +476,7 @@ export default function SituationViewer({
                     </div>
                 );
             })}
+            <ImagePreviewModal src={previewImage} onClose={() => setPreviewImage(null)} />
         </div>
     );
 }

@@ -332,10 +332,20 @@ export default function CategoriesManagement() {
 
                 {/* Content */}
                 {loading ? (
-                    <div className="flex items-center justify-center h-64">
-                        <div className="text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-3" />
-                            <p className="text-gray-500 text-sm">กำลังโหลด...</p>
+                    <div className="bg-white rounded-2xl overflow-hidden border border-gray-200">
+                        <div className="bg-gray-100 px-5 py-3.5 grid gap-6 border-b border-gray-200" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+                            {[1, 2, 3, 4].map((i) => (
+                                <div key={i} className="h-3 w-16 animate-pulse rounded bg-gray-200" />
+                            ))}
+                        </div>
+                        <div className="divide-y divide-gray-100">
+                            {[1, 2, 3, 4, 5].map((r) => (
+                                <div key={r} className="px-5 py-4 grid gap-6 items-center" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+                                    {[1, 2, 3, 4].map((c) => (
+                                        <div key={c} className={`h-3.5 animate-pulse rounded bg-gray-200 ${c === 1 ? "w-3/4" : "w-1/2"}`} />
+                                    ))}
+                                </div>
+                            ))}
                         </div>
                     </div>
                 ) : viewMode === 'table' ? (

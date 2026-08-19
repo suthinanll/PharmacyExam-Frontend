@@ -3,9 +3,9 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
 
 import Swal from 'sweetalert2';
+import { FullScreenSkeleton } from '@/components/Skeleton';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user, isLoading, isAuthenticated } = useAuth();
@@ -33,14 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }, [isLoading, isAuthenticated, user, router]);
 
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="flex flex-col items-center">
-                    <Loader2 className="w-10 h-10 text-green-600 animate-spin mb-4" />
-                    <p className="text-gray-600 font-medium">กำลังโหลด</p>
-                </div>
-            </div>
-        );
+        return <FullScreenSkeleton />;
     }
 
     // Only render children if user is authenticated and is an admin

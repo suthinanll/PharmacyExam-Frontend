@@ -13,7 +13,6 @@ import {
   ArrowLeft,
   Layers,
   CheckCircle,
-  Loader2,
   ChevronLeft,
   ChevronRight as PageNext,
 } from "lucide-react";
@@ -261,9 +260,16 @@ export default function StudentTrackingPage() {
               </p>
 
               {isStudentsLoading ? (
-                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-                  <Loader2 className="w-8 h-8 animate-spin text-green-600 mb-3" />
-                  <p className="text-sm">กำลังโหลดรายชื่อนักเรียน...</p>
+                <div className="py-4 space-y-2">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="flex items-center gap-3 px-3 py-3">
+                      <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3.5 w-2/3 animate-pulse rounded bg-gray-200" />
+                        <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : students.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-8">ไม่พบรายชื่อดังกล่าว</p>
@@ -338,10 +344,15 @@ export default function StudentTrackingPage() {
             {selectedStudent && activeData ? (
               <div className="relative space-y-4 sm:space-y-6">
                 {isProgressLoading && (
-                  <div className="absolute inset-0 z-20 bg-white/70 backdrop-blur-[1px] rounded-2xl flex items-start justify-center pt-24">
-                    <div className="flex items-center gap-3 bg-white border border-gray-100 shadow-sm rounded-2xl px-5 py-3 text-sm font-bold text-gray-600 shadow-lg">
-                      <Loader2 className="w-5 h-5 animate-spin text-green-600" />
-                      กำลังดึงข้อมูลผลการเรียน...
+                  <div className="absolute inset-0 z-20 bg-white/70 backdrop-blur-[1px] rounded-2xl flex items-start justify-center pt-16">
+                    <div className="w-full max-w-2xl mx-4 space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 space-y-3">
+                          <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
+                          <div className="h-3 w-full animate-pulse rounded bg-gray-100" />
+                          <div className="h-3 w-2/3 animate-pulse rounded bg-gray-100" />
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
@@ -510,9 +521,10 @@ export default function StudentTrackingPage() {
             ) : (
               <div className="bg-white p-8 sm:p-12 text-center rounded-2xl border border-gray-100 text-gray-400 text-xs sm:text-sm">
                 {isProgressLoading ? (
-                  <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 animate-spin text-green-600" />
-                    <span>กำลังโหลดผลการเรียน...</span>
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="h-8 w-full animate-pulse rounded-lg bg-gray-200" />
+                    ))}
                   </div>
                 ) : (
                   "กรุณาเลือกรายชื่อนักเรียนจากแถบด้านซ้ายเพื่อประมวลผล Score Bar"

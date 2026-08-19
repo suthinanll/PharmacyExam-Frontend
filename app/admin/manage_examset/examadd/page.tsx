@@ -111,6 +111,16 @@ function CreateItemBank() {
             return;
         }
 
+        if (formData.is_active) {
+            Swal.fire({
+                title: 'ไม่สามารถเปิดใช้งานได้',
+                text: 'ต้องมีอย่างน้อย 1 คำถาม/สถานการณ์ ถึงจะสามารถเปิดใช้งานชุดข้อสอบได้',
+                icon: 'warning',
+                confirmButtonColor: '#3b82f6'
+            });
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -233,9 +243,10 @@ function CreateItemBank() {
                                     ประเภทข้อสอบ
                                 </label>
                                 {loadingCategories ? (
-                                    <div className="flex items-center justify-center py-8">
-                                        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-                                        <span className="ml-2 text-gray-600">กำลังโหลดประเภทข้อสอบ...</span>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {[1, 2, 3, 4].map((i) => (
+                                            <div key={i} className="h-12 w-full animate-pulse rounded-lg bg-gray-200" />
+                                        ))}
                                     </div>
                                 ) : categories.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
