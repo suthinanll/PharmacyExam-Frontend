@@ -1,8 +1,24 @@
 "use client";
-import React, { useState, Suspense } from "react";
+
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 import { LockKeyhole, Eye, EyeOff, Shield, Check, X } from "lucide-react";
+
+function ChecklistItem({ checked, text }: { checked: boolean; text: string }) {
+    return (
+        <div className="flex items-center gap-2 text-xs">
+            {checked ? (
+                <Check className="w-3.5 h-3.5 text-green-500 shrink-0" />
+            ) : (
+                <X className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            )}
+            <span className={checked ? "text-gray-800 font-medium" : "text-gray-500"}>
+                {text}
+            </span>
+        </div>
+    );
+}
 
 function ResetPasswordContent() {
     const searchParams = useSearchParams();

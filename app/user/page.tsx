@@ -256,8 +256,6 @@ const Page = () => {
             targetDesc={targetDesc}
             timeLeft={timeLeft}
             isExamStarted={isExamStarted}
-            upcomingExams={upcomingExams}
-            todayExams={todayExams}
           />
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">

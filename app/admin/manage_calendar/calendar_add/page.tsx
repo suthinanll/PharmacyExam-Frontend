@@ -182,13 +182,8 @@ function Page() {
         });
         window.location.href = "/admin/manage_calendar";
       } else {
-        // Find the first failed response and extract error message
-        const failedResponse = responses.find((r) => !r.ok);
-        if (failedResponse) {
-          const errorData = await failedResponse.json();
-          throw new Error(errorData.message || "ไม่สามารถบันทึกข้อมูลได้");
-        }
-        throw new Error("ไม่สามารถบันทึกข้อมูลได้");
+        const errorMsg = errors.length > 0 ? errors[0].error : "ไม่สามารถบันทึกข้อมูลได้";
+        throw new Error(errorMsg);
       }
     } catch (error: any) {
       Swal.fire("เกิดข้อผิดพลาด", error.message || "ไม่สามารถบันทึกข้อมูลได้", "error");
