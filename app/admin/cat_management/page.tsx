@@ -247,7 +247,7 @@ export default function CATManagement() {
                                                 <thead className="bg-green-600 text-white">
                                                     <tr>
                                                         {['#', 'คลังข้อสอบ', 'คำถาม (preview)', 'a (Disc.)', 'b (Diff.)', 'c (Guess)', 'จัดการ'].map((h, i) => (
-                                                            <th key={h} className={`px-5 py-3.5 text-left text-xs font-semibold tracking-wide ${i === 0 ? 'w-12 text-center' : ''} ${i === 6 ? 'text-center' : ''}`}>
+                                                            <th key={h} className={`px-5 py-3.5 text-left text-xs font-medium tracking-wide ${i === 0 ? 'w-12 text-center' : ''} ${i === 6 ? 'text-center' : ''}`}>
                                                                 {h}
                                                             </th>
                                                         ))}
@@ -277,13 +277,13 @@ export default function CATManagement() {
                                                                 </div>
                                                             </td>
                                                             <td className="px-5 py-4">
-                                                                <span className="text-sm font-bold text-blue-600">{item.irt_a_discrimination?.toFixed(3)}</span>
+                                                                <span className="text-sm font-medium text-blue-600">{item.irt_a_discrimination?.toFixed(3)}</span>
                                                             </td>
                                                             <td className="px-5 py-4">
-                                                                <span className="text-sm font-bold text-purple-600">{(item.irt_b_difficulty > 0 ? '+' : '') + item.irt_b_difficulty?.toFixed(3)}</span>
+                                                                <span className="text-sm font-medium text-purple-600">{(item.irt_b_difficulty > 0 ? '+' : '') + item.irt_b_difficulty?.toFixed(3)}</span>
                                                             </td>
                                                             <td className="px-5 py-4">
-                                                                <span className="text-sm font-bold text-pink-600">{item.irt_c_guessing?.toFixed(3)}</span>
+                                                                <span className="text-sm font-medium text-pink-600">{item.irt_c_guessing?.toFixed(3)}</span>
                                                             </td>
                                                             <td className="px-5 py-4 text-center">
                                                                 <button onClick={() => { setSelectedItem(item); setEditIRT({ a: item.irt_a_discrimination, b: item.irt_b_difficulty, c: item.irt_c_guessing }); setShowModal(true); }}
@@ -310,7 +310,7 @@ export default function CATManagement() {
                                                 <div className="h-1.5 bg-gradient-to-r from-green-400 to-emerald-500" />
                                                 <div className="p-6 flex flex-col flex-1">
                                                     <div className="flex justify-between items-start mb-4">
-                                                        <span className="text-[10px] font-bold uppercase tracking-wider text-green-700 bg-green-50 px-2.5 py-1 rounded-lg border border-green-100 truncate max-w-[180px]">
+                                                        <span className="text-[10px] font-medium uppercase tracking-wider text-green-700 bg-green-50 px-2.5 py-1 rounded-lg border border-green-100 truncate max-w-[180px]">
                                                             {item.item_bank?.bank_name || 'ไม่ระบุ'}
                                                         </span>
                                                     </div>
@@ -326,14 +326,14 @@ export default function CATManagement() {
                                                             { label: 'Guess (c)', val: item.irt_c_guessing, cls: 'bg-pink-50 text-pink-700', border: 'border-pink-100' },
                                                         ].map(p => (
                                                             <div key={p.label} className={`rounded-xl p-2.5 text-center border ${p.border} ${p.cls}`}>
-                                                                <p className="text-[10px] uppercase font-bold mb-1 opacity-70">{p.label}</p>
-                                                                <p className="text-base font-bold">{p.val?.toFixed(2)}</p>
+                                                                <p className="text-[10px] uppercase font-medium mb-1 opacity-70">{p.label}</p>
+                                                                <p className="text-base font-medium">{p.val?.toFixed(2)}</p>
                                                             </div>
                                                         ))}
                                                     </div>
 
                                                     <button onClick={() => { setSelectedItem(item); setEditIRT({ a: item.irt_a_discrimination, b: item.irt_b_difficulty, c: item.irt_c_guessing }); setShowModal(true); }}
-                                                        className="w-full flex items-center justify-center gap-2 bg-gray-400 hover:bg-green-600 text-white py-3 rounded-xl text-sm font-semibold transition-all shadow-lg hover:shadow-green-200 active:scale-95">
+                                                        className="w-full flex items-center justify-center gap-2 bg-gray-400 hover:bg-green-600 text-white py-3 rounded-xl text-sm font-medium transition-all shadow-lg hover:shadow-green-200 active:scale-95">
                                                         <Eye size={16} /> รายละเอียด IRT
                                                     </button>
                                                 </div>
@@ -358,7 +358,7 @@ export default function CATManagement() {
                                                 if (i === 4 && page < totalPages) return <span key="end" className="w-10 h-10 flex items-center justify-center text-gray-400">...</span>;
                                                 return (
                                                     <button key={`page-${i}-${page}`} onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                                        className={`w-10 h-10 text-sm font-bold border rounded-xl transition-all ${page === currentPage ? 'bg-green-600 text-white border-green-600 shadow-lg shadow-green-200' : 'bg-white text-gray-600 border-gray-200 hover:border-green-600 hover:text-green-600'}`}>
+                                                        className={`w-10 h-10 text-sm font-medium border rounded-xl transition-all ${page === currentPage ? 'bg-green-600 text-white border-green-600 shadow-lg shadow-green-200' : 'bg-white text-gray-600 border-gray-200 hover:border-green-600 hover:text-green-600'}`}>
                                                         {page}
                                                     </button>
                                                 );
@@ -382,7 +382,7 @@ export default function CATManagement() {
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto">
                         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                            <h3 className="text-lg font-semibold text-gray-900">รายละเอียดข้อสอบ</h3>
+                            <h3 className="text-lg font-medium text-gray-900">รายละเอียดข้อสอบ</h3>
                             <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
                         </div>
 
@@ -390,7 +390,7 @@ export default function CATManagement() {
                             {/* Question */}
                             {selectedItem.situation && (
                                 <div className="bg-blue-50 rounded-xl p-4">
-                                    <p className="text-xs font-bold text-blue-600 mb-1">สถานการณ์</p>
+                                    <p className="text-xs font-medium text-blue-600 mb-1">สถานการณ์</p>
                                     <div className="prose prose-sm" dangerouslySetInnerHTML={{ __html: selectedItem.situation.situation_text }} />
                                 </div>
                             )}
@@ -413,7 +413,7 @@ export default function CATManagement() {
 
                             {/* IRT edit */}
                             <div>
-                                <p className="text-sm font-bold text-gray-700 mb-3">✏️ แก้ไข IRT Parameters</p>
+                                <p className="text-sm font-medium text-gray-700 mb-3">✏️ แก้ไข IRT Parameters</p>
                                 <div className="grid grid-cols-3 gap-3 mb-4">
                                     {[
                                         { key: 'a', label: 'a — Discrimination', hint: 'แนะนำ: 1.0–2.0', cls: 'border-blue-200 focus:ring-blue-400' },
@@ -425,7 +425,7 @@ export default function CATManagement() {
                                             <input type="number" step="0.01"
                                                 value={(editIRT as any)[f.key]}
                                                 onChange={e => setEditIRT({ ...editIRT, [f.key]: +e.target.value })}
-                                                className={`w-full border rounded-lg px-3 py-2 text-lg font-bold text-center focus:ring-2 outline-none ${f.cls}`} />
+                                                className={`w-full border rounded-lg px-3 py-2 text-lg font-medium text-center focus:ring-2 outline-none ${f.cls}`} />
                                             <p className="text-[10px] text-gray-400 mt-0.5">{f.hint}</p>
                                         </div>
                                     ))}
@@ -452,7 +452,7 @@ export default function CATManagement() {
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <div className="bg-white rounded-2xl max-w-3xl w-full">
                         <div className="border-b px-6 py-4 flex justify-between items-center">
-                            <h3 className="text-lg font-semibold">📈 Test Information Function — {tifBankName}</h3>
+                            <h3 className="text-lg font-medium">📈 Test Information Function — {tifBankName}</h3>
                             <button onClick={() => setShowTIF(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
                         </div>
                         <div className="p-6">

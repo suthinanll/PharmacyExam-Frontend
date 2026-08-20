@@ -20,6 +20,7 @@ import {
     Quote,
     Minus,
     X,
+    Strikethrough,
 } from "lucide-react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -29,6 +30,7 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import LinkExtension from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
+import Strike from "@tiptap/extension-strike";
 
 interface BlogFormData {
     tempId: number;
@@ -55,6 +57,9 @@ const TiptapToolbar = ({ editor, onAddLink, onAddImage }: { editor: any; onAddLi
             </button>
             <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={btnClass("italic")}>
                 <Italic className="w-4 h-4" />
+            </button>
+            <button type="button" onClick={() => editor.chain().focus().toggleStrike().run()} className={btnClass("strike")}>
+                <Strikethrough className="w-4 h-4" />
             </button>
             <div className="w-[1px] h-4 bg-gray-200 mx-1 self-center" />
             <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} className={btnClass("bulletList")}>
@@ -84,11 +89,15 @@ const DraftCard = ({
     index,
     onUpdate,
     onRemove,
+    onOpenLinkModal,
+    onOpenImageModal,
 }: {
     draft: BlogFormData;
     index: number;
     onUpdate: (id: number, field: keyof BlogFormData, value: any) => void;
     onRemove: (id: number) => void;
+    onOpenLinkModal: (editor: any) => void;
+    onOpenImageModal: (editor: any) => void;
 }) => {
     const { getToken } = useAuth();
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -96,6 +105,7 @@ const DraftCard = ({
     const editor = useEditor({
         extensions: [
             StarterKit,
+            Strike,
             LinkExtension.configure({ openOnClick: false }),
             Image.configure({ inline: true })
         ],
@@ -188,24 +198,18 @@ const DraftCard = ({
                         value={draft.title}
                         onChange={(e) => onUpdate(draft.tempId, "title", e.target.value)}
                         placeholder="หัวข้อข่าวสาร..."
-                        className="w-full text-xl font-bold border-none p-0 focus:ring-0 placeholder-gray-300 bg-transparent"
+                        className="w-full text-xl font-medium border-none p-0 focus:ring-0 placeholder-gray-300 bg-transparent"
                     />
 
                     <div className="border-t pt-4">
                         <TiptapToolbar
                             editor={editor}
-                            onAddLink={() => {
-                                setLinkModalOpen(true);
-                                setLinkModalEditor(editor);
-                            }}
-                            onAddImage={() => {
-                                setImageModalOpen(true);
-                                setImageModalEditor(editor);
-                            }}
+                            onAddLink={() => onOpenLinkModal(editor)}
+                            onAddImage={() => onOpenImageModal(editor)}
                         />
                         <EditorContent
                             editor={editor}
-                            className="prose prose-sm max-w-none min-h-[180px] outline-none text-gray-700"
+                            className="prose prose-sm max-w-none min-h-[180px] outline-none text-gray-700 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_s]:line-through"
                         />
                     </div>
 
@@ -253,7 +257,7 @@ const DraftCard = ({
                             >
                                 <div className="text-center text-gray-400">
                                     <Upload className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">Upload Cover</p>
+                                    <p className="text-[10px] font-medium uppercase tracking-widest">Upload Cover</p>
                                 </div>
                             </div>
                         )}
@@ -303,6 +307,9 @@ function AddBlogPage() {
     const [imageModalOpen, setImageModalOpen] = useState(false);
     const [imageModalEditor, setImageModalEditor] = useState<any>(null);
     const [imageUrl, setImageUrl] = useState("");
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [isUploadingContentImage, setIsUploadingContentImage] = useState(false);
+    const imageFileInputRef = useRef<HTMLInputElement>(null);
 
     // Auto-save ทุก 30 วินาที
     useEffect(() => {
@@ -377,6 +384,57 @@ function AddBlogPage() {
     );
 
  
+
+    const handleContentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+        if (file.size > MAX_SIZE) {
+            setToast({ type: "error", message: "ไฟล์ต้องไม่เกิน 5MB" });
+            return;
+        }
+
+        if (!file.type.startsWith('image/')) {
+            setToast({ type: "error", message: "กรุณาเลือกไฟล์ภาพเท่านั้น" });
+            return;
+        }
+
+        setIsUploadingContentImage(true);
+        try {
+            const token = getToken();
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news/upload`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (!response.ok) throw new Error("อัปโหลดไม่สำเร็จ");
+
+            const data = await response.json();
+            const fullUrl = data.url.startsWith('http')
+                ? data.url
+                : `${process.env.NEXT_PUBLIC_API_URL}${data.url}`;
+
+            // แทรกรูปเข้าไปใน editor
+            if (imageModalEditor) {
+                imageModalEditor.chain().focus().setImage({ src: fullUrl }).run();
+            }
+
+            setImageModalOpen(false);
+            setImageUrl("");
+            setImageFile(null);
+            if (imageFileInputRef.current) imageFileInputRef.current.value = "";
+        } catch (error) {
+            console.error(error);
+            setToast({ type: "error", message: "อัปโหลดรูปภาพไม่สำเร็จ" });
+        } finally {
+            setIsUploadingContentImage(false);
+        }
+    };
 
     const handleSubmitAll = async () => {
         // Validation
@@ -453,7 +511,7 @@ function AddBlogPage() {
                         <button
                             onClick={handleSubmitAll}
                             disabled={isSaving || drafts.length === 0}
-                            className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg text-white transition-all shadow-md ${isSaving ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'}`}
+                            className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-lg text-white transition-all shadow-md ${isSaving ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'}`}
                         >
                             {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                             <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกทั้งหมด'}</span>
@@ -469,13 +527,21 @@ function AddBlogPage() {
                             index={index}
                             onUpdate={updateDraft}
                             onRemove={removeDraft}
+                            onOpenLinkModal={(editor) => {
+                                setLinkModalOpen(true);
+                                setLinkModalEditor(editor);
+                            }}
+                            onOpenImageModal={(editor) => {
+                                setImageModalOpen(true);
+                                setImageModalEditor(editor);
+                            }}
                         />
                     ))}
                 </div>
 
                 <button
                     onClick={addNewDraft}
-                    className="mt-8 w-full py-4 border-2 border-dashed border-gray-300 rounded-3xl text-gray-400 hover:text-green-600 hover:border-green-300 hover:bg-green-50 transition-all flex items-center justify-center gap-2 font-bold"
+                    className="mt-8 w-full py-4 border-2 border-dashed border-gray-300 rounded-3xl text-gray-400 hover:text-green-600 hover:border-green-300 hover:bg-green-50 transition-all flex items-center justify-center gap-2 font-medium"
                 >
                     <Plus className="w-5 h-5" /> เพิ่มรายการในคิว
                 </button>
@@ -493,7 +559,7 @@ function AddBlogPage() {
             {linkModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4">เพิ่มลิงก์</h3>
+                        <h3 className="text-lg font-medium text-gray-800 mb-4">เพิ่มลิงก์</h3>
                         <input
                             type="url"
                             value={linkUrl}
@@ -533,36 +599,99 @@ function AddBlogPage() {
             {imageModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4">เพิ่มรูปภาพในเนื้อหา</h3>
+                        <h3 className="text-lg font-medium text-gray-800 mb-4">เพิ่มรูปภาพในเนื้อหา</h3>
+
+                        {/* แท็บเลือกวิธี */}
+                        <div className="flex gap-2 mb-4">
+                            <button
+                                onClick={() => setImageFile(null)}
+                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${!imageFile ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}
+                            >
+                                URL
+                            </button>
+                            <button
+                                onClick={() => imageFileInputRef.current?.click()}
+                                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${imageFile ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}
+                            >
+                                อัปโหลดไฟล์
+                            </button>
+                        </div>
+
+                        {/* แสดงส่วน URL หรือไฟล์ที่เลือก */}
+                        {!imageFile ? (
+                            <input
+                                type="url"
+                                value={imageUrl}
+                                onChange={(e) => setImageUrl(e.target.value)}
+                                placeholder="https://example.com/image.jpg"
+                                className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                autoFocus
+                            />
+                        ) : (
+                            <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200 flex items-center gap-2">
+                                <ImageIcon className="w-4 h-4 text-green-600" />
+                                <span className="text-sm text-green-700 flex-1 truncate">{imageFile.name}</span>
+                                <button
+                                    onClick={() => {
+                                        setImageFile(null);
+                                        if (imageFileInputRef.current) imageFileInputRef.current.value = "";
+                                    }}
+                                    className="text-red-500 hover:text-red-700"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
+
                         <input
-                            type="url"
-                            value={imageUrl}
-                            onChange={(e) => setImageUrl(e.target.value)}
-                            placeholder="https://example.com/image.jpg"
-                            className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                            autoFocus
+                            ref={imageFileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file) setImageFile(file);
+                            }}
+                            className="hidden"
                         />
+
                         <div className="flex gap-2 justify-end">
                             <button
                                 onClick={() => {
                                     setImageModalOpen(false);
                                     setImageUrl("");
+                                    setImageFile(null);
+                                    if (imageFileInputRef.current) imageFileInputRef.current.value = "";
                                 }}
                                 className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                                disabled={isUploadingContentImage}
                             >
                                 ยกเลิก
                             </button>
                             <button
                                 onClick={() => {
-                                    if (imageUrl && imageModalEditor) {
+                                    if (imageFile) {
+                                        // สร้าง fake event สำหรับ handleContentImageUpload
+                                        const fakeEvent = {
+                                            target: { files: [imageFile] }
+                                        } as any;
+                                        handleContentImageUpload(fakeEvent);
+                                    } else if (imageUrl && imageModalEditor) {
                                         imageModalEditor.chain().focus().setImage({ src: imageUrl }).run();
+                                        setImageModalOpen(false);
+                                        setImageUrl("");
                                     }
-                                    setImageModalOpen(false);
-                                    setImageUrl("");
                                 }}
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                                disabled={(!imageUrl && !imageFile) || isUploadingContentImage}
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
-                                เพิ่ม
+                                {isUploadingContentImage ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        กำลังอัปโหลด...
+                                    </>
+                                ) : (
+                                    'เพิ่ม'
+                                )}
                             </button>
                         </div>
                     </div>

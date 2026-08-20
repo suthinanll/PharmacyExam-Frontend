@@ -1250,7 +1250,7 @@ export default function ItemBankEditPage() {
                         {situations.length === 0 ? (
                             <div className="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-12 sm:p-16 text-center">
                                 <FileText className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400 mx-auto mb-4" />
-                                <h3 className="text-lg sm:text-xl font-bold text-gray-700 mb-2">ยังไม่มีสถานการณ์</h3>
+                                <h3 className="text-lg sm:text-xl font-medium text-gray-700 mb-2">ยังไม่มีสถานการณ์</h3>
                                 <p className="text-gray-500 mb-6 text-sm sm:text-base">เริ่มต้นสร้างข้อสอบโดยการเพิ่มสถานการณ์ใหม่</p>
                             </div>
 
@@ -1274,12 +1274,12 @@ export default function ItemBankEditPage() {
                                                     className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
                                                     onClick={() => toggleSituationCollapse(sitIdx)}
                                                 >
-                                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+                                                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-medium text-sm shadow-sm shrink-0">
                                                         {sitIdx + 1}
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-2">
-                                                            <span className="font-bold text-gray-800">สถานการณ์ที่ {sitIdx + 1}</span>
+                                                            <span className="font-medium text-gray-800">สถานการณ์ที่ {sitIdx + 1}</span>
                                                             {situation.situation_id
                                                                 ? <span className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">บันทึกแล้ว</span>
                                                                 : <span className="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-medium">ใหม่</span>
@@ -1323,7 +1323,7 @@ export default function ItemBankEditPage() {
 
                                                     {/* Question area header */}
                                                     <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
-                                                        <h4 className="text-sm font-bold text-gray-700">คำถาม</h4>
+                                                        <h4 className="text-sm font-medium text-gray-700">คำถาม</h4>
                                                         <button
                                                             type="button"
                                                             onClick={() => addQuestion(sitIdx)}
@@ -1349,7 +1349,7 @@ export default function ItemBankEditPage() {
                                                                         <div className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50/70 transition-colors group">
                                                                             {/* number badge */}
                                                                             <div
-                                                                                className="w-8 h-8 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0 cursor-pointer"
+                                                                                className="w-8 h-8 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-medium text-xs shrink-0 cursor-pointer"
                                                                                 onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
                                                                             >
                                                                                 {questionStartIndex + qIdx + 1}
@@ -1444,7 +1444,7 @@ export default function ItemBankEditPage() {
                                                                                             <label className="flex flex-col items-center justify-center w-48 h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-green-500 transition-all">
                                                                                                 <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-400">
                                                                                                     <Plus className="w-6 h-6 mb-2 text-gray-400" />
-                                                                                                    <p className="text-xs font-semibold text-gray-600">คลิกเพื่ออัปโหลดรูปภาพ</p>
+                                                                                                    <p className="text-xs font-medium text-gray-600">คลิกเพื่ออัปโหลดรูปภาพ</p>
                                                                                                     <p className="text-[10px] text-gray-400 mt-1">PNG, JPG ไม่เกิน 5MB</p>
                                                                                                 </div>
                                                                                                 <input
@@ -1521,11 +1521,11 @@ export default function ItemBankEditPage() {
 
                                                                                 {/* Answer Options */}
                                                                                 <div className="space-y-3">
-                                                                                    <label className="text-base font-bold text-gray-800">ตัวเลือกคำตอบ </label>
+                                                                                    <label className="text-base font-medium text-gray-800">ตัวเลือกคำตอบ </label>
                                                                                     <div className="space-y-2">
                                                                                         {question.answer_options.map((option, optIdx) => (
                                                                                             <div key={optIdx} className="flex gap-2 sm:gap-3 items-center">
-                                                                                                <div className="flex-none flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 text-sm font-bold text-gray-600">
+                                                                                                <div className="flex-none flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 text-sm font-medium text-gray-600">
                                                                                                     {['ก', 'ข', 'ค', 'ง', 'จ'][optIdx] || String.fromCharCode(65 + optIdx)}
                                                                                                 </div>
                                                                                                 <input
@@ -1553,7 +1553,7 @@ export default function ItemBankEditPage() {
                                                                                 <details className="group">
                                                                                     <summary className="cursor-pointer list-none">
                                                                                         <div className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors">
-                                                                                            <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                                                                            <span className="text-sm font-medium text-gray-700 flex items-center gap-2">
                                                                                                 <svg className="w-4 h-4 transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                                                                                 </svg>
@@ -1598,7 +1598,7 @@ export default function ItemBankEditPage() {
                                                                                                         return (
                                                                                                             <span
                                                                                                                 key={id}
-                                                                                                                className="inline-flex items-center gap-1 text-xs font-semibold bg-[#e6f7ec] text-[#2e8555] px-2.5 py-1 rounded-full border border-green-200/50"
+                                                                                                                className="inline-flex items-center gap-1 text-xs font-medium bg-[#e6f7ec] text-[#2e8555] px-2.5 py-1 rounded-full border border-green-200/50"
                                                                                                             >
                                                                                                                 {st.sub_topic_name}
                                                                                                                 <button
@@ -1654,7 +1654,7 @@ export default function ItemBankEditPage() {
                                                                                         {/* IRT Parameters */}
                                                                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-white rounded-lg border border-gray-200">
                                                                                             <div className="space-y-1">
-                                                                                                <label className="text-[10px] uppercase font-bold text-gray-500">Discrimination (a)</label>
+                                                                                                <label className="text-[10px] uppercase font-medium text-gray-500">Discrimination (a)</label>
                                                                                                 <input
                                                                                                     type="number"
                                                                                                     step="0.01"
@@ -1664,7 +1664,7 @@ export default function ItemBankEditPage() {
                                                                                                 />
                                                                                             </div>
                                                                                             <div className="space-y-1">
-                                                                                                <label className="text-[10px] uppercase font-bold text-gray-500">Difficulty (b)</label>
+                                                                                                <label className="text-[10px] uppercase font-medium text-gray-500">Difficulty (b)</label>
                                                                                                 <input
                                                                                                     type="number"
                                                                                                     step="0.01"
@@ -1674,7 +1674,7 @@ export default function ItemBankEditPage() {
                                                                                                 />
                                                                                             </div>
                                                                                             <div className="space-y-1">
-                                                                                                <label className="text-[10px] uppercase font-bold text-gray-500">Guessing (c)</label>
+                                                                                                <label className="text-[10px] uppercase font-medium text-gray-500">Guessing (c)</label>
                                                                                                 <input
                                                                                                     type="number"
                                                                                                     step="0.01"
@@ -1752,7 +1752,7 @@ export default function ItemBankEditPage() {
                                         <button
                                             type="submit"
                                             disabled={submitting}
-                                            className="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                            className="bg-green-600 hover:bg-green-700 text-white font-medium px-8 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                         >
                                             {submitting ? (
                                                 <>

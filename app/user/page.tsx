@@ -37,7 +37,7 @@ const UpcomingExamCard = ({ exam, index }: { exam: any; index: number }) => {
       <div
         className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-14 rounded-lg ${urgency.box} text-white`}
       >
-        <span className="text-xl font-bold leading-none tabular-nums">
+        <span className="text-xl font-medium leading-none tabular-nums">
           {daysLeft > 0 ? daysLeft : "0"}
         </span>
         <span className="text-[10px] font-medium leading-none mt-1">
@@ -137,7 +137,7 @@ const CountdownHero = ({
             {/* แสดงหลายกำหนดการในวันเดียวกัน */}
             {todayExams.length > 1 ? (
               <div>
-                <h1 className="text-3xl md:text-4xl font-semibold mb-3 text-blue-900">
+                <h1 className="text-3xl md:text-4xl font-medium mb-3 text-blue-900">
                   กำหนดการวันนี้ ({todayExams.length} รายการ)
                 </h1>
                 <p className="text-gray-600 text-base flex items-center gap-2 mb-4 font-medium">
@@ -155,11 +155,11 @@ const CountdownHero = ({
                       className="bg-white rounded-xl p-4 border border-blue-200 shadow-sm"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
+                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-medium text-sm">
                           {idx + 1}
                         </div>
                         <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                          <h3 className="text-lg font-medium text-gray-800 mb-1">
                             {exam.title}
                           </h3>
                           {exam.description && (
@@ -175,7 +175,7 @@ const CountdownHero = ({
               </div>
             ) : (
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold mb-3 text-blue-900">
+                <h1 className="text-3xl md:text-4xl font-medium mb-3 text-blue-900">
                   {targetTitle || "พร้อมรับมือทุกการสอบ"}
                 </h1>
                 {isOngoing && todayExams[0] ? (
@@ -218,11 +218,11 @@ const CountdownHero = ({
                   >
                     {/* highlight เงาบนเพื่อให้ดูมีมิติแบบกระจก */}
                     <div className="absolute top-0 left-0 right-0 h-1/2 bg-white/10 rounded-t-2xl" />
-                    <span className="relative text-4xl sm:text-5xl font-bold tabular-nums text-white drop-shadow-sm">
+                    <span className="relative text-4xl sm:text-5xl font-medium tabular-nums text-white drop-shadow-sm">
                       {String(item.val).padStart(2, "0")}
                     </span>
                   </div>
-                  <span className="text-[11px] sm:text-xs font-semibold text-gray-500 mt-2 uppercase tracking-wide">
+                  <span className="text-[11px] sm:text-xs font-medium text-gray-500 mt-2 uppercase tracking-wide">
                     {item.label}
                   </span>
                 </div>
@@ -239,7 +239,7 @@ const CountdownHero = ({
           <div className="lg:col-span-1 bg-gray-50 p-6 border-l border-gray-200">
             <div className="flex items-center gap-2 mb-4">
               <Calendar className="text-blue-600" size={20} />
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-lg font-medium text-gray-800">
                 กำหนดการถัดไป
               </h2>
             </div>
@@ -518,7 +518,7 @@ const Page = () => {
             todayExams={todayExams}
           />
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
+            <h2 className="text-2xl font-medium text-gray-800 flex items-center gap-2">
               <LayoutGrid className="text-blue-600" size={28} />
               ข่าวสารและประกาศ
             </h2>
@@ -568,7 +568,7 @@ const Page = () => {
             ) : (
               <div className="col-span-full py-20 bg-white rounded-[3rem] text-center border-2 border-dashed border-gray-200">
                 <Bookmark className="mx-auto text-gray-200 mb-4" size={60} />
-                <p className="text-gray-400 font-semibold text-xl">
+                <p className="text-gray-400 font-medium text-xl">
                   ไม่พบข้อมูลข่าวสารในขณะนี้
                 </p>
               </div>

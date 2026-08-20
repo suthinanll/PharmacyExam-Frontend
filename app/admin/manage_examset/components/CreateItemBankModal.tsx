@@ -188,7 +188,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                 {/* Header */}
                 <div className="bg-green-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
                     <div>
-                        <h2 className="text-xl font-semibold text-white">สร้างชุดข้อสอบใหม่</h2>
+                        <h2 className="text-xl font-medium text-white">สร้างชุดข้อสอบใหม่</h2>
                         <p className="text-green-100 text-sm mt-0.5">กรอกข้อมูลเพื่อสร้างชุดข้อสอบใหม่</p>
                     </div>
                     <button
@@ -204,7 +204,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                 <form onSubmit={handleSubmit} className="p-6 space-y-6">
                     {/* ชื่อชุดข้อสอบ */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                             ชื่อชุดข้อสอบ <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -220,7 +220,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
 
                     {/* คำอธิบาย */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                             คำอธิบาย
                         </label>
                         <textarea
@@ -235,7 +235,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
 
                     {/* ระยะเวลา */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
                             ระยะเวลาในการทำข้อสอบ (นาที) <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -254,7 +254,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
 
                     {/* ประเภทข้อสอบ */}
                     <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-3">
+                        <label className="block text-sm font-medium text-gray-700 mb-3">
                             ประเภทข้อสอบ
                         </label>
                         {loadingCategories ? (
@@ -300,7 +300,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                     {/* <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg flex items-start gap-3">
                         <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
                         <div>
-                            <p className="text-sm font-semibold text-amber-900">บันทึกเป็นแบบร่าง</p>
+                            <p className="text-sm font-medium text-amber-900">บันทึกเป็นแบบร่าง</p>
                             <p className="text-xs text-amber-700 mt-1">
                                 ชุดข้อสอบที่สร้างใหม่จะถูกตั้งเป็น "แบบร่าง" (ปิดการใช้งาน) โดยอัตโนมัติ คุณสามารถเปิดใช้งานได้ภายหลังจากการเพิ่มข้อสอบครบถ้วนแล้ว
                             </p>
@@ -323,7 +323,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                         type="submit"
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {loading ? (
                             <>

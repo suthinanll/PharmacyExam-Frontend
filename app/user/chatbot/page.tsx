@@ -550,7 +550,7 @@ export default function ChatbotPage() {
                 <Shield className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-xl font-bold">นโยบายความเป็นส่วนตัว</h2>
+                <h2 className="text-xl font-medium">นโยบายความเป็นส่วนตัว</h2>
                 <p className="text-green-100 text-sm">เกี่ยวกับการใช้งานแชตบอต</p>
               </div>
             </div>
@@ -561,14 +561,14 @@ export default function ChatbotPage() {
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-blue-800">
-                    <p className="font-semibold mb-1">ข้อมูลที่เราเก็บรวบรวม</p>
+                    <p className="font-medium mb-1">ข้อมูลที่เราเก็บรวบรวม</p>
                     <p>เพื่อปรับปรุงคุณภาพการให้บริการ เราจะเก็บบันทึกการสนทนาระหว่างคุณกับแชตบอต</p>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                <h3 className="font-medium text-gray-800 flex items-center gap-2">
                   <div className="w-1.5 h-5 bg-green-600 rounded-full"></div>
                   ข้อมูลที่จะถูกบันทึก
                 </h3>
@@ -589,7 +589,7 @@ export default function ChatbotPage() {
               </div>
 
               <div className="space-y-3">
-                <h3 className="font-bold text-gray-800 flex items-center gap-2">
+                <h3 className="font-medium text-gray-800 flex items-center gap-2">
                   <div className="w-1.5 h-5 bg-green-600 rounded-full"></div>
                   วัตถุประสงค์ในการใช้ข้อมูล
                 </h3>
@@ -613,7 +613,7 @@ export default function ChatbotPage() {
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-green-800">
-                    <p className="font-semibold mb-1">ความปลอดภัยของข้อมูล</p>
+                    <p className="font-medium mb-1">ความปลอดภัยของข้อมูล</p>
                     <p>เราให้ความสำคัญกับความเป็นส่วนตัวของคุณ ข้อมูลทั้งหมดจะถูกเก็บรักษาอย่างปลอดภัยและจะไม่ถูกนำไปเผยแพร่หรือขายให้กับบุคคลที่สาม</p>
                   </div>
                 </div>
@@ -629,7 +629,7 @@ export default function ChatbotPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleAcceptPrivacy}
-                  className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                 >
                   <Check className="w-5 h-5" />
                   ยอมรับและเริ่มใช้งาน
@@ -660,7 +660,7 @@ export default function ChatbotPage() {
         >
           <div className="p-4 border-b border-neutral-100 flex flex-col gap-4">
             <div className="flex items-center justify-between lg:hidden">
-              <h2 className="text-lg font-bold text-gray-800">เมนู</h2>
+              <h2 className="text-lg font-medium text-gray-800">เมนู</h2>
               <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
                 <X size={20} />
               </button>
@@ -722,7 +722,7 @@ export default function ChatbotPage() {
             >
               <Menu size={24} />
             </button>
-            <span className="font-semibold text-gray-700">แชตบอตผู้ช่วย</span>
+            <span className="font-medium text-gray-700">แชตบอตผู้ช่วย</span>
             <div className="w-8"></div> {/* Spacer for centering */}
           </div>
 
@@ -734,7 +734,7 @@ export default function ChatbotPage() {
                 <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
                   <Bot size={40} className="text-green-500" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">ยินดีต้อนรับ! {userName ? `คุณ${userName}` : ''}</h2>
+                <h2 className="text-2xl font-medium text-gray-800 mb-2">ยินดีต้อนรับ! {userName ? `คุณ${userName}` : ''}</h2>
                 <p className="text-gray-500 max-w-md">
                   เลือกประวัติการแชทด้านซ้าย หรือกด "แชทใหม่" เพื่อปรึกษาเกี่ยวกับการสอบใบประกอบวิชาชีพเภสัชกรรมได้เลย!
                 </p>

@@ -309,13 +309,13 @@ function Page() {
 
       days.push(
         <div key={day} className="p-1.5 border border-gray-100 min-h-[90px] bg-white hover:bg-emerald-50/30 transition-colors flex flex-col">
-          <div className="text-[11px] font-semibold text-gray-400 text-right mb-1">{day}</div>
+          <div className="text-[11px] font-medium text-gray-400 text-right mb-1">{day}</div>
           <div className="flex flex-col gap-0.5 overflow-y-auto max-h-[68px]">
             {dayEvents.map((event, idx) => (
               <div
                 key={`${event.id}-${idx}`}
                 onClick={() => handleEditClick(event)}
-                className={`px-1.5 py-0.5 rounded text-[9px] font-semibold cursor-pointer truncate border
+                className={`px-1.5 py-0.5 rounded text-[9px] font-medium cursor-pointer truncate border
                   ${event.is_published
                     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                     : "bg-gray-50 text-gray-400 border-gray-200 italic"}`}
@@ -351,12 +351,12 @@ function Page() {
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">การจัดการปฏิทิน</h1>
+            <h1 className="text-3xl font-medium text-gray-900">การจัดการปฏิทิน</h1>
             <p className="text-gray-500 mt-1 text-sm">ตั้งค่ากำหนดการและจัดการสถานะการเผยแพร่</p>
           </div>
           <Link
             href="/admin/manage_calendar/calendar_add"
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl transition-all font-semibold text-sm shadow-md shadow-emerald-100"
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl transition-all font-medium text-sm shadow-md shadow-emerald-100"
           >
             <Plus className="w-4 h-4" /> เพิ่มกำหนดการใหม่
           </Link>
@@ -403,13 +403,13 @@ function Page() {
           <div className="flex bg-gray-100 p-1 rounded-xl gap-1">
             <button
               onClick={() => setActiveTab("calendar")}
-              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "calendar" ? "bg-white text-emerald-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+              className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === "calendar" ? "bg-white text-emerald-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
             >
               ปฏิทิน
             </button>
             <button
               onClick={() => setActiveTab("list")}
-              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "list" ? "bg-white text-emerald-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+              className={`px-6 py-2.5 rounded-lg text-sm font-medium transition-all ${activeTab === "list" ? "bg-white text-emerald-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
             >
               รายการ
             </button>
@@ -424,21 +424,21 @@ function Page() {
             )}
             <button
               onClick={() => handleBulkAction("publish")}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-emerald-200 text-emerald-700 rounded-xl text-xs font-semibold hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-emerald-200 text-emerald-700 rounded-xl text-xs font-medium hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all"
             >
               <Eye className="w-3.5 h-3.5" />
               {someSelected ? `เผยแพร่ (${selectedIds.length})` : "เผยแพร่ทั้งหมด"}
             </button>
             <button
               onClick={() => handleBulkAction("unpublish")}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-amber-200 text-amber-600 rounded-xl text-xs font-semibold hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-amber-200 text-amber-600 rounded-xl text-xs font-medium hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all"
             >
               <EyeOff className="w-3.5 h-3.5" />
               {someSelected ? `งดเผยแพร่ (${selectedIds.length})` : "งดเผยแพร่ทั้งหมด"}
             </button>
             <button
               onClick={() => handleBulkAction("delete")}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-red-200 text-red-500 rounded-xl text-xs font-semibold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-red-200 text-red-500 rounded-xl text-xs font-medium hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
             >
               <Trash2 className="w-3.5 h-3.5" />
               {someSelected ? `ลบ (${selectedIds.length})` : "ลบทั้งหมด"}
@@ -456,7 +456,7 @@ function Page() {
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              <h2 className="text-xl font-bold text-gray-800">{months[currentMonth]} {currentYearAD + 543}</h2>
+              <h2 className="text-xl font-medium text-gray-800">{months[currentMonth]} {currentYearAD + 543}</h2>
               <button
                 onClick={() => setViewDate(new Date(currentYearAD, currentMonth + 1))}
                 className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
@@ -468,7 +468,7 @@ function Page() {
               {daysOfWeek.map((day, i) => (
                 <div
                   key={i}
-                  className={`py-3 text-center text-xs font-semibold bg-gray-50 border-b border-gray-200 ${i === 0 ? "text-red-500" : "text-gray-500"}`}
+                  className={`py-3 text-center text-xs font-medium bg-gray-50 border-b border-gray-200 ${i === 0 ? "text-red-500" : "text-gray-500"}`}
                 >
                   {day}
                 </div>
@@ -513,8 +513,8 @@ function Page() {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <h3 className="text-base font-semibold text-gray-900 truncate ">{event.title}</h3>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${event.is_published ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                        <h3 className="text-base font-medium text-gray-900 truncate ">{event.title}</h3>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium border ${event.is_published ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
                           {event.is_published ? "เผยแพร่" : "แบบร่าง"}
                         </span>
                       </div>
@@ -541,7 +541,7 @@ function Page() {
                       </button>
                       <button
                         onClick={() => handleEditClick(event)}
-                        className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-all"
+                        className="px-4 py-2 text-xs font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-all"
                       >
                         แก้ไข
                       </button>
@@ -570,7 +570,7 @@ function Page() {
             <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
               <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800">แก้ไขกำหนดการ</h2>
+                  <h2 className="text-xl font-medium text-gray-800">แก้ไขกำหนดการ</h2>
                   <p className="text-gray-400 text-xs mt-0.5">อัปเดตข้อมูลรายละเอียด</p>
                 </div>
                 <button
@@ -582,7 +582,7 @@ function Page() {
               </div>
               <form onSubmit={handleEditSubmit} className="p-8 space-y-6 overflow-y-auto">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">ชื่อกำหนดการ</label>
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อกำหนดการ</label>
                   <input
                     type="text"
                     value={editFormData.title}
@@ -593,14 +593,14 @@ function Page() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">หมวดหมู่</label>
+                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">หมวดหมู่</label>
                   <div className="flex flex-wrap gap-2">
                     {Object.keys(CATEGORY_STYLES).map((tag) => (
                       <button
                         key={tag}
                         type="button"
                         onClick={() => toggleTag(tag)}
-                        className={`px-4 py-2 rounded-lg text-xs font-semibold border transition-all
+                        className={`px-4 py-2 rounded-lg text-xs font-medium border transition-all
                           ${editFormData.type_event.includes(tag)
                             ? CATEGORY_STYLES[tag] + " ring-2 ring-emerald-500/30"
                             : "bg-white text-gray-500 border-gray-200 hover:border-emerald-300"}`}
@@ -612,7 +612,7 @@ function Page() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">วันเริ่มต้น</label>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">วันเริ่มต้น</label>
                     <div className="relative">
                       <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
                       <input
@@ -625,7 +625,7 @@ function Page() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">วันสิ้นสุด</label>
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">วันสิ้นสุด</label>
                     <div className="relative">
                       <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
                       <input
@@ -642,13 +642,13 @@ function Page() {
                   <button
                     type="button"
                     onClick={() => setIsEditModalOpen(false)}
-                    className="flex-1 py-3 rounded-xl font-semibold text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all text-sm"
+                    className="flex-1 py-3 rounded-xl font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all text-sm"
                   >
                     ยกเลิก
                   </button>
                   <button
                     type="submit"
-                    className="flex-[2] py-3 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-all text-sm shadow-md shadow-emerald-100"
+                    className="flex-[2] py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-all text-sm shadow-md shadow-emerald-100"
                   >
                     บันทึกการแก้ไข
                   </button>

@@ -77,7 +77,7 @@ export default function TableOfContents({
             {/* Content List */}
             {showTOC && (
                 <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-56 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-200">
-                    <div className="p-3 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 text-sm flex items-center justify-between">
+                    <div className="p-3 bg-gray-50 border-b border-gray-200 font-medium text-gray-700 text-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <List className="w-4 h-4" />
                             <span>สารบัญ</span>

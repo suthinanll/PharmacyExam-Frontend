@@ -75,10 +75,10 @@ function ScoreBadge({ exam }: { exam: ExamRecord }) {
         const theta = exam.final_theta;
         return (
             <div className="text-center">
-                <div className="text-xl font-bold text-purple-700">
+                <div className="text-xl font-medium text-purple-700">
                     θ {theta != null ? theta.toFixed(2) : "—"}
                 </div>
-                <div className={`text-xs font-semibold mt-0.5 ${exam.passed ? "text-green-600" : "text-red-500"}`}>
+                <div className={`text-xs font-medium mt-0.5 ${exam.passed ? "text-green-600" : "text-red-500"}`}>
                     {exam.passed ? "ผ่าน" : "ไม่ผ่าน"}
                 </div>
             </div>
@@ -88,8 +88,8 @@ function ScoreBadge({ exam }: { exam: ExamRecord }) {
     const color = pct >= 70 ? "text-green-700" : pct >= 50 ? "text-amber-600" : "text-red-600";
     return (
         <div className="text-center">
-            <div className={`text-xl font-bold ${color}`}>{pct}%</div>
-            <div className={`text-xs font-semibold mt-0.5 ${pct >= 50 ? "text-green-600" : "text-red-500"}`}>
+            <div className={`text-xl font-medium ${color}`}>{pct}%</div>
+            <div className={`text-xs font-medium mt-0.5 ${pct >= 50 ? "text-green-600" : "text-red-500"}`}>
                 {pct >= 50 ? "ผ่าน" : "ไม่ผ่าน"}
             </div>
         </div>
@@ -114,7 +114,7 @@ function StatBar({ records }: { records: ExamRecord[] }) {
                 <div key={s.label} className={`rounded-xl px-4 py-3 flex items-center gap-3 ${s.color}`}>
                     {s.icon}
                     <div>
-                        <div className="text-2xl font-bold leading-none">{s.value}</div>
+                        <div className="text-2xl font-medium leading-none">{s.value}</div>
                         <div className="text-xs mt-0.5 opacity-70">{s.label}</div>
                     </div>
                 </div>
@@ -225,7 +225,7 @@ export default function ExamHistoryPage() {
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
                 <div className="text-center max-w-sm bg-white rounded-2xl shadow p-8">
                     <XCircle className="w-14 h-14 text-red-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">เกิดข้อผิดพลาด</h2>
+                    <h2 className="text-xl font-medium text-gray-800 mb-2">เกิดข้อผิดพลาด</h2>
                     <p className="text-gray-500 mb-5">{error}</p>
                     <button
                         onClick={() => window.location.reload()}
@@ -258,7 +258,7 @@ export default function ExamHistoryPage() {
                             <History className="text-green-600" size={22} />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">ประวัติการสอบ</h1>
+                            <h1 className="text-2xl font-medium text-gray-900">ประวัติการสอบ</h1>
                             <p className="text-sm text-gray-400">ประวัติการทำข้อสอบทั้งหมดของคุณ</p>
                         </div>
                     </div>
@@ -276,7 +276,7 @@ export default function ExamHistoryPage() {
                             <button
                                 key={t.key}
                                 onClick={() => { setActiveTab(t.key); clearFilters(); }}
-                                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${activeTab === t.key
+                                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 ${activeTab === t.key
                                     ? "bg-green-600 text-white shadow-sm"
                                     : "text-gray-500 hover:bg-gray-50"
                                     }`}
@@ -284,7 +284,7 @@ export default function ExamHistoryPage() {
                                 {t.key === "NORMAL" && <BookOpen size={14} />}
                                 {t.key === "CAT" && <Brain size={14} />}
                                 {t.label}
-                                <span className={`text-xs px-1.5 py-0.5 rounded-full font-bold ${activeTab === t.key ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>
+                                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${activeTab === t.key ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>
                                     {t.count}
                                 </span>
                             </button>
@@ -334,7 +334,7 @@ export default function ExamHistoryPage() {
                             <div className="mt-4 pt-4 border-t border-gray-100 space-y-4">
                                 {/* Status */}
                                 <div>
-                                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">สถานะ</p>
+                                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">สถานะ</p>
                                     <div className="flex gap-2">
                                         {(["ALL", "PASSED", "FAILED"] as StatusFilter[]).map((s) => (
                                             <button
@@ -356,7 +356,7 @@ export default function ExamHistoryPage() {
                                 {/* Category */}
                                 {categories.length > 0 && (activeTab === "NORMAL" || activeTab === "ALL") && (
                                     <div>
-                                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">ประเภท</p>
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">ประเภท</p>
                                         <div className="flex flex-wrap gap-2">
                                             {categories.map((c) => (
                                                 <button
@@ -390,7 +390,7 @@ export default function ExamHistoryPage() {
 
                     {/* Results count */}
                     <p className="text-sm text-gray-400 mb-3 px-1">
-                        แสดง <span className="font-semibold text-gray-700">{filtered.length}</span> รายการ
+                        แสดง <span className="font-medium text-gray-700">{filtered.length}</span> รายการ
                         {hasFilter && " (กรองแล้ว)"}
                     </p>
 
@@ -448,8 +448,8 @@ export default function ExamHistoryPage() {
                                             {/* Main info */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <h3 className="font-bold text-gray-900 text-base truncate">{title}</h3>
-                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex-shrink-0 ${isCAT ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>
+                                                    <h3 className="font-medium text-gray-900 text-base truncate">{title}</h3>
+                                                    <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full uppercase flex-shrink-0 ${isCAT ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"}`}>
                                                         {isCAT ? "CAT" : "NORMAL"}
                                                     </span>
                                                 </div>
@@ -500,7 +500,7 @@ export default function ExamHistoryPage() {
                                                     href={isCAT
                                                         ? `/user/cat-exam/result/${exam.session_id}`
                                                         : `/user/examset/take-exam/summarize-exam?session_id=${exam.session_id}`}
-                                                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap"
+                                                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-all shadow-sm hover:shadow-md whitespace-nowrap"
                                                 >
                                                     ดูผล →
                                                 </Link>

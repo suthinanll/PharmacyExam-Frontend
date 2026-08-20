@@ -177,17 +177,17 @@ const AnswerPage = () => {
                 {/* Question Header */}
                 <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center transition-colors">
                     <div className="flex items-center gap-3 flex-1">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-sm ${isCorrect ? "bg-green-500" : "bg-red-500"}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-white text-sm ${isCorrect ? "bg-green-500" : "bg-red-500"}`}>
                             {index + 1}
                         </div>
-                        <span className={`font-semibold text-sm ${isCorrect ? "text-green-700" : "text-red-700"}`}>
+                        <span className={`font-medium text-sm ${isCorrect ? "text-green-700" : "text-red-700"}`}>
                             {isCorrect ? "✓ ถูกต้อง" : "✗ ไม่ถูกต้อง"}
                         </span>
                     </div>
                     <button
                         onClick={() => fetchQuestionStats(question.item_id)}
                         disabled={loadingStats}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl font-bold transition-all disabled:opacity-50 ${isCorrect
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-xl font-medium transition-all disabled:opacity-50 ${isCorrect
                             ? 'text-green-600 hover:text-white hover:bg-green-600 border border-green-200 bg-green-50/50'
                             : 'text-red-600 hover:text-white hover:bg-red-600 border border-red-200 bg-red-50/50'
                             }`}
@@ -201,7 +201,7 @@ const AnswerPage = () => {
                     {/* Question Content */}
                     <div>
                         <p 
-                            className="text-gray-800 text-sm sm:text-base whitespace-pre-wrap leading-relaxed font-semibold"
+                            className="text-gray-800 text-sm sm:text-base whitespace-pre-wrap leading-relaxed font-medium"
                             dangerouslySetInnerHTML={{ __html: question.question_text }}
                         />
                         {question.question_image_url && (
@@ -252,11 +252,11 @@ const AnswerPage = () => {
                                     >
                                         <div className="flex-grow">
                                             <span 
-                                                className={`text-sm break-words ${selected || (showAnswers && correct) ? 'font-semibold' : 'text-gray-600'}`}
+                                                className={`text-sm break-words ${selected || (showAnswers && correct) ? 'font-medium' : 'text-gray-600'}`}
                                                 dangerouslySetInnerHTML={{ __html: option.option_text }}
                                             />
                                             {selected && (
-                                                <span className={`ml-2 py-0.5 px-1.5 rounded text-[10px] font-bold ${
+                                                <span className={`ml-2 py-0.5 px-1.5 rounded text-[10px] font-medium ${
                                                     showAnswers
                                                         ? (correct ? 'bg-green-150 text-green-800' : 'bg-red-150 text-red-800')
                                                         : 'bg-green-100 text-green-800'
@@ -277,7 +277,7 @@ const AnswerPage = () => {
                         <div className="bg-indigo-50/60 p-4 rounded-xl border border-indigo-100">
                             <div className="flex items-center gap-2 mb-2">
                                 <HelpCircle className="w-4 h-4 text-indigo-700" />
-                                <h6 className="text-xs font-bold text-indigo-800 uppercase tracking-widest">คำอธิบาย</h6>
+                                <h6 className="text-xs font-medium text-indigo-800 uppercase tracking-widest">คำอธิบาย</h6>
                             </div>
                             <p 
                                 className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed"
@@ -340,7 +340,7 @@ const AnswerPage = () => {
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                     <div className="text-center max-w-md">
                         <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                        <h2 className="text-2xl font-bold text-gray-800 mb-2">เกิดข้อผิดพลาด</h2>
+                        <h2 className="text-2xl font-medium text-gray-800 mb-2">เกิดข้อผิดพลาด</h2>
                         <p className="text-gray-600 mb-6">{error || 'ไม่พบเฉลยคำตอบ'}</p>
                         <Link
                             href="/user/examset"
@@ -391,15 +391,15 @@ const AnswerPage = () => {
 
                         {/* Header */}
                         <div className="mb-8">
-                            <h1 className="text-3xl font-bold text-gray-800 mb-1">
+                            <h1 className="text-3xl font-medium text-gray-800 mb-1">
                                 เฉลยคำตอบ: {examResult.item_bank_name}
                             </h1>
                             <div className="mt-3 text-sm text-gray-500">
                                 <span>จำนวนทั้งหมด: {examResult.total_questions} ข้อ</span>
                                 <span className="mx-3">|</span>
-                                <span className="text-green-600 font-semibold">ตอบถูก: {examResult.correct_count} ข้อ</span>
+                                <span className="text-green-600 font-medium">ตอบถูก: {examResult.correct_count} ข้อ</span>
                                 <span className="mx-3">|</span>
-                                <span className="text-red-600 font-semibold">
+                                <span className="text-red-600 font-medium">
                                     ตอบผิด: {examResult.total_questions - examResult.correct_count} ข้อ
                                 </span>
                             </div>
@@ -414,7 +414,7 @@ const AnswerPage = () => {
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-500 leading-none mb-0.5">สถานการณ์</p>
-                                        <p className="text-base font-bold text-gray-800 leading-none">{groupQuestionsBySituation().length}</p>
+                                        <p className="text-base font-medium text-gray-800 leading-none">{groupQuestionsBySituation().length}</p>
                                     </div>
                                 </div>
                                 <div className="w-px h-8 bg-gray-100" />
@@ -424,7 +424,7 @@ const AnswerPage = () => {
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-500 leading-none mb-0.5">คำถามทั้งหมด</p>
-                                        <p className="text-base font-bold text-gray-800 leading-none">{examResult.total_questions} ข้อ</p>
+                                        <p className="text-base font-medium text-gray-800 leading-none">{examResult.total_questions} ข้อ</p>
                                     </div>
                                 </div>
                             </div>
@@ -434,7 +434,7 @@ const AnswerPage = () => {
                                 <div className="flex items-center bg-gray-100 rounded-lg p-1 gap-1">
                                     <button
                                         onClick={() => setCollapsedGroups(new Set())}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-sm transition-all"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-sm transition-all"
                                         title="เปิดทุกสถานการณ์"
                                     >
                                         <ChevronsUpDown className="w-3.5 h-3.5" />
@@ -442,7 +442,7 @@ const AnswerPage = () => {
                                     </button>
                                     <button
                                         onClick={() => setCollapsedGroups(new Set(groupQuestionsBySituation().map((_, idx) => idx)))}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-sm transition-all"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-gray-600 hover:bg-white hover:text-gray-800 hover:shadow-sm transition-all"
                                         title="ยุบทุกสถานการณ์"
                                     >
                                         <ChevronsDownUp className="w-3.5 h-3.5" />
@@ -453,7 +453,7 @@ const AnswerPage = () => {
                                 {/* Toggle show answers */}
                                 <button
                                     onClick={() => setShowAnswers(v => !v)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold border transition-all
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium border transition-all
                                         ${showAnswers
                                             ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
                                             : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
@@ -484,11 +484,11 @@ const AnswerPage = () => {
                                                     )}
                                                 </button>
 
-                                                <h3 className="text-base font-bold">
+                                                <h3 className="text-base font-medium">
                                                     {group.situation ? `สถานการณ์ที่ ${groupIndex + 1}` : 'คำถามทั่วไป'}
                                                 </h3>
                                             </div>
-                                            <div className="text-xs font-bold bg-white/20 px-3 py-1.5 rounded-full uppercase tracking-wider">
+                                            <div className="text-xs font-medium bg-white/20 px-3 py-1.5 rounded-full uppercase tracking-wider">
                                                 {group.questions.length} คำถาม
                                             </div>
                                         </div>
@@ -500,17 +500,17 @@ const AnswerPage = () => {
                                             {group.situation && (
                                                 <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100 relative overflow-hidden">
                                                     <div className="absolute top-0 left-0 w-1 h-full bg-blue-500"></div>
-                                                    <h6 className="text-[10px] sm:text-xs font-bold text-blue-700 uppercase tracking-[0.2em] mb-3 flex items-center gap-1">
+                                                    <h6 className="text-[10px] sm:text-xs font-medium text-blue-700 uppercase tracking-[0.2em] mb-3 flex items-center gap-1">
                                                         <Info size={14} /> รายละเอียดสถานการณ์
                                                     </h6>
                                                     {group.situation.situation_title && (
                                                         <p 
-                                                            className="font-bold text-gray-800 mb-2"
+                                                            className="font-medium text-gray-800 mb-2"
                                                             dangerouslySetInnerHTML={{ __html: group.situation.situation_title }}
                                                         />
                                                     )}
                                                     <p 
-                                                        className="text-gray-800 whitespace-pre-wrap leading-relaxed font-semibold text-sm"
+                                                        className="text-gray-800 whitespace-pre-wrap leading-relaxed font-medium text-sm"
                                                         dangerouslySetInnerHTML={{ __html: group.situation.situation_text }}
                                                     />
                                                     {group.situation.situation_image_url && (
@@ -550,7 +550,7 @@ const AnswerPage = () => {
                         <div className="mt-8 flex justify-center">
                             <Link
                                 href={`/user/examset/take-exam/summarize-exam?session_id=${sessionId}`}
-                                className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors shadow-sm"
+                                className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl transition-colors shadow-sm"
                             >
                                 ← กลับไปหน้าสรุปผล
                             </Link>
@@ -573,7 +573,7 @@ const AnswerPage = () => {
 
                 {showTOC && (
                     <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-64 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300">
-                        <div className="p-3 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 text-sm flex items-center justify-between">
+                        <div className="p-3 bg-gray-50 border-b border-gray-200 font-medium text-gray-700 text-sm flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <List className="w-4 h-4" />
                                 <span>สารบัญคำตอบ</span>
@@ -600,7 +600,7 @@ const AnswerPage = () => {
                                             </button>
                                             <button
                                                 onClick={() => scrollToSection(`group-${gIdx}`)}
-                                                className="flex-1 text-left py-2 text-xs font-bold text-gray-700 hover:text-emerald-700 transition-all truncate flex items-center justify-between"
+                                                className="flex-1 text-left py-2 text-xs font-medium text-gray-700 hover:text-emerald-700 transition-all truncate flex items-center justify-between"
                                                 title={situationTitle}
                                             >
                                                 <span className="truncate">{situationTitle}</span>
@@ -648,7 +648,7 @@ const AnswerPage = () => {
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-2">
                                     <BarChart3 className="w-6 h-6 text-blue-600" />
-                                    <h2 className="text-xl font-bold text-gray-800">สถิติการทำข้อสอบ</h2>
+                                    <h2 className="text-xl font-medium text-gray-800">สถิติการทำข้อสอบ</h2>
                                 </div>
                                 <button
                                     onClick={() => setShowStatsModal(false)}
@@ -664,11 +664,11 @@ const AnswerPage = () => {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-green-50 rounded-xl p-4 text-center">
                                             <p className="text-sm text-green-600 font-medium mb-1">จำนวนครั้ง</p>
-                                            <p className="text-3xl font-bold text-green-700">{selectedQuestionStats.total_attempts}</p>
+                                            <p className="text-3xl font-medium text-green-700">{selectedQuestionStats.total_attempts}</p>
                                         </div>
                                         <div className="bg-emerald-50 rounded-xl p-4 text-center">
                                             <p className="text-sm text-emerald-600 font-medium mb-1">ตอบถูก</p>
-                                            <p className="text-3xl font-bold text-emerald-700">{selectedQuestionStats.total_correct}</p>
+                                            <p className="text-3xl font-medium text-emerald-700">{selectedQuestionStats.total_correct}</p>
                                         </div>
                                     </div>
 
@@ -676,7 +676,7 @@ const AnswerPage = () => {
                                     <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-100 rounded-xl p-4">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-sm font-medium text-gray-700">ความแม่นยำ</span>
-                                            <span className="text-2xl font-bold text-green-700">
+                                            <span className="text-2xl font-medium text-green-700">
                                                 {selectedQuestionStats.total_attempts > 0
                                                     ? Math.round((selectedQuestionStats.total_correct / selectedQuestionStats.total_attempts) * 100)
                                                     : 0}%
@@ -701,11 +701,11 @@ const AnswerPage = () => {
                                                 <TrendingUp className="w-4 h-4 text-orange-600" />
                                                 <p className="text-xs text-orange-600 font-medium">ถูกติดกัน</p>
                                             </div>
-                                            <p className="text-2xl font-bold text-orange-700">{selectedQuestionStats.correct_streak}</p>
+                                            <p className="text-2xl font-medium text-orange-700">{selectedQuestionStats.correct_streak}</p>
                                         </div>
                                         <div className="border-2 border-red-200 rounded-xl p-4">
                                             <p className="text-xs text-red-600 font-medium mb-1">ตอบผิด</p>
-                                            <p className="text-2xl font-bold text-red-700">{selectedQuestionStats.total_incorrect}</p>
+                                            <p className="text-2xl font-medium text-red-700">{selectedQuestionStats.total_incorrect}</p>
                                         </div>
                                     </div>
 

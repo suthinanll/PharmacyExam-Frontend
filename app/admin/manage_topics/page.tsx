@@ -277,14 +277,14 @@ export default function ManageTopicsPage() {
                         <div className="p-3 bg-green-50 text-green-600 rounded-lg"><BookOpen size={24} /></div>
                         <div>
                             <p className="text-xs text-gray-500 font-medium uppercase">หัวข้อหลัก (Topic)</p>
-                            <h3 className="text-2xl font-bold text-gray-900">{stats?.by_topic.length || 0}</h3>
+                            <h3 className="text-2xl font-medium text-gray-900">{stats?.by_topic.length || 0}</h3>
                         </div>
                     </div>
                     <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
                         <div className="p-3 bg-blue-50 text-blue-600 rounded-lg"><List size={24} /></div>
                         <div>
                             <p className="text-xs text-gray-500 font-medium uppercase">หัวข้อย่อย (Sub-Topic)</p>
-                            <h3 className="text-2xl font-bold text-gray-900">
+                            <h3 className="text-2xl font-medium text-gray-900">
                                 {stats?.by_topic.reduce((a, b) => a + b.sub_topics.length, 0) || 0}
                             </h3>
                         </div>
@@ -293,7 +293,7 @@ export default function ManageTopicsPage() {
                         <div className="p-3 bg-purple-50 text-purple-600 rounded-lg"><PieChartIcon size={24} /></div>
                         <div>
                             <p className="text-xs text-gray-500 font-medium uppercase">จำนวนข้อสอบรวม</p>
-                            <h3 className="text-2xl font-bold text-gray-900">{stats?.total_items || 0}</h3>
+                            <h3 className="text-2xl font-medium text-gray-900">{stats?.total_items || 0}</h3>
                         </div>
                     </div>
                 </div>
@@ -333,7 +333,7 @@ export default function ManageTopicsPage() {
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 animate-in fade-in zoom-in duration-300">
                                 {/* Topic Distribution */}
                                 <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                                    <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                    <h3 className="text-lg font-medium text-gray-800 mb-6 flex items-center gap-2">
                                         <PieChartIcon className="text-green-500" size={20} /> สัดส่วนข้อสอบแยกตาม Topic
                                     </h3>
                                     <div className="h-[300px]">
@@ -359,7 +359,7 @@ export default function ManageTopicsPage() {
 
                                 {/* SubTopic Distribution (Bar Chart for top 10) */}
                                 <div className="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
-                                    <h3 className="text-lg font-bold text-gray-800 mb-6 flex items-center gap-2">
+                                    <h3 className="text-lg font-medium text-gray-800 mb-6 flex items-center gap-2">
                                         <PieChartIcon className="text-blue-500" size={20} /> Top 10 Sub-Topics ที่มีข้อสอบมากที่สุด
                                     </h3>
                                     <div className="h-[300px]">
@@ -400,7 +400,7 @@ export default function ManageTopicsPage() {
                                                     {isExpanded ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
                                                 </button>
                                                 <div className="flex-1">
-                                                    <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                                    <h3 className="text-base font-medium text-gray-900 flex items-center gap-2">
                                                         {topic.topic_name}
                                                         <span className="text-xs font-normal px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
                                                             {topic.item_count || 0} ข้อ
@@ -447,7 +447,7 @@ export default function ManageTopicsPage() {
                                                                         <p className="text-xs text-gray-400 truncate max-w-xs">{st.description}</p>
                                                                     </div>
                                                                     <div className="col-span-2 text-center">
-                                                                        <span className="inline-block px-2 py-0.5 text-xs font-semibold bg-gray-100 text-gray-600 rounded-md">
+                                                                        <span className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded-md">
                                                                             {st.item_count || 0}
                                                                         </span>
                                                                     </div>
@@ -486,7 +486,7 @@ export default function ManageTopicsPage() {
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
                         <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
                             <div className="bg-green-600 px-6 py-4 flex justify-between items-center">
-                                <h3 className="text-lg font-bold text-white">{editingTopic ? "แก้ไขหัวข้อหลัก" : "เพิ่มหัวข้อหลัก"}</h3>
+                                <h3 className="text-lg font-medium text-white">{editingTopic ? "แก้ไขหัวข้อหลัก" : "เพิ่มหัวข้อหลัก"}</h3>
                                 <button onClick={() => setShowTopicModal(false)} className="text-white/80 hover:text-white"><X size={20} /></button>
                             </div>
                             <div className="p-6 space-y-4">
@@ -517,7 +517,7 @@ export default function ManageTopicsPage() {
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
                         <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
                             <div className="bg-green-600 px-6 py-4 flex justify-between items-center">
-                                <h3 className="text-lg font-bold text-white">{editingSubTopic ? "แก้ไขหัวข้อย่อย" : "เพิ่มหัวข้อย่อย"}</h3>
+                                <h3 className="text-lg font-medium text-white">{editingSubTopic ? "แก้ไขหัวข้อย่อย" : "เพิ่มหัวข้อย่อย"}</h3>
                                 <button onClick={() => setShowSubTopicModal(false)} className="text-white/80 hover:text-white"><X size={20} /></button>
                             </div>
                             <div className="p-6 space-y-4">

@@ -709,7 +709,7 @@ export default function CATExamPage() {
 
                   {/* Header/Title Banner */}
                   <div className="p-6 text-center border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                    <h2 className="text-2xl font-bold text-gray-800">การประเมินผลการสอบเสร็จสิ้น</h2>
+                    <h2 className="text-2xl font-medium text-gray-800">การประเมินผลการสอบเสร็จสิ้น</h2>
                     <p className="text-gray-500 text-sm mt-1">ระบบได้ทำการประเมินระดับความสามารถเชิงปรับตัวของคุณเรียบร้อยแล้ว</p>
                   </div>
 
@@ -722,7 +722,7 @@ export default function CATExamPage() {
                           <FlaskConical className="w-6 h-6 text-blue-500" />
                         </div>
                         <div className="text-center">
-                          <h3 className="text-lg font-semibold text-blue-800">กำลังประมวลผลและสรุปคะแนน...</h3>
+                          <h3 className="text-lg font-medium text-blue-800">กำลังประมวลผลและสรุปคะแนน...</h3>
                           <p className="text-sm text-gray-500 mt-1">ปฏิกิริยาเคมีกำลังสรุปผลลัพธ์สุดท้าย</p>
                         </div>
                       </div>
@@ -733,7 +733,7 @@ export default function CATExamPage() {
                           <Award className="w-8 h-8" />
                         </div>
                         <div className="text-center sm:text-left">
-                            <h3 className="text-xl font-bold text-emerald-800">มีโอกาสสูงที่จะสอบผ่าน!</h3>
+                            <h3 className="text-xl font-medium text-emerald-800">มีโอกาสสูงที่จะสอบผ่าน!</h3>
                           <p className="text-sm text-emerald-600 font-medium mt-0.5">ระดับความสามารถของคุณผ่านเกณฑ์มาตรฐานการประเมิน</p>
                         </div>
                       </div>
@@ -744,7 +744,7 @@ export default function CATExamPage() {
                           <AlertTriangle className="w-8 h-8" />
                         </div>
                         <div className="text-center sm:text-left">
-                          <h3 className="text-xl font-bold text-rose-800">การสอบเสร็จสิ้น (ยังไม่ผ่านเกณฑ์)</h3>
+                          <h3 className="text-xl font-medium text-rose-800">การสอบเสร็จสิ้น (ยังไม่ผ่านเกณฑ์)</h3>
                           <p className="text-sm text-rose-600 font-medium mt-0.5">ระดับความสามารถของคุณในปัจจุบันยังไม่ผ่านเกณฑ์ขั้นต่ำ</p>
                         </div>
                       </div>
@@ -753,23 +753,23 @@ export default function CATExamPage() {
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">จำนวนข้อที่ตอบ</div>
-                        <div className="text-2xl font-bold text-gray-800 mt-1">{session.num_items} ข้อ</div>
+                        <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">จำนวนข้อที่ตอบ</div>
+                        <div className="text-2xl font-medium text-gray-800 mt-1">{session.num_items} ข้อ</div>
                       </div>
                       <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">ระดับความสามารถ (θ)</div>
-                        <div className={`text-2xl font-bold mt-1 ${finalStatus === "passed" ? "text-emerald-600" : finalStatus === "failed" ? "text-rose-600" : "text-blue-600"
+                        <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">ระดับความสามารถ (θ)</div>
+                        <div className={`text-2xl font-medium mt-1 ${finalStatus === "passed" ? "text-emerald-600" : finalStatus === "failed" ? "text-rose-600" : "text-blue-600"
                           }`}>
                           {session.current_theta.toFixed(3)}
                         </div>
                       </div>
                       <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">ค่าความคลาดเคลื่อน (SE)</div>
-                        <div className="text-2xl font-bold text-purple-600 mt-1">{session.current_se.toFixed(3)}</div>
+                        <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">ค่าความคลาดเคลื่อน (SE)</div>
+                        <div className="text-2xl font-medium text-purple-600 mt-1">{session.current_se.toFixed(3)}</div>
                       </div>
                       <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">เวลาที่ใช้ทั้งหมด</div>
-                        <div className="text-2xl font-bold text-indigo-600 mt-1">{formatTime(elapsedTime)}</div>
+                        <div className="text-[11px] font-medium text-gray-400 uppercase tracking-wider">เวลาที่ใช้ทั้งหมด</div>
+                        <div className="text-2xl font-medium text-indigo-600 mt-1">{formatTime(elapsedTime)}</div>
                       </div>
                     </div>
 
@@ -790,7 +790,7 @@ export default function CATExamPage() {
                           }
                         }}
                         disabled={finalStatus === null || navigating}
-                        className={`w-full max-w-sm py-4 px-6 rounded-2xl font-bold text-white shadow-sm hover:shadow-md transition-colors flex items-center justify-center gap-2 ${finalStatus === "passed"
+                        className={`w-full max-w-sm py-4 px-6 rounded-2xl font-medium text-white shadow-sm hover:shadow-md transition-colors flex items-center justify-center gap-2 ${finalStatus === "passed"
                             ? "bg-green-500 hover:bg-green-600"
                             : finalStatus === "failed"
                               ? "bg-red-500 hover:bg-red-600"
@@ -816,11 +816,11 @@ export default function CATExamPage() {
                     <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
                       <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-2">
                         <BookOpen className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-semibold text-blue-700">สถานการณ์</span>
+                        <span className="text-sm font-medium text-blue-700">สถานการณ์</span>
                       </div>
                       <div className="p-5">
                         {session.current_item.situation.situation_title && (
-                          <p className="font-bold text-gray-800 mb-2">
+                          <p className="font-medium text-gray-800 mb-2">
                             {session.current_item.situation.situation_title}
                           </p>
                         )}
@@ -846,7 +846,7 @@ export default function CATExamPage() {
                     {/* Question header */}
                     <div className="px-6 pt-5 pb-4 border-b border-gray-100">
                       <div className="flex items-center gap-3 mb-3">
-                        <span className="text-xs font-bold text-white bg-gray-500 px-2.5 py-1 rounded-full">
+                        <span className="text-xs font-medium text-white bg-gray-500 px-2.5 py-1 rounded-full">
                           ข้อ {session.num_items + 1}
                         </span>
                         {session.current_item.sub_topics && session.current_item.sub_topics.length > 0 && (
@@ -879,7 +879,7 @@ export default function CATExamPage() {
 
                     {/* Options */}
                     <div className="px-6 py-5">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">เลือกคำตอบ</p>
+                      <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3">เลือกคำตอบ</p>
                       <div className="space-y-2.5">
                         {session.current_item.answer_options.map((option, index) => {
                           const isSelected = selectedOptionId === option.option_id;
@@ -901,7 +901,7 @@ export default function CATExamPage() {
                               </div>
 
                               {/* Label badge */}
-                              <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 mt-0.5 transition-colors ${isSelected ? "bg-green-500 text-white" : "bg-gray-100 text-gray-600 group-hover:bg-green-100 group-hover:text-green-700"
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded shrink-0 mt-0.5 transition-colors ${isSelected ? "bg-green-500 text-white" : "bg-gray-100 text-gray-600 group-hover:bg-green-100 group-hover:text-green-700"
                                 }`}>
                                 {label}
                               </span>
@@ -937,14 +937,14 @@ export default function CATExamPage() {
                         <Hash className="w-3.5 h-3.5 text-gray-400" />
                         <span className="text-xs text-gray-500">ตอบแล้ว</span>
                       </div>
-                      <p className="text-xl font-bold text-gray-800">{session.num_items}</p>
+                      <p className="text-xl font-medium text-gray-800">{session.num_items}</p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-3 text-center">
                       <div className="flex items-center justify-center gap-1 mb-0.5">
                         <Clock className="w-3.5 h-3.5 text-gray-400" />
                         <span className="text-xs text-gray-500">เวลา</span>
                       </div>
-                      <p className="text-xl font-bold text-blue-600">{formatTime(elapsedTime)}</p>
+                      <p className="text-xl font-medium text-blue-600">{formatTime(elapsedTime)}</p>
                     </div>
                   </div>
 
@@ -952,7 +952,7 @@ export default function CATExamPage() {
                   <div>
                     <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                       <span>ความคืบหน้า</span>
-                      <span className="font-semibold text-gray-700">{session.num_items} / {session.max_items} ข้อ</span>
+                      <span className="font-medium text-gray-700">{session.num_items} / {session.max_items} ข้อ</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
@@ -973,7 +973,7 @@ export default function CATExamPage() {
                     <button
                       onClick={submitAnswer}
                       disabled={!selectedOptionId || loading}
-                      className="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <>

@@ -44,7 +44,7 @@ const StatCard: React.FC<StatCardProps> = ({
   <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
     <div className="flex justify-between items-start">
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{title}</p>
+        <p className="text-xs font-medium uppercase tracking-wider text-gray-400">{title}</p>
         <div className="flex items-baseline space-x-1.5">
           <h3 className="text-3xl font-black text-gray-900 tracking-tight">{value}</h3>
           <span className="text-sm font-medium text-gray-500">{description}</span>
@@ -131,7 +131,7 @@ function AdminDashboardPage() {
       <Navbar_admin>
         <div className="flex items-center justify-center h-full min-h-[500px]">
           <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
-          <span className="ml-3 text-base font-semibold text-gray-500">
+          <span className="ml-3 text-base font-medium text-gray-500">
             กำลังจัดเตรียมข้อมูลระบบสารสนเทศ...
           </span>
         </div>
@@ -151,7 +151,7 @@ function AdminDashboardPage() {
           </div>
           <button
             onClick={() => router.push("/admin/student-tracking")}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-700 active:scale-95 text-white font-bold text-sm rounded-xl shadow-md shadow-green-600/10 transition-all w-full sm:w-auto justify-center cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-700 active:scale-95 text-white font-medium text-sm rounded-xl shadow-md shadow-green-600/10 transition-all w-full sm:w-auto justify-center cursor-pointer"
           >
             <UserCheck className="w-4 h-4" />
             <span>ติดตามผลการเรียนรายบุคคล</span>
@@ -204,7 +204,7 @@ function AdminDashboardPage() {
               <TrendingUp className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-800">
+              <h2 className="text-lg font-medium text-gray-800">
                 แนวโน้มประสิทธิภาพของผู้เรียน
               </h2>
               <p className="text-xs text-gray-400">สรุปดัชนีคะแนนเฉลี่ยจำแนกตามรายเดือน</p>

@@ -5,7 +5,7 @@ const nextConfig = {
         return [
             {
                 source: '/api/:path*',
-                destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`, 
+                destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
             },
         ];
     },
@@ -22,6 +22,21 @@ const nextConfig = {
                 hostname: '**',
             },
         ],
+    },
+
+    // 3. เพิ่ม headers เพื่อแก้ CSP สำหรับ <img> tag
+    async headers() {
+        return [
+            {
+                source: '/:path*',
+                headers: [
+                    {
+                        key: 'Content-Security-Policy',
+                        value: "img-src 'self' data: https: http:;",
+                    },
+                ],
+            },
+        ];
     },
 };
 

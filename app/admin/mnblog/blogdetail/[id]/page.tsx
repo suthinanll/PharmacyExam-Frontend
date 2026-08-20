@@ -288,7 +288,7 @@ export default function EditBlogDetail() {
                     <button
                         onClick={handleUpdate}
                         disabled={isSaving}
-                        className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-green-600 text-white rounded-2xl font-bold hover:bg-green-700 disabled:opacity-50 transition-all"
+                        className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-green-600 text-white rounded-2xl font-medium hover:bg-green-700 disabled:opacity-50 transition-all"
                     >
                         {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                         บันทึกการเปลี่ยนแปลง
@@ -304,7 +304,7 @@ export default function EditBlogDetail() {
                                 <label className="block text-xs font-black uppercase text-gray-400 mb-2">หัวข้อข่าวสาร</label>
                                 <input
                                     type="text"
-                                    className="w-full text-2xl font-bold border-none p-0 focus:ring-0 text-gray-800"
+                                    className="w-full text-2xl font-medium border-none p-0 focus:ring-0 text-gray-800"
                                     value={formData.title}
                                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                     placeholder="ใส่หัวข้อข่าว..."
@@ -430,7 +430,7 @@ export default function EditBlogDetail() {
                             )}
 
                             <div className="p-4 bg-green-50 rounded-2xl border border-green-100">
-                                <h4 className="text-green-700 text-xs font-bold mb-2 flex items-center gap-2">
+                                <h4 className="text-green-700 text-xs font-medium mb-2 flex items-center gap-2">
                                     <AlertCircle size={14} /> คำแนะนำ
                                 </h4>
                                 <ul className="text-xs text-green-600/80 space-y-1">
@@ -456,7 +456,7 @@ export default function EditBlogDetail() {
             {linkModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4">เพิ่มลิงก์</h3>
+                        <h3 className="text-lg font-medium text-gray-800 mb-4">เพิ่มลิงก์</h3>
                         <input
                             type="url"
                             value={linkUrl}
@@ -496,7 +496,7 @@ export default function EditBlogDetail() {
             {imageModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4">เพิ่มรูปภาพในเนื้อหา</h3>
+                        <h3 className="text-lg font-medium text-gray-800 mb-4">เพิ่มรูปภาพในเนื้อหา</h3>
                         <input
                             type="url"
                             value={imageUrl}

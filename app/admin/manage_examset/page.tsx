@@ -67,7 +67,7 @@ function BankCard({ bank }: { bank: ItemBank }) {
       <div className="p-5 flex flex-col flex-1">
         {/* Status badge */}
         <div className="flex items-start justify-between gap-2 mb-3">
-          <h3 className="text-base font-semibold text-gray-900 leading-snug line-clamp-2">{bank.bank_name}</h3>
+          <h3 className="text-base font-medium text-gray-900 leading-snug line-clamp-2">{bank.bank_name}</h3>
           <span className={`shrink-0 flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${bank.is_active
             ? "bg-green-100 text-green-700"
             : "bg-gray-100 text-gray-500"}`}>
@@ -261,7 +261,7 @@ function Page() {
                 <thead className="bg-green-600 text-white">
                   <tr>
                     {["#", "ชื่อข้อสอบ", "ระยะเวลา", "สถานะ", "วันที่สร้าง", "ประเภท", "จัดการ"].map((h, i) => (
-                      <th key={h} className={`px-5 py-3 text-left text-xs font-semibold tracking-wide ${i === 0 ? "w-12 text-center rounded-tl-2xl" : ""} ${i === 6 ? "rounded-tr-2xl" : ""}`}>{h}</th>
+                      <th key={h} className={`px-5 py-3 text-left text-xs font-medium tracking-wide ${i === 0 ? "w-12 text-center rounded-tl-2xl" : ""} ${i === 6 ? "rounded-tr-2xl" : ""}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>

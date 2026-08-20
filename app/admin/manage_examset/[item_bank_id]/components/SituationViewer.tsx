@@ -70,7 +70,7 @@ export default function SituationViewer({
                 <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-5 border border-gray-200">
                     <FileText className="w-10 h-10 text-gray-300" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-700 mb-2">ยังไม่มีข้อสอบ</h3>
+                <h3 className="text-xl font-medium text-gray-700 mb-2">ยังไม่มีข้อสอบ</h3>
                 <p className="text-gray-400 text-sm">กดปุ่ม <span className="font-medium text-blue-500">แก้ไขข้อมูล</span> แล้วกด <span className="font-medium text-green-500">เพิ่มสถานการณ์</span> เพื่อเริ่มสร้างข้อสอบ</p>
             </div>
         );
@@ -88,7 +88,7 @@ export default function SituationViewer({
                         </div>
                         <div>
                             <p className="text-xs text-gray-500 leading-none mb-0.5">สถานการณ์</p>
-                            <p className="text-base font-bold text-gray-800 leading-none">{situations.length}</p>
+                            <p className="text-base font-medium text-gray-800 leading-none">{situations.length}</p>
                         </div>
                     </div>
                     <div className="w-px h-8 bg-gray-100" />
@@ -98,7 +98,7 @@ export default function SituationViewer({
                         </div>
                         <div>
                             <p className="text-xs text-gray-500 leading-none mb-0.5">คำถามทั้งหมด</p>
-                            <p className="text-base font-bold text-gray-800 leading-none">{totalQuestions} ข้อ</p>
+                            <p className="text-base font-medium text-gray-800 leading-none">{totalQuestions} ข้อ</p>
                         </div>
                     </div>
                 </div>
@@ -158,12 +158,12 @@ export default function SituationViewer({
                         >
                             <div className="flex items-center gap-3">
                                 {/* index badge */}
-                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+                                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-medium text-sm shadow-sm">
                                     {sitIdx + 1}
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <span className="font-bold text-gray-800">สถานการณ์ที่ {sitIdx + 1}</span>
+                                        <span className="font-medium text-gray-800">สถานการณ์ที่ {sitIdx + 1}</span>
                                         {situation.situation_id && (
                                             <span className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full font-medium">บันทึกแล้ว</span>
                                         )}
@@ -230,7 +230,7 @@ export default function SituationViewer({
                                                     onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
                                                 >
                                                     {/* number */}
-                                                    <div className="w-8 h-8 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-bold text-xs shrink-0 mt-0.5">
+                                                    <div className="w-8 h-8 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-medium text-xs shrink-0 mt-0.5">
                                                         {globalNum}
                                                     </div>
 
@@ -294,7 +294,7 @@ export default function SituationViewer({
                                                                             }`}
                                                                     >
                                                                         {/* label */}
-                                                                        <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold border
+                                                                        <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-medium border
                                                                             ${revealCorrect
                                                                                 ? 'bg-emerald-500 text-white border-emerald-500'
                                                                                 : 'bg-gray-100 text-gray-600 border-gray-200'
@@ -322,7 +322,7 @@ export default function SituationViewer({
                                                             <div className="mt-4 flex gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
                                                                 <Lightbulb className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                                                 <div>
-                                                                    <p className="text-xs font-bold text-amber-700 mb-1 uppercase tracking-wide">คำอธิบายเฉลย</p>
+                                                                    <p className="text-xs font-medium text-amber-700 mb-1 uppercase tracking-wide">คำอธิบายเฉลย</p>
                                                                     <div
                                                                         className="prose prose-sm max-w-none text-amber-800 leading-relaxed"
                                                                         dangerouslySetInnerHTML={{ __html: question.explanation }}

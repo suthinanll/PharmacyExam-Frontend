@@ -17,7 +17,7 @@ export default function CATGuideModal({ isOpen, onClose }: CATGuideModalProps) {
                 <div className="bg-green-600 px-6 py-4 text-white flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <Info className="w-6 h-6" />
-                        <h3 className="text-xl font-semibold">คู่มือการจัดการข้อสอบ CAT</h3>
+                        <h3 className="text-xl font-medium">คู่มือการจัดการข้อสอบ CAT</h3>
                     </div>
                     <button onClick={onClose} className="hover:bg-green-500 p-1.5 rounded-lg transition-colors">
                         <X className="w-6 h-6" />

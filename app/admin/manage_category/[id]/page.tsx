@@ -177,7 +177,7 @@ export default function EditCategory() {
 
                     {/* Header */}
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">แก้ไขประเภทข้อสอบ</h1>
+                        <h1 className="text-3xl font-medium text-gray-900 mb-2">แก้ไขประเภทข้อสอบ</h1>
                         <p className="text-gray-600">แก้ไขข้อมูลประเภทข้อสอบ</p>
                     </div>
 
@@ -185,7 +185,7 @@ export default function EditCategory() {
                     <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-8">
                         {/* ชื่อประเภทข้อสอบ */}
                         <div className="mb-6">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 ชื่อประเภทข้อสอบ <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -201,7 +201,7 @@ export default function EditCategory() {
 
                         {/* คำอธิบาย */}
                         <div className="mb-8">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 คำอธิบาย <span className="text-red-500">*</span>
                             </label>
                             <textarea
@@ -218,7 +218,7 @@ export default function EditCategory() {
                         {/* Metadata */}
                         {category && (
                             <div className="mb-8 p-4 bg-gray-50 rounded-lg">
-                                <h3 className="text-sm font-semibold text-gray-700 mb-2">ข้อมูลเพิ่มเติม</h3>
+                                <h3 className="text-sm font-medium text-gray-700 mb-2">ข้อมูลเพิ่มเติม</h3>
                                 <div className="text-xs text-gray-600 space-y-1">
                                     <p>สร้างเมื่อ: {new Date(category.created_at).toLocaleString('th-TH')}</p>
                                     <p>แก้ไขล่าสุด: {new Date(category.updated_at).toLocaleString('th-TH')}</p>
@@ -231,7 +231,7 @@ export default function EditCategory() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {loading ? (
                                     <>
@@ -249,7 +249,7 @@ export default function EditCategory() {
                                 type="button"
                                 onClick={handleReset}
                                 disabled={loading}
-                                className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                             >
                                 <X className="w-5 h-5" />
                                 รีเซ็ต

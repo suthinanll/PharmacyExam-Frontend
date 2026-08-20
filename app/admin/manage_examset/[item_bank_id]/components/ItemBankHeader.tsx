@@ -86,7 +86,7 @@ export default function ItemBankHeader({
                                     {itemBankInfo?.bank_name || 'Loading...'}
                                 </h1>
                                 {itemBankInfo && (
-                                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-sm ${itemBankInfo.is_active
+                                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium shadow-sm ${itemBankInfo.is_active
                                         ? 'bg-green-100 text-green-700 border border-green-200'
                                         : 'bg-amber-100 text-amber-700 border border-amber-200'
                                         }`}>

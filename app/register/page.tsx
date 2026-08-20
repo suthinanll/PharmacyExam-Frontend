@@ -441,7 +441,7 @@ export default function RegisterPage() {
                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
                   <div className="flex items-center gap-2 mb-3">
                     <Shield className="w-4 h-4 text-gray-600" />
-                    <p className="text-xs font-semibold text-gray-700">
+                    <p className="text-xs font-medium text-gray-700">
                       ความปลอดภัยของรหัสผ่าน
                     </p>
                   </div>
@@ -501,7 +501,7 @@ export default function RegisterPage() {
               <p className="text-sm text-gray-700 mb-1">
                 เราได้ส่งรหัส OTP ไปยังอีเมล
               </p>
-              <p className="text-base font-semibold text-green-700">{email}</p>
+              <p className="text-base font-medium text-green-700">{email}</p>
             </div>
 
             <div className="space-y-2">
@@ -511,7 +511,7 @@ export default function RegisterPage() {
               <input
                 type="text"
                 maxLength={6}
-                className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-center text-2xl font-bold tracking-widest focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm"
+                className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-center text-2xl font-medium tracking-widest focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm"
                 placeholder="000000"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}

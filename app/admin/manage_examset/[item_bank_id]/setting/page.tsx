@@ -274,7 +274,7 @@ export default function ItemBankSettingsPage() {
                     <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                         {/* ชื่อชุดข้อสอบ */}
                         <div className="mb-6">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 ชื่อชุดข้อสอบ <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -289,7 +289,7 @@ export default function ItemBankSettingsPage() {
 
                         {/* คำอธิบาย */}
                         <div className="mb-6">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 คำอธิบาย
                             </label>
                             <textarea
@@ -303,7 +303,7 @@ export default function ItemBankSettingsPage() {
 
                         {/* ระยะเวลา */}
                         <div className="mb-6">
-                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
                                 ระยะเวลาในการทำข้อสอบ (นาที) <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -318,7 +318,7 @@ export default function ItemBankSettingsPage() {
 
                         {/* ประเภทข้อสอบ */}
                         <div className="mb-6">
-                            <label className="block text-sm font-semibold text-gray-700 mb-3">
+                            <label className="block text-sm font-medium text-gray-700 mb-3">
                                 ประเภทข้อสอบ
                             </label>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -372,7 +372,7 @@ export default function ItemBankSettingsPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {loading ? (
                                     <>

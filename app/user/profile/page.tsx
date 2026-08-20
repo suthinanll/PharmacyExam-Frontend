@@ -1,7 +1,7 @@
 "use client"
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
-import { User, Mail, Phone, Loader2, Edit3, Save, X, School, AlertCircle, Camera, Upload } from "lucide-react";
+import { User, Mail, Phone, Loader2, Edit3, Save, X, School, AlertCircle, Camera, Upload, ChevronDown } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
 import Swal from "sweetalert2";
 import Link from "next/link";
@@ -31,6 +31,8 @@ const Profile = () => {
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [universities, setUniversities] = useState<{ university_id: number, name: string }[]>([]);
+    const [selectedUniversityId, setSelectedUniversityId] = useState<number | null>(null);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -47,6 +49,7 @@ const Profile = () => {
                         data.profile_picture = `${process.env.NEXT_PUBLIC_API_URL}${data.profile_picture}`;
                     }
                     setUser(data);
+                    setSelectedUniversityId(data.university?.id || null);
                 } else if (res.status === 401) {
                     // ถ้า Token หมดอายุให้เตะออกไปหน้า Login
                     localStorage.removeItem("access_token");
@@ -58,6 +61,22 @@ const Profile = () => {
         };
         fetchUser();
     }, [getToken]);
+
+    // ดึงรายการมหาวิทยาลัย
+    useEffect(() => {
+        const fetchUniversities = async () => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/universities`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setUniversities(data);
+                }
+            } catch (err) {
+                console.error("Failed to fetch universities:", err);
+            }
+        };
+        fetchUniversities();
+    }, []);
 
     useEffect(() => {
         if (user) {
@@ -94,11 +113,17 @@ const Profile = () => {
         setIsLoading(true);
         try {
             const token = getToken();
-            const updateData = {
+            const updateData: any = {
                 first_name: formData.first_name,
                 last_name: formData.last_name,
                 tel: formData.tel,
             };
+
+            // ถ้ามีการเลือกมหาวิทยาลัย ให้ส่งไปด้วย
+            if (selectedUniversityId) {
+                updateData.university_id = selectedUniversityId;
+            }
+
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
                 method: 'PATCH',
                 headers: {
@@ -117,7 +142,14 @@ const Profile = () => {
                     showConfirmButton: false
                 });
                 setIsEditing(false);
-                setUser(prev => prev ? { ...prev, ...updateData } : null);
+
+                // อัปเดต user state รวมข้อมูลมหาวิทยาลัย
+                const selectedUniversity = universities.find(u => u.university_id === selectedUniversityId);
+                setUser(prev => prev ? {
+                    ...prev,
+                    ...updateData,
+                    university: selectedUniversity ? { id: selectedUniversity.university_id, name: selectedUniversity.name } : prev.university
+                } : null);
             } else {
                 const errorData = await res.json();
                 throw new Error(errorData.message || "ล้มเหลว");
@@ -245,7 +277,7 @@ const Profile = () => {
                         <div className="mb-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
                             <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                             <div>
-                                <h3 className="text-sm font-semibold text-amber-900 mb-1">
+                                <h3 className="text-sm font-medium text-amber-900 mb-1">
                                     กรุณาเพิ่มข้อมูลให้ครบถ้วน
                                 </h3>
                                 <p className="text-xs text-amber-700">
@@ -309,7 +341,7 @@ const Profile = () => {
                                 </div>
 
                                 <div>
-                                    <h1 className="text-lg md:text-xl font-bold text-gray-900">โปรไฟล์ผู้ใช้งาน</h1>
+                                    <h1 className="text-lg md:text-xl font-medium text-gray-900">โปรไฟล์ผู้ใช้งาน</h1>
                                     <p className="text-xs md:text-sm text-gray-500">จัดการข้อมูลส่วนตัวของคุณ</p>
                                     {isUploadingImage && (
                                         <p className="text-xs text-indigo-600 mt-1 flex items-center gap-1">
@@ -325,7 +357,7 @@ const Profile = () => {
                                     <button
                                         type="button"
                                         onClick={() => setIsEditing(true)}
-                                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-50 transition shadow-sm"
+                                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition shadow-sm"
                                     >
                                         <Edit3 className="w-4 h-4" /> แก้ไข
                                     </button>
@@ -343,7 +375,7 @@ const Profile = () => {
                                                     tel: user.tel,
                                                 });
                                             }}
-                                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm font-semibold rounded-lg hover:bg-gray-50 transition"
+                                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
                                         >
                                             <X className="w-4 h-4" /> ยกเลิก
                                         </button>
@@ -351,7 +383,7 @@ const Profile = () => {
                                             type="button"
                                             onClick={handleSaveProfile}
                                             disabled={isLoading}
-                                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-semibold rounded-lg hover:bg-gray-800 transition shadow-sm disabled:opacity-50"
+                                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition shadow-sm disabled:opacity-50"
                                         >
                                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                             บันทึก
@@ -364,7 +396,7 @@ const Profile = () => {
                         <div className="p-5 md:p-8">
                             <form className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6" onSubmit={(e) => e.preventDefault()}>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">ชื่อจริง</label>
+                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">ชื่อจริง</label>
                                     <input
                                         name="first_name"
                                         type="text"
@@ -383,7 +415,7 @@ const Profile = () => {
                                     )}
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">นามสกุล</label>
+                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">นามสกุล</label>
                                     <input
                                         name="last_name"
                                         type="text"
@@ -402,7 +434,7 @@ const Profile = () => {
                                     )}
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">อีเมล (ไม่สามารถแก้ไขได้)</label>
+                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">อีเมล (ไม่สามารถแก้ไขได้)</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
@@ -414,7 +446,7 @@ const Profile = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">เบอร์โทรศัพท์</label>
+                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">เบอร์โทรศัพท์</label>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
@@ -437,22 +469,40 @@ const Profile = () => {
                                 </div>
 
                                 <div className="md:col-span-2 pt-4">
-                                    <div className="bg-gray-50 rounded-2xl border border-gray-100 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                        <div className="flex items-center gap-3 text-gray-600">
-                                            <School className="w-5 h-5 text-indigo-500" />
-                                            <div className="leading-tight">
-                                                <p className="text-[9px] text-gray-400 font-bold uppercase">มหาวิทยาลัย</p>
-                                                <p className="text-xs font-semibold">{user.university?.name || "ไม่ระบุ"}</p>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">มหาวิทยาลัย</label>
+                                        {isEditing ? (
+                                            <div className="relative">
+                                                <School className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
+                                                <select
+                                                    value={selectedUniversityId || ''}
+                                                    onChange={(e) => setSelectedUniversityId(Number(e.target.value))}
+                                                    className="w-full pl-11 pr-10 py-3 md:py-2.5 rounded-xl border border-blue-500 ring-4 ring-blue-50 bg-white text-sm transition-all outline-none appearance-none cursor-pointer"
+                                                >
+                                                    <option value="">-- เลือกมหาวิทยาลัย --</option>
+                                                    {universities.map((u) => (
+                                                        <option key={u.university_id} value={u.university_id}>
+                                                            {u.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                                             </div>
-                                        </div>
-                                        <div className="h-px w-full bg-gray-200 sm:hidden"></div>
+                                        ) : (
+                                            <div className="bg-gray-50 rounded-2xl border border-gray-100 p-4 flex items-center gap-3 text-gray-600">
+                                                <School className="w-5 h-5 text-indigo-500" />
+                                                <div className="leading-tight">
+                                                    <p className="text-xs font-medium">{user.university?.name || "ไม่ระบุ"}</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                        {!user.university && !isEditing && (
+                                            <p className="text-xs text-amber-600 flex items-center gap-1 mt-2">
+                                                <AlertCircle className="w-3 h-3" />
+                                                ยังไม่ได้ระบุมหาวิทยาลัย
+                                            </p>
+                                        )}
                                     </div>
-                                    {!user.university && (
-                                        <p className="text-xs text-amber-600 flex items-center gap-1 mt-2">
-                                            <AlertCircle className="w-3 h-3" />
-                                            ยังไม่ได้ระบุมหาวิทยาลัย (กรุณาติดต่อผู้ดูแลระบบ)
-                                        </p>
-                                    )}
                                 </div>
                             </form>
                         </div>

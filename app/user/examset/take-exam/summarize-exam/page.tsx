@@ -192,7 +192,7 @@ function Summarize() {
                 <div className="min-h-screen bg-gray-100 flex items-center justify-center">
                     <div className="text-center max-w-md">
                         <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                        <h2 className="text-2xl font-bold text-gray-800 mb-2">เกิดข้อผิดพลาด</h2>
+                        <h2 className="text-2xl font-medium text-gray-800 mb-2">เกิดข้อผิดพลาด</h2>
                         <p className="text-gray-600 mb-6">{error || 'ไม่พบผลสอบ'}</p>
                         <Link
                             href="/user/examset"
@@ -237,7 +237,7 @@ function Summarize() {
 
                     {/* Header */}
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">{examResult.item_bank_name}</h1>
+                        <h1 className="text-3xl font-medium text-gray-900 mb-2">{examResult.item_bank_name}</h1>
                         <p className="text-gray-600">จำนวน {examResult.total_questions} ข้อ</p>
                     </div>
 
@@ -245,12 +245,12 @@ function Summarize() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                         {/* Left Column - Score */}
                         <div className="bg-white rounded-2xl shadow-sm p-8">
-                            <h2 className="text-lg font-bold text-gray-900 mb-6">ผลการทดสอบ</h2>
+                            <h2 className="text-lg font-medium text-gray-900 mb-6">ผลการทดสอบ</h2>
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-gray-600 mb-2">{examResult.item_bank_name}</p>
                                     <p className="text-gray-500 text-sm mb-4">จำนวน {examResult.total_questions} ข้อ</p>
-                                    <div className="text-5xl font-bold text-gray-900">
+                                    <div className="text-5xl font-medium text-gray-900">
                                         {examResult.correct_count} <span className="text-gray-400">/ {examResult.total_questions}</span>
                                     </div>
                                 </div>
@@ -277,7 +277,7 @@ function Summarize() {
                                         />
                                     </svg>
                                     <div className="absolute inset-0 flex items-center justify-center">
-                                        <span className={`text-2xl font-bold ${percentage >= 80 ? 'text-green-600' :
+                                        <span className={`text-2xl font-medium ${percentage >= 80 ? 'text-green-600' :
                                             percentage >= 60 ? 'text-yellow-600' :
                                                 'text-red-600'
                                             }`}>
@@ -290,14 +290,14 @@ function Summarize() {
 
                         {/* Right Column - Time */}
                         <div className="bg-white rounded-2xl shadow-sm p-8">
-                            <h2 className="text-lg font-bold text-gray-900 mb-6">เวลาที่ใช้ในการสอบ</h2>
+                            <h2 className="text-lg font-medium text-gray-900 mb-6">เวลาที่ใช้ในการสอบ</h2>
                             <div className="flex items-center gap-4">
                                 <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
                                     <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
-                                <div className="text-4xl font-bold text-gray-900">{timeUsed}</div>
+                                <div className="text-4xl font-medium text-gray-900">{timeUsed}</div>
                             </div>
 
                             {/* Additional Stats */}
@@ -305,11 +305,11 @@ function Summarize() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <p className="text-sm text-gray-600 mb-1">ตอบถูก</p>
-                                        <p className="text-2xl font-bold text-green-600">{examResult.correct_count}</p>
+                                        <p className="text-2xl font-medium text-green-600">{examResult.correct_count}</p>
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-600 mb-1">ตอบผิด</p>
-                                        <p className="text-2xl font-bold text-red-600">
+                                        <p className="text-2xl font-medium text-red-600">
                                             {examResult.total_questions - examResult.correct_count}
                                         </p>
                                     </div>
@@ -330,7 +330,7 @@ function Summarize() {
                                     <Target className="w-6 h-6 text-green-600" />
                                 </div>
                                 <div className="text-left">
-                                    <h2 className="text-lg font-bold text-gray-800">วิเคราะห์จุดแข็ง - จุดอ่อน</h2>
+                                    <h2 className="text-lg font-medium text-gray-800">วิเคราะห์จุดแข็ง - จุดอ่อน</h2>
                                     <p className="text-sm text-gray-500">ตามหัวข้อและหัวข้อย่อย</p>
                                 </div>
                             </div>
@@ -368,8 +368,8 @@ function Summarize() {
                                                                     const data = payload[0].payload;
                                                                     return (
                                                                         <div className="bg-white p-3 shadow-xl border border-gray-100 rounded-xl">
-                                                                            <p className="font-bold text-gray-800 mb-1">{data.fullName}</p>
-                                                                            <p className="text-blue-600 font-bold">ความแม่นยำ: {data.Performance}%</p>
+                                                                            <p className="font-medium text-gray-800 mb-1">{data.fullName}</p>
+                                                                            <p className="text-blue-600 font-medium">ความแม่นยำ: {data.Performance}%</p>
                                                                         </div>
                                                                     );
                                                                 }
@@ -390,7 +390,7 @@ function Summarize() {
 
                                             {/* Score List (Unified nested cards) */}
                                             <div className="w-full lg:w-1/2 flex flex-col">
-                                                <h3 className="font-bold text-gray-800 mb-3 border-b pb-2">คะแนนรายหัวข้อ</h3>
+                                                <h3 className="font-medium text-gray-800 mb-3 border-b pb-2">คะแนนรายหัวข้อ</h3>
                                                 <div className="space-y-3 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar flex-1">
                                                     {topicPerformance.map((topic) => {
                                                         const isStrength = topic.percentage >= 70;
@@ -408,10 +408,10 @@ function Summarize() {
                                                                                 <Target className="w-5 h-5" />}
                                                                     </div>
                                                                     <div className="flex-1 min-w-0">
-                                                                        <p className="font-semibold text-gray-800 text-sm truncate">{topic.topicName}</p>
+                                                                        <p className="font-medium text-gray-800 text-sm truncate">{topic.topicName}</p>
                                                                         <p className="text-xs text-gray-500">{topic.correct}/{topic.total} ข้อ</p>
                                                                     </div>
-                                                                    <span className={`font-bold text-sm ${isStrength ? 'text-green-600' :
+                                                                    <span className={`font-medium text-sm ${isStrength ? 'text-green-600' :
                                                                         isWeakness ? 'text-red-600' :
                                                                             'text-yellow-600'
                                                                         }`}>{topic.percentage}%</span>

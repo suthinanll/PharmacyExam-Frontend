@@ -1164,14 +1164,14 @@ export default function PharmacyCATSystem() {
           <div className="bg-white rounded-3xl max-w-4xl w-full p-8 mt-8">
             <div className="text-center mb-8">
               {/* <div className="text-6xl mb-4">🏥</div> */}
-              <h1 className="text-3xl font-bold text-green-800 mb-2">
+              <h1 className="text-3xl font-medium text-green-800 mb-2">
                 ระบบสอบใบประกอบวิชาชีพเภสัชกรรม
               </h1>
               <p className="text-gray-600">Computer Adaptive Testing (CAT)</p>
             </div>
 
             <div className="mb-6">
-              <h3 className="text-center text-lg font-semibold text-green-800 mb-4">
+              <h3 className="text-center text-lg font-medium text-green-800 mb-4">
                 เลือกโหมดการสอบ:
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -1198,7 +1198,7 @@ export default function PharmacyCATSystem() {
                       }`}
                     >
                       <div className="text-3xl mb-2">{mode.icon}</div>
-                      <h4 className="font-semibold text-sm text-green-800">{mode.label}</h4>
+                      <h4 className="font-medium text-sm text-green-800">{mode.label}</h4>
                       <p className="text-xs text-gray-600">{mode.desc}</p>
                     </div>
                   </label>
@@ -1208,7 +1208,7 @@ export default function PharmacyCATSystem() {
 
             <button
               onClick={startExam}
-              className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl text-lg font-semibold hover:shadow-lg transition-all"
+              className="w-full bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl text-lg font-medium hover:shadow-lg transition-all"
             >
               🚀 เริ่มการสอบ
             </button>
@@ -1228,20 +1228,20 @@ export default function PharmacyCATSystem() {
           <div className="bg-gradient-to-r from-green-700 to-green-600 text-white p-6">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-2xl font-bold mb-1">🏥 การสอบใบประกอบวิชาชีพเภสัชกรรม</h1>
+                <h1 className="text-2xl font-medium mb-1">🏥 การสอบใบประกอบวิชาชีพเภสัชกรรม</h1>
               </div>
               <div className="flex gap-4">
                 <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
                   <div className="text-xs opacity-80">ข้อที่</div>
-                  <div className="text-xl font-bold">{responses.length}</div>
+                  <div className="text-xl font-medium">{responses.length}</div>
                 </div>
                 <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
                   <div className="text-xs opacity-80">θ</div>
-                  <div className="text-xl font-bold">{currentTheta.toFixed(2)}</div>
+                  <div className="text-xl font-medium">{currentTheta.toFixed(2)}</div>
                 </div>
                 <div className="bg-white/20 rounded-xl px-4 py-2 text-center">
                   <div className="text-xs opacity-80">เวลา</div>
-                  <div className="text-xl font-bold">{formatTime(elapsedTime)}</div>
+                  <div className="text-xl font-medium">{formatTime(elapsedTime)}</div>
                 </div>
               </div>
             </div>
@@ -1249,14 +1249,14 @@ export default function PharmacyCATSystem() {
 
           <div className="p-6 mt-2 bg-gray-50">
             <div className="relative h-12 flex items-center">
-              <div className="flex-1 h-8 rounded-l-xl bg-gradient-to-r from-red-200 to-red-100 border-2 border-red-300 flex items-center justify-center text-red-800 font-semibold text-sm">
+              <div className="flex-1 h-8 rounded-l-xl bg-gradient-to-r from-red-200 to-red-100 border-2 border-red-300 flex items-center justify-center text-red-800 font-medium text-sm">
                 ❌ ไม่ผ่าน
               </div>
-              <div className="flex-1 h-8 rounded-r-xl bg-gradient-to-r from-green-100 to-green-200 border-2 border-green-300 flex items-center justify-center text-green-800 font-semibold text-sm">
+              <div className="flex-1 h-8 rounded-r-xl bg-gradient-to-r from-green-100 to-green-200 border-2 border-green-300 flex items-center justify-center text-green-800 font-medium text-sm">
                 ✅ ผ่าน
               </div>
               <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-orange-500 -translate-x-1/2">
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-orange-500 text-white px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap">
+                <div className="absolute -top-6 left-1/2 -translate-x-1/2 bg-orange-500 text-white px-3 py-1 rounded-lg text-xs font-medium whitespace-nowrap">
                   ⚡ เส้นผ่าน
                 </div>
               </div>
@@ -1264,7 +1264,7 @@ export default function PharmacyCATSystem() {
                 className="absolute top-1/2 -translate-y-1/2 transition-all duration-500"
                 style={{ left: `${Math.max(0, Math.min(100, thetaPercent))}%` }}
               >
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white border-2 border-green-500 px-3 py-1 rounded-full text-xs font-semibold text-green-800 whitespace-nowrap">
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white border-2 border-green-500 px-3 py-1 rounded-full text-xs font-medium text-green-800 whitespace-nowrap">
                   θ = {currentTheta.toFixed(2)}
                 </div>
                 <div className="text-3xl filter drop-shadow-lg -translate-x-1/2">
@@ -1319,7 +1319,7 @@ export default function PharmacyCATSystem() {
                         } ${examMode !== "real" ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                       >
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center font-bold ${
+                          className={`w-10 h-10 rounded-full flex items-center justify-center font-medium ${
                             selectedAnswer === index
                               ? "bg-green-500 text-white"
                               : "bg-green-200 text-green-800"
@@ -1338,7 +1338,7 @@ export default function PharmacyCATSystem() {
                         catEngine && submitAnswer(selectedAnswer, currentItem, catEngine, currentTheta, responses)
                       }
                       disabled={selectedAnswer === null}
-                      className="w-full mt-6 bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
+                      className="w-full mt-6 bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all"
                     >
                       ส่งคำตอบ →
                     </button>
@@ -1378,7 +1378,7 @@ export default function PharmacyCATSystem() {
             }`}
           >
             <div className="text-7xl mb-4">{examResult.passed ? "🎉" : "📚"}</div>
-            <h1 className="text-4xl font-bold mb-2">
+            <h1 className="text-4xl font-medium mb-2">
               {examResult.passed ? "ยินดีด้วย! คุณสอบผ่าน" : "ไม่ผ่านการสอบ"}
             </h1>
             <p className="text-lg opacity-90">
@@ -1392,32 +1392,32 @@ export default function PharmacyCATSystem() {
             <div className="grid grid-cols-3 md:grid-cols-4 gap-4 mb-8">
               <div className="bg-gray-50 p-4 rounded-xl text-center">
                 <div className="text-sm text-gray-600 mb-1">เวลาที่ใช้</div>
-                <div className="text-base font-semibold text-gray-800">
+                <div className="text-base font-medium text-gray-800">
                   {formatTime(examResult.totalTime)}
                 </div>
               </div>
               <div className="bg-gray-50 p-4 rounded-xl text-center">
                 <div className="text-sm text-gray-600 mb-1">จำนวนข้อ</div>
-                <div className="text-base font-semibold text-gray-800">{examResult.numItems}</div>
+                <div className="text-base font-medium text-gray-800">{examResult.numItems}</div>
               </div>
               <div className="bg-green-50 p-4 rounded-xl text-center">
                 <div className="text-sm text-gray-600 mb-1">ตอบถูก</div>
-                <div className="text-base font-semibold text-green-700">{examResult.numCorrect}</div>
+                <div className="text-base font-medium text-green-700">{examResult.numCorrect}</div>
               </div>
               <div className="bg-red-50 p-4 rounded-xl text-center">
                 <div className="text-sm text-gray-600 mb-1">ตอบผิด</div>
-                <div className="text-base font-semibold text-red-700">
+                <div className="text-base font-medium text-red-700">
                   {examResult.numItems - examResult.numCorrect}
                 </div>
               </div>
             </div>
 
             <div className="bg-green-50 rounded-2xl p-8 mb-8">
-              <h3 className="text-xl font-bold text-green-800 mb-4 text-center">
+              <h3 className="text-xl font-medium text-green-800 mb-4 text-center">
                 📈 ประมาณการความสามารถ (θ)
               </h3>
               <div className="text-center mb-6">
-                <span className="text-4xl font-bold text-green-700">
+                <span className="text-4xl font-medium text-green-700">
                   θ = {examResult.finalTheta.toFixed(3)} ± {examResult.finalSE.toFixed(3)}
                 </span>
               </div>
@@ -1425,7 +1425,7 @@ export default function PharmacyCATSystem() {
               <div className="relative h-16 mb-4">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-red-200 via-yellow-100 to-green-200 border-2 border-gray-300"></div>
                 <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-orange-500 -translate-x-1/2">
-                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-semibold">
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-orange-500 text-white px-2 py-1 rounded text-xs font-medium">
                     เส้นผ่าน
                   </div>
                 </div>
@@ -1465,7 +1465,7 @@ export default function PharmacyCATSystem() {
             </div>
 
             <div className="mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">📚 ผลการสอบแยกตามหมวดวิชา</h3>
+              <h3 className="text-xl font-medium text-gray-800 mb-4">📚 ผลการสอบแยกตามหมวดวิชา</h3>
               <div className="space-y-3">
                 {Object.entries(examResult.contentPerformance).map(([content, data]) => {
                   const percent = ((data.correct / data.total) * 100).toFixed(0);
@@ -1477,7 +1477,7 @@ export default function PharmacyCATSystem() {
                           className="h-full bg-gradient-to-r from-green-500 to-green-600 transition-all duration-500"
                           style={{ width: `${percent}%` }}
                         ></div>
-                        <div className="absolute inset-0 flex items-center justify-end pr-3 text-sm font-semibold text-gray-700">
+                        <div className="absolute inset-0 flex items-center justify-end pr-3 text-sm font-medium text-gray-700">
                           {data.correct}/{data.total} ({percent}%)
                         </div>
                       </div>
@@ -1488,7 +1488,7 @@ export default function PharmacyCATSystem() {
             </div>
 
             <div className="bg-gray-50 rounded-2xl p-6 mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">📊 กราฟการเปลี่ยนแปลงของ θ</h3>
+              <h3 className="text-xl font-medium text-gray-800 mb-4">📊 กราฟการเปลี่ยนแปลงของ θ</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -1518,7 +1518,7 @@ export default function PharmacyCATSystem() {
             </div>
 
             <div className="bg-gray-50 rounded-2xl p-6 mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">🔔 กราฟ Normal Distribution ของ θ</h3>
+              <h3 className="text-xl font-medium text-gray-800 mb-4">🔔 กราฟ Normal Distribution ของ θ</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={normalDistData}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -1545,17 +1545,17 @@ export default function PharmacyCATSystem() {
             </div>
 
             <div className="bg-gray-50 rounded-2xl p-6 mb-8">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">🔍 รายละเอียดการตอบ (20 ข้อแรก)</h3>
+              <h3 className="text-xl font-medium text-gray-800 mb-4">🔍 รายละเอียดการตอบ (20 ข้อแรก)</h3>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-green-100">
                     <tr>
-                      <th className="p-3 text-left text-sm font-semibold text-gray-700">ข้อที่</th>
-                      <th className="p-3 text-left text-sm font-semibold text-gray-700">หมวด</th>
-                      <th className="p-3 text-center text-sm font-semibold text-gray-700">ความยาก (b)</th>
-                      <th className="p-3 text-center text-sm font-semibold text-gray-700">ผล</th>
-                      <th className="p-3 text-center text-sm font-semibold text-gray-700">θ หลัง</th>
-                      <th className="p-3 text-center text-sm font-semibold text-gray-700">SE</th>
+                      <th className="p-3 text-left text-sm font-medium text-gray-700">ข้อที่</th>
+                      <th className="p-3 text-left text-sm font-medium text-gray-700">หมวด</th>
+                      <th className="p-3 text-center text-sm font-medium text-gray-700">ความยาก (b)</th>
+                      <th className="p-3 text-center text-sm font-medium text-gray-700">ผล</th>
+                      <th className="p-3 text-center text-sm font-medium text-gray-700">θ หลัง</th>
+                      <th className="p-3 text-center text-sm font-medium text-gray-700">SE</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white">
@@ -1565,7 +1565,7 @@ export default function PharmacyCATSystem() {
                         <td className="p-3 text-sm">{r.item.contentArea}</td>
                         <td className="p-3 text-sm text-center">{r.item.b.toFixed(2)}</td>
                         <td className="p-3 text-center text-lg">{r.isCorrect ? "✅" : "❌"}</td>
-                        <td className="p-3 text-sm text-center font-semibold">
+                        <td className="p-3 text-sm text-center font-medium">
                           {r.thetaAfter?.toFixed(3) || "N/A"}
                         </td>
                         <td className="p-3 text-sm text-center">{r.seAfter?.toFixed(3) || "N/A"}</td>
@@ -1579,7 +1579,7 @@ export default function PharmacyCATSystem() {
             <div className="flex gap-4">
               {/* <button
                 onClick={() => window.print()}
-                className="flex-1 bg-white border-2 border-green-500 text-green-700 py-4 rounded-xl font-semibold hover:bg-green-50 transition-all"
+                className="flex-1 bg-white border-2 border-green-500 text-green-700 py-4 rounded-xl font-medium hover:bg-green-50 transition-all"
               >
                 🖨️ พิมพ์ใบรับรอง
               </button> */}
@@ -1592,7 +1592,7 @@ export default function PharmacyCATSystem() {
                   setCurrentSE(999.0);
                   setExamResult(null);
                 }}
-                className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl font-semibold hover:shadow-lg transition-all"
+                className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white py-4 rounded-xl font-medium hover:shadow-lg transition-all"
               >
                 🏠 กลับหน้าหลัก
               </button>

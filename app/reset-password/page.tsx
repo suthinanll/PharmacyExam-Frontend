@@ -179,7 +179,7 @@ export default function ResetPasswordPage() {
                         <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
                             <div className="flex items-center gap-2 mb-3">
                                 <Shield className="w-4 h-4 text-gray-600" />
-                                <p className="text-xs font-semibold text-gray-700">
+                                <p className="text-xs font-medium text-gray-700">
                                     ความปลอดภัยของรหัสผ่าน
                                 </p>
                             </div>

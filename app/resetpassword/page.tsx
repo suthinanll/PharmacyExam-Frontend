@@ -72,11 +72,11 @@ export default function Page() {
 
             <div className="bg-white shadow-2xl rounded-3xl p-8 w-full max-w-md border border-gray-100 transition-all">
                 <div className="text-center mb-8">
-                    <h1 className="text-4xl font-bold text-green-600 mb-2">
+                    <h1 className="text-4xl font-medium text-green-600 mb-2">
                         เภสัชพร้อมสอบ
                     </h1>
 
-                    <h2 className="text-xl font-semibold text-gray-800">ลืมรหัสผ่าน ?</h2>
+                    <h2 className="text-xl font-medium text-gray-800">ลืมรหัสผ่าน ?</h2>
                     <p className="text-gray-500 text-sm mt-2 px-4">
                         ไม่ต้องกังวล! กรอกอีเมลของคุณด้านล่าง เพื่อรับรหัสสำหรับการตั้งค่ารหัสผ่านใหม่
                     </p>

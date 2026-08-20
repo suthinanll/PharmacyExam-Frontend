@@ -90,7 +90,7 @@ function NotificationItem({
             {/* Content */}
             <div className="flex-1 min-w-0 pr-4">
                 <div className="flex items-start justify-between gap-2">
-                    <p className={`text-sm font-semibold leading-tight ${notification.is_read ? 'text-gray-600' : 'text-gray-900'}`}>
+                    <p className={`text-sm font-medium leading-tight ${notification.is_read ? 'text-gray-600' : 'text-gray-900'}`}>
                         {notification.title}
                     </p>
                 </div>
@@ -158,7 +158,7 @@ export default function NotificationBell() {
                 <Bell className="w-5 h-5" />
                 {/* Badge */}
                 {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full leading-none animate-bounce">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 text-white text-[10px] font-medium rounded-full leading-none animate-bounce">
                         {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                 )}
@@ -177,9 +177,9 @@ export default function NotificationBell() {
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
                         <div className="flex items-center gap-2">
                             <Bell className="w-4 h-4 text-green-700" />
-                            <h3 className="font-semibold text-gray-900 text-sm">การแจ้งเตือน</h3>
+                            <h3 className="font-medium text-gray-900 text-sm">การแจ้งเตือน</h3>
                             {unreadCount > 0 && (
-                                <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs font-bold rounded-full">
+                                <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs font-medium rounded-full">
                                     {unreadCount} ใหม่
                                 </span>
                             )}
@@ -217,7 +217,7 @@ export default function NotificationBell() {
                             >
                                 {tab === 'all' ? 'ทั้งหมด' : 'ยังไม่ได้อ่าน'}
                                 {tab === 'unread' && unreadCount > 0 && (
-                                    <span className="ml-1 px-1.5 py-0.5 bg-red-100 text-red-600 text-[10px] rounded-full font-bold">
+                                    <span className="ml-1 px-1.5 py-0.5 bg-red-100 text-red-600 text-[10px] rounded-full font-medium">
                                         {unreadCount}
                                     </span>
                                 )}
