@@ -200,7 +200,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 rounded-full">
                             <Eye className="w-4 h-4 text-amber-600" />
-                            <span className="text-sm font-semibold text-amber-700">โหมดพรีวิว</span>
+                            <span className="text-sm font-medium text-amber-700">โหมดพรีวิว</span>
                         </div>
                         <span className="text-sm font-medium text-gray-700 hidden sm:block">
                             {itemBank?.bank_name || '...'}
@@ -260,7 +260,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                 <div className="mb-6 bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
                                     <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-2">
                                         <BookOpen className="w-4 h-4 text-blue-600" />
-                                        <span className="text-sm font-semibold text-blue-700">สถานการณ์</span>
+                                        <span className="text-sm font-medium text-blue-700">สถานการณ์</span>
                                     </div>
                                     <div className="p-5">
                                         {currentQuestion.situation.situation_text && currentQuestion.situation.situation_text.replace(/<[^>]*>/g, '').trim() !== '' && (
@@ -344,7 +344,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                                 </div>
 
                                                 {/* label badge */}
-                                                <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 transition-colors
+                                                <span className={`text-xs font-medium px-2 py-0.5 rounded shrink-0 transition-colors
                                                     ${isSelected ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 group-hover:bg-green-100 group-hover:text-green-700'}`}>
                                                     {OPTION_LABELS[idx] || String.fromCharCode(65 + idx)}
                                                 </span>
@@ -411,7 +411,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                             <div className="p-5 border-b border-gray-100">
                                 <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                                     <span>เลือกตอบแล้ว {answeredCount}/{questions.length} ข้อ</span>
-                                    <span className="text-green-600 font-semibold">{Math.round(progress)}%</span>
+                                    <span className="text-green-600 font-medium">{Math.round(progress)}%</span>
                                 </div>
                                 <div className="w-full bg-gray-100 rounded-full h-2">
                                     <div
@@ -425,7 +425,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                             <div className="p-5 flex-1">
                                 <div className="flex items-center gap-2 mb-3">
                                     <ListCheck className="w-4 h-4 text-gray-500" />
-                                    <h3 className="text-sm font-semibold text-gray-700">เลือกข้อ</h3>
+                                    <h3 className="text-sm font-medium text-gray-700">เลือกข้อ</h3>
                                 </div>
                                 <div className="grid grid-cols-7 gap-1.5">
                                     {questions.map((q, idx) => {
@@ -436,7 +436,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                                 key={q.item_id}
                                                 onClick={() => goTo(idx)}
                                                 title={`ข้อ ${idx + 1}`}
-                                                className={`aspect-square rounded-lg text-xs font-bold transition-all duration-150
+                                                className={`aspect-square rounded-lg text-xs font-medium transition-all duration-150
                                                     ${isCurrent
                                                         ? 'bg-green-500 text-white ring-2 ring-green-300 ring-offset-1'
                                                         : isAnswered

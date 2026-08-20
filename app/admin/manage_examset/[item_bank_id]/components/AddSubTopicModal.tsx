@@ -35,7 +35,7 @@ export default function AddSubTopicModal({
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4 border border-gray-100">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-bold text-gray-900">เพิ่มหัวข้อย่อยใหม่</h3>
+                    <h3 className="text-xl font-medium text-gray-900">เพิ่มหัวข้อย่อยใหม่</h3>
                     <button
                         type="button"
                         onClick={onClose}

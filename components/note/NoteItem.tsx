@@ -38,7 +38,7 @@ export default function NoteItem({
     <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all flex flex-col h-full">
       {/* Header: Title & Actions */}
       <div className="flex justify-between items-start mb-3 gap-2">
-        <h3 className="font-bold text-gray-900 text-base line-clamp-1 flex-grow" title={note.title}>
+        <h3 className="font-medium text-gray-900 text-base line-clamp-1 flex-grow" title={note.title}>
           {note.title || "ไม่มีหัวข้อ"}
         </h3>
         <div className="flex gap-1 flex-shrink-0">
@@ -65,7 +65,7 @@ export default function NoteItem({
         {isLongContent && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-2 text-indigo-600 hover:text-indigo-800 font-bold text-xs flex items-center gap-0.5"
+            className="mt-2 text-indigo-600 hover:text-indigo-800 font-medium text-xs flex items-center gap-0.5"
           >
             {isExpanded ? (
               <>แสดงน้อยลง <ChevronUp className="w-3 h-3" /></>
@@ -79,7 +79,7 @@ export default function NoteItem({
       {/* Files Section: แก้ไขการดึง storage_path จาก Object */}
       {note.files && note.files.length > 0 && (
         <div className="mb-4 pt-3 border-t border-dashed border-gray-100">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
             <FileText className="w-3 h-3" /> ไฟล์แนบ ({note.files.length})
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -117,7 +117,7 @@ export default function NoteItem({
             return (
               <span
                 key={tagId}
-                className="flex items-center text-[10px] font-bold text-indigo-600 bg-indigo-50/50 px-2 py-0.5 rounded-full cursor-pointer hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                className="flex items-center text-[10px] font-medium text-indigo-600 bg-indigo-50/50 px-2 py-0.5 rounded-full cursor-pointer hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
                 onClick={() => setTagFilter(tagName)}
               >
                 <Tag className="w-2.5 h-2.5 mr-1" /> {tagName}
@@ -125,7 +125,7 @@ export default function NoteItem({
             );
           })}
         </div>
-        <span className="text-[10px] font-bold text-gray-400 italic">
+        <span className="text-[10px] font-medium text-gray-400 italic">
           {formattedDate}
         </span>
       </div>

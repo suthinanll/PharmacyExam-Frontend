@@ -328,7 +328,7 @@ function TakeExam() {
                 await Swal.fire({
                     title: "ส่งข้อสอบสำเร็จ!",
                     html: `คะแนนของคุณ: <strong>${result.correct_count}/${result.total_questions}</strong><br/>
-               <span class="text-2xl font-bold">${result.percentage.toFixed(2)}%</span>`,
+               <span class="text-2xl font-medium">${result.percentage.toFixed(2)}%</span>`,
                     icon: "success",
                     confirmButtonColor: "#22c55e",
                     confirmButtonText: "ดูผลสอบ",
@@ -426,7 +426,7 @@ function TakeExam() {
                 <div className="min-h-screen bg-gray-50 flex items-center justify-center">
                     <div className="text-center max-w-md">
                         <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                        <h2 className="text-2xl font-medium text-gray-800 mb-2">
                             เกิดข้อผิดพลาด
                         </h2>
                         <p className="text-gray-600 mb-6">
@@ -463,12 +463,12 @@ function TakeExam() {
                                     <div className="mb-6 bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
                                         <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-2">
                                             <BookOpen className="w-4 h-4 text-blue-600" />
-                                            <span className="text-sm font-semibold text-blue-700">สถานการณ์</span>
+                                            <span className="text-sm font-medium text-blue-700">สถานการณ์</span>
                                         </div>
                                         <div className="p-5">
                                             {currentQuestion.situation.situation_title && (
                                                 <p 
-                                                    className="font-bold text-gray-800 mb-2"
+                                                    className="font-medium text-gray-800 mb-2"
                                                     dangerouslySetInnerHTML={{ __html: currentQuestion.situation.situation_title }}
                                                 />
                                             )}
@@ -515,7 +515,7 @@ function TakeExam() {
                                         </div>
                                         <button
                                             onClick={() => toggleFlagQuestion(currentQuestion.item_id)}
-                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all border shrink-0 ${
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all border shrink-0 ${
                                                 flaggedQuestions[currentQuestion.item_id]
                                                     ? "bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-300 shadow-sm"
                                                     : "text-gray-500 hover:bg-gray-100 hover:text-gray-700 border-gray-200"
@@ -573,7 +573,7 @@ function TakeExam() {
                                                     </div>
 
                                                     {/* label badge */}
-                                                    <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 transition-colors ${isSelected ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 group-hover:bg-green-100 group-hover:text-green-700'
+                                                    <span className={`text-xs font-medium px-2 py-0.5 rounded shrink-0 transition-colors ${isSelected ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 group-hover:bg-green-100 group-hover:text-green-700'
                                                         }`}>
                                                         {['ก', 'ข', 'ค', 'ง', 'จ'][index] || String.fromCharCode(65 + index)}
                                                     </span>
@@ -618,14 +618,14 @@ function TakeExam() {
                                 {/* Stats */}
                                 <div className="flex justify-between items-center mb-4 pb-4 border-b">
                                     <div className="text-center">
-                                        <p className="text-2xl font-bold text-gray-800">
+                                        <p className="text-2xl font-medium text-gray-800">
                                             {questions.length}
                                         </p>
                                         <p className="text-sm text-gray-600">ข้อ</p>
                                     </div>
                                     <div className="text-center">
                                         <p
-                                            className={`text-2xl font-bold ${timeLeft < 300 ? "text-red-500 animate-pulse" : "text-blue-600"}`}
+                                            className={`text-2xl font-medium ${timeLeft < 300 ? "text-red-500 animate-pulse" : "text-blue-600"}`}
                                         >
                                             {formatTime(timeLeft)}
                                         </p>
@@ -656,7 +656,7 @@ function TakeExam() {
                                 <div className="mb-6">
                                     <div className="flex items-center gap-2 mb-3">
                                         <ListCheck className="w-4 h-4 text-gray-500" />
-                                        <h3 className="text-sm font-semibold text-gray-700">เลือกข้อ</h3>
+                                        <h3 className="text-sm font-medium text-gray-700">เลือกข้อ</h3>
                                     </div>
                                     <div className="grid grid-cols-7 gap-2 max-h-96 overflow-y-auto p-1">
                                         {questions.map((q, index) => {
@@ -716,7 +716,7 @@ function TakeExam() {
                                         <span className="text-gray-600">ยังไม่ตอบ</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
-                                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-amber-600/10 text-[9px] text-white font-bold">★</span>
+                                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-amber-600/10 text-[9px] text-white font-medium">★</span>
                                         <span className="text-gray-600">ทบทวน</span>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -755,7 +755,7 @@ function TakeExam() {
                                 {process.env.NODE_ENV === 'development' && (
                                     <button
                                         onClick={handleDebugAutoFill}
-                                        className="w-full py-2 mb-3 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs font-semibold rounded-lg border border-dashed border-gray-300 transition-colors flex items-center justify-center gap-2"
+                                        className="w-full py-2 mb-3 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs font-medium rounded-lg border border-dashed border-gray-300 transition-colors flex items-center justify-center gap-2"
                                     >
                                         [Debug] Auto-fill ทุกข้อ
                                     </button>

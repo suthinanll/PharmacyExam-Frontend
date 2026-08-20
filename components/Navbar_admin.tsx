@@ -28,7 +28,7 @@ const LogoutConfirmationModal = ({
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm mx-auto p-6 transform transition-all duration-300 scale-100 opacity-100">
         <div className="flex flex-col items-center">
           <LogOut className="w-10 h-10 text-red-700 mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <h3 className="text-xl font-medium text-gray-900 mb-2">
             ยืนยันการออกจากระบบ
           </h3>
           <p className="text-sm text-gray-500 text-center mb-6">
@@ -153,7 +153,7 @@ export default function Navbar_admin({
               href="/admin"
               className="block hover:opacity-80 transition-opacity truncate"
             >
-              <h1 className="text-lg font-semibold text-green-700 whitespace-nowrap">
+              <h1 className="text-lg font-medium text-green-700 whitespace-nowrap">
                 เภสัชพร้อมสอบ
               </h1>
             </Link>
@@ -181,7 +181,7 @@ export default function Navbar_admin({
                   href={item.href}
                   className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg group ${
                     isActive(item.href)
-                      ? "bg-gray-100 text-green-700 font-bold"
+                      ? "bg-gray-100 text-green-700 font-medium"
                       : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
                   } ${isCollapsed ? "justify-center" : ""}`}
                   title={isCollapsed ? item.title : ""}
@@ -207,7 +207,7 @@ export default function Navbar_admin({
                     href={item.href}
                     className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg group ${
                       isActive(item.href)
-                        ? "bg-gray-100 text-green-700 font-bold"
+                        ? "bg-gray-100 text-green-700 font-medium"
                         : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
                     } ${isCollapsed ? "justify-center" : ""}`}
                     title={isCollapsed ? item.title : ""}
@@ -251,7 +251,7 @@ export default function Navbar_admin({
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-green-800 truncate">
+                <p className="text-sm font-medium text-green-800 truncate">
                   {user?.first_name} {user?.last_name}
                 </p>
                 <p className="text-xs text-green-600 truncate">{user?.email}</p>
@@ -270,7 +270,7 @@ export default function Navbar_admin({
         <header className="lg:hidden bg-white shadow-md sticky top-0 z-50">
           <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
             <Link href="/admin" className="hover:opacity-80 transition-opacity">
-              <h1 className="text-base sm:text-lg md:text-xl font-semibold text-green-700">
+              <h1 className="text-base sm:text-lg md:text-xl font-medium text-green-700">
                 เภสัชพร้อมสอบ
               </h1>
             </Link>
@@ -316,7 +316,7 @@ export default function Navbar_admin({
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
                         isActive(item.href)
-                          ? "bg-gray-100 text-green-700 font-bold border-l-4 border-green-700"
+                          ? "bg-gray-100 text-green-700 font-medium border-l-4 border-green-700"
                           : "text-green-600 hover:bg-gray-50 hover:text-green-700"
                       }`}
                     >
@@ -344,7 +344,7 @@ export default function Navbar_admin({
                         <User className="w-6 h-6 text-green-600" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-green-700 truncate">
+                        <p className="text-sm font-medium text-green-700 truncate">
                           {user?.first_name} {user?.last_name}
                         </p>
                         <p className="text-xs text-green-600 truncate">

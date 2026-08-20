@@ -99,7 +99,7 @@ function AuthCallbackContent() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-green-100">
       <div className="bg-white p-8 rounded-2xl shadow-lg text-center">
         <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-500 mx-auto mb-4"></div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-2">
+        <h2 className="text-xl font-medium text-gray-800 mb-2">
           กำลังเข้าสู่ระบบ...
         </h2>
         <p className="text-gray-500 text-sm">กรุณารอสักครู่</p>

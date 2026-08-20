@@ -275,7 +275,7 @@ export default function CATDebugPage() {
 
                     <div className="flex gap-4 bg-indigo-800 p-4 rounded-xl border border-indigo-700 w-full md:w-auto">
                         <div>
-                            <label className="block text-xs text-indigo-300 font-bold mb-1 uppercase tracking-wider">เลือกคลังข้อสอบ</label>
+                            <label className="block text-xs text-indigo-300 font-medium mb-1 uppercase tracking-wider">เลือกคลังข้อสอบ</label>
                             <select
                                 className="bg-indigo-950 text-white border-none rounded p-2 text-sm w-48"
                                 value={selectedBankId || ""}
@@ -288,7 +288,7 @@ export default function CATDebugPage() {
                         </div>
                         <button
                             onClick={() => resetSimulation()}
-                            className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-6 rounded shadow-lg transition-transform active:scale-95 self-end"
+                            className="bg-pink-500 hover:bg-pink-600 text-white font-medium py-2 px-6 rounded shadow-lg transition-transform active:scale-95 self-end"
                         >
                             เริ่ม/รีเซ็ต การจำลอง
                         </button>
@@ -302,38 +302,38 @@ export default function CATDebugPage() {
                 <div className="lg:col-span-3 space-y-6">
                     {/* Current Score Card */}
                     <div className="bg-white rounded-2xl p-6 shadow border border-slate-200">
-                        <h2 className="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">สถานะปัจจุบัน</h2>
+                        <h2 className="text-sm font-medium text-slate-500 uppercase tracking-widest mb-4">สถานะปัจจุบัน</h2>
                         <div className="text-center">
                             <div className="text-6xl font-black text-indigo-600 tracking-tighter mb-2">
                                 {currentTheta.toFixed(3)}
                             </div>
-                            <div className="text-xs font-bold text-indigo-400">ความสามารถประเมิน (Theta, θ)</div>
+                            <div className="text-xs font-medium text-indigo-400">ความสามารถประเมิน (Theta, θ)</div>
                         </div>
 
                         {/* CI Bounds Row */}
                         <div className="mt-4 grid grid-cols-2 gap-2">
                             <div className="bg-red-50 p-2 rounded-lg text-center border border-red-100">
-                                <div className="text-sm font-bold text-red-600">
+                                <div className="text-sm font-medium text-red-600">
                                     {currentSE === 999 ? "-∞" : (currentTheta - 1.96 * currentSE).toFixed(3)}
                                 </div>
-                                <div className="text-[10px] text-red-400 font-bold uppercase">CI ขอบล่าง</div>
+                                <div className="text-[10px] text-red-400 font-medium uppercase">CI ขอบล่าง</div>
                             </div>
                             <div className="bg-green-50 p-2 rounded-lg text-center border border-green-100">
-                                <div className="text-sm font-bold text-green-600">
+                                <div className="text-sm font-medium text-green-600">
                                     {currentSE === 999 ? "+∞" : (currentTheta + 1.96 * currentSE).toFixed(3)}
                                 </div>
-                                <div className="text-[10px] text-green-400 font-bold uppercase">CI ขอบบน</div>
+                                <div className="text-[10px] text-green-400 font-medium uppercase">CI ขอบบน</div>
                             </div>
                         </div>
 
                         <div className="mt-6 pt-4 border-t border-slate-100 flex justify-between px-2">
                             <div className="text-center">
-                                <div className="text-xl font-bold text-slate-700">{currentSE === 999 ? "∞" : currentSE.toFixed(3)}</div>
-                                <div className="text-[10px] text-slate-400 uppercase font-bold">Standard Error (SE)</div>
+                                <div className="text-xl font-medium text-slate-700">{currentSE === 999 ? "∞" : currentSE.toFixed(3)}</div>
+                                <div className="text-[10px] text-slate-400 uppercase font-medium">Standard Error (SE)</div>
                             </div>
                             <div className="text-center border-l pl-4 border-slate-100">
-                                <div className="text-xl font-bold text-slate-700">{responses.length} / {maxItems}</div>
-                                <div className="text-[10px] text-slate-400 uppercase font-bold">จำนวนข้อสอบ</div>
+                                <div className="text-xl font-medium text-slate-700">{responses.length} / {maxItems}</div>
+                                <div className="text-[10px] text-slate-400 uppercase font-medium">จำนวนข้อสอบ</div>
                             </div>
                         </div>
 
@@ -355,15 +355,15 @@ export default function CATDebugPage() {
                     {/* History */}
                     <div className="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden flex flex-col h-[500px]">
                         <div className="bg-slate-50 p-4 border-b border-slate-200">
-                            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-widest">ประวัติการตอบ</h2>
+                            <h2 className="text-sm font-medium text-slate-700 uppercase tracking-widest">ประวัติการตอบ</h2>
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
                             {responses.length === 0 && <div className="text-center py-10 text-slate-400">ยังไม่มีการตอบ</div>}
                             {responses.map((r, i) => (
                                 <div key={i} className={`p-3 rounded-lg border-l-4 ${r.isCorrect ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
                                     <div className="flex justify-between items-center mb-1">
-                                        <span className="font-bold text-sm text-slate-700">ข้อ {i+1} (ID: {r.item_id})</span>
-                                        <span className={`text-xs font-bold px-2 py-0.5 rounded ${r.isCorrect ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
+                                        <span className="font-medium text-sm text-slate-700">ข้อ {i+1} (ID: {r.item_id})</span>
+                                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${r.isCorrect ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
                                             {r.isCorrect ? 'ตอบถูก' : 'ตอบผิด'}
                                         </span>
                                     </div>
@@ -382,31 +382,31 @@ export default function CATDebugPage() {
                     <div className="bg-white rounded-2xl p-6 shadow-lg border border-indigo-100 flex flex-col h-full relative overflow-hidden">
                         
                         {/* Stratum Indicator */}
-                        <div className="absolute top-0 left-0 right-0 bg-yellow-100 p-2 text-center text-xs font-bold text-yellow-800 border-b border-yellow-200">
+                        <div className="absolute top-0 left-0 right-0 bg-yellow-100 p-2 text-center text-xs font-medium text-yellow-800 border-b border-yellow-200">
                             เกณฑ์การคัดกรอง: {stratumText}
                         </div>
 
                         {nextItem ? (
                             <div className="mt-8 flex flex-col">
-                                <h2 className="text-sm font-bold text-indigo-500 uppercase tracking-widest mb-4">ระบบเลือกข้อนี้ให้ผู้สอบ:</h2>
+                                <h2 className="text-sm font-medium text-indigo-500 uppercase tracking-widest mb-4">ระบบเลือกข้อนี้ให้ผู้สอบ:</h2>
                                 <h3 className="text-xl font-medium text-slate-800 mb-6 leading-relaxed">
                                     "{nextItem.question_text}"
                                 </h3>
 
                                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6">
-                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">IRT Parameters</h4>
+                                    <h4 className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-3 text-center">IRT Parameters</h4>
                                     <div className="grid grid-cols-3 gap-2 text-center mb-4">
                                         <div className="bg-white rounded p-2 shadow-sm border border-slate-100">
-                                            <div className="text-lg font-bold text-slate-700">{nextItem.irt_a_discrimination.toFixed(2)}</div>
-                                            <div className="text-[10px] text-slate-400 font-bold uppercase">a (ความชัน)</div>
+                                            <div className="text-lg font-medium text-slate-700">{nextItem.irt_a_discrimination.toFixed(2)}</div>
+                                            <div className="text-[10px] text-slate-400 font-medium uppercase">a (ความชัน)</div>
                                         </div>
                                         <div className="bg-white rounded p-2 shadow-sm border border-purple-200 ring-2 ring-purple-50">
-                                            <div className="text-lg font-bold text-purple-700">{nextItem.irt_b_difficulty.toFixed(2)}</div>
-                                            <div className="text-[10px] text-purple-400 font-bold uppercase">b (ความยาก)</div>
+                                            <div className="text-lg font-medium text-purple-700">{nextItem.irt_b_difficulty.toFixed(2)}</div>
+                                            <div className="text-[10px] text-purple-400 font-medium uppercase">b (ความยาก)</div>
                                         </div>
                                         <div className="bg-white rounded p-2 shadow-sm border border-slate-100">
-                                            <div className="text-lg font-bold text-slate-700">{nextItem.irt_c_guessing.toFixed(2)}</div>
-                                            <div className="text-[10px] text-slate-400 font-bold uppercase">c (การเดา)</div>
+                                            <div className="text-lg font-medium text-slate-700">{nextItem.irt_c_guessing.toFixed(2)}</div>
+                                            <div className="text-[10px] text-slate-400 font-medium uppercase">c (การเดา)</div>
                                         </div>
                                     </div>
 
@@ -415,21 +415,21 @@ export default function CATDebugPage() {
                                         <div className="text-3xl font-black text-blue-600 my-1">
                                             {IRT.information(currentTheta, {a: nextItem.irt_a_discrimination, b: nextItem.irt_b_difficulty, c: nextItem.irt_c_guessing}).toFixed(4)}
                                         </div>
-                                        <div className="text-[10px] text-blue-400 font-bold uppercase">( ณ บริเวณ θ = {currentTheta.toFixed(2)} )</div>
+                                        <div className="text-[10px] text-blue-400 font-medium uppercase">( ณ บริเวณ θ = {currentTheta.toFixed(2)} )</div>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 mt-auto">
                                     <button 
                                         onClick={() => handleAnswer(true)}
-                                        className="bg-green-500 hover:bg-green-600 text-white font-bold py-4 rounded-xl shadow-lg border-b-4 border-green-700 active:border-b-0 active:mt-4 transition-all"
+                                        className="bg-green-500 hover:bg-green-600 text-white font-medium py-4 rounded-xl shadow-lg border-b-4 border-green-700 active:border-b-0 active:mt-4 transition-all"
                                     >
                                         <div className="text-2xl mb-1">✅</div>
                                         จำลองการ "ตอบถูก"
                                     </button>
                                     <button 
                                         onClick={() => handleAnswer(false)}
-                                        className="bg-red-500 hover:bg-red-600 text-white font-bold py-4 rounded-xl shadow-lg border-b-4 border-red-700 active:border-b-0 active:mt-4 transition-all"
+                                        className="bg-red-500 hover:bg-red-600 text-white font-medium py-4 rounded-xl shadow-lg border-b-4 border-red-700 active:border-b-0 active:mt-4 transition-all"
                                     >
                                         <div className="text-2xl mb-1">❌</div>
                                         จำลองการ "ตอบผิด"
@@ -439,7 +439,7 @@ export default function CATDebugPage() {
                         ) : (
                             <div className="mt-8 flex flex-col items-center justify-center h-full text-center">
                                 <div className="text-6xl mb-4">🏆</div>
-                                <h2 className="text-2xl font-bold text-slate-700 mb-2">สิ้นสุดการจำลอง</h2>
+                                <h2 className="text-2xl font-medium text-slate-700 mb-2">สิ้นสุดการจำลอง</h2>
                                 <p className="text-slate-500 px-4">ระบบหยุดการเลือกข้อสอบเนื่องจากเข้าเงื่อนไข Stopping Rules เรียบร้อยแล้ว</p>
                             </div>
                         )}
@@ -449,17 +449,17 @@ export default function CATDebugPage() {
                 {/* RIGHT COLUMN: Brain (Internal Calculation Table) */}
                 <div className="lg:col-span-5 bg-white rounded-2xl shadow border border-slate-200 flex flex-col overflow-hidden max-h-[800px]">
                     <div className="bg-slate-800 text-white p-4 border-b flex justify-between items-center">
-                        <h2 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2">
+                        <h2 className="text-sm font-medium uppercase tracking-widest flex items-center gap-2">
                             <span>🧠</span> กระบวนการคิดเบื้องหลัง (Item Pool)
                         </h2>
                         <div className="text-xs bg-slate-700 px-3 py-1 rounded-full text-slate-300">เรียงตาม Information มากไปน้อย</div>
                     </div>
                     
                     <div className="overflow-x-auto flex-1 h-full relative">
-                        {loading && <div className="absolute inset-0 bg-white/50 flex items-center justify-center font-bold">กำลังโหลดข้อสอบ...</div>}
+                        {loading && <div className="absolute inset-0 bg-white/50 flex items-center justify-center font-medium">กำลังโหลดข้อสอบ...</div>}
                         
                         <table className="w-full text-sm text-left">
-                            <thead className="text-xs font-bold text-slate-500 bg-slate-50 sticky top-0 uppercase">
+                            <thead className="text-xs font-medium text-slate-500 bg-slate-50 sticky top-0 uppercase">
                                 <tr>
                                     <th className="px-4 py-3">ID</th>
                                     <th className="px-4 py-3">a</th>
@@ -498,10 +498,10 @@ export default function CATDebugPage() {
                                                 {item.isEliminatedByStratum && !item.isAnswered && <span className="ml-2 text-[10px] text-red-400" title="ถูกตัดเพราะค่า a เกินกำหนด">(!a)</span>}
                                             </td>
                                             <td className="px-4 py-2 text-slate-600">{item.irt_a_discrimination.toFixed(2)}</td>
-                                            <td className={`px-4 py-2 font-bold ${item.isNext ? 'text-blue-700' : 'text-slate-700'}`}>{item.irt_b_difficulty.toFixed(2)}</td>
+                                            <td className={`px-4 py-2 font-medium ${item.isNext ? 'text-blue-700' : 'text-slate-700'}`}>{item.irt_b_difficulty.toFixed(2)}</td>
                                             <td className="px-4 py-2 text-slate-600">{item.irt_c_guessing.toFixed(2)}</td>
                                             <td className="px-4 py-2 bg-blue-50/50 text-blue-600">{(item.prob * 100).toFixed(1)}%</td>
-                                            <td className="px-4 py-2 bg-indigo-50/50 font-bold text-indigo-600">{item.info.toFixed(4)}</td>
+                                            <td className="px-4 py-2 bg-indigo-50/50 font-medium text-indigo-600">{item.info.toFixed(4)}</td>
                                         </tr>
                                     ))}
                             </tbody>

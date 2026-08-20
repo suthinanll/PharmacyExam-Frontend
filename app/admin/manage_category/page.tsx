@@ -98,7 +98,7 @@ function CategoryCard({
             <div className="p-5 flex flex-col flex-1 gap-3">
                 {/* Name + actions */}
                 <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-base font-semibold text-gray-900 leading-snug">{category.category_name}</h3>
+                    <h3 className="text-base font-medium text-gray-900 leading-snug">{category.category_name}</h3>
                     <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => onEdit(category)}
                             className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
@@ -331,7 +331,7 @@ export default function CategoriesManagement() {
                             <p className="text-sm text-gray-500">เพิ่ม แก้ไข ลบ และดูชุดข้อสอบที่เชื่อมโยง · {filtered.length} รายการ</p>
                         </div>
                         <button onClick={openCreate}
-                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md">
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md">
                             <Plus size={18} /> เพิ่มประเภทข้อสอบใหม่
                         </button>
                     </div>
@@ -395,7 +395,7 @@ export default function CategoriesManagement() {
                                     <tr>
                                         {['#', 'ชื่อประเภทข้อสอบ', 'คำอธิบาย', 'ชุดข้อสอบที่เชื่อมโยง', 'วันที่สร้าง', 'จัดการ'].map((h, i) => (
                                             <th key={h}
-                                                className={`px-5 py-3 text-left text-xs font-semibold tracking-wide ${i === 0 ? 'w-12 text-center rounded-tl-2xl' : ''} ${i === 5 ? 'text-center rounded-tr-2xl' : ''}`}>
+                                                className={`px-5 py-3 text-left text-xs font-medium tracking-wide ${i === 0 ? 'w-12 text-center rounded-tl-2xl' : ''} ${i === 5 ? 'text-center rounded-tr-2xl' : ''}`}>
                                                 {h}
                                             </th>
                                         ))}
@@ -414,7 +414,7 @@ export default function CategoriesManagement() {
                                                 {(currentPage - 1) * perPage + idx + 1}
                                             </td>
                                             <td className="px-5 py-3.5">
-                                                <div className="text-sm font-semibold text-gray-900">{cat.category_name}</div>
+                                                <div className="text-sm font-medium text-gray-900">{cat.category_name}</div>
                                             </td>
                                             <td className="px-5 py-3.5">
                                                 <div className="text-xs text-gray-500 max-w-xs truncate">{cat.category_description || '—'}</div>
@@ -487,7 +487,7 @@ export default function CategoriesManagement() {
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full">
                         <div className="bg-green-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
-                            <h3 className="text-lg font-bold text-white">
+                            <h3 className="text-lg font-medium text-white">
                                 {editingCategory ? 'แก้ไขประเภทข้อสอบ' : 'เพิ่มประเภทข้อสอบใหม่'}
                             </h3>
                             <button onClick={() => setShowModal(false)} className="p-1 hover:bg-white/20 rounded-lg transition-colors">
@@ -496,7 +496,7 @@ export default function CategoriesManagement() {
                         </div>
                         <div className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     ชื่อประเภทข้อสอบ <span className="text-red-500">*</span>
                                 </label>
                                 <input type="text" value={categoryName} onChange={e => setCategoryName(e.target.value)}
@@ -504,7 +504,7 @@ export default function CategoriesManagement() {
                                     placeholder="เช่น เภสัชวิทยา" />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">คำอธิบาย</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">คำอธิบาย</label>
                                 <textarea value={categoryDesc} onChange={e => setCategoryDesc(e.target.value)}
                                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none text-sm"
                                     rows={3} placeholder="อธิบายเกี่ยวกับประเภทข้อสอบนี้" />
@@ -516,7 +516,7 @@ export default function CategoriesManagement() {
                                 ยกเลิก
                             </button>
                             <button onClick={submitCategory} disabled={submitting}
-                                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium flex items-center gap-2 transition-colors disabled:opacity-50 text-sm">
+                                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 active:scale-95 text-white rounded-xl font-medium flex items-center gap-2 transition-colors disabled:opacity-50 text-sm">
                                 {submitting && <Loader2 size={16} className="animate-spin" />}
                                 {submitting ? 'กำลังบันทึก...' : 'บันทึก'}
                             </button>

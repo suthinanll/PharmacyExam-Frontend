@@ -87,7 +87,7 @@ const NewsDetailPage = () => {
                                 className="w-full h-full object-cover"
                             />
                             <div className="absolute top-4 left-4">
-                                <span className="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">
+                                <span className="bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-full uppercase">
                                     ข่าวประชาสัมพันธ์
                                 </span>
                             </div>
@@ -104,14 +104,14 @@ const NewsDetailPage = () => {
                                 })}
                             </div>
 
-                            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 mb-6 leading-tight">
+                            <h1 className="text-2xl md:text-4xl font-medium text-gray-900 mb-6 leading-tight">
                                 {news.title}
                             </h1>
 
                             <hr className="mb-8 border-gray-100" />
 
                             <div
-                                className="prose prose-blue max-w-none text-gray-700 leading-relaxed"
+                                className="prose prose-blue max-w-none text-gray-700 leading-relaxed [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_s]:line-through [&_a]:text-blue-600 [&_a]:underline [&_img]:rounded-lg [&_img]:my-4"
                                 dangerouslySetInnerHTML={{ __html: news.content }}
                             />
                             <div className="mt-12 pt-8 border-t border-gray-100">

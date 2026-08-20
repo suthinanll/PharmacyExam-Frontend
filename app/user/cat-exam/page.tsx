@@ -205,7 +205,7 @@ export default function CATSetupPage() {
                 <div className="mb-8">
                     <div className="flex items-start justify-between gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">การสอบแบบปรับตัวด้วยคอมพิวเตอร์ (CAT)</h1>
+                            <h1 className="text-3xl font-medium text-gray-900 mb-2">การสอบแบบปรับตัวด้วยคอมพิวเตอร์ (CAT)</h1>
                             <p className="text-gray-500 text-base leading-relaxed max-w-xl">
                                 ระบบจะเลือกข้อสอบที่เหมาะกับระดับของคุณแบบเรียลไทม์ ปรับแต่งพารามิเตอร์ตามต้องการแล้วกด <strong className="text-gray-700">เริ่มการทดสอบ</strong>
                             </p>
@@ -228,7 +228,7 @@ export default function CATSetupPage() {
                         <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                             <div className="flex items-center gap-2 mb-1">
                                 <BrainCircuit className="w-5 h-5 text-amber-500" />
-                                <h2 className="text-base font-semibold text-gray-800">ระดับความสามารถเริ่มต้น</h2>
+                                <h2 className="text-base font-medium text-gray-800">ระดับความสามารถเริ่มต้น</h2>
                                 <InfoTooltip text="ระบบ CAT จะเริ่มส่งข้อสอบที่ระดับความยากนี้ก่อน แล้วปรับขึ้นหรือลงตามคำตอบของคุณโดยอัตโนมัติ" />
                             </div>
                             <p className="text-sm text-gray-400 mb-5 ml-7">กำหนดจุดเริ่มต้นของการประเมิน — ระบบจะปรับระดับเองตลอดการสอบ</p>
@@ -251,8 +251,8 @@ export default function CATSetupPage() {
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-0.5">
                                                 <History className="w-4 h-4 text-green-600" />
-                                                <span className="text-sm font-semibold text-gray-800">ใช้ระดับจากประวัติการสอบ</span>
-                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide bg-green-100 text-green-700">แนะนำ</span>
+                                                <span className="text-sm font-medium text-gray-800">ใช้ระดับจากประวัติการสอบ</span>
+                                                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wide bg-green-100 text-green-700">แนะนำ</span>
                                             </div>
                                             <p className="text-sm text-gray-500">
                                                 ระดับปัจจุบันของคุณ:{' '}
@@ -279,7 +279,7 @@ export default function CATSetupPage() {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-0.5">
                                             <BarChart3 className="w-4 h-4 text-amber-500" />
-                                            <span className="text-sm font-semibold text-gray-800">กำหนดระดับเอง</span>
+                                            <span className="text-sm font-medium text-gray-800">กำหนดระดับเอง</span>
                                         </div>
                                         <p className="text-sm text-gray-500">ลาก slider เพื่อกำหนดจุดเริ่มต้น</p>
 
@@ -287,7 +287,7 @@ export default function CATSetupPage() {
                                             <div className="mt-4 space-y-3">
                                                 <div className="flex justify-between items-center">
                                                     <span className="text-sm font-medium text-gray-600">{getDifficultyLabel(difficulty)}</span>
-                                                    <span className="text-sm font-bold text-amber-600 bg-amber-50 px-3 py-0.5 rounded-lg border border-amber-100">
+                                                    <span className="text-sm font-medium text-amber-600 bg-amber-50 px-3 py-0.5 rounded-lg border border-amber-100">
                                                         {difficulty.toFixed(1)}
                                                     </span>
                                                 </div>
@@ -317,13 +317,13 @@ export default function CATSetupPage() {
                         <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                             <div className="flex items-center gap-2 mb-1">
                                 <PieChart className="w-5 h-5 text-indigo-500" />
-                                <h2 className="text-base font-semibold text-gray-800">เน้นหมวดหมู่ (ไม่บังคับ)</h2>
+                                <h2 className="text-base font-medium text-gray-800">เน้นหมวดหมู่ (ไม่บังคับ)</h2>
                                 <InfoTooltip text="เลือกวิชาที่ต้องการฝึกเพิ่มเป็นพิเศษ ระบบจะดึงข้อสอบหมวดนั้นมาให้บ่อยขึ้น โดยไม่ต้องกำหนดเปอร์เซ็นต์เอง หากไม่เลือก ระบบจะสุ่มจากคลังทั้งหมด" />
                             </div>
                             <p className="text-sm text-gray-400 mb-5 ml-7">
                                 คลิกวิชาที่ต้องการฝึก — ระบบจะเพิ่มสัดส่วนให้อัตโนมัติ{' '}
                                 {focusedTopics.length > 0 && (
-                                    <span className="text-indigo-600 font-semibold">({focusedTopics.length} วิชาที่เลือก)</span>
+                                    <span className="text-indigo-600 font-medium">({focusedTopics.length} วิชาที่เลือก)</span>
                                 )}
                             </p>
 
@@ -373,7 +373,7 @@ export default function CATSetupPage() {
                             >
                                 <div className="flex items-center gap-2">
                                     <Target className="w-5 h-5 text-gray-400" />
-                                    <span className="text-base font-semibold text-gray-800">การตั้งค่าขั้นสูง</span>
+                                    <span className="text-base font-medium text-gray-800">การตั้งค่าขั้นสูง</span>
                                     <InfoTooltip text="ปรับจำนวนข้อสอบขั้นต่ำและสูงสุด สำหรับผู้ใช้ที่ต้องการควบคุมความยาวของการสอบ" />
                                 </div>
                                 {showAdvanced ? (
@@ -388,7 +388,7 @@ export default function CATSetupPage() {
                                     {/* Min Items — preset cards */}
                                     <div>
                                         <div className="flex items-center gap-2 mb-3">
-                                            <label className="text-sm font-semibold text-gray-700">จำนวนข้อขั้นต่ำ</label>
+                                            <label className="text-sm font-medium text-gray-700">จำนวนข้อขั้นต่ำ</label>
                                             <InfoTooltip text="ระบบจะสอบอย่างน้อยกี่ข้อก่อนจะพิจารณาหยุด (ค่าแนะนำ: 20)" />
                                         </div>
                                         <div className="grid grid-cols-4 gap-2">
@@ -397,7 +397,7 @@ export default function CATSetupPage() {
                                                     key={val}
                                                     type="button"
                                                     onClick={() => setMinItems(val)}
-                                                    className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                                                    className={`py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                                                         minItems === val
                                                             ? 'border-green-500 bg-green-50 text-green-700'
                                                             : 'border-gray-200 text-gray-600 hover:border-green-300'
@@ -412,7 +412,7 @@ export default function CATSetupPage() {
                                     {/* Max Items — preset cards */}
                                     <div>
                                         <div className="flex items-center gap-2 mb-3">
-                                            <label className="text-sm font-semibold text-gray-700">จำนวนข้อสูงสุด</label>
+                                            <label className="text-sm font-medium text-gray-700">จำนวนข้อสูงสุด</label>
                                             <InfoTooltip text="ระบบจะหยุดสอบอัตโนมัติเมื่อถึงจำนวนนี้ ไม่ว่าความแม่นยำจะถึงเกณฑ์หรือยัง (ค่าแนะนำ: 60)" />
                                         </div>
                                         <div className="grid grid-cols-4 gap-2">
@@ -421,7 +421,7 @@ export default function CATSetupPage() {
                                                     key={val}
                                                     type="button"
                                                     onClick={() => setMaxItems(val)}
-                                                    className={`py-2 rounded-lg border-2 text-sm font-semibold transition-all ${
+                                                    className={`py-2 rounded-lg border-2 text-sm font-medium transition-all ${
                                                         maxItems === val
                                                             ? 'border-green-500 bg-green-50 text-green-700'
                                                             : 'border-gray-200 text-gray-600 hover:border-green-300'
@@ -441,14 +441,14 @@ export default function CATSetupPage() {
                     <div className="lg:col-span-1">
                         <div className="sticky top-20 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                             <div className="bg-gray-50 border-b border-gray-200 px-5 py-4">
-                                <h3 className="text-sm font-semibold text-gray-700">สรุปการตั้งค่า</h3>
+                                <h3 className="text-sm font-medium text-gray-700">สรุปการตั้งค่า</h3>
                             </div>
 
                             <div className="p-5 space-y-3 text-sm">
                                 {/* Ability row */}
                                 <div className="flex items-center justify-between py-2 border-b border-gray-100">
                                     <span className="text-gray-500">ระดับเริ่มต้น</span>
-                                    <span className="font-semibold text-gray-800">
+                                    <span className="font-medium text-gray-800">
                                         {useAbility && abilityInfo
                                             ? `${abilityInfo.theta.toFixed(2)} (ประวัติ)`
                                             : `${difficulty.toFixed(1)} (กำหนดเอง)`}
@@ -457,13 +457,13 @@ export default function CATSetupPage() {
                                 {/* Min */}
                                 <div className="flex items-center justify-between py-2 border-b border-gray-100">
                                     <span className="text-gray-500">จำนวนข้อ (ต่ำ-สูง)</span>
-                                    <span className="font-semibold text-gray-800">{minItems} – {maxItems} ข้อ</span>
+                                    <span className="font-medium text-gray-800">{minItems} – {maxItems} ข้อ</span>
                                 </div>
 
                                 {/* Topics */}
                                 <div className="flex items-center justify-between py-2">
                                     <span className="text-gray-500">หมวดที่เน้น</span>
-                                    <span className="font-semibold text-gray-800">
+                                    <span className="font-medium text-gray-800">
                                         {focusedTopics.length === 0 ? 'ทั้งหมด' : `${focusedTopics.length} วิชา`}
                                     </span>
                                 </div>
@@ -480,7 +480,7 @@ export default function CATSetupPage() {
                                 <button
                                     onClick={startExam}
                                     disabled={starting}
-                                    className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white font-semibold rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+                                    className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
                                 >
                                     {starting ? (
                                         <>

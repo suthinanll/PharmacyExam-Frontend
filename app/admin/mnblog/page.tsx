@@ -3,7 +3,7 @@
 
 import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect, useMemo } from "react";
-import { Plus, Search, Clock, ImageOff, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Search, Clock, Loader2, ImageOff, Trash2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -97,28 +97,28 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
           ) : (
             <div className="h-full w-full flex flex-col items-center justify-center text-gray-300">
               <ImageOff className="w-12 h-12 mb-2 opacity-20" />
-              <span className="text-xs uppercase font-bold tracking-widest">No Cover Image</span>
+              <span className="text-[10px] uppercase font-medium tracking-widest">No Cover Image</span>
             </div>
           )}
           <div className="absolute top-3 left-3 flex gap-2">
-            <span className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase shadow-sm ${isPublished ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}`}>
+            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase shadow-sm ${isPublished ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}`}>
               {isPublished ? '• Live' : 'Draft'}
             </span>
           </div>
         </div>
 
         <div className="p-5 flex flex-col flex-grow">
-          <h3 className="text-base font-bold text-gray-800 mb-2 line-clamp-2 leading-snug">{blog.title}</h3>
+          <h3 className="text-base font-medium text-gray-800 mb-2 line-clamp-2 leading-snug">{blog.title}</h3>
           {/* ใช้ stripHtml เพื่อไม่ให้เห็น <div> หรือ <p> ในหน้า Dashboard */}
           <p className="text-sm text-gray-500 mb-4 line-clamp-2 flex-grow">
             {stripHtml(blog.content)}
           </p>
-          <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400 font-medium">
+          <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400 font-medium">
             <div className="flex items-center gap-1.5">
                <Clock size={14} className="text-gray-300" />
                {formatDate(blog.created_at)}
             </div>
-            <span className="text-green-600 font-bold uppercase tracking-tighter">Edit Details →</span>
+            <span className="text-green-600 font-medium uppercase tracking-tighter">Edit Details →</span>
           </div>
         </div>
       </Link>
@@ -142,10 +142,8 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
       </div>
 
       {isActionLoading && (
-        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] rounded-2xl z-20 p-4">
-          <div className="h-2 w-full bg-gray-200 animate-pulse rounded-full mb-3" />
-          <div className="h-2 w-2/3 bg-gray-200 animate-pulse rounded-full mb-3" />
-          <div className="h-2 w-full bg-gray-200 animate-pulse rounded-full" />
+        <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center rounded-2xl z-20">
+          <Loader2 className="animate-spin text-green-600" />
         </div>
       )}
     </div>
@@ -201,10 +199,10 @@ function Page() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="mb-10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
-            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">การจัดการบล็อกข่าวสาร</h1>
-            <p className="text-sm text-gray-500 mt-1">สรุปและจัดการข่าวสารประชาสัมพันธ์ทั้งหมด</p>
+            <h1 className="text-3xl font-medium text-gray-900 tracking-tight">จัดการข่าวสาร</h1>
+            <p className="text-gray-500 mt-1 font-medium">สรุปและจัดการข่าวสารประชาสัมพันธ์ทั้งหมด</p>
           </div>
-          <Link href="/admin/mnblog/addblog" className="w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl shadow-lg shadow-green-200 transition-all active:scale-95 font-bold">
+          <Link href="/admin/mnblog/addblog" className="w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-6 py-3 rounded-2xl transition-all font-medium">
             <Plus className="w-5 h-5" /> สร้างข่าวสารใหม่
           </Link>
         </div>
@@ -238,7 +236,7 @@ function Page() {
                   }`}
                 >
                   {tab.label}
-                  <span className={`ml-2 text-xs ${statusFilter === tab.id ? 'text-green-400' : 'text-gray-300'}`}>
+                  <span className={`ml-2 text-[10px] ${statusFilter === tab.id ? 'text-green-400' : 'text-gray-300'}`}>
                     {counts[tab.id as keyof typeof counts]}
                   </span>
                 </button>
@@ -248,17 +246,9 @@ function Page() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="h-44 bg-gray-200 animate-pulse" />
-                <div className="p-4 space-y-3">
-                  <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
-                  <div className="h-3 w-full animate-pulse rounded bg-gray-100" />
-                  <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-col items-center py-32 text-gray-300">
+            <Loader2 className="w-12 h-12 animate-spin mb-4 text-green-500 opacity-40" />
+            <p className="font-medium uppercase tracking-widest text-xs">Synchronizing Data...</p>
           </div>
         ) : filteredBlogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -269,7 +259,7 @@ function Page() {
         ) : (
           <div className="text-center py-32 bg-gray-50/50 border-2 border-dashed border-gray-200 rounded-[40px]">
             <ImageOff className="w-12 h-12 mx-auto mb-4 text-gray-200" />
-            <h3 className="text-gray-400 font-bold uppercase tracking-tighter">No Articles Found</h3>
+            <h3 className="text-gray-400 font-medium uppercase tracking-tighter">No Articles Found</h3>
             <p className="text-gray-400 text-sm mt-1">ลองเปลี่ยนคำค้นหาหรือตัวกรองสถานะ</p>
           </div>
         )}

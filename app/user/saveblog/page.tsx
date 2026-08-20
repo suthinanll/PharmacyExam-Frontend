@@ -83,9 +83,9 @@ function SaveBlog() {
             <div className="text-sm text-gray-500 mb-2">หน้าหลัก › ข่าวที่บันทึกไว้</div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">ข่าวที่บันทึกไว้</h1>
+                <h1 className="text-3xl sm:text-4xl font-medium text-gray-900 mb-2">ข่าวที่บันทึกไว้</h1>
                 <p className="text-gray-600">
-                  คุณมีข่าวที่บันทึกไว้ทั้งหมด <span className="font-bold text-blue-600">{savedNews.length}</span> รายการ
+                  คุณมีข่าวที่บันทึกไว้ทั้งหมด <span className="font-medium text-blue-600">{savedNews.length}</span> รายการ
                 </p>
               </div>
               {savedNews.length > 0 && (
@@ -118,14 +118,14 @@ function SaveBlog() {
                     </div>
                     <div className="p-5 flex flex-col flex-1">
                       <div className="flex items-center justify-between mb-3">
-                        <span className="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">
+                        <span className="bg-blue-100 text-blue-700 text-xs font-medium px-3 py-1 rounded-full">
                           {item.news.category || 'ข่าวสาร'}
                         </span>
                         <span className="text-xs text-gray-500">
                           {new Date(item.created_at).toLocaleDateString('th-TH')}
                         </span>
                       </div>
-                      <h5 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+                      <h5 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2">
                         {item.news.title}
                       </h5>
                       <p className="text-sm text-gray-600 leading-relaxed mb-4 flex-1 line-clamp-3">
@@ -150,7 +150,7 @@ function SaveBlog() {
               </div>
             ) : (
               <div key="empty-state" className="bg-white rounded-2xl shadow-lg p-12 text-center border-2 border-dashed border-gray-200">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">ยังไม่มีข่าวที่บันทึกไว้</h3>
+                <h3 className="text-2xl font-medium text-gray-900 mb-2">ยังไม่มีข่าวที่บันทึกไว้</h3>
                 <p className="text-gray-500 mb-6">เริ่มบันทึกข่าวสารที่คุณสนใจ เพื่อกลับมาอ่านภายหลังได้ที่นี่</p>
                 <a href="/user" className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-blue-700 transition">
                   สำรวจข่าวสาร

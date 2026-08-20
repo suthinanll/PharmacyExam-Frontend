@@ -55,7 +55,7 @@ export default function NewsCard({
       </div>
       <div className="p-4 sm:p-5 flex flex-col flex-1">
         <a href={link} target="_blank" rel="noopener noreferrer">
-          <h5 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
+          <h5 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2">
             {title}
           </h5>
         </a>

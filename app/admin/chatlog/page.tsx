@@ -171,7 +171,7 @@ export default function ChatbotKnowledgePage() {
                         {/* Upload trigger button */}
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md"
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md"
                         >
                             <FileUp size={18} /> อัปโหลดเอกสาร
                         </button>
@@ -186,7 +186,7 @@ export default function ChatbotKnowledgePage() {
                         </div>
                         <div>
                             <p className="text-xs text-gray-500 font-medium uppercase">เอกสารทั้งหมด</p>
-                            <h3 className="text-2xl font-bold text-gray-900">{documents.length}</h3>
+                            <h3 className="text-2xl font-medium text-gray-900">{documents.length}</h3>
                         </div>
                     </div>
                     <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
@@ -195,7 +195,7 @@ export default function ChatbotKnowledgePage() {
                         </div>
                         <div>
                             <p className="text-xs text-gray-500 font-medium uppercase">Vector Database</p>
-                            <h3 className="text-sm font-bold text-gray-900 mt-0.5">Pinecone</h3>
+                            <h3 className="text-sm font-medium text-gray-900 mt-0.5">Pinecone</h3>
                         </div>
                     </div>
                     <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
@@ -204,7 +204,7 @@ export default function ChatbotKnowledgePage() {
                         </div>
                         <div>
                             <p className="text-xs text-gray-500 font-medium uppercase">รูปแบบที่รองรับ</p>
-                            <h3 className="text-sm font-bold text-gray-900 mt-0.5">PDF (สูงสุด 10MB)</h3>
+                            <h3 className="text-sm font-medium text-gray-900 mt-0.5">PDF (สูงสุด 10MB)</h3>
                         </div>
                     </div>
                 </div>
@@ -233,7 +233,7 @@ export default function ChatbotKnowledgePage() {
                                     <UploadCloud size={28} />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-semibold text-gray-700">ลากไฟล์ PDF มาวางที่นี่ หรือคลิก "อัปโหลดเอกสาร"</p>
+                                    <p className="text-sm font-medium text-gray-700">ลากไฟล์ PDF มาวางที่นี่ หรือคลิก "อัปโหลดเอกสาร"</p>
                                     <p className="text-xs text-gray-400 mt-0.5">รองรับไฟล์ PDF ขนาดไม่เกิน 10MB</p>
                                 </div>
                             </>
@@ -243,7 +243,7 @@ export default function ChatbotKnowledgePage() {
                                     <FileText size={28} />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-semibold text-gray-800 truncate">{selectedFile.name}</p>
+                                    <p className="text-sm font-medium text-gray-800 truncate">{selectedFile.name}</p>
                                     <p className="text-xs text-gray-500 mt-0.5">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
                                 </div>
                                 <div className="flex items-center gap-2 shrink-0 pointer-events-none relative z-10">
@@ -259,7 +259,7 @@ export default function ChatbotKnowledgePage() {
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); handleUpload(); }}
                                         disabled={isUploading}
-                                        className="pointer-events-auto flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors disabled:opacity-60"
+                                        className="pointer-events-auto flex items-center gap-1.5 bg-green-600 hover:bg-green-700 active:scale-95 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors disabled:opacity-60"
                                     >
                                         {isUploading
                                             ? <><Loader2 size={15} className="animate-spin" /> กำลังนำเข้า...</>
@@ -305,7 +305,7 @@ export default function ChatbotKnowledgePage() {
                                 <thead className="bg-green-600 text-white">
                                     <tr>
                                         {["#", "ชื่อเอกสาร", "ขนาดไฟล์", "วันที่อัปโหลด", "จัดการ"].map((h, i) => (
-                                            <th key={h} className={`px-5 py-3 text-left text-xs font-semibold tracking-wide ${i === 0 ? "w-12 text-center rounded-tl-2xl" : ""} ${i === 4 ? "text-center rounded-tr-2xl" : ""}`}>
+                                            <th key={h} className={`px-5 py-3 text-left text-xs font-medium tracking-wide ${i === 0 ? "w-12 text-center rounded-tl-2xl" : ""} ${i === 4 ? "text-center rounded-tr-2xl" : ""}`}>
                                                 {h}
                                             </th>
                                         ))}

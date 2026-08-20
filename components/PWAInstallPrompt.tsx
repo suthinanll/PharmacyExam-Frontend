@@ -137,7 +137,7 @@ export default function PWAInstallPrompt() {
             <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
               <Pill className="w-7 h-7 text-emerald-600" strokeWidth={1.75} />
             </div>
-            <h2 className="text-lg font-bold text-slate-900 mb-1.5">
+            <h2 className="text-lg font-medium text-slate-900 mb-1.5">
               ติดตั้งเภสัชพร้อมสอบ
             </h2>
             <p className="text-sm text-slate-500 leading-relaxed">
@@ -169,7 +169,7 @@ export default function PWAInstallPrompt() {
               return (
                 <li key={i} className="flex items-start gap-3">
                   <div className="flex flex-col items-center">
-                    <span className="w-8 h-8 rounded-full bg-slate-900 text-white text-xs font-semibold flex items-center justify-center shrink-0">
+                    <span className="w-8 h-8 rounded-full bg-slate-900 text-white text-xs font-medium flex items-center justify-center shrink-0">
                       {i + 1}
                     </span>
                     {!isLast && <span className="w-px flex-1 bg-slate-200 my-1" />}

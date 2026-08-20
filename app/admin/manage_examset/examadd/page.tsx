@@ -181,7 +181,7 @@ function CreateItemBank() {
 
                         {/* Header */}
                         <div className="mb-8">
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">สร้างชุดข้อสอบใหม่</h1>
+                            <h1 className="text-3xl font-medium text-gray-900 mb-2">สร้างชุดข้อสอบใหม่</h1>
                             <p className="text-gray-600">กรอกข้อมูลเพื่อสร้างชุดข้อสอบใหม่</p>
                         </div>
 
@@ -189,7 +189,7 @@ function CreateItemBank() {
                         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm p-8">
                             {/* ชื่อชุดข้อสอบ */}
                             <div className="mb-6">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     ชื่อชุดข้อสอบ <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -205,7 +205,7 @@ function CreateItemBank() {
 
                             {/* คำอธิบาย */}
                             <div className="mb-6">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     คำอธิบาย
                                 </label>
                                 <textarea
@@ -220,7 +220,7 @@ function CreateItemBank() {
 
                             {/* ระยะเวลา */}
                             <div className="mb-6">
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
                                     ระยะเวลาในการทำข้อสอบ (นาที) <span className="text-red-500">*</span>
                                 </label>
                                 <input
@@ -239,7 +239,7 @@ function CreateItemBank() {
 
                             {/* ประเภทข้อสอบ */}
                             <div className="mb-6">
-                                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                <label className="block text-sm font-medium text-gray-700 mb-3">
                                     ประเภทข้อสอบ
                                 </label>
                                 {loadingCategories ? (
@@ -308,7 +308,7 @@ function CreateItemBank() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {loading ? (
                                         <>
@@ -326,7 +326,7 @@ function CreateItemBank() {
                                     type="button"
                                     onClick={handleReset}
                                     disabled={loading}
-                                    className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                    className="px-6 py-3 border-2 border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                 >
                                     <X className="w-5 h-5" />
                                     ล้างข้อมูล

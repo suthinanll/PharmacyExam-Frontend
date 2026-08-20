@@ -96,7 +96,7 @@ function ThetaProgressChart({ responses, cutScore }: { responses: Response[]; cu
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="text-base font-bold text-gray-800 mb-1">ระดับความสามารถ (θ) ตลอดการสอบ</h2>
+            <h2 className="text-base font-medium text-gray-800 mb-1">ระดับความสามารถ (θ) ตลอดการสอบ</h2>
             <p className="text-xs text-gray-400 mb-4">เส้นแสดงระดับ θ พร้อมช่วงความเชื่อมั่น 95% ที่แคบลงเมื่อตอบข้อมากขึ้น</p>
             <ResponsiveContainer width="100%" height={260}>
                 <ComposedChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
@@ -125,7 +125,7 @@ function SEConvergenceChart({ responses, targetSE }: { responses: Response[]; ta
     }));
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="text-base font-bold text-gray-800 mb-1">ความแม่นยำของการวัด (SE)</h2>
+            <h2 className="text-base font-medium text-gray-800 mb-1">ความแม่นยำของการวัด (SE)</h2>
             <p className="text-xs text-gray-400 mb-4">ค่าความคลาดเคลื่อนมาตรฐานลดลงเรื่อยๆ — ยิ่งต่ำยิ่งแม่นยำ</p>
             <ResponsiveContainer width="100%" height={260}>
                 <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
@@ -152,7 +152,7 @@ function PosteriorChart({ finalTheta, finalSE, cutScore }: { finalTheta: number;
     }));
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="text-base font-bold text-gray-800 mb-1">การกระจายความสามารถ</h2>
+            <h2 className="text-base font-medium text-gray-800 mb-1">การกระจายความสามารถ</h2>
             <p className="text-xs text-gray-400 mb-4">
                 การแจกแจงระดับความสามารถหลังการสอบ — ยิ่งแคบ ยิ่งแม่นยำ (SE = {finalSE.toFixed(3)})
             </p>
@@ -187,7 +187,7 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
 
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
-            <h2 className="text-base font-bold text-gray-800 mb-1">วิเคราะห์ตามหัวข้อ</h2>
+            <h2 className="text-base font-medium text-gray-800 mb-1">วิเคราะห์ตามหัวข้อ</h2>
             <p className="text-xs text-gray-400 mb-5">เปอร์เซ็นต์ความถูกต้องในแต่ละหัวข้อหลักและหัวข้อย่อย</p>
 
             <div className="flex flex-col lg:flex-row gap-8 items-stretch mb-2">
@@ -204,8 +204,8 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
                                         const d = payload[0].payload;
                                         return (
                                             <div className="bg-white p-3 shadow-xl border border-gray-100 rounded-xl">
-                                                <p className="font-bold text-gray-800 mb-1">{d.fullName}</p>
-                                                <p className="text-blue-600 font-bold">ความแม่นยำ: {d.Performance}%</p>
+                                                <p className="font-medium text-gray-800 mb-1">{d.fullName}</p>
+                                                <p className="text-blue-600 font-medium">ความแม่นยำ: {d.Performance}%</p>
                                             </div>
                                         );
                                     }
@@ -226,7 +226,7 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
 
                 {/* Score List (Unified nested cards) */}
                 <div className="w-full lg:w-1/2 flex flex-col">
-                    <h3 className="font-bold text-gray-800 mb-3 border-b pb-2">คะแนนรายหัวข้อ</h3>
+                    <h3 className="font-medium text-gray-800 mb-3 border-b pb-2">คะแนนรายหัวข้อ</h3>
                     <div className="space-y-3 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar flex-1">
                         {topicAnalysis.map(topic => (
                             <div key={topic.topic_id} className="p-3.5 rounded-xl border border-gray-100 bg-white hover:bg-gray-50/50 transition-colors space-y-3">
@@ -239,10 +239,10 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
                                         {topic.accuracy >= 70 ? <Award className="w-5 h-5" /> : topic.accuracy >= 50 ? <Target className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-gray-800 text-sm truncate">{topic.topic_name}</p>
+                                        <p className="font-medium text-gray-800 text-sm truncate">{topic.topic_name}</p>
                                         <p className="text-xs text-gray-500">{topic.correct}/{topic.total} ข้อ</p>
                                     </div>
-                                    <span className={`font-bold text-sm ${
+                                    <span className={`font-medium text-sm ${
                                         topic.accuracy >= 70 ? 'text-green-600' :
                                         topic.accuracy >= 50 ? 'text-amber-500' : 'text-red-500'
                                     }`}>{topic.accuracy}%</span>
@@ -393,10 +393,10 @@ export default function CATResultPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                             <div className="flex flex-wrap items-center gap-2 mb-1">
-                                <h1 className="text-xl font-bold text-gray-900">
+                                <h1 className="text-xl font-medium text-gray-900">
                                     {result.passed ? "ยินดีด้วย! คุณผ่านเกณฑ์การสอบ" : "การสอบเสร็จสิ้น"}
                                 </h1>
-                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
+                                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
                                     result.passed
                                         ? "bg-green-100 text-green-700"
                                         : "bg-red-100 text-red-700"
@@ -417,7 +417,7 @@ export default function CATResultPage() {
                             { label: "ความคลาดเคลื่อน (SE)", value: result.final_se.toFixed(3), color: "text-purple-600", bg: "bg-purple-50 border-purple-100" },
                         ].map(s => (
                             <div key={s.label} className={`rounded-xl border p-4 text-center ${s.bg}`}>
-                                <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
+                                <div className={`text-2xl font-medium ${s.color}`}>{s.value}</div>
                                 <div className="text-xs text-gray-500 mt-1">{s.label}</div>
                             </div>
                         ))}
@@ -426,7 +426,7 @@ export default function CATResultPage() {
 
                 {/* ── Analysis Charts ─────────────────────── */}
                 <div className="mb-6">
-                    <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
                         <BarChart3 className="text-green-600" size={20} />
                         วิเคราะห์ผลการสอบ
                     </h2>
@@ -446,7 +446,7 @@ export default function CATResultPage() {
 
                         {/* Summary stats card */}
                         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                            <h2 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
+                            <h2 className="text-base font-medium text-gray-800 mb-4 flex items-center gap-2">
                                 <ClipboardList className="text-green-600" size={18} />
                                 สรุปสถิติ
                             </h2>
@@ -460,7 +460,7 @@ export default function CATResultPage() {
                                 ].map(s => (
                                     <div key={s.label} className="flex justify-between items-center py-2 border-b border-dashed border-gray-100">
                                         <span className="text-gray-500 text-sm">{s.label}</span>
-                                        <span className={`font-bold text-lg ${s.color}`}>{s.value}</span>
+                                        <span className={`font-medium text-lg ${s.color}`}>{s.value}</span>
                                     </div>
                                 ))}
                                 <div className="pt-2">
@@ -476,13 +476,13 @@ export default function CATResultPage() {
                 <div className="flex gap-4 justify-center mb-10">
                     <button
                         onClick={() => router.push("/user")}
-                        className="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors shadow-sm"
+                        className="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors shadow-sm"
                     >
                         ← กลับหน้าหลัก
                     </button>
                     <button
                         onClick={() => router.push("/user/cat-exam")}
-                        className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-semibold transition-colors shadow-sm flex items-center gap-2"
+                        className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-medium transition-colors shadow-sm flex items-center gap-2"
                     >
                         <RefreshCw size={18} />
                         สอบใหม่อีกครั้ง
@@ -491,7 +491,7 @@ export default function CATResultPage() {
 
                 {/* ── Answer Review ─────────────────────────────────── */}
                 <div className="mb-8">
-                    <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
                         <BookOpen className="text-green-600" size={20} />
                         รีวิวคำตอบ ({result.num_items} ข้อ)
                     </h2>
@@ -504,10 +504,10 @@ export default function CATResultPage() {
                                     onClick={() => toggleItem(index)}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white text-sm ${resp.is_correct ? "bg-green-500" : "bg-red-500"}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-white text-sm ${resp.is_correct ? "bg-green-500" : "bg-red-500"}`}>
                                             {index + 1}
                                         </div>
-                                        <span className={`font-semibold text-sm ${resp.is_correct ? "text-green-700" : "text-red-700"}`}>
+                                        <span className={`font-medium text-sm ${resp.is_correct ? "text-green-700" : "text-red-700"}`}>
                                             {resp.is_correct ? "✓ ถูกต้อง" : "✗ ไม่ถูกต้อง"}
                                         </span>
                                         <span className="text-gray-400 text-xs line-clamp-1 max-w-xs hidden md:block">
@@ -522,7 +522,7 @@ export default function CATResultPage() {
                                     <div className="p-6 border-t border-gray-100">
                                         {resp.situation && (
                                             <div className="mb-4 p-4 bg-blue-50 rounded-xl border-l-4 border-blue-400">
-                                                <div className="flex items-center gap-2 text-blue-600 font-bold mb-2 text-sm">
+                                                <div className="flex items-center gap-2 text-blue-600 font-medium mb-2 text-sm">
                                                     <Info size={16} /> สถานการณ์
                                                 </div>
                                                 <p className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
@@ -531,7 +531,7 @@ export default function CATResultPage() {
                                             </div>
                                         )}
 
-                                        <h3 className="text-base font-bold text-gray-800 mb-4 leading-relaxed">
+                                        <h3 className="text-base font-medium text-gray-800 mb-4 leading-relaxed">
                                             {resp.question_text}
                                         </h3>
                                         {resp.question_image_url && (
@@ -587,7 +587,7 @@ export default function CATResultPage() {
                                         </div>
 
                                         <div className="p-4 bg-indigo-50/60 rounded-xl border border-indigo-100">
-                                            <div className="flex items-center gap-2 text-indigo-700 font-bold text-sm mb-2">
+                                            <div className="flex items-center gap-2 text-indigo-700 font-medium text-sm mb-2">
                                                 <HelpCircle size={16} /> คำอธิบาย
                                             </div>
                                             <p className="text-gray-700 text-sm leading-relaxed">

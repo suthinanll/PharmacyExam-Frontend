@@ -162,7 +162,7 @@ const StatRow = ({
       ) : (
         <div className="flex items-baseline gap-1.5 mt-0.5">
           <span
-            className="text-xl leading-none font-bold tracking-tight text-[#1C2033]"
+            className="text-xl leading-none font-medium tracking-tight text-[#1C2033]"
             style={{ fontFamily: "var(--font-display)" }}
           >
             {value}
@@ -176,7 +176,7 @@ const StatRow = ({
 
     {sublabel && !loading && (
       <span
-        className="text-xs font-semibold px-2 py-1 rounded-full shrink-0"
+        className="text-xs font-medium px-2 py-1 rounded-full shrink-0"
         style={{ backgroundColor: accentSoft, color: accent }}
       >
         {sublabel}
@@ -260,7 +260,7 @@ const PharmacistDashboard = () => {
               <AlertCircle className="w-7 h-7 text-red-500" />
             </div>
             <h2
-              className="text-xl font-bold text-[#1C2033] text-center mb-2"
+              className="text-xl font-medium text-[#1C2033] text-center mb-2"
               style={{ fontFamily: "var(--font-display)" }}
             >
               เกิดข้อผิดพลาด
@@ -316,7 +316,7 @@ const PharmacistDashboard = () => {
             </div>
 
             <h1
-              className="text-2xl md:text-3xl font-bold text-[#1C2033]"
+              className="text-2xl md:text-3xl font-medium text-[#1C2033]"
               style={{ fontFamily: "var(--font-display)" }}
             >
               ติดตามความคืบหน้า
@@ -333,7 +333,7 @@ const PharmacistDashboard = () => {
                 <TrendingUp className="w-4 h-4" />
               </div>
               <h2
-                className="text-base font-semibold text-[#1C2033]"
+                className="text-base font-medium text-[#1C2033]"
                 style={{ fontFamily: "var(--font-display)" }}
               >
                 อันดับของคุณ
@@ -351,7 +351,7 @@ const PharmacistDashboard = () => {
                   <>
                     <div className="flex items-end gap-1.5">
                       <span
-                        className="text-4xl font-bold text-[#4C51E6] tracking-tight"
+                        className="text-4xl font-medium text-[#4C51E6] tracking-tight"
                         style={{ fontFamily: "var(--font-display)" }}
                       >
                         #{data?.ranking?.current_rank ?? "-"}
@@ -410,7 +410,7 @@ const PharmacistDashboard = () => {
                       <div key={label}>
                         <div className="flex justify-between text-sm mb-1.5">
                           <span className="text-[#6B7089]">{label}</span>
-                          <span className="font-semibold text-[#1C2033]">
+                          <span className="font-medium text-[#1C2033]">
                             {value} คะแนน
                           </span>
                         </div>
@@ -486,7 +486,7 @@ const PharmacistDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div>
                 <h2
-                  className="text-base font-semibold text-[#1C2033] mb-4"
+                  className="text-base font-medium text-[#1C2033] mb-4"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
                   วิเคราะห์จุดแข็ง-จุดอ่อน
@@ -537,7 +537,7 @@ const PharmacistDashboard = () => {
                     <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
                   </div>
                   <h2
-                    className="text-base font-semibold text-[#1C2033]"
+                    className="text-base font-medium text-[#1C2033]"
                     style={{ fontFamily: "var(--font-display)" }}
                   >
                     ควรทบทวนเพิ่มเติม
@@ -571,7 +571,7 @@ const PharmacistDashboard = () => {
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                <h3 className="font-semibold text-[#1C2033] text-sm">
+                                <h3 className="font-medium text-[#1C2033] text-sm">
                                   {topic.topic}
                                 </h3>
                                 <span

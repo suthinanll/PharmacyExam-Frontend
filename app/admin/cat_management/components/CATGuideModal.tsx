@@ -17,7 +17,7 @@ export default function CATGuideModal({ isOpen, onClose }: CATGuideModalProps) {
                 <div className="bg-green-600 px-6 py-4 text-white flex justify-between items-center">
                     <div className="flex items-center gap-3">
                         <Info className="w-6 h-6" />
-                        <h3 className="text-xl font-semibold">คู่มือการจัดการข้อสอบ CAT</h3>
+                        <h3 className="text-xl font-medium">คู่มือการจัดการข้อสอบ CAT</h3>
                     </div>
                     <button onClick={onClose} className="hover:bg-green-500 p-1.5 rounded-lg transition-colors">
                         <X className="w-6 h-6" />
@@ -128,7 +128,7 @@ export default function CATGuideModal({ isOpen, onClose }: CATGuideModalProps) {
                 <div className="p-6 bg-gray-50 border-t border-gray-200">
                     <button
                         onClick={onClose}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium text-base transition-colors"
+                        className="w-full bg-green-600 hover:bg-green-700 active:scale-95 text-white py-3 rounded-lg font-medium text-base transition-colors"
                     >
                         เข้าใจแล้ว
                     </button>
