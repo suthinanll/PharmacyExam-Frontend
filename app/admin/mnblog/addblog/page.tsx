@@ -271,6 +271,16 @@ const DraftCard = ({
                         onChange={(e) => onUpdate(draft.tempId, "imageUrl", e.target.value)}
                         className="w-full text-[10px] border-gray-200 rounded-lg focus:ring-green-500 py-1"
                     />
+
+                    {/* คำแนะนำการอัปโหลด */}
+                    <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                        <p className="text-xs font-medium text-blue-900 mb-1.5">คำแนะนำ</p>
+                        <ul className="text-[10px] text-blue-700 space-y-0.5">
+                            <li>• แนะนำขนาดภาพ 1200 x 800 px</li>
+                            <li>• ไฟล์ภาพต้องไม่เกิน 5MB</li>
+                            <li>• รองรับไฟล์: JPG, PNG, WebP</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -336,22 +346,6 @@ function AddBlogPage() {
         };
     }, [drafts]);
 
-    // โหลด draft จาก localStorage ตอนเริ่มต้น
-    useEffect(() => {
-        const saved = localStorage.getItem('blog-drafts');
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                if (parsed.length > 0) {
-                    setDrafts(parsed);
-                    setToast({ type: "info", message: "โหลดแบบร่างที่บันทึกไว้แล้ว" });
-                }
-            } catch (e) {
-                console.error('Failed to parse saved drafts:', e);
-            }
-        }
-    }, []);
-
     const addNewDraft = () => {
         setDrafts(prev => [
             ...prev,
@@ -382,8 +376,6 @@ function AddBlogPage() {
         },
         [],
     );
-
- 
 
     const handleContentImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -436,14 +428,70 @@ function AddBlogPage() {
         }
     };
 
-    const handleSubmitAll = async () => {
+    const handleSaveDraft = async () => {
         // Validation
         const emptyTitles = drafts.filter(d => !d.title.trim());
         if (emptyTitles.length > 0) {
             setToast({ type: "warning", message: "กรุณากรอกหัวข้อข่าวให้ครบทุกรายการ" });
             return;
         }
+        const emptyContent = drafts.filter(d => !d.content.trim() || d.content === '<p></p>');
+        if (emptyContent.length > 0) {
+            setToast({ type: "warning", message: "กรุณากรอกเนื้อหาข่าวให้ครบทุกรายการ" });
+            return;
+        }
+        const uploading = drafts.filter(d => d.isUploading);
+        if (uploading.length > 0) {
+            setToast({ type: "warning", message: "กรุณารอการอัปโหลดรูปภาพให้เสร็จก่อน" });
+            return;
+        }
+        setIsSaving(true);
+        try {
+            const token = getToken();
+            let successCount = 0;
+            for (const draft of drafts) {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/news`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        title: draft.title,
+                        content: draft.content,
+                        cover_image_url: draft.imageUrl,
+                        categoryIds: draft.categoryIds,
+                        status: 'DRAFT',
+                        author_id: Number(draft.author_id || 10)
+                    }),
+                });
+                if (response.ok) {
+                    successCount++;
+                } else {
+                    throw new Error(`บันทึกแบบร่าง "${draft.title}" ไม่สำเร็จ`);
+                }
+            }
+            localStorage.removeItem('blog-drafts');
+            setToast({ type: "success", message: `บันทึกแบบร่างสำเร็จ ${successCount} รายการ!` });
+            setTimeout(() => router.push('/admin/mnblog'), 1500);
+        } catch (error: any) {
+            setToast({ type: "error", message: error.message || "เกิดข้อผิดพลาดในการบันทึก" });
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
+    const handleSubmitAll = async () => {
+        const emptyTitles = drafts.filter(d => !d.title.trim());
+        if (emptyTitles.length > 0) {
+            setToast({ type: "warning", message: "กรุณากรอกหัวข้อข่าวให้ครบทุกรายการ" });
+            return;
+        }
+        const emptyContent = drafts.filter(d => !d.content.trim() || d.content === '<p></p>');
+        if (emptyContent.length > 0) {
+            setToast({ type: "warning", message: "กรุณากรอกเนื้อหาข่าวให้ครบทุกรายการ" });
+            return;
+        }
         const uploading = drafts.filter(d => d.isUploading);
         if (uploading.length > 0) {
             setToast({ type: "warning", message: "กรุณารอการอัปโหลดรูปภาพให้เสร็จก่อน" });
@@ -478,10 +526,7 @@ function AddBlogPage() {
                     throw new Error(`บันทึกข่าว "${draft.title}" ไม่สำเร็จ`);
                 }
             }
-
-            // ล้าง localStorage หลังบันทึกสำเร็จ
             localStorage.removeItem('blog-drafts');
-
             setToast({ type: "success", message: `บันทึกข่าวสารสำเร็จ ${successCount} รายการ!` });
             setTimeout(() => router.push('/admin/mnblog'), 1500);
         } catch (error: any) {
@@ -509,12 +554,20 @@ function AddBlogPage() {
                     </div>
                     <div className="flex gap-2 w-full md:w-auto">
                         <button
+                            onClick={handleSaveDraft}
+                            disabled={isSaving || drafts.length === 0}
+                            className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-lg transition-all shadow-md ${isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-600 hover:bg-gray-700 active:scale-95 text-white'}`}
+                        >
+                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
+                            <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกแบบร่าง'}</span>
+                        </button>
+                        <button
                             onClick={handleSubmitAll}
                             disabled={isSaving || drafts.length === 0}
                             className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-lg text-white transition-all shadow-md ${isSaving ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'}`}
                         >
                             {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                            <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกทั้งหมด'}</span>
+                            <span>{isSaving ? 'กำลังบันทึก...' : 'เผยแพร่ทั้งหมด'}</span>
                         </button>
                     </div>
                 </div>

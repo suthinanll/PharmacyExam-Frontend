@@ -439,7 +439,7 @@ export default function CATManagement() {
                             <button onClick={() => setShowModal(false)}
                                 className="flex-1 border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-50">ยกเลิก</button>
                             <button onClick={handleUpdateIRT} disabled={isSaving}
-                                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-lg font-medium disabled:opacity-50 flex items-center justify-center gap-2">
+                                className="flex-1 bg-green-600 hover:bg-green-700 active:scale-95 text-white py-2.5 rounded-lg font-medium disabled:opacity-50 flex items-center justify-center gap-2">
                                 {isSaving ? <><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />กำลังบันทึก</> : 'บันทึก'}
                             </button>
                         </div>

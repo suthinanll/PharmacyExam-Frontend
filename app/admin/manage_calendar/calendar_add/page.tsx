@@ -8,7 +8,7 @@ import Swal from "sweetalert2";
 import { useAuth } from "@/contexts/AuthContext";
 
 const CATEGORY_OPTIONS = [
-  { label: "PLE-IP1, PC1, PHCP1", value: "PLE-IP1, PC1, PHCP1", color: "bg-emerald-50 text-emerald-700 border-emerald-300" },
+  { label: "PLE-IP1, PC1, PHCP1", value: "PLE-IP1, PC1, PHCP1", color: "bg-green-50 text-emerald-700 border-emerald-300" },
   { label: "PLE-IP2",              value: "PLE-IP2",              color: "bg-teal-50 text-teal-700 border-teal-300" },
   { label: "PLE-PC2",              value: "PLE-PC2",              color: "bg-green-50 text-green-700 border-green-300" },
   { label: "PLE-PHCP2",            value: "PLE-PHCP2",            color: "bg-lime-50 text-lime-700 border-lime-300" },
@@ -257,7 +257,7 @@ function Page() {
               </button>
               <button
                 onClick={addNewEvent}
-                className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 text-sm font-medium transition-all shadow-md shadow-emerald-100"
+                className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 text-sm font-medium transition-all shadow-md shadow-green-600/10"
               >
                 <Plus className="w-4 h-4" /> เพิ่มช่องใหม่
               </button>
@@ -266,13 +266,13 @@ function Page() {
         </div>
 
         {/* ── PDF Import ───────────────────────────────────────────── */}
-        <div className="bg-white border border-emerald-200 rounded-2xl p-6 mb-8 shadow-sm">
+        <div className="bg-white border border-green-200 rounded-2xl p-6 mb-8 shadow-sm">
           <h3 className="text-sm font-medium text-gray-700 mb-4 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-emerald-600" />
             นำเข้าข้อมูลด้วย AI จากไฟล์ PDF
           </h3>
           <div className="flex flex-col sm:flex-row gap-4">
-            <label className="flex-1 flex flex-col items-center justify-center h-28 border-2 border-dashed border-emerald-200 rounded-xl cursor-pointer bg-emerald-50/30 hover:bg-emerald-50 transition-all">
+            <label className="flex-1 flex flex-col items-center justify-center h-28 border-2 border-dashed border-green-200 rounded-xl cursor-pointer bg-green-50/30 hover:bg-green-50 transition-all">
               <p className="text-sm text-gray-600 mb-0.5">
                 {pdfFile
                   ? <span className="font-medium text-emerald-700">{pdfFile.name}</span>
@@ -286,7 +286,7 @@ function Page() {
               disabled={!pdfFile}
               className={`sm:w-44 py-3 rounded-xl text-sm font-medium transition-all
                 ${pdfFile
-                  ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-100"
+                  ? "bg-green-600 text-white hover:bg-green-700 shadow-md shadow-green-600/10"
                   : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
             >
               ประมวลผลด้วย AI
@@ -301,7 +301,7 @@ function Page() {
               {/* Card header */}
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-7 h-7 bg-emerald-600 text-white rounded-full flex items-center justify-center text-xs font-medium">
+                  <div className="w-7 h-7 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-medium">
                     {index + 1}
                   </div>
                   <span className="font-medium text-gray-700 text-sm">รายละเอียดกำหนดการ</span>
@@ -416,7 +416,7 @@ function Page() {
               </Link>
               <button
                 onClick={() => saveSchedules(true)}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3 bg-emerald-600 text-white font-medium rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all active:scale-95 text-sm"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-3 bg-green-600 text-white font-medium rounded-xl hover:bg-green-700 shadow-lg shadow-green-600/10 transition-all active:scale-95 text-sm"
               >
                 <Send className="w-4 h-4" /> บันทึกและเผยแพร่
               </button>

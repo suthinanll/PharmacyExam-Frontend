@@ -372,7 +372,7 @@ export default function ItemBankSettingsPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                className="flex-1 bg-green-600 hover:bg-green-700 active:scale-95 text-white font-medium px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                             >
                                 {loading ? (
                                     <>

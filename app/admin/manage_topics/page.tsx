@@ -265,7 +265,7 @@ export default function ManageTopicsPage() {
                             </p>
                         </div>
                         <button onClick={handleCreateTopic}
-                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md">
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md">
                             <Plus size={18} /> เพิ่มหัวข้อหลัก
                         </button>
                     </div>
@@ -504,7 +504,7 @@ export default function ManageTopicsPage() {
                             <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3">
                                 <button onClick={() => setShowTopicModal(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">ยกเลิก</button>
                                 <button onClick={submitTopic} disabled={submitting}
-                                    className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2">
+                                    className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 active:scale-95 text-white rounded-lg flex items-center gap-2">
                                     {submitting && <Loader2 size={14} className="animate-spin" />} บันทึก
                                 </button>
                             </div>
@@ -535,7 +535,7 @@ export default function ManageTopicsPage() {
                             <div className="px-6 py-4 bg-gray-50 flex justify-end gap-3">
                                 <button onClick={() => setShowSubTopicModal(false)} className="px-4 py-2 text-sm text-gray-600 hover:bg-gray-200 rounded-lg transition-colors">ยกเลิก</button>
                                 <button onClick={submitSubTopic} disabled={submitting}
-                                    className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2">
+                                    className="px-4 py-2 text-sm bg-green-600 hover:bg-green-700 active:scale-95 text-white rounded-lg flex items-center gap-2">
                                     {submitting && <Loader2 size={14} className="animate-spin" />} บันทึก
                                 </button>
                             </div>

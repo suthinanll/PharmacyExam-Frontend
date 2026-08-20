@@ -440,9 +440,7 @@ const Page = () => {
       if (resNews.ok) {
         const newsData = await resNews.json();
         setRealNews(
-          Array.isArray(newsData)
-            ? newsData.filter((n: any) => n.status === "PUBLISHED")
-            : [],
+          Array.isArray(newsData) ? newsData : [],
         );
       }
       if (resBookmarks && resBookmarks.ok) {

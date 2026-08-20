@@ -133,7 +133,7 @@ export default function ItemBankHeader({
 
                                 <button
                                     onClick={onAddSituation}
-                                    className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
+                                    className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
                                 >
                                     <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                                     เพิ่มสถานการณ์

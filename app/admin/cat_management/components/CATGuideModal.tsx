@@ -128,7 +128,7 @@ export default function CATGuideModal({ isOpen, onClose }: CATGuideModalProps) {
                 <div className="p-6 bg-gray-50 border-t border-gray-200">
                     <button
                         onClick={onClose}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-medium text-base transition-colors"
+                        className="w-full bg-green-600 hover:bg-green-700 active:scale-95 text-white py-3 rounded-lg font-medium text-base transition-colors"
                     >
                         เข้าใจแล้ว
                     </button>

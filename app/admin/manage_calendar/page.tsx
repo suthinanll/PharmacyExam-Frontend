@@ -356,7 +356,7 @@ function Page() {
           </div>
           <Link
             href="/admin/manage_calendar/calendar_add"
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl transition-all font-medium text-sm shadow-md shadow-emerald-100"
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-6 py-3 rounded-xl transition-all font-medium text-sm shadow-md shadow-green-600/10 cursor-pointer"
           >
             <Plus className="w-4 h-4" /> เพิ่มกำหนดการใหม่
           </Link>
@@ -424,7 +424,7 @@ function Page() {
             )}
             <button
               onClick={() => handleBulkAction("publish")}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-emerald-200 text-emerald-700 rounded-xl text-xs font-medium hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-emerald-200 text-green-700 rounded-xl text-xs font-medium hover:bg-green-600 hover:text-white hover:border-green-600 transition-all"
             >
               <Eye className="w-3.5 h-3.5" />
               {someSelected ? `เผยแพร่ (${selectedIds.length})` : "เผยแพร่ทั้งหมด"}

@@ -294,7 +294,7 @@ export default function CategoriesManagement() {
                             <p className="text-sm text-gray-500">เพิ่ม แก้ไข ลบ และดูชุดข้อสอบที่เชื่อมโยง · {filtered.length} รายการ</p>
                         </div>
                         <button onClick={openCreate}
-                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md">
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md">
                             <Plus size={18} /> เพิ่มประเภทข้อสอบใหม่
                         </button>
                     </div>
@@ -454,7 +454,7 @@ export default function CategoriesManagement() {
                                 ยกเลิก
                             </button>
                             <button onClick={submitCategory} disabled={submitting}
-                                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium flex items-center gap-2 transition-colors disabled:opacity-50 text-sm">
+                                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 active:scale-95 text-white rounded-xl font-medium flex items-center gap-2 transition-colors disabled:opacity-50 text-sm">
                                 {submitting && <Loader2 size={16} className="animate-spin" />}
                                 {submitting ? 'กำลังบันทึก...' : 'บันทึก'}
                             </button>

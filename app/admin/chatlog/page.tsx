@@ -161,7 +161,7 @@ export default function ChatbotKnowledgePage() {
                         {/* Upload trigger button */}
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md"
+                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md"
                         >
                             <FileUp size={18} /> อัปโหลดเอกสาร
                         </button>
@@ -249,7 +249,7 @@ export default function ChatbotKnowledgePage() {
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); handleUpload(); }}
                                         disabled={isUploading}
-                                        className="pointer-events-auto flex items-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors disabled:opacity-60"
+                                        className="pointer-events-auto flex items-center gap-1.5 bg-green-600 hover:bg-green-700 active:scale-95 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors disabled:opacity-60"
                                     >
                                         {isUploading
                                             ? <><Loader2 size={15} className="animate-spin" /> กำลังนำเข้า...</>

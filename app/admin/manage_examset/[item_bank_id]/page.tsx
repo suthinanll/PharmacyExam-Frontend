@@ -1752,7 +1752,7 @@ export default function ItemBankEditPage() {
                                         <button
                                             type="submit"
                                             disabled={submitting}
-                                            className="bg-green-600 hover:bg-green-700 text-white font-medium px-8 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                                            className="bg-green-600 hover:bg-green-700 active:scale-95 text-white font-medium px-8 py-2.5 rounded-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                                         >
                                             {submitting ? (
                                                 <>

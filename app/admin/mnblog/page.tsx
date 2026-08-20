@@ -199,10 +199,10 @@ function Page() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="mb-10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Management Content</h1>
+            <h1 className="text-3xl font-medium text-gray-900 tracking-tight">จัดการข่าวสาร</h1>
             <p className="text-gray-500 mt-1 font-medium">สรุปและจัดการข่าวสารประชาสัมพันธ์ทั้งหมด</p>
           </div>
-          <Link href="/admin/mnblog/addblog" className="w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl shadow-lg shadow-green-200 transition-all active:scale-95 font-medium">
+          <Link href="/admin/mnblog/addblog" className="w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-6 py-3 rounded-2xl transition-all font-medium">
             <Plus className="w-5 h-5" /> สร้างข่าวสารใหม่
           </Link>
         </div>

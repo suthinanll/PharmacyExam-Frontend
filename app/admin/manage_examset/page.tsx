@@ -99,7 +99,7 @@ function BankCard({ bank }: { bank: ItemBank }) {
         {/* CTA */}
         <Link
           href={`/admin/manage_examset/${bank.item_bank_id}`}
-          className="mt-4 block w-full text-center bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
+          className="mt-4 block w-full text-center bg-green-600 hover:bg-green-700 active:scale-95 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
         >
           ดูรายละเอียด
         </Link>
@@ -205,7 +205,7 @@ function Page() {
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md">
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md">
               <Plus size={18} /> สร้างข้อสอบใหม่
             </button>
           </div>
