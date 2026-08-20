@@ -97,11 +97,11 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
           ) : (
             <div className="h-full w-full flex flex-col items-center justify-center text-gray-300">
               <ImageOff className="w-12 h-12 mb-2 opacity-20" />
-              <span className="text-[10px] uppercase font-bold tracking-widest">No Cover Image</span>
+              <span className="text-xs uppercase font-bold tracking-widest">No Cover Image</span>
             </div>
           )}
           <div className="absolute top-3 left-3 flex gap-2">
-            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase shadow-sm ${isPublished ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}`}>
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-full uppercase shadow-sm ${isPublished ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}`}>
               {isPublished ? '• Live' : 'Draft'}
             </span>
           </div>
@@ -113,7 +113,7 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
           <p className="text-sm text-gray-500 mb-4 line-clamp-2 flex-grow">
             {stripHtml(blog.content)}
           </p>
-          <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400 font-medium">
+          <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between text-xs text-gray-400 font-medium">
             <div className="flex items-center gap-1.5">
                <Clock size={14} className="text-gray-300" />
                {formatDate(blog.created_at)}
@@ -201,8 +201,8 @@ function Page() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
         <div className="mb-10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
-            <h1 className="text-3xl font-black text-gray-900 tracking-tight">Management Content</h1>
-            <p className="text-gray-500 mt-1 font-medium">สรุปและจัดการข่าวสารประชาสัมพันธ์ทั้งหมด</p>
+            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">การจัดการบล็อกข่าวสาร</h1>
+            <p className="text-sm text-gray-500 mt-1">สรุปและจัดการข่าวสารประชาสัมพันธ์ทั้งหมด</p>
           </div>
           <Link href="/admin/mnblog/addblog" className="w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-2xl shadow-lg shadow-green-200 transition-all active:scale-95 font-bold">
             <Plus className="w-5 h-5" /> สร้างข่าวสารใหม่
@@ -238,7 +238,7 @@ function Page() {
                   }`}
                 >
                   {tab.label}
-                  <span className={`ml-2 text-[10px] ${statusFilter === tab.id ? 'text-green-400' : 'text-gray-300'}`}>
+                  <span className={`ml-2 text-xs ${statusFilter === tab.id ? 'text-green-400' : 'text-gray-300'}`}>
                     {counts[tab.id as keyof typeof counts]}
                   </span>
                 </button>

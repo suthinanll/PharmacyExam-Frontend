@@ -309,13 +309,13 @@ function Page() {
 
       days.push(
         <div key={day} className="p-1.5 border border-gray-100 min-h-[90px] bg-white hover:bg-emerald-50/30 transition-colors flex flex-col">
-          <div className="text-[11px] font-semibold text-gray-400 text-right mb-1">{day}</div>
+          <div className="text-xs font-semibold text-gray-400 text-right mb-1">{day}</div>
           <div className="flex flex-col gap-0.5 overflow-y-auto max-h-[68px]">
             {dayEvents.map((event, idx) => (
               <div
                 key={`${event.id}-${idx}`}
                 onClick={() => handleEditClick(event)}
-                className={`px-1.5 py-0.5 rounded text-[9px] font-semibold cursor-pointer truncate border
+                className={`px-1.5 py-0.5 rounded text-xs font-semibold cursor-pointer truncate border
                   ${event.is_published
                     ? "bg-emerald-50 text-emerald-700 border-emerald-200"
                     : "bg-gray-50 text-gray-400 border-gray-200 italic"}`}
@@ -351,7 +351,7 @@ function Page() {
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">การจัดการปฏิทิน</h1>
+            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">การจัดการปฏิทิน</h1>
             <p className="text-gray-500 mt-1 text-sm">ตั้งค่ากำหนดการและจัดการสถานะการเผยแพร่</p>
           </div>
           <Link
@@ -514,13 +514,13 @@ function Page() {
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h3 className="text-base font-semibold text-gray-900 truncate ">{event.title}</h3>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${event.is_published ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${event.is_published ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
                           {event.is_published ? "เผยแพร่" : "แบบร่าง"}
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-1.5 mb-5">
                         {event.type_event.map((type, tIdx) => (
-                          <span key={tIdx} className={`px-2.5 py-0.5 rounded-lg text-[10px] font-medium border ${CATEGORY_STYLES[type] || "bg-gray-50 text-gray-500 border-gray-200"}`}>
+                          <span key={tIdx} className={`px-2.5 py-0.5 rounded-lg text-xs font-medium border ${CATEGORY_STYLES[type] || "bg-gray-50 text-gray-500 border-gray-200"}`}>
                             {type}
                           </span>
                         ))}

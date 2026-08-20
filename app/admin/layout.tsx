@@ -3,9 +3,8 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-
 import Swal from 'sweetalert2';
-import { FullScreenSkeleton } from '@/components/Skeleton';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const { user, isLoading, isAuthenticated } = useAuth();
@@ -16,7 +15,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             if (!isAuthenticated) {
                 router.push('/login');
             } else if (user?.role_id !== 2) {
-                // If not admin (role_id 2), show toast and redirect to user page
                 Swal.fire({
                     icon: 'error',
                     title: 'ไม่มีสิทธิ์เข้าถึง',
@@ -33,10 +31,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }, [isLoading, isAuthenticated, user, router]);
 
     if (isLoading) {
-        return <FullScreenSkeleton />;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <LoadingSpinner size="lg" text="กำลังโหลดข้อมูลระบบผู้ดูแล..." />
+            </div>
+        );
     }
 
-    // Only render children if user is authenticated and is an admin
     if (!isAuthenticated || user?.role_id !== 2) {
         return null;
     }

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface DashboardData {
   stats: {
@@ -231,6 +232,19 @@ const PharmacistDashboard = () => {
       }
     `}</style>
   );
+
+  if (loading) {
+    return (
+      <>
+        {fontStyles}
+        <Navbar_user />
+        <div className="min-h-[70vh] flex items-center justify-center">
+          <LoadingSpinner size="lg" text="กำลังโหลดข้อมูลสถิติและความก้าวหน้า..." />
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   if (error) {
     return (

@@ -5,6 +5,7 @@ import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X
 import Navbar from "@/components/Navbar_user";
 import Swal from "sweetalert2";
 import { useAuth } from '@/contexts/AuthContext';
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // Utility for typing effect
 const useTypewriter = (text: string, speed: number = 20) => {
@@ -821,16 +822,8 @@ export default function ChatbotPage() {
                 )}
 
                 {isMessageLoading ? (
-                  <div className="py-6 space-y-3">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="flex items-end gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
-                        <div className="space-y-2 flex-1 max-w-[70%]">
-                          <div className="h-3.5 w-full animate-pulse rounded-lg bg-gray-200" />
-                          <div className="h-3.5 w-2/3 animate-pulse rounded-lg bg-gray-200" />
-                        </div>
-                      </div>
-                    ))}
+                  <div className="py-12 flex items-center justify-center">
+                    <LoadingSpinner size="md" text="กำลังโหลดข้อความ..." />
                   </div>
                 ) : (
                   messages.length === 0 && !fetchError ? (

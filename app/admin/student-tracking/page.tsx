@@ -268,7 +268,7 @@ export default function StudentTrackingPage() {
             <h1 className="text-base sm:text-xl font-black text-gray-900 tracking-tight truncate">
               ระบบติดตามผลการเรียนรายบุคคล
             </h1>
-            <p className="text-[11px] sm:text-xs text-gray-500 truncate">
+            <p className="text-xs text-gray-500 truncate">
               จำแนกสถิติสอบปกติแบบดั้งเดิม และการประเมินความสามารถปรับเหมาะ (CAT)
             </p>
           </div>
@@ -394,7 +394,7 @@ export default function StudentTrackingPage() {
                       </div>
                       <div className="min-w-0">
                         <h4 className="text-sm font-bold text-gray-800 truncate">{student.name}</h4>
-                        <p className="text-[11px] text-gray-400 truncate">{student.email}</p>
+                        <p className="text-xs text-gray-400 truncate">{student.email}</p>
                       </div>
                     </div>
                     <ChevronRight
@@ -411,23 +411,25 @@ export default function StudentTrackingPage() {
                 type="button"
                 disabled={!canGoPrevious}
                 onClick={() => setPage((current) => Math.max(1, current - 1))}
-                className="h-9 w-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-medium transition cursor-pointer"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft size={14} />
+                <span>ก่อนหน้า</span>
               </button>
               <div className="text-center">
-                <p className="text-xs font-bold text-gray-700">
+                <p className="text-xs font-bold text-gray-800">
                   หน้า {meta.currentPage} / {meta.totalPages}
                 </p>
-                <p className="text-[10px] text-gray-400">แสดงครั้งละ {STUDENT_LIMIT} รายการ</p>
+                <p className="text-xs text-gray-400">ทั้งหมด {meta.totalItems} คน</p>
               </div>
               <button
                 type="button"
                 disabled={!canGoNext}
                 onClick={() => setPage((current) => current + 1)}
-                className="h-9 w-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-medium transition cursor-pointer"
               >
-                <PageNext className="w-4 h-4" />
+                <span>ถัดไป</span>
+                <ChevronRight size={14} />
               </button>
             </div>
           </div>
@@ -573,11 +575,11 @@ export default function StudentTrackingPage() {
                   )}
                 </div>
 
-                {/* แท็บสลับประเภทบาร์คะแนนสอบ (ปรับขนาด Font ให้เล็กลงบน Mobile) */}
+                {/* แท็บสลับประเภทบาร์คะแนนสอบ */}
                 <div className="bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm flex flex-row gap-1">
                   <button
                     onClick={() => setActiveTab("CAT")}
-                    className={`flex-1 py-2.5 px-2 text-[11px] sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5
+                    className={`flex-1 py-2.5 px-2 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5
                       ${activeTab === "CAT" ? "bg-green-600 text-white shadow-md shadow-green-600/10" : "text-gray-500 hover:bg-gray-50"}`}
                   >
                     <Layers className="w-3.5 h-3.5 shrink-0" />
@@ -585,7 +587,7 @@ export default function StudentTrackingPage() {
                   </button>
                   <button
                     onClick={() => setActiveTab("NORMAL")}
-                    className={`flex-1 py-2.5 px-2 text-[11px] sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5
+                    className={`flex-1 py-2.5 px-2 text-xs sm:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-1.5
                       ${activeTab === "NORMAL" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10" : "text-gray-500 hover:bg-gray-50"}`}
                   >
                     <CheckCircle className="w-3.5 h-3.5 shrink-0" />
@@ -628,7 +630,7 @@ export default function StudentTrackingPage() {
                                     className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                                   />
                                 </span>
-                                <span className={`font-black px-2 py-0.5 rounded-md text-[11px] self-start sm:self-auto whitespace-nowrap ${getStatusColor(exam.status)}`}>
+                                <span className={`font-black px-2 py-0.5 rounded-md text-xs self-start sm:self-auto whitespace-nowrap ${getStatusColor(exam.status)}`}>
                                   Theta: {exam.theta > 0 ? `+${exam.theta.toFixed(2)}` : exam.theta.toFixed(2)} ({exam.status})
                                 </span>
                               </div>
@@ -649,12 +651,12 @@ export default function StudentTrackingPage() {
                                   style={{ left: `calc(${calculateThetaProgress(exam.theta)}% - 3px)` }}
                                 />
                               </div>
-                              <div className="flex justify-between text-[9px] text-gray-400 font-medium px-0.5">
+                              <div className="flex justify-between text-xs text-gray-400 font-medium px-0.5">
                                 <span>ต้องปรับปรุง (&lt; -1.0)</span>
                                 <span>ปานกลาง</span>
                                 <span>ระดับสูง (&gt; 1.0)</span>
                               </div>
-                              <p className="text-[9px] text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
+                              <p className="text-xs text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
 
                               {/* Expanded responses */}
                               {isExpanded && exam.responses && exam.responses.length > 0 && (
@@ -667,7 +669,7 @@ export default function StudentTrackingPage() {
                                     {exam.responses.map((resp, idx) => (
                                       <div
                                         key={idx}
-                                        className="flex items-center gap-2 bg-white rounded-lg p-2 border border-gray-100 text-[10px]"
+                                        className="flex items-center gap-2 bg-white rounded-lg p-2 border border-gray-100 text-xs"
                                       >
                                         <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 font-bold">
                                           {resp.questionNumber}
@@ -730,7 +732,7 @@ export default function StudentTrackingPage() {
                                 style={{ width: `${(exam.score / exam.total) * 100}%` }}
                               />
                             </div>
-                            <p className="text-[9px] text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
+                            <p className="text-xs text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
                           </div>
                         ))
                       )

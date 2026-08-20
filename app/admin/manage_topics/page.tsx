@@ -343,7 +343,7 @@ export default function ManageTopicsPage() {
                 {/* ── Page Header ── */}
                 <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">จัดการหัวข้อข้อสอบ</h1>
+                        <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">จัดการหัวข้อข้อสอบ</h1>
                         <p className="text-sm text-gray-500 mt-1">โครงสร้างหมวดหมู่ข้อสอบ Topic & Sub-Topic ทั้งหมดในระบบ</p>
                     </div>
                     <button
@@ -592,11 +592,11 @@ export default function ManageTopicsPage() {
                                                             <table className="min-w-full divide-y divide-gray-100">
                                                                 <thead className="bg-gray-50">
                                                                     <tr>
-                                                                        <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase w-12">#</th>
-                                                                        <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase">ชื่อหัวข้อย่อย</th>
-                                                                        <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-gray-400 uppercase">คำอธิบาย</th>
-                                                                        <th className="px-4 py-2.5 text-center text-[11px] font-semibold text-gray-400 uppercase w-28">จำนวนข้อสอบ</th>
-                                                                        <th className="px-4 py-2.5 text-right text-[11px] font-semibold text-gray-400 uppercase w-24">จัดการ</th>
+                                                                        <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-400 uppercase w-12">#</th>
+                                                                        <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-400 uppercase">ชื่อหัวข้อย่อย</th>
+                                                                        <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-400 uppercase">คำอธิบาย</th>
+                                                                        <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-400 uppercase w-28">จำนวนข้อสอบ</th>
+                                                                        <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-400 uppercase w-24">จัดการ</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody className="divide-y divide-gray-50">
@@ -668,7 +668,7 @@ export default function ManageTopicsPage() {
                                                         <h4 className={`text-sm font-semibold truncate ${isSelected ? "text-green-900" : "text-gray-800"}`}>
                                                             {t.topic_name}
                                                         </h4>
-                                                        <p className="text-[11px] text-gray-400 mt-0.5">
+                                                        <p className="text-xs text-gray-400 mt-0.5">
                                                             {t.sub_topics?.length || 0} หัวข้อย่อย
                                                         </p>
                                                     </div>
@@ -758,9 +758,9 @@ export default function ManageTopicsPage() {
                                                 <table className="min-w-full divide-y divide-gray-100">
                                                     <thead className="bg-gray-50">
                                                         <tr>
-                                                            <th className="px-3 py-2 text-left text-[11px] font-semibold text-gray-400 uppercase">ชื่อหัวข้อย่อย</th>
-                                                            <th className="px-3 py-2 text-center text-[11px] font-semibold text-gray-400 uppercase w-24">ข้อสอบ</th>
-                                                            <th className="px-3 py-2 text-right text-[11px] font-semibold text-gray-400 uppercase w-20">จัดการ</th>
+                                                            <th className="px-3 py-2 text-left text-xs font-semibold text-gray-400 uppercase">ชื่อหัวข้อย่อย</th>
+                                                            <th className="px-3 py-2 text-center text-xs font-semibold text-gray-400 uppercase w-24">ข้อสอบ</th>
+                                                            <th className="px-3 py-2 text-right text-xs font-semibold text-gray-400 uppercase w-20">จัดการ</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-gray-50">
@@ -768,7 +768,7 @@ export default function ManageTopicsPage() {
                                                             <tr key={st.sub_topic_id} className="hover:bg-gray-50/80 transition-colors">
                                                                 <td className="px-3 py-2.5">
                                                                     <p className="text-xs font-medium text-gray-900">{st.sub_topic_name}</p>
-                                                                    {st.description && <p className="text-[11px] text-gray-400 truncate">{st.description}</p>}
+                                                                    {st.description && <p className="text-xs text-gray-400 truncate">{st.description}</p>}
                                                                 </td>
                                                                 <td className="px-3 py-2.5 text-center">
                                                                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
@@ -841,16 +841,16 @@ export default function ManageTopicsPage() {
                                                 {/* Subtopics Pills */}
                                                 <div className="flex flex-wrap gap-1.5 mb-4 max-h-20 overflow-hidden">
                                                     {subCount === 0 ? (
-                                                        <span className="text-[11px] text-gray-400 italic">ไม่มีหัวข้อย่อย</span>
+                                                        <span className="text-xs text-gray-400 italic">ไม่มีหัวข้อย่อย</span>
                                                     ) : (
                                                         t.sub_topics.slice(0, 4).map(st => (
-                                                            <span key={st.sub_topic_id} className="text-[10px] font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md truncate max-w-[140px]">
+                                                            <span key={st.sub_topic_id} className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md truncate max-w-[140px]">
                                                                 {st.sub_topic_name}
                                                             </span>
                                                         ))
                                                     )}
                                                     {subCount > 4 && (
-                                                        <span className="text-[10px] font-semibold bg-green-50 text-green-700 px-2 py-0.5 rounded-md">
+                                                        <span className="text-xs font-semibold bg-green-50 text-green-700 px-2 py-0.5 rounded-md">
                                                             +{subCount - 4} เพิ่มเติม
                                                         </span>
                                                     )}
@@ -860,7 +860,7 @@ export default function ManageTopicsPage() {
                                             {/* Bottom Info Bar */}
                                             <div className="bg-gray-50 border-t border-gray-100 px-5 py-3 flex items-center justify-between">
                                                 <div>
-                                                    <span className="text-[10px] text-gray-400 uppercase font-semibold block">จำนวนข้อสอบ</span>
+                                                    <span className="text-xs text-gray-400 uppercase font-semibold block">จำนวนข้อสอบ</span>
                                                     <span className="text-sm font-bold text-green-700">{itemCount} ข้อ</span>
                                                 </div>
                                                 <button

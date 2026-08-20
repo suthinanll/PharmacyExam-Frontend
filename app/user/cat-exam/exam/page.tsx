@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { BookOpen, Loader2, Clock, Hash, Award, AlertTriangle, FlaskConical, X } from "lucide-react";
 import Swal from "sweetalert2";
 import Link from "next/link";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // ==================== TYPES ====================
 interface CATItem {
@@ -655,17 +656,8 @@ function CATExamPageContent() {
     return (
       <>
         <Navbar_user />
-        <div className="min-h-screen bg-gray-50 py-8">
-          <div className="max-w-4xl mx-auto px-4 space-y-6">
-            <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-              <div className="h-5 w-3/4 animate-pulse rounded bg-gray-200" />
-              <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
-              ))}
-            </div>
-          </div>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <LoadingSpinner size="lg" text="กำลังโหลดข้อสอบ CAT..." />
         </div>
         <Footer />
       </>
@@ -1055,14 +1047,8 @@ function CATExamPageContent() {
       {/* Loading Overlay */}
       {loading && session && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100]">
-          <div className="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-md mx-4">
-            <div className="space-y-3">
-              <div className="h-5 w-3/4 animate-pulse rounded bg-gray-200" />
-              <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
-              <div className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
-              <div className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
-              <div className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
-            </div>
+          <div className="bg-white rounded-2xl p-8 shadow-2xl flex flex-col items-center justify-center">
+            <LoadingSpinner size="lg" text="กำลังประมวลผลข้อถัดไป..." />
           </div>
         </div>
       )}
@@ -1098,15 +1084,8 @@ function CATExamPageContent() {
 export default function CATExamPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-4xl mx-auto px-4 space-y-6">
-          <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
-            ))}
-          </div>
-        </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <LoadingSpinner size="lg" text="กำลังโหลดข้อสอบ CAT..." />
       </div>
     }>
       <CATExamPageContent />

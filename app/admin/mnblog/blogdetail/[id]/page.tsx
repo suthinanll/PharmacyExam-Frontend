@@ -229,7 +229,7 @@ export default function EditBlogDetail() {
                                 <h4 className="text-green-700 text-xs font-bold mb-2 flex items-center gap-2">
                                     <AlertCircle size={14} /> คำแนะนำ
                                 </h4>
-                                <ul className="text-[11px] text-green-600/80 space-y-1">
+                                <ul className="text-xs text-green-600/80 space-y-1">
                                     <li>• แนะนำขนาดภาพ 1200 x 800 px</li>
                                     <li>• ไฟล์ภาพต้องไม่เกิน 5MB</li>
                                 </ul>

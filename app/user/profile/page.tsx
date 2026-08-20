@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 import Swal from "sweetalert2";
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const Profile = () => {
     const { getToken, refreshUser } = useAuth();
@@ -215,16 +216,8 @@ const Profile = () => {
     };
 
     if (!user) return (
-        <div className="min-h-screen bg-gray-50 py-10">
-            <div className="max-w-3xl mx-auto px-4 space-y-5">
-                <div className="h-8 w-56 animate-pulse rounded-lg bg-gray-200" />
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-                    <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
-                    <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
-                    <div className="h-4 w-3/4 animate-pulse rounded bg-gray-200" />
-                    <div className="h-4 w-2/5 animate-pulse rounded bg-gray-200" />
-                </div>
-            </div>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+            <LoadingSpinner size="lg" text="กำลังโหลดข้อมูลโปรไฟล์..." />
         </div>
     );
 
@@ -371,7 +364,7 @@ const Profile = () => {
                         <div className="p-5 md:p-8">
                             <form className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6" onSubmit={(e) => e.preventDefault()}>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">ชื่อจริง</label>
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">ชื่อจริง</label>
                                     <input
                                         name="first_name"
                                         type="text"
@@ -390,7 +383,7 @@ const Profile = () => {
                                     )}
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">นามสกุล</label>
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">นามสกุล</label>
                                     <input
                                         name="last_name"
                                         type="text"
@@ -409,7 +402,7 @@ const Profile = () => {
                                     )}
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">อีเมล (ไม่สามารถแก้ไขได้)</label>
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">อีเมล (ไม่สามารถแก้ไขได้)</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
@@ -421,7 +414,7 @@ const Profile = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] md:text-xs font-bold text-gray-400 uppercase tracking-wider">เบอร์โทรศัพท์</label>
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">เบอร์โทรศัพท์</label>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
@@ -448,7 +441,7 @@ const Profile = () => {
                                         <div className="flex items-center gap-3 text-gray-600">
                                             <School className="w-5 h-5 text-indigo-500" />
                                             <div className="leading-tight">
-                                                <p className="text-[9px] text-gray-400 font-bold uppercase">มหาวิทยาลัย</p>
+                                                <p className="text-xs text-gray-400 font-bold uppercase">มหาวิทยาลัย</p>
                                                 <p className="text-xs font-semibold">{user.university?.name || "ไม่ระบุ"}</p>
                                             </div>
                                         </div>

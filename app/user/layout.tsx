@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { FullScreenSkeleton } from '@/components/Skeleton';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 // หน้าให้ guest เข้าดูได้ (ดูข้อมูลได้ แต่ทำข้อสอบ/เพิ่มโน้ตต้อง login ก่อน)
 const GUEST_VIEWABLE_PATHS = ['/user/examset', '/user/calendar'];
@@ -40,7 +40,11 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
     }, [isLoading, isAuthenticated, user, router, isGuestViewable]);
 
     if (isLoading) {
-        return <FullScreenSkeleton />;
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <LoadingSpinner size="lg" text="กำลังโหลดข้อมูล..." />
+            </div>
+        );
     }
 
     // หน้า guest-viewable ให้แสดงได้ทุกกรณี ส่วนหน้าอื่นยังคง guard เหมือนเดิม

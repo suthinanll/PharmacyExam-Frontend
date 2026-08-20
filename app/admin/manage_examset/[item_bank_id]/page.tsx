@@ -1612,7 +1612,7 @@ export default function ItemBankEditPage() {
                                                                                                 <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-400">
                                                                                                     <Plus className="w-6 h-6 mb-2 text-gray-400" />
                                                                                                     <p className="text-xs font-semibold text-gray-600">คลิกเพื่ออัปโหลดรูปภาพ</p>
-                                                                                                    <p className="text-[10px] text-gray-400 mt-1">PNG, JPG ไม่เกิน 5MB</p>
+                                                                                                    <p className="text-xs text-gray-400 mt-1">PNG, JPG ไม่เกิน 5MB</p>
                                                                                                 </div>
                                                                                                 <input
                                                                                                     type="file"
@@ -1821,7 +1821,7 @@ export default function ItemBankEditPage() {
                                                                                         {/* IRT Parameters */}
                                                                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-white rounded-lg border border-gray-200">
                                                                                             <div className="space-y-1">
-                                                                                                <label className="text-[10px] uppercase font-bold text-gray-500">Discrimination (a)</label>
+                                                                                                <label className="text-xs uppercase font-bold text-gray-500">Discrimination (a)</label>
                                                                                                 <input
                                                                                                     type="number"
                                                                                                     step="0.01"
@@ -1831,7 +1831,7 @@ export default function ItemBankEditPage() {
                                                                                                 />
                                                                                             </div>
                                                                                             <div className="space-y-1">
-                                                                                                <label className="text-[10px] uppercase font-bold text-gray-500">Difficulty (b)</label>
+                                                                                                <label className="text-xs uppercase font-bold text-gray-500">Difficulty (b)</label>
                                                                                                 <input
                                                                                                     type="number"
                                                                                                     step="0.01"
@@ -1841,7 +1841,7 @@ export default function ItemBankEditPage() {
                                                                                                 />
                                                                                             </div>
                                                                                             <div className="space-y-1">
-                                                                                                <label className="text-[10px] uppercase font-bold text-gray-500">Guessing (c)</label>
+                                                                                                <label className="text-xs uppercase font-bold text-gray-500">Guessing (c)</label>
                                                                                                 <input
                                                                                                     type="number"
                                                                                                     step="0.01"

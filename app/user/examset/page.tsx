@@ -11,6 +11,7 @@ import { Loader2, BookOpen, Clock } from "lucide-react"
 import Swal from "sweetalert2"
 import { useAuth } from '@/contexts/AuthContext'
 import { useRequireLogin } from '@/utils/requireAuth'
+import LoadingSpinner from "@/components/LoadingSpinner"
 
 // Types
 interface Category {
@@ -249,19 +250,8 @@ const examset = () => {
     return (
       <>
         {isAuthenticated ? <Navbar_user /> : <NavbarGuest />}
-        <div className="min-h-screen bg-gray-50 py-8">
-          <div className="max-w-5xl mx-auto px-4 space-y-6">
-            <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
-                  <div className="h-4 w-2/3 animate-pulse rounded bg-gray-200" />
-                  <div className="h-3 w-1/2 animate-pulse rounded bg-gray-200" />
-                  <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200" />
-                </div>
-              ))}
-            </div>
-          </div>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <LoadingSpinner size="lg" text="กำลังโหลดคลังข้อสอบ..." />
         </div>
         <Footer />
       </>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, User, LogOut, ChevronLeft, ChevronRight, FileText, Zap, List, Calendar, Newspaper, MessageSquare, Settings, LayoutDashboard, SlidersHorizontal } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronLeft, ChevronRight, FileText, Zap, List, ListCollapse, Calendar, Newspaper, MessageSquare, Settings, LayoutDashboard, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import Swal from "sweetalert2";
@@ -86,7 +86,7 @@ export default function Navbar_admin({
     { title: "ข้อสอบแบบ (CAT)", href: "/admin/cat_management", icon: Zap },
     { title: "จัดการพารามิเตอร์ IRT", href: "/admin/irt_management", icon: SlidersHorizontal },
     { title: "จัดการประเภทข้อสอบ", href: "/admin/manage_category", icon: List },
-    { title: "จัดการหัวข้อ", href: "/admin/manage_topics", icon: List },
+    { title: "จัดการหัวข้อ", href: "/admin/manage_topics", icon: ListCollapse },
     { title: "ปฏิทินกำหนดการ", href: "/admin/manage_calendar", icon: Calendar },
     { title: "บล็อกข่าวสาร", href: "/admin/mnblog", icon: Newspaper },
   ];
@@ -359,7 +359,7 @@ export default function Navbar_admin({
           )}
         </header>
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-7 lg:p-8">
+        <main id="admin-main-content" className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-7 lg:p-8">
           {children}
         </main>
       </div>

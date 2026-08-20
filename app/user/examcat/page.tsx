@@ -2,6 +2,7 @@
 import Footer from "@/components/Footer";
 import React, { useState, useEffect } from "react";
 import Navbar_user from "@/components/Navbar_user";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 import {
   LineChart,
@@ -1275,14 +1276,8 @@ export default function PharmacyCATSystem() {
           </div>
 
           {loading ? (
-            <div className="p-6">
-              <div className="bg-green-50 rounded-2xl p-6 space-y-4">
-                <div className="h-5 w-3/4 animate-pulse rounded bg-gray-200" />
-                <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-14 w-full animate-pulse rounded-xl bg-gray-200" />
-                ))}
-              </div>
+            <div className="p-12 flex items-center justify-center">
+              <LoadingSpinner size="lg" text="กำลังโหลดข้อสอบ..." />
             </div>
           ) : (
             currentItem && (

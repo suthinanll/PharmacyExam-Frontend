@@ -10,6 +10,7 @@ import {
     XCircle, BookOpen, BarChart2, FileText
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import LoadingSpinner from '@/components/LoadingSpinner';
 import {
     Radar, RadarChart, PolarGrid, PolarAngleAxis,
     PolarRadiusAxis, ResponsiveContainer, Tooltip
@@ -115,18 +116,8 @@ function Summarize() {
         return (
             <>
                 <Navbar_user />
-                <div className="min-h-screen bg-gray-50 py-10">
-                    <div className="max-w-4xl mx-auto px-4 space-y-4">
-                        <div className="h-6 w-48 animate-pulse rounded bg-gray-200" />
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="bg-white rounded-2xl p-6 space-y-3 shadow-sm">
-                                    <div className="h-3 w-20 animate-pulse rounded bg-gray-200" />
-                                    <div className="h-8 w-28 animate-pulse rounded bg-gray-200" />
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                <div className="min-h-[60vh] flex items-center justify-center">
+                    <LoadingSpinner size="lg" text="กำลังโหลดผลการสอบ..." />
                 </div>
                 <Footer />
             </>

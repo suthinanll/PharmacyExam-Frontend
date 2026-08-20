@@ -9,6 +9,7 @@ import { Loader2, BookOpen, Clock, AlertCircle, ListCheck, X, Bookmark } from 'l
 import { useAuth } from '@/contexts/AuthContext';
 
 import ImagePreviewModal from '@/components/ImagePreviewModal';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 // Types
 interface AnswerOption {
@@ -410,18 +411,8 @@ function TakeExam() {
         return (
             <>
                 <Navbar_user />
-                <div className="min-h-screen bg-gray-50 py-8">
-                    <div className="max-w-4xl mx-auto px-4 space-y-6">
-                        <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-                            <div className="h-5 w-3/4 animate-pulse rounded bg-gray-200" />
-                            <div className="h-3 w-1/3 animate-pulse rounded bg-gray-200" />
-                            {[1, 2, 3, 4].map((i) => (
-                                <div key={i} className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
-                            ))}
-                            <div className="h-12 w-full animate-pulse rounded-xl bg-gray-300" />
-                        </div>
-                    </div>
+                <div className="min-h-[60vh] flex items-center justify-center">
+                    <LoadingSpinner size="lg" text="กำลังโหลดข้อสอบ..." />
                 </div>
                 <Footer />
             </>
@@ -822,15 +813,8 @@ function TakeExam() {
 export default function TakeExamPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-gray-50 py-8">
-                <div className="max-w-4xl mx-auto px-4 space-y-6">
-                    <div className="h-8 w-64 animate-pulse rounded-lg bg-gray-200" />
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                            <div key={i} className="h-12 w-full animate-pulse rounded-xl bg-gray-200" />
-                        ))}
-                    </div>
-                </div>
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <LoadingSpinner size="lg" text="กำลังโหลดข้อสอบ..." />
             </div>
         }>
             <TakeExam />

@@ -1,6 +1,7 @@
 "use client";
 
 import { AlarmClock, Calendar, ChevronRight, Info } from "lucide-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 // ─────────────────────────────────────────────
 // Countdown Hero — shared by /user and guest homepage
@@ -11,6 +12,7 @@ export const CountdownHero = ({
   targetDesc,
   timeLeft,
   isExamStarted,
+  loading = false,
   calendarHref = "/user/calendar",
   onCalendarClick,
 }: {
@@ -19,9 +21,18 @@ export const CountdownHero = ({
   targetDesc: string;
   timeLeft: { days: number; hours: number; minutes: number; seconds: number };
   isExamStarted: boolean | number | null;
+  loading?: boolean;
   calendarHref?: string;
   onCalendarClick?: () => void;
 }) => {
+  if (loading) {
+    return (
+      <div className="relative overflow-hidden rounded-3xl mb-12 bg-white border border-blue-100 shadow-lg min-h-[300px] flex items-center justify-center p-8">
+        <LoadingSpinner size="lg" text="กำลังโหลดกำหนดการสอบ..." />
+      </div>
+    );
+  }
+
   const units = [
     { label: "วัน", val: timeLeft.days },
     { label: "ชั่วโมง", val: timeLeft.hours },

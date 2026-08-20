@@ -10,6 +10,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CountdownHero } from "@/components/home/CountdownHero";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
+function calculateTimeLeft(targetDate: number | null) {
+  if (!targetDate) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  const now = Date.now();
+  const distance = targetDate - now;
+  if (distance <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+
+  const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+  return { days, hours, minutes, seconds };
+}
+
 const Page = () => {
   const { getToken } = useAuth();
   const router = useRouter();
@@ -22,6 +35,7 @@ const Page = () => {
     minutes: 0,
     seconds: 0,
   });
+  const [loadingSchedule, setLoadingSchedule] = useState(true);
   const [realNews, setRealNews] = useState<any[]>([]);
   const [loadingNews, setLoadingNews] = useState(true);
   const [bookmarkIds, setBookmarkIds] = useState<number[]>([]);
@@ -61,6 +75,7 @@ const Page = () => {
 
   const fetchData = useCallback(async () => {
     try {
+      setLoadingSchedule(true);
       const token = getToken();
       const headers = {
         Authorization: `Bearer ${token}`,
@@ -108,6 +123,7 @@ const Page = () => {
             ongoingExam.description || "กำหนดการนี้กำลังดำเนินการอยู่",
           );
           setTodayExams([ongoingExam]);
+          setTimeLeft(calculateTimeLeft(ongoingExam.endStamp));
 
           const futureExams = allExams.filter((e: any) => e.targetStamp > now);
           setUpcomingExams(futureExams.slice(0, 4));
@@ -118,7 +134,6 @@ const Page = () => {
           );
 
           if (examToday) {
-            // หาว่ามีกำหนดการอื่นในวันเดียวกันไหม
             const allTodayExams = allExams.filter(
               (exam: any) =>
                 new Date(exam.targetStamp).toDateString() === todayStr,
@@ -130,6 +145,7 @@ const Page = () => {
               examToday.description || "เข้าร่วมการทดสอบตามกำหนดการวันนี้",
             );
             setTodayExams(allTodayExams);
+            setTimeLeft(calculateTimeLeft(examToday.targetStamp));
 
             const remaining = allExams.filter(
               (e: any) =>
@@ -147,7 +163,6 @@ const Page = () => {
                 firstExam.targetStamp,
               ).toDateString();
 
-              // หาทุกกำหนดการที่อยู่ในวันเดียวกับกำหนดการแรก
               const sameDay = futureExams.filter(
                 (exam: any) =>
                   new Date(exam.targetStamp).toDateString() ===
@@ -160,9 +175,9 @@ const Page = () => {
                 firstExam.description ||
                   "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง",
               );
-              setTodayExams(sameDay); // เก็บทุกรายการในวันเดียวกัน
+              setTodayExams(sameDay);
+              setTimeLeft(calculateTimeLeft(firstExam.targetStamp));
 
-              // upcoming เอาเฉพาะที่ไม่ใช่วันเดียวกัน
               const remaining = futureExams.filter(
                 (e: any) =>
                   new Date(e.targetStamp).toDateString() !== firstExamDateStr,
@@ -194,6 +209,7 @@ const Page = () => {
     } catch (error) {
       console.error("Fetch Error:", error);
     } finally {
+      setLoadingSchedule(false);
       setLoadingNews(false);
     }
   }, [getToken]);
@@ -206,6 +222,9 @@ const Page = () => {
     if (!targetDate) return;
 
     const timer = setInterval(() => {
+      const calculated = calculateTimeLeft(targetDate);
+      setTimeLeft(calculated);
+
       const now = Date.now();
       const distance = targetDate - now;
 
@@ -221,6 +240,7 @@ const Page = () => {
               nextExam.description ||
                 "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง",
             );
+            setTimeLeft(calculateTimeLeft(nextExam.targetStamp));
             setUpcomingExams((prev) => prev.slice(1));
           } else {
             fetchData();
@@ -228,22 +248,13 @@ const Page = () => {
         }, 2000);
 
         clearInterval(timer);
-      } else {
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-        const hours = Math.floor(
-          (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-        );
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-        setTimeLeft({ days, hours, minutes, seconds });
       }
     }, 1000);
 
     return () => clearInterval(timer);
   }, [targetDate, upcomingExams, fetchData]);
 
-  const isExamStarted = targetDate && Date.now() >= targetDate;
+  const isExamStarted = targetDate ? Date.now() >= targetDate : false;
 
   return (
     <>
@@ -256,6 +267,7 @@ const Page = () => {
             targetDesc={targetDesc}
             timeLeft={timeLeft}
             isExamStarted={isExamStarted}
+            loading={loadingSchedule}
           />
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
@@ -270,41 +282,32 @@ const Page = () => {
                 <LoadingSpinner text="กำลังโหลดข่าวสารและประกาศ..." size="md" />
               </div>
             ) : realNews.length > 0 ? (
-              realNews.map((news) => (
-                <div
-                  key={news.article_id}
-                  className="cursor-pointer"
-                  onClick={() => handleNewsClick(Number(news.article_id))}
-                >
+              realNews.map((news) => {
+                const articleId = Number(news.article_id);
+                const isBookmarked = bookmarkIds.includes(articleId);
+
+                return (
                   <NewsCard
-                    id={Number(news.article_id)}
+                    key={articleId}
+                    id={articleId}
                     title={news.title}
-                    desc={
-                      news.content?.replace(/<[^>]*>/g, "").substring(0, 100) +
-                      "..."
-                    }
-                    img={news.cover_image_url || "/img/news1.jpg"}
-                    badge={
-                      new Date(news.created_at).getTime() >
-                      Date.now() - 7 * 24 * 60 * 60 * 1000
-                        ? "ใหม่"
-                        : ""
-                    }
-                    link={`/user/newsdetail/${news.article_id}`}
-                    initialIsSaved={bookmarkIds.includes(
-                      Number(news.article_id),
-                    )}
-                    onBookmark={() => {
-                      handleBookmarkToggle(Number(news.article_id));
-                    }}
+                    desc={news.description}
+                    img={news.image_url}
+                    badge={news.category_names}
+                    link={`/user/newsdetail/${articleId}`}
+                    initialIsSaved={isBookmarked}
+                    onBookmark={handleBookmarkToggle}
                   />
-                </div>
-              ))
+                );
+              })
             ) : (
-              <div className="col-span-full py-20 bg-white rounded-[3rem] text-center border-2 border-dashed border-gray-200">
-                <Bookmark className="mx-auto text-gray-200 mb-4" size={60} />
-                <p className="text-gray-400 font-semibold text-xl">
-                  ไม่พบข้อมูลข่าวสารในขณะนี้
+              <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
+                <Bookmark className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                <p className="font-semibold text-gray-700">
+                  ไม่มีข่าวสารและประกาศในขณะนี้
+                </p>
+                <p className="text-sm text-gray-400 mt-1">
+                  กรุณากลับมาตรวจสอบใหม่อีกครั้งในภายหลัง
                 </p>
               </div>
             )}

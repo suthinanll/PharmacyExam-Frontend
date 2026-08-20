@@ -174,9 +174,9 @@ export default function CATManagementPage() {
             <div className="max-w-7xl mx-auto px-4 py-6 space-y-6" suppressHydrationWarning>
 
                 {/* ── Page Header ── */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
+                        <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">
 
                             CAT Management & Analytics
                         </h1>
@@ -187,78 +187,67 @@ export default function CATManagementPage() {
                     <div className="flex items-center gap-2">
                         <Link
                             href="/admin/irt_management"
-                            className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-xs font-semibold text-white rounded-xl shadow-xs transition cursor-pointer"
+                            className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-sm font-semibold text-white rounded-xl shadow-xs transition cursor-pointer"
                         >
-                            <SlidersHorizontal className="w-3.5 h-3.5" />
+                            <SlidersHorizontal className="w-4 h-4" />
                             จัดการพารามิเตอร์ IRT
                         </Link>
                         <button
                             onClick={handleRefreshAll}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-gray-700 rounded-xl shadow-xs transition cursor-pointer"
+                            className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-sm font-semibold text-gray-700 rounded-xl shadow-xs transition cursor-pointer"
                         >
-                            <RefreshCw className={`w-3.5 h-3.5 ${loadingAnalytics ? 'animate-spin' : ''}`} />
+                            <RefreshCw className={`w-4 h-4 ${loadingAnalytics ? 'animate-spin' : ''}`} />
                             รีเฟรชข้อมูล
                         </button>
                     </div>
                 </div>
 
                 {/* ── Top Metric Cards ── */}
-                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-gray-500">จำนวนการสอบทั้งหมด</span>
-                            <Users className="w-4 h-4 text-green-600" />
+                            <span className="text-sm font-semibold text-gray-600">จำนวนการสอบทั้งหมด</span>
+                            <Users className="w-5 h-5 text-green-600" />
                         </div>
-                        <div className="text-2xl font-bold text-gray-900 mt-2">
+                        <div className="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">
                             {analytics?.total_sessions ?? 0}
                         </div>
-                        <div className="text-[11px] text-gray-400 mt-1">CAT Sessions</div>
+                        <div className="text-sm text-gray-400 mt-1">ครั้ง</div>
                     </div>
 
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-gray-500">อัตราการสอบผ่าน</span>
-                            <Award className="w-4 h-4 text-emerald-600" />
+                            <span className="text-sm font-semibold text-gray-600">อัตราการสอบผ่าน</span>
+                            <Award className="w-5 h-5 text-emerald-600" />
                         </div>
-                        <div className="text-2xl font-bold text-emerald-600 mt-2">
+                        <div className="text-2xl sm:text-3xl font-bold text-emerald-600 mt-2">
                             {analytics?.pass_rate ?? 0}%
                         </div>
-                        <div className="text-[11px] text-gray-400 mt-1">
+                        <div className="text-xs text-gray-400 mt-1">
                             ผ่าน {analytics?.passed ?? 0} / {analytics?.total_sessions ?? 0} คน
                         </div>
                     </div>
 
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-gray-500">ค่าเฉลี่ยความสามารถ (θ)</span>
-                            <TrendingUp className="w-4 h-4 text-purple-600" />
+                            <span className="text-sm font-semibold text-gray-600">ค่าเฉลี่ยความสามารถ (θ)</span>
+                            <TrendingUp className="w-5 h-5 text-purple-600" />
                         </div>
-                        <div className="text-2xl font-bold text-purple-700 mt-2">
+                        <div className="text-2xl sm:text-3xl font-bold text-purple-700 mt-2">
                             {analytics?.avg_theta !== undefined ? (analytics.avg_theta > 0 ? `+${analytics.avg_theta}` : analytics.avg_theta) : '-'}
                         </div>
-                        <div className="text-[11px] text-gray-400 mt-1">Average Ability Score</div>
+                        <div className="text-xs text-gray-400 mt-1">Average Ability Score</div>
                     </div>
 
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
                         <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-gray-500">ค่าความคลาดเคลื่อน (SE)</span>
-                            <BrainCircuit className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm font-semibold text-gray-600">ค่าความคลาดเคลื่อน (SE)</span>
+                            <BrainCircuit className="w-5 h-5 text-blue-600" />
                         </div>
-                        <div className="text-2xl font-bold text-blue-700 mt-2">
+                        <div className="text-2xl sm:text-3xl font-bold text-blue-700 mt-2">
                             {analytics?.avg_se ?? '-'}
                         </div>
-                        <div className="text-[11px] text-gray-400 mt-1">Standard Error</div>
-                    </div>
-
-                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
-                        <div className="flex items-center justify-between">
-                            <span className="text-xs font-semibold text-gray-500">เฉลี่ยจำนวนข้อที่ทำ</span>
-                            <BookOpen className="w-4 h-4 text-amber-600" />
-                        </div>
-                        <div className="text-2xl font-bold text-slate-800 mt-2">
-                            {analytics?.avg_items ?? '-'}
-                        </div>
-                        <div className="text-[11px] text-gray-400 mt-1">ข้อ / Session</div>
+                        <div className="text-xs text-gray-400 mt-1">Standard Error</div>
                     </div>
                 </div>
 
@@ -273,7 +262,7 @@ export default function CATManagementPage() {
                                 <h2 className="text-base font-bold text-gray-900">
                                     การตรวจสอบความพร้อมของคลังข้อสอบ (CAT Readiness Check)
                                 </h2>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-sm text-gray-500">
                                     ประเมินจำนวนข้อสอบที่มีพารามิเตอร์ IRT ครบถ้วนตามเกณฑ์ขั้นต่ำสำหรับระบบ Adaptive Testing
                                 </p>
                             </div>
@@ -288,7 +277,7 @@ export default function CATManagementPage() {
                                         const bId = e.target.value ? Number(e.target.value) : null;
                                         setSelectedBankId(bId);
                                     }}
-                                    className="w-full appearance-none px-4 py-2.5 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
+                                    className="w-full appearance-none px-4 py-2.5 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
                                 >
                                     <option value="">เลือกคลังข้อสอบเพื่อตรวจสอบ...</option>
                                     {banks.map((b) => (
@@ -303,10 +292,10 @@ export default function CATManagementPage() {
                             {selectedBankId && (
                                 <button
                                     onClick={() => fetchTIF(selectedBankId, banks.find(b => b.item_bank_id === selectedBankId)?.bank_name || '')}
-                                    className="shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition cursor-pointer"
+                                    className="shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 text-sm font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition cursor-pointer"
                                     title="ดูฟังก์ชันสารสนเทศของแบบทดสอบ (TIF)"
                                 >
-                                    <TrendingUp size={14} /> ดู TIF
+                                    <TrendingUp size={16} /> ดู TIF
                                 </button>
                             )}
                         </div>
@@ -326,13 +315,13 @@ export default function CATManagementPage() {
                                 }`}>
                                 <div className="flex items-center gap-2 font-bold text-sm">
                                     {readiness.is_ready ? (
-                                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                                     ) : (
-                                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                                        <AlertCircle className="w-5 h-5 text-amber-600 shrink-0" />
                                     )}
                                     <span>{readiness.is_ready ? 'พร้อมใช้กับการสอบ CAT' : 'ยังไม่พร้อมใช้กับ CAT'}</span>
                                 </div>
-                                <p className="text-xs mt-1.5 leading-relaxed opacity-90">
+                                <p className="text-sm mt-1.5 leading-relaxed opacity-90">
                                     {readiness.message}
                                 </p>
                             </div>
@@ -340,27 +329,27 @@ export default function CATManagementPage() {
                             {/* Stats Breakdown */}
                             <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                                 <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl">
-                                    <span className="text-[11px] font-semibold text-gray-400">ข้อสอบทั้งหมด</span>
-                                    <div className="text-lg font-bold text-gray-800 mt-0.5">{readiness.total_items} ข้อ</div>
+                                    <span className="text-xs font-semibold text-gray-500">ข้อสอบทั้งหมด</span>
+                                    <div className="text-xl font-bold text-gray-800 mt-0.5">{readiness.total_items} ข้อ</div>
                                 </div>
 
                                 <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
-                                    <span className="text-[11px] font-semibold text-emerald-600">ระบุ IRT ครบ</span>
-                                    <div className="text-lg font-bold text-emerald-700 mt-0.5">
+                                    <span className="text-xs font-semibold text-emerald-700">ระบุ IRT ครบ</span>
+                                    <div className="text-xl font-bold text-emerald-700 mt-0.5">
                                         {readiness.valid_items} ข้อ
                                     </div>
                                 </div>
 
                                 <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl">
-                                    <span className="text-[11px] font-semibold text-rose-600">ยังไม่ระบุ IRT</span>
-                                    <div className="text-lg font-bold text-rose-700 mt-0.5">
+                                    <span className="text-xs font-semibold text-rose-700">ยังไม่ระบุ IRT</span>
+                                    <div className="text-xl font-bold text-rose-700 mt-0.5">
                                         {readiness.invalid_items} ข้อ
                                     </div>
                                 </div>
 
                                 <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
-                                    <span className="text-[11px] font-semibold text-blue-600">ความพร้อม</span>
-                                    <div className="text-lg font-bold text-blue-700 mt-0.5">
+                                    <span className="text-xs font-semibold text-blue-700">ความพร้อม</span>
+                                    <div className="text-xl font-bold text-blue-700 mt-0.5">
                                         {readiness.readiness_percentage}%
                                     </div>
                                 </div>
@@ -368,7 +357,7 @@ export default function CATManagementPage() {
 
                         </div>
                     ) : (
-                        <div className="py-6 text-center text-xs text-gray-400">
+                        <div className="py-6 text-center text-sm text-gray-400">
                             กรุณาเลือกคลังข้อสอบด้านบนเพื่อตรวจสอบความพร้อม
                         </div>
                     )}
@@ -381,10 +370,10 @@ export default function CATManagementPage() {
                     <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4 flex flex-col justify-between">
                         <div>
                             <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                                <Target className="w-4 h-4 text-green-600" />
+                                <Target className="w-5 h-5 text-green-600" />
                                 เกณฑ์การสิ้นสุดการสอบ (Stopping Criteria Distribution)
                             </h2>
-                            <p className="text-xs text-gray-500 mt-0.5">
+                            <p className="text-sm text-gray-500 mt-0.5">
                                 สัดส่วนเหตุผลที่ระบบ CAT ยุติการสอบของผู้เข้าสอบ
                             </p>
                         </div>
@@ -396,7 +385,7 @@ export default function CATManagementPage() {
                                     <ResponsiveContainer width="100%" height="100%">
                                         <PieChart>
                                             <Tooltip
-                                                contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                                contentStyle={{ fontSize: '13px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
                                                 formatter={(value: any, name: any) => [`${value} คน`, name]}
                                             />
                                             <Pie
@@ -430,8 +419,8 @@ export default function CATManagementPage() {
                                         </PieChart>
                                     </ResponsiveContainer>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                        <span className="text-lg font-bold text-gray-800">{analytics?.total_sessions ?? 0}</span>
-                                        <span className="text-[10px] text-gray-400">การสอบ</span>
+                                        <span className="text-xl font-bold text-gray-800">{analytics?.total_sessions ?? 0}</span>
+                                        <span className="text-xs text-gray-400">การสอบ</span>
                                     </div>
                                 </div>
 
@@ -445,14 +434,14 @@ export default function CATManagementPage() {
                                         const name = formatStopReason(reasonKey);
 
                                         return (
-                                            <div key={reasonKey} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                                            <div key={reasonKey} className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-sm">
                                                 <div className="flex items-center gap-2 min-w-0 pr-2">
                                                     <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
                                                     <span className="text-gray-700 font-medium truncate" title={name}>{name}</span>
                                                 </div>
                                                 <div className="flex items-center gap-1.5 shrink-0 font-semibold">
                                                     <span className="text-gray-900">{count} คน</span>
-                                                    <span className="text-gray-400 text-[11px]">({pct}%)</span>
+                                                    <span className="text-gray-400 text-xs">({pct}%)</span>
                                                 </div>
                                             </div>
                                         );
@@ -460,7 +449,7 @@ export default function CATManagementPage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-center py-12 text-xs text-gray-400">
+                            <div className="text-center py-12 text-sm text-gray-400">
                                 ยังไม่มีข้อมูลเหตุผลการยุติการสอบจากการสอบที่เสร็จสมบูรณ์
                             </div>
                         )}
@@ -469,11 +458,11 @@ export default function CATManagementPage() {
                     {/* Right: Theta Ability Distribution Chart */}
                     <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
                         <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4 text-green-600" />
+                            <TrendingUp className="w-5 h-5 text-green-600" />
                             การกระจายตัวของระดับความสามารถ (Theta Distribution)
                         </h2>
-                        <p className="text-xs text-gray-500">
-                            ความถี่ของค่าความสามารถθ ที่ประเมินได้จากผู้สอบทั้งหมด
+                        <p className="text-sm text-gray-500">
+                            ความถี่ของค่าความสามารถ θ ที่ประเมินได้จากผู้สอบทั้งหมด
                         </p>
 
                         <div className="h-56 pt-2">
@@ -481,10 +470,10 @@ export default function CATManagementPage() {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={analytics.theta_distribution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                                        <XAxis dataKey="range" tick={{ fontSize: 10, fill: '#64748b' }} />
-                                        <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+                                        <XAxis dataKey="range" tick={{ fontSize: 11, fill: '#64748b' }} />
+                                        <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#64748b' }} />
                                         <Tooltip
-                                            contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                            contentStyle={{ fontSize: '13px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
                                             formatter={(value: any) => [`${value} คน`, 'จำนวนผู้สอบ']}
                                             labelFormatter={(label) => `ช่วงความสามารถ (θ): ${label}`}
                                         />
@@ -502,7 +491,7 @@ export default function CATManagementPage() {
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="h-full flex items-center justify-center text-xs text-gray-400">
+                                <div className="h-full flex items-center justify-center text-sm text-gray-400">
                                     กำลังโหลดข้อมูล...
                                 </div>
                             )}
@@ -515,15 +504,15 @@ export default function CATManagementPage() {
                 <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs space-y-4 p-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                            <Users className="w-4 h-4 text-green-600" />
-                            ประวัติการสอบ CAT ล่าสุด (Recent CAT Sessions)
+                            <Users className="w-5 h-5 text-green-600" />
+                            ประวัติการสอบ CAT ล่าสุด
                         </h2>
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs">
+                        <table className="w-full text-left text-sm">
                             <thead>
-                                <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-600">
+                                <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-600 text-xs sm:text-sm">
                                     <th className="py-3 px-4 font-semibold">Session ID</th>
                                     <th className="py-3 px-4 font-semibold">ผู้สอบ</th>
                                     <th className="py-3 px-4 font-semibold text-center">จำนวนข้อที่ทำ</th>
@@ -542,37 +531,37 @@ export default function CATManagementPage() {
                                             <td className="py-3.5 px-4 font-semibold text-gray-900">{s.user_name || `ผู้สอบ #${s.user_id}`}</td>
                                             <td className="py-3.5 px-4 text-center font-medium text-gray-700">{s.num_items} ข้อ</td>
                                             <td className="py-3.5 px-4 text-center">
-                                                <span className=" font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">
+                                                <span className="font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded text-xs sm:text-sm">
                                                     {s.final_theta !== null && s.final_theta !== undefined ? (s.final_theta > 0 ? `+${s.final_theta.toFixed(2)}` : s.final_theta.toFixed(2)) : '-'}
                                                 </span>
                                             </td>
-                                            <td className="py-3.5 px-4 text-center  text-gray-600">
+                                            <td className="py-3.5 px-4 text-center text-gray-600">
                                                 {s.final_se !== null && s.final_se !== undefined ? s.final_se.toFixed(3) : '-'}
                                             </td>
                                             <td className="py-3.5 px-4 text-center">
                                                 {s.passed ? (
-                                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> ผ่าน
+                                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> ผ่าน
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-                                                        <AlertCircle className="w-3 h-3 text-rose-600" /> ไม่ผ่าน
+                                                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200">
+                                                        <AlertCircle className="w-3.5 h-3.5 text-rose-600" /> ไม่ผ่าน
                                                     </span>
                                                 )}
                                             </td>
                                             <td className="py-3.5 px-4 text-gray-600">
-                                                <span className="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
+                                                <span className="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
                                                     {formatStopReason(s.stop_reason)}
                                                 </span>
                                             </td>
-                                            <td className="py-3.5 px-4 text-gray-500  text-[11px]">
+                                            <td className="py-3.5 px-4 text-gray-500 text-xs sm:text-sm">
                                                 {s.end_time ? new Date(s.end_time).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-'}
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={8} className="py-8 text-center text-gray-400">
+                                        <td colSpan={8} className="py-8 text-center text-sm text-gray-400">
                                             ยังไม่มีประวัติการสอบ CAT ในระบบ
                                         </td>
                                     </tr>
@@ -590,19 +579,19 @@ export default function CATManagementPage() {
                         </div>
                         <div>
                             <h3 className="text-base font-bold text-gray-900">
-                                จัดการพารามิเตอร์ IRT รายข้อ (Item Calibration Matrix)
+                                จัดการพารามิเตอร์ IRT รายข้อ
                             </h3>
-                            <p className="text-xs text-gray-600 mt-0.5">
-                                กำหนดค่าความยาก (b), อำนาจจำแนก (a), การเดา (c) พร้อมกราฟ ICC Curve และเครื่องมือตั้งค่าแบบกลุ่ม (Bulk Setup)
+                            <p className="text-sm text-gray-600 mt-0.5">
+                                กำหนดค่าความยาก (b), อำนาจจำแนก (a), การเดา (c) พร้อมกราฟ ICC Curve
                             </p>
                         </div>
                     </div>
                     <Link
                         href="/admin/irt_management"
-                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all shrink-0 cursor-pointer"
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl shadow-xs transition-all shrink-0 cursor-pointer"
                     >
                         <span>ไปยังหน้าจัดการ IRT</span>
-                        <ArrowRight size={14} />
+                        <ArrowRight size={16} />
                     </Link>
                 </div>
 
@@ -618,7 +607,7 @@ export default function CATManagementPage() {
                         <div className="flex justify-between items-start border-b border-gray-100 pb-3">
                             <div>
                                 <h3 className="text-base font-semibold text-gray-900">ฟังก์ชันสารสนเทศของแบบทดสอบ (TIF)</h3>
-                                <p className="text-xs text-gray-400 mt-0.5">{tifBankName}</p>
+                                <p className="text-sm text-gray-500 mt-0.5">{tifBankName}</p>
                             </div>
                             <button onClick={() => setShowTIF(false)}
                                 className="text-gray-300 hover:text-gray-500 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer">
@@ -631,10 +620,10 @@ export default function CATManagementPage() {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={tifData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                                        <XAxis dataKey="theta" tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                                        <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                                        <XAxis dataKey="theta" tick={{ fontSize: 11, fill: '#9ca3af' }} />
+                                        <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} />
                                         <Tooltip
-                                            contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                                            contentStyle={{ fontSize: 13, borderRadius: 8, border: '1px solid #e5e7eb' }}
                                             formatter={(v: any, name: any) => [
                                                 name === 'info' ? Number(v).toFixed(2) : Number(v).toFixed(3),
                                                 name === 'info' ? 'สารสนเทศ I(θ)' : 'SE(θ)',
@@ -647,7 +636,7 @@ export default function CATManagementPage() {
                             ) : null}
                         </div>
 
-                        <div className="bg-purple-50 p-3.5 rounded-xl border border-purple-100 text-xs text-purple-800 space-y-1">
+                        <div className="bg-purple-50 p-3.5 rounded-xl border border-purple-100 text-sm text-purple-800 space-y-1">
                             <p className="font-semibold">💡 ข้อมูล TIF (Test Information Function)</p>
                             <p className="opacity-90">กราฟแสดงปริมาณสารสนเทศ I(θ) ที่คลังข้อสอบนี้วัดได้ในแต่ละระดับความสามารถ ความสูงของกราฟบอกถึงความแม่นยำในการวัดผล</p>
                         </div>

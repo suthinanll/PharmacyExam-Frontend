@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { List, ChevronRight, ChevronDown, GripVertical, Plus, ArrowUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-/** Scroll page to top — handles window, documentElement, body, and any scrollable wrapper */
+/** Scroll page to top — targets the real scroll container in Navbar_admin (main#admin-main-content with overflow-y-auto) */
 function scrollToTop() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    document.documentElement.scrollTo({ top: 0, behavior: 'smooth' });
-    document.body.scrollTo({ top: 0, behavior: 'smooth' });
-    // Navbar_admin / layout wrapper that might be the real scroll container
-    const main = document.querySelector('main');
-    if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
-    const wrapper = document.querySelector('#page-wrapper, [class*="overflow-y-auto"], [class*="overflow-auto"]');
-    if (wrapper) (wrapper as HTMLElement).scrollTo({ top: 0, behavior: 'smooth' });
+    const mainEl = document.getElementById('admin-main-content');
+    if (mainEl) {
+        mainEl.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        // Fallback
+        document.querySelectorAll('main').forEach(el => el.scrollTo({ top: 0, behavior: 'smooth' }));
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 interface Situation {
@@ -87,30 +87,26 @@ export default function TableOfContents({
         });
     };
 
-    const constraintsRef = useRef(null);
-
     if (situations.length === 0 && !onAddSituation) return null;
 
     return (
         <motion.div
-            ref={constraintsRef}
             drag
             dragMomentum={false}
-            dragListener={false}
-            className="fixed right-4 top-28 z-50 flex flex-col items-end gap-2 transition-shadow w-fit h-fit"
+            dragElastic={0}
+            dragConstraints={{ top: -600, bottom: 600, left: -800, right: 0 }}
+            className="fixed right-4 top-28 z-50 flex flex-col items-end gap-2 w-fit h-fit select-none"
             whileDrag={{ scale: 1.02, zIndex: 60 }}
+            style={{ cursor: 'grab' }}
         >
             {/* Toggle Button / Drag Handle / Back to Top */}
-            <div className="flex items-center gap-2">
-                <motion.div
-                    drag
-                    dragMomentum={false}
-                    dragConstraints={constraintsRef}
-                    className="cursor-grab active:cursor-grabbing p-1.5 bg-white rounded-full shadow-lg border border-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
-                    title="ลากเพื่อย้าย"
+            <div className="flex items-center gap-2" style={{ cursor: 'grab' }}>
+                <div
+                    className="p-1.5 bg-white rounded-full shadow-lg border border-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="ลากเพื่อย้ายสารบัญ"
                 >
-                    <GripVertical className="w-4 h-4" />
-                </motion.div>
+                    <GripVertical className="w-4 h-4 cursor-grab" />
+                </div>
                 <button
                     type="button"
                     onClick={scrollToTop}
@@ -137,13 +133,7 @@ export default function TableOfContents({
                             <List className="w-4 h-4 text-emerald-600" />
                             <span>สารบัญคำถาม</span>
                         </div>
-                        <button
-                            type="button"
-                            onClick={scrollToTop}
-                            className="text-xs text-emerald-600 hover:underline flex items-center gap-0.5"
-                        >
-                            <ArrowUp className="w-3 h-3" /> บนสุด
-                        </button>
+                        
                     </div>
                     <div className="max-h-[60vh] overflow-y-auto p-2 space-y-1">
                         {situations.map((situation, idx) => {
@@ -181,7 +171,7 @@ export default function TableOfContents({
                                                     }`}
                                                     title={plainText || 'คำถามเดี่ยว'}
                                                 >
-                                                    <span className="shrink-0 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-bold text-[10px]">
+                                                    <span className="shrink-0 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-bold text-xs">
                                                         ข้อ {globalNum}
                                                     </span>
                                                     <span className="truncate">{displayText}</span>

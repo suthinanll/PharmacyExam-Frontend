@@ -10,6 +10,7 @@ import {
 import Link from 'next/link';
 import Swal from 'sweetalert2';
 import { useAuth } from "@/contexts/AuthContext";
+import Pagination from "@/components/Pagination";
 
 // ─── Types ───────────────────────────────────────────
 interface LinkedBank {
@@ -131,7 +132,7 @@ function CategoryCard({
                                     <ExternalLink size={11} className="shrink-0 text-gray-400 group-hover/bank:text-green-500" />
                                     <span className="truncate font-medium">{b.bank_name}</span>
                                     {!b.is_active && (
-                                        <span className="ml-auto shrink-0 text-gray-400 text-[10px]">ปิด</span>
+                                        <span className="ml-auto shrink-0 text-gray-400 text-xs">ปิด</span>
                                     )}
                                 </Link>
                             ))}
@@ -139,8 +140,8 @@ function CategoryCard({
                     )}
                 </div>
                 {/* Date */}
-                <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
-                    <Calendar size={11} />
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                    <Calendar size={12} />
                     {formatDate(category.created_at)}
                 </div>
             </div>
@@ -198,22 +199,57 @@ export default function CategoriesManagement() {
     }
 
     const handleDelete = async (id: number, name: string) => {
+        const cat = categories.find(c => c.category_id === id);
+        const linkedCount = cat?.item_banks?.length ?? 0;
+
         const result = await Swal.fire({
-            title: 'คุณแน่ใจหรือไม่?',
-            text: `ต้องการลบ "${name}"?`,
-            icon: 'warning', showCancelButton: true,
-            confirmButtonColor: '#ef4444', cancelButtonColor: '#6b7280',
-            confirmButtonText: 'ใช่, ลบเลย!', cancelButtonText: 'ยกเลิก',
+            title: 'ยืนยันการลบประเภทข้อสอบ',
+            html: linkedCount > 0
+                ? `<div class="text-left text-sm text-gray-600 space-y-2">
+                     <p>ต้องการลบประเภท <b>"${name}"</b> หรือไม่?</p>
+                     <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 text-xs leading-relaxed">
+                       ⚠️ ประเภทนี้ผูกอยู่กับ <b>${linkedCount} ชุดข้อสอบ</b> หากยืนยันการลบ ระบบจะปลดประเภทนี้ออกจากชุดข้อสอบเหล่านั้นทั้งหมดโดยอัตโนมัติ <i>(ชุดข้อสอบยังคงอยู่ ไม่ได้ถูกลบ)</i>
+                     </div>
+                   </div>`
+                : `<p class="text-sm text-gray-600">ต้องการลบประเภท <b>"${name}"</b> หรือไม่?</p>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'ใช่, ลบเลย',
+            cancelButtonText: 'ยกเลิก',
             reverseButtons: true,
         });
+
         if (!result.isConfirmed) return;
+
         try {
-            const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE', headers: authHeaders(), credentials: 'include' });
-            if (!res.ok) throw new Error();
-            await Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: 'ลบประเภทข้อสอบสำเร็จ', timer: 1500, showConfirmButton: false });
+            const res = await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE',
+                headers: authHeaders(),
+                credentials: 'include'
+            });
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || 'ไม่สามารถลบได้');
+            }
+
+            await Swal.fire({
+                icon: 'success',
+                title: 'สำเร็จ!',
+                text: 'ลบประเภทข้อสอบและปลดการผูกชุดข้อสอบเรียบร้อยแล้ว',
+                timer: 1500,
+                showConfirmButton: false
+            });
             fetchCategories();
-        } catch {
-            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถลบได้', confirmButtonColor: '#ef4444' });
+        } catch (error: any) {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: error?.message || 'ไม่สามารถลบได้',
+                confirmButtonColor: '#ef4444'
+            });
         }
     };
 
@@ -221,23 +257,50 @@ export default function CategoriesManagement() {
     const openEdit = (cat: Category) => { setEditingCategory(cat); setCategoryName(cat.category_name); setCategoryDesc(cat.category_description); setShowModal(true); };
 
     const submitCategory = async () => {
-        if (!categoryName.trim()) {
+        const trimmedName = categoryName.trim();
+        if (!trimmedName) {
             return Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'กรุณากรอกชื่อประเภทข้อสอบ' });
         }
+
+        // Check for duplicate name locally first
+        const isDuplicate = categories.some(
+            c => c.category_name.trim().toLowerCase() === trimmedName.toLowerCase() &&
+                (!editingCategory || c.category_id !== editingCategory.category_id)
+        );
+
+        if (isDuplicate) {
+            return Swal.fire({
+                icon: 'warning',
+                title: 'ชื่อประเภทข้อสอบซ้ำ',
+                text: `ชื่อประเภทข้อสอบ "${trimmedName}" มีอยู่ในระบบแล้ว ไม่สามารถตั้งซ้ำได้`,
+                confirmButtonColor: '#16a34a',
+            });
+        }
+
         setSubmitting(true);
         try {
             const url = editingCategory ? `${API_URL}/${editingCategory.category_id}` : API_URL;
             const method = editingCategory ? 'PATCH' : 'POST';
             const res = await fetch(url, {
                 method, headers: authHeaders(), credentials: 'include',
-                body: JSON.stringify({ category_name: categoryName, category_description: categoryDesc }),
+                body: JSON.stringify({ category_name: trimmedName, category_description: categoryDesc.trim() }),
             });
-            if (!res.ok) throw new Error();
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.message || 'ไม่สามารถบันทึกได้');
+            }
+
             await Swal.fire({ icon: 'success', title: 'สำเร็จ!', text: editingCategory ? 'แก้ไขสำเร็จ' : 'สร้างสำเร็จ', timer: 1500, showConfirmButton: false });
             setShowModal(false);
             fetchCategories();
-        } catch {
-            Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถบันทึกได้' });
+        } catch (error: any) {
+            Swal.fire({
+                icon: 'error',
+                title: 'เกิดข้อผิดพลาด',
+                text: error?.message || 'ไม่สามารถบันทึกได้',
+                confirmButtonColor: '#ef4444'
+            });
         } finally { setSubmitting(false); }
     };
 
@@ -255,32 +318,6 @@ export default function CategoriesManagement() {
     const perPage = viewMode === 'card' ? ITEMS_PER_CARD : ITEMS_PER_TABLE;
     const totalPages = Math.ceil(filtered.length / perPage);
     const currentItems = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
-
-    const Pagination = () => {
-        if (totalPages <= 1) return null;
-        return (
-            <div className="flex items-center justify-end gap-2 mt-6">
-                <button disabled={currentPage === 1}
-                    onClick={() => { setCurrentPage(p => p - 1); window.scrollTo({ top: 0 }); }}
-                    className="w-9 h-9 flex items-center justify-center border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">
-                    <ChevronLeft size={16} />
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                    <button key={p} onClick={() => { setCurrentPage(p); window.scrollTo({ top: 0 }); }}
-                        className={`w-9 h-9 text-sm font-medium border rounded-lg transition-colors ${p === currentPage
-                            ? 'bg-green-600 text-white border-green-600'
-                            : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>
-                        {p}
-                    </button>
-                ))}
-                <button disabled={currentPage === totalPages}
-                    onClick={() => { setCurrentPage(p => p + 1); window.scrollTo({ top: 0 }); }}
-                    className="w-9 h-9 flex items-center justify-center border border-gray-300 rounded-lg disabled:opacity-40 hover:bg-gray-50">
-                    <ChevronRight size={16} />
-                </button>
-            </div>
-        );
-    };
 
     return (
         <Navbar_admin>
@@ -403,8 +440,16 @@ export default function CategoriesManagement() {
                                 </tbody>
                             </table>
                         </div>
-                        <div className="px-5 py-4 border-t border-gray-100">
-                            <Pagination />
+                        <div className="px-5 py-4">
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                totalItems={filtered.length}
+                                perPage={perPage}
+                                onPageChange={setCurrentPage}
+                                itemLabel="ประเภท"
+                                className="mt-0 pt-0 border-t-0"
+                            />
                         </div>
                     </div>
 
@@ -425,7 +470,14 @@ export default function CategoriesManagement() {
                                 ))}
                             </div>
                         )}
-                        <Pagination />
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={filtered.length}
+                            perPage={perPage}
+                            onPageChange={setCurrentPage}
+                            itemLabel="ประเภท"
+                        />
                     </>
                 )}
             </div>

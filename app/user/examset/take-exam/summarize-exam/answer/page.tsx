@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import ImagePreviewModal from '@/components/ImagePreviewModal';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface AnswerOption {
@@ -186,7 +187,7 @@ function QuestionCard({
                                         />
                                     )}
                                     {isSelected && (
-                                        <span className="mt-1 inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">
+                                        <span className="mt-1 ml-3 inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">
                                             คำตอบของคุณ
                                         </span>
                                     )}
@@ -290,16 +291,8 @@ function AnswerPageContent() {
     if (loading) return (
         <>
             <Navbar_user />
-            <div className="min-h-screen bg-gray-50 py-10">
-                <div className="max-w-4xl mx-auto px-4 space-y-4">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 space-y-3">
-                            <div className="h-4 w-1/3 animate-pulse rounded bg-gray-200" />
-                            <div className="h-3 w-full animate-pulse rounded bg-gray-200" />
-                            <div className="h-3 w-5/6 animate-pulse rounded bg-gray-200" />
-                        </div>
-                    ))}
-                </div>
+            <div className="min-h-[60vh] flex items-center justify-center">
+                <LoadingSpinner size="lg" text="กำลังโหลดเฉลยข้อสอบ..." />
             </div>
             <Footer />
         </>

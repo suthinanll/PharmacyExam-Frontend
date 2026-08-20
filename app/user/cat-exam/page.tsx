@@ -19,7 +19,7 @@ import {
     Loader2,
     CheckCircle2,
 } from "lucide-react";
-import PageSkeleton from "@/components/Skeleton";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import Swal from "sweetalert2";
 import Link from "next/link";
 
@@ -179,7 +179,9 @@ export default function CATSetupPage() {
         return (
             <>
                 <Navbar_user />
-                <PageSkeleton variant="plain" />
+                <div className="min-h-[60vh] flex items-center justify-center">
+                    <LoadingSpinner size="lg" text="กำลังโหลดข้อมูลข้อสอบ CAT..." />
+                </div>
                 <Footer />
             </>
         );

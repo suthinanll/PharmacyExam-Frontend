@@ -501,7 +501,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                         item_bank.categories.map((cat) => (
                                             <span
                                                 key={cat.category_id}
-                                                className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[11px] font-semibold rounded-md border border-blue-100"
+                                                className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded-md border border-blue-100"
                                             >
                                                 {cat.category_name}
                                             </span>

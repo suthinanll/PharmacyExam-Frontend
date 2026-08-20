@@ -172,7 +172,7 @@ const DraftCard = ({
                         ) : (
                             <div className="text-center text-gray-400">
                                 <Upload className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                                <p className="text-[10px] font-bold uppercase tracking-widest">Upload Cover</p>
+                                <p className="text-xs font-bold uppercase tracking-widest">Upload Cover</p>
                             </div>
                         )}
                     </div>
@@ -183,7 +183,7 @@ const DraftCard = ({
                         placeholder="หรือวาง URL รูปภาพ..."
                         value={draft.imageUrl}
                         onChange={(e) => onUpdate(draft.tempId, "imageUrl", e.target.value)}
-                        className="w-full text-[10px] border-gray-200 rounded-lg focus:ring-green-500 py-1"
+                        className="w-full text-xs border-gray-200 rounded-lg focus:ring-green-500 py-1"
                     />
                 </div>
             </div>

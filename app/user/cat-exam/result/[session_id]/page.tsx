@@ -15,6 +15,7 @@ import { CheckCircle2, XCircle, HelpCircle, BookOpen, Info, Award, Target, Alert
 
 // ==================== TYPES ====================
 import ImagePreviewModal from '@/components/ImagePreviewModal';
+import LoadingSpinner from '@/components/LoadingSpinner';
 
 interface Response {
     item_id: number;
@@ -346,23 +347,8 @@ export default function CATResultPage() {
         return (
             <>
                 <Navbar_user />
-                <div className="min-h-screen bg-gray-50 py-8">
-                    <div className="max-w-4xl mx-auto px-4 space-y-6">
-                        <div className="h-8 w-56 animate-pulse rounded-lg bg-gray-200" />
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {[1, 2, 3, 4].map((i) => (
-                                <div key={i} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-2">
-                                    <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
-                                    <div className="h-8 w-2/3 animate-pulse rounded bg-gray-200" />
-                                </div>
-                            ))}
-                        </div>
-                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-3">
-                            <div className="h-4 w-1/3 animate-pulse rounded bg-gray-200" />
-                            <div className="h-3.5 w-full animate-pulse rounded bg-gray-200" />
-                            <div className="h-3.5 w-5/6 animate-pulse rounded bg-gray-200" />
-                        </div>
-                    </div>
+                <div className="min-h-[60vh] flex items-center justify-center">
+                    <LoadingSpinner size="lg" text="กำลังโหลดผลการสอบ CAT..." />
                 </div>
                 <Footer />
             </>
