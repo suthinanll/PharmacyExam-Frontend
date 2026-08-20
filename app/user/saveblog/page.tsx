@@ -109,7 +109,13 @@ function SaveBlog() {
                   >
                     <div className="relative overflow-hidden">
                       <Image
-                        src={item.news.cover_image_url || '/img/placeholder.jpg'}
+                        src={
+                          item.news.cover_image_url
+                            ? item.news.cover_image_url.startsWith('http')
+                              ? item.news.cover_image_url
+                              : `${process.env.NEXT_PUBLIC_API_URL}${item.news.cover_image_url}`
+                            : '/img/placeholder.jpg'
+                        }
                         alt={item.news.title || 'news image'}
                         width={500}
                         height={300}

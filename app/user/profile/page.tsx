@@ -226,7 +226,10 @@ const Profile = () => {
                 });
 
                 // อัปเดตรูปใน state
-                setUser(prev => prev ? { ...prev, profile_picture: data.profile_picture } : null);
+                const fullPicUrl = data.profile_picture && !data.profile_picture.startsWith('http')
+                    ? `${process.env.NEXT_PUBLIC_API_URL}${data.profile_picture}`
+                    : data.profile_picture;
+                setUser(prev => prev ? { ...prev, profile_picture: fullPicUrl } : null);
                 setPreviewImage(null);
 
                 // Refresh user data ใน AuthContext

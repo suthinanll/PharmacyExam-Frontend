@@ -90,7 +90,11 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
         <div className="relative h-48 w-full bg-gray-50 overflow-hidden">
           {blog.cover_image_url ? (
             <img
-              src={blog.cover_image_url}
+              src={
+                blog.cover_image_url.startsWith('http')
+                  ? blog.cover_image_url
+                  : `${process.env.NEXT_PUBLIC_API_URL}${blog.cover_image_url}`
+              }
               alt={blog.title}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             />

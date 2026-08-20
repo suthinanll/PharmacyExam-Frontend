@@ -82,7 +82,13 @@ const NewsDetailPage = () => {
                         {/* Cover Image */}
                         <div className="relative w-full h-64 md:h-[400px]">
                             <img
-                                src={news.cover_image_url || "/img/news1.jpg"}
+                                src={
+                                    news.cover_image_url
+                                        ? news.cover_image_url.startsWith('http')
+                                            ? news.cover_image_url
+                                            : `${process.env.NEXT_PUBLIC_API_URL}${news.cover_image_url}`
+                                        : "/img/news1.jpg"
+                                }
                                 alt={news.title}
                                 className="w-full h-full object-cover"
                             />

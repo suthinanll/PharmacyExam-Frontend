@@ -177,10 +177,20 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
               {formData.files?.map((file: any, i) => {
                 const fileName = file.original_filename || file.storage_path || "Unnamed File";
                 const fileId = file.file_id || file.id;
+                const storagePath = file.storage_path || fileName;
+                const isImage = file.file_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+                const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/${storagePath}`;
+
                 return (
                   <div key={fileId || `old-${i}`} className="relative aspect-square rounded-xl border border-slate-200 bg-slate-50 flex flex-col items-center justify-center overflow-hidden group shadow-sm">
-                    <FileText className="w-8 h-8 text-slate-300 group-hover:text-indigo-300 transition-colors" />
-                    <p className="text-[9px] text-slate-500 truncate w-full px-1 text-center mt-1">{fileName}</p>
+                    {isImage ? (
+                      <img src={fileUrl} className="w-full h-full object-cover" alt={fileName} />
+                    ) : (
+                      <>
+                        <FileText className="w-8 h-8 text-slate-300 group-hover:text-indigo-300 transition-colors" />
+                        <p className="text-[9px] text-slate-500 truncate w-full px-1 text-center mt-1">{fileName}</p>
+                      </>
+                    )}
                     <button
                       type="button"
                       onClick={(e) => {
