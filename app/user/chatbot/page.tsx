@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
-import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, User, Bot, AlertCircle, Trash2, Pencil, Shield } from "lucide-react";
+import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, User, Bot, AlertCircle, Trash2, Pencil, Shield, Clock, Zap } from "lucide-react";
 import Navbar from "@/components/Navbar_user";
 import Swal from "sweetalert2";
 import { useAuth } from '@/contexts/AuthContext';
@@ -31,12 +31,10 @@ const useTypewriter = (text: string, speed: number = 20) => {
 };
 
 // Bot Message Component
-// BotMessage Component
 const BotMessage = ({ content, animate = false }: { content: string, animate?: boolean }) => {
   const [isCopied, setIsCopied] = useState(false);
   const typedContent = useTypewriter(content, 10); // Speed 10ms
 
-  // Use typed content if animate is true, otherwise full content
   const displayContent = animate ? typedContent : content;
 
   const handleCopy = () => {
@@ -63,7 +61,7 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
         </div>
         <button
           onClick={handleCopy}
-          className="absolute -top-6 right-0 p-1 text-neutral-400 hover:text-green-600 transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-white/80 backdrop-blur rounded px-2 shadow-sm border border-neutral-100"
+          className="absolute -top-6 right-0 p-1 text-neutral-400 hover:text-green-600 transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-white/80 backdrop-blur rounded px-2 shadow-sm border border-neutral-100 cursor-pointer"
         >
           {isCopied ? <Check className="w-3 h-3" /> : <Clipboard className="w-3 h-3" />}
           <span className="text-[10px]">คัดลอก</span>
@@ -73,14 +71,27 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
   );
 };
 
+interface QuotaData {
+  capacity_percentage: number;
+  remaining_percentage: number;
+  used_points: number;
+  max_points: number;
+  message_count: number;
+  is_limited: boolean;
+  max_message_length: number;
+  reset_at: string;
+  reset_in_seconds: number;
+}
+
 export default function ChatbotPage() {
   const { getToken, user } = useAuth();
+
   type Message = {
     id: string;
     sender: "user" | "bot";
     text: string;
     created_at?: string;
-    animate?: boolean; // Added for typing effect control
+    animate?: boolean;
   };
 
   type ChatSession = {
@@ -101,8 +112,15 @@ export default function ChatbotPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+
+  // Quota & Limits State
+  const [quota, setQuota] = useState<QuotaData | null>(null);
+  const [countdownText, setCountdownText] = useState<string>("");
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const MAX_INPUT_LENGTH = 1000;
 
   // Auto-expand textarea based on content
   useEffect(() => {
@@ -113,7 +131,6 @@ export default function ChatbotPage() {
     }
   }, [input]);
 
-
   // 1. Get User info from AuthContext
   useEffect(() => {
     if (user?.user_id) {
@@ -122,19 +139,47 @@ export default function ChatbotPage() {
   }, [user]);
 
   useEffect(() => {
-    // Check if user has accepted privacy policy
     const hasAccepted = localStorage.getItem('chatbot_privacy_accepted');
     if (!hasAccepted) {
       setShowPrivacyModal(true);
     }
   }, []);
 
-  // 2. Fetch sessions when user.user_id is available
+  // Fetch Quota & Sessions
   useEffect(() => {
     if (user?.user_id) {
       fetchSessions();
+      fetchQuota();
     }
   }, [user?.user_id]);
+
+  // Live Countdown Timer for Reset Time
+  useEffect(() => {
+    if (!quota?.reset_at) return;
+
+    const updateCountdown = () => {
+      const target = new Date(quota.reset_at).getTime();
+      const now = Date.now();
+      const diff = Math.max(0, target - now);
+
+      if (diff <= 0) {
+        setCountdownText("กำลังรีเซ็ต...");
+        fetchQuota();
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      setCountdownText(`${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, [quota?.reset_at]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -157,6 +202,23 @@ export default function ChatbotPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [sidebarOpen]);
 
+  const fetchQuota = async () => {
+    const currentUserId = user?.user_id;
+    if (!currentUserId) return;
+    try {
+      const token = getToken();
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/quota/${currentUserId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setQuota(data);
+      }
+    } catch (err) {
+      console.error("Fetch quota error:", err);
+    }
+  };
+
   const fetchSessions = async () => {
     const currentUserId = user?.user_id;
     if (!currentUserId) return;
@@ -172,7 +234,6 @@ export default function ChatbotPage() {
 
       const data = await response.json();
 
-      // API returns [sessionsArray, totalCount] or just array
       if (Array.isArray(data)) {
         if (data.length >= 2 && Array.isArray(data[0])) {
           setSessions(data[0]);
@@ -193,7 +254,6 @@ export default function ChatbotPage() {
       setFetchError(null);
       setMessages([]);
 
-      // GET /chat/message/:session_id (Singular based on user hint)
       const token = getToken();
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/message/${sessionId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -201,8 +261,6 @@ export default function ChatbotPage() {
 
       if (!response.ok) {
         if (response.status === 404) {
-          // 404 means no messages found or endpoint missing.
-          // Treat as empty conversation for now to avoid locking the UI.
           console.warn(`Messages for session ${sessionId} not found (404).`);
           setMessages([]);
           return;
@@ -211,7 +269,6 @@ export default function ChatbotPage() {
       }
 
       const data = await response.json();
-
       const msgs = Array.isArray(data) ? data : (data.messages || []);
 
       const mappedMessages: Message[] = msgs.map((m: any) => ({
@@ -221,7 +278,6 @@ export default function ChatbotPage() {
         created_at: m.sent_at
       }));
 
-      // Sort messages by date (Oldest first)
       mappedMessages.sort((a, b) => {
         const dateA = new Date(a.created_at || 0).getTime();
         const dateB = new Date(b.created_at || 0).getTime();
@@ -229,13 +285,9 @@ export default function ChatbotPage() {
       });
 
       setMessages(mappedMessages);
-
     } catch (error: any) {
       console.error("Error fetching messages:", error);
       setFetchError(error.message);
-      // Removed `if (!isBackground)` as `isBackground` is not defined in the original code.
-      // Assuming the intent was to always set loading to false on error.
-      setIsMessageLoading(false);
     } finally {
       setIsMessageLoading(false);
     }
@@ -284,7 +336,27 @@ export default function ChatbotPage() {
       console.error("Cannot send message: user_id is missing");
       return;
     }
-    if (!input.trim()) return;
+    if (!input.trim() || isLoading) return;
+
+    if (input.length > MAX_INPUT_LENGTH) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'ข้อความยาวเกินกำหนด',
+        text: `กรุณาลดความยาวข้อความให้อยู่ใน ${MAX_INPUT_LENGTH} ตัวอักษร (ปัจจุบัน ${input.length} ตัวอักษร)`,
+        confirmButtonColor: '#16a34a'
+      });
+      return;
+    }
+
+    if (quota?.is_limited) {
+      Swal.fire({
+        icon: 'info',
+        title: 'ความจุการใช้งานเต็ม 100%',
+        text: `คุณใช้งานความจุแชตบอตประจำวันครบแล้ว ระบบจะรีเซ็ตความจุใหม่ในเวลา 00:00 น. (อีกประมาณ ${countdownText || 'สักครู่'})`,
+        confirmButtonColor: '#16a34a'
+      });
+      return;
+    }
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -295,13 +367,11 @@ export default function ChatbotPage() {
 
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
+    const sentText = input;
     setInput("");
     setIsLoading(true);
 
     try {
-      // If we have a session ID, use it. If not (new chat), use 'new' or handle differently.
-      // Assuming backend accepts '/chat/send/new' or similar for creating a session.
-      // If 'currentSessionId' is null, interpolating it directly results in ".../null" which likely causes 500.
       const endpointSessionId = currentSessionId || 'new';
       const token = getToken();
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/chat/send/${endpointSessionId}`, {
@@ -313,29 +383,47 @@ export default function ChatbotPage() {
         body: JSON.stringify({
           user_id: currentUserId,
           session_id: currentSessionId,
-          message: input
+          message: sentText
         }),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("SendMessage API failed:", response.status, errorText);
-        throw new Error(`Failed to send message: ${response.status} - ${errorText}`);
+        const errorData = await response.json().catch(() => ({}));
+        if (response.status === 429) {
+          if (errorData?.error === 'CONCURRENT_REQUEST_LIMIT') {
+            Swal.fire({
+              icon: 'warning',
+              title: 'กำลังประมวลผลคำขอก่อนหน้า',
+              text: 'กรุณารอสักครู่ให้ AI ตอบเสร็จสิ้นก่อนส่งข้อความใหม่',
+              timer: 2500,
+              showConfirmButton: false
+            });
+          } else {
+            Swal.fire({
+              icon: 'warning',
+              title: 'โควตาความจุเต็ม 100%',
+              text: errorData?.message || 'คุณใช้งานความจุแชตบอตครบ 100% สำหรับวันนี้แล้ว',
+              confirmButtonColor: '#16a34a'
+            });
+            fetchQuota();
+          }
+          setMessages(messages);
+          setInput(sentText);
+          return;
+        }
+        throw new Error(errorData?.message || `Failed to send message: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("SendMessage Response:", data);
-
       const botData = data.bot || {};
       const botResponse: Message = {
         id: botData.message_id ? botData.message_id.toString() : `bot-${Date.now()}`,
         sender: "bot",
         text: botData.message_text || data.message || data.response || "ขออภัยเกิดข้อผิดพลาดจากระบบ",
         created_at: botData.sent_at || new Date().toISOString(),
-        animate: true // Enable animation for new messages
+        animate: true
       };
 
-      // Update the user message with the real ID from the backend
       const updatedUserMessages = newMessages.map(msg => {
         if (msg.id === userMessage.id && data.user?.message_id) {
           return { ...msg, id: data.user.message_id.toString() };
@@ -343,21 +431,26 @@ export default function ChatbotPage() {
         return msg;
       });
 
-      const updatedMessages = [...updatedUserMessages, botResponse];
-      setMessages(updatedMessages);
+      setMessages([...updatedUserMessages, botResponse]);
+
+      // Update Quota
+      if (data.quota) {
+        setQuota(data.quota);
+      } else {
+        fetchQuota();
+      }
 
       if (!currentSessionId && data.user?.chat_session_id) {
         setCurrentSessionId(data.user.chat_session_id);
-        // Refresh list to see the new title/session
         await fetchSessions();
       }
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error sending message:", error);
       const errorMessage: Message = {
         id: `bot-error-${Date.now()}`,
         sender: "bot",
-        text: "ขออภัยครับ เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่อีกครั้ง",
+        text: error?.message || "ขออภัยครับ เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่อีกครั้ง",
       };
       setMessages([...newMessages, errorMessage]);
     } finally {
@@ -443,8 +536,11 @@ export default function ChatbotPage() {
     setShowPrivacyModal(false);
   };
 
+  const capacityPct = quota?.capacity_percentage ?? 0;
+  const isLimited = quota?.is_limited ?? false;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-50 to-green-50/30">
+    <div className="min-h-screen bg-slate-50">
       <Navbar />
 
       {/* Privacy Policy Modal */}
@@ -536,7 +632,7 @@ export default function ChatbotPage() {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleAcceptPrivacy}
-                  className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Check className="w-5 h-5" />
                   ยอมรับและเริ่มใช้งาน
@@ -550,108 +646,177 @@ export default function ChatbotPage() {
         </div>
       )}
 
-      <div className="max-w-screen-2xl mx-auto flex h-[calc(100vh-64px)] overflow-hidden">
+      {/* Full-width container to prevent left clipping and margin misalignment */}
+      <div className="w-full flex h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-3.75rem)] md:h-[calc(100vh-4.25rem)] overflow-hidden bg-white">
+        
         {/* Mobile Sidebar Overlay */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/20 z-40 lg:hidden"
+            className="fixed inset-0 bg-black/30 z-40 lg:hidden backdrop-blur-xs"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
-        {/* Sidebar */}
+        {/* ── Left Sidebar ── */}
         <aside
           id="chat-sidebar"
-          className={`fixed lg:static inset-y-0 left-0 z-50 w-80 bg-white border-r border-neutral-200 flex flex-col transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-            }`}
+          className={`fixed lg:static inset-y-0 left-0 z-50 w-80 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out shrink-0 ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          }`}
         >
-          <div className="p-4 border-b border-neutral-100 flex flex-col gap-4">
+          {/* Sidebar Top: New Chat + Capacity % Card */}
+          <div className="p-3.5 border-b border-gray-100 flex flex-col gap-3 shrink-0 bg-white">
             <div className="flex items-center justify-between lg:hidden">
-              <h2 className="text-lg font-bold text-gray-800">เมนู</h2>
-              <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-gray-100 rounded-full">
-                <X size={20} />
+              <h2 className="text-base font-bold text-gray-800">เมนูแชตบอต</h2>
+              <button onClick={() => setSidebarOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500">
+                <X size={18} />
               </button>
             </div>
 
+            {/* New Chat Button */}
             <button
               onClick={handleNewChat}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-all shadow-sm font-medium"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-98 transition-all shadow-xs font-semibold text-sm cursor-pointer"
             >
-              <Plus size={20} />
+              <Plus size={18} />
               แชทใหม่
             </button>
+
+            {/* ⚡ Dynamic Capacity Card (Placed in Left Sidebar) */}
+            <div className="bg-gradient-to-br from-green-50/90 to-emerald-50/50 border border-green-200/80 rounded-xl p-3 shadow-2xs">
+              <div className="flex items-center justify-between gap-2 mb-1.5">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Zap className="w-3.5 h-3.5 text-green-700 shrink-0" />
+                  <span className="text-xs font-bold text-gray-800 truncate">ความจุ AI วันนี้</span>
+                </div>
+                <span className={`text-[11px] font-black font-mono px-2 py-0.5 rounded-full ${
+                  capacityPct >= 90 
+                    ? 'bg-rose-100 text-rose-700' 
+                    : capacityPct >= 70 
+                    ? 'bg-amber-100 text-amber-700' 
+                    : 'bg-green-100 text-green-700'
+                }`}>
+                  {capacityPct}%
+                </span>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="w-full bg-gray-200/80 rounded-full h-1.5 overflow-hidden mb-1.5">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ease-out ${
+                    capacityPct >= 90
+                      ? 'bg-gradient-to-r from-amber-500 to-rose-500'
+                      : capacityPct >= 70
+                      ? 'bg-gradient-to-r from-green-500 to-amber-500'
+                      : 'bg-gradient-to-r from-green-500 to-emerald-600'
+                  }`}
+                  style={{ width: `${Math.min(100, Math.max(3, capacityPct))}%` }}
+                />
+              </div>
+
+              <div className="flex items-center justify-between text-[10px] text-gray-500">
+                <span>{isLimited ? 'ความจุเต็มแล้ว' : `ใช้งานไปแล้ว ${capacityPct}%`}</span>
+                <span className="flex items-center gap-1 font-mono text-gray-500" title="เวลานับถอยหลังรีเซ็ตเที่ยงคืน (00:00 น.)">
+                  <Clock className="w-3 h-3 text-gray-400" />
+                  {countdownText || '00:00:00'}
+                </span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-3 space-y-1">
-            <h3 className="text-md text-gray-600 px-3 py-2">
+          {/* Session History List */}
+          <div className="flex-1 overflow-y-auto p-2.5 space-y-1">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider px-2 py-1.5">
               ประวัติการสนทนา ({totalCount})
             </h3>
             {sessions.map((session) => (
               <button
                 key={session.session_id}
                 onClick={() => handleSelectSession(session.session_id?.toString())}
-                className={`w-full text-left px-3 py-3 rounded-xl transition-all flex items-start gap-3 group relative pr-10 ${currentSessionId?.toString() === session.session_id?.toString()
-                  ? "bg-green-50 text-green-700 border border-green-100 shadow-sm"
-                  : "text-gray-600 hover:bg-gray-50 border border-transparent"
-                  }`}
+                className={`w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-start gap-2.5 group relative pr-9 cursor-pointer ${
+                  currentSessionId?.toString() === session.session_id?.toString()
+                    ? "bg-green-50 text-green-800 font-semibold border border-green-200/60 shadow-2xs"
+                    : "text-gray-600 hover:bg-gray-50 border border-transparent"
+                }`}
               >
-                <MessageSquare size={18} className={`mt-0.5 flex-shrink-0 ${currentSessionId?.toString() === session.session_id?.toString() ? 'text-green-500' : 'text-gray-400'}`} />
+                <MessageSquare size={16} className={`mt-0.5 shrink-0 ${
+                  currentSessionId?.toString() === session.session_id?.toString() ? 'text-green-600' : 'text-gray-400'
+                }`} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">
+                  <p className="text-xs truncate">
                     {session.title || `Session #${session.session_id}`}
                   </p>
-                  <p className="text-xs opacity-70 mt-0.5">
+                  <p className="text-[10px] opacity-60 mt-0.5">
                     {new Date(session.created_at).toLocaleDateString('th-TH', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
 
                 <div
                   onClick={(e) => handleDeleteSession(e, session.session_id?.toString())}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-red-500 hover:bg-red-100 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   title="ลบแชท"
                 >
-                  <Trash2 size={16} />
+                  <Trash2 size={14} />
                 </div>
               </button>
             ))}
           </div>
         </aside>
 
-
-        <main className="flex-1 flex flex-col relative w-full bg-white/50 backdrop-blur-sm">
+        {/* ── Main Chat Area ── */}
+        <main className="flex-1 flex flex-col relative w-full bg-slate-50/40 overflow-hidden">
 
           {/* Mobile Header for Sidebar Toggle */}
-          <div className="lg:hidden h-14 border-b border-gray-200 bg-white/80 backdrop-blur flex items-center px-4 justify-between sticky top-0 z-30">
+          <div className="lg:hidden h-12 border-b border-gray-200 bg-white flex items-center px-4 justify-between shrink-0 z-20">
             <button
               id="sidebar-toggle"
               onClick={() => setSidebarOpen(true)}
-              className="p-2 -ml-2 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
+              className="p-1.5 -ml-1.5 hover:bg-gray-100 rounded-lg text-gray-600 transition-colors"
             >
-              <Menu size={24} />
+              <Menu size={20} />
             </button>
-            <span className="font-semibold text-gray-700">แชตบอตผู้ช่วย</span>
-            <div className="w-8"></div> {/* Spacer for centering */}
+            <span className="font-bold text-sm text-gray-800">แชตบอตผู้ช่วย</span>
+            <div className="flex items-center gap-1 text-[11px] font-mono font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full">
+              <Zap size={12} /> {capacityPct}%
+            </div>
           </div>
 
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 scroll-smooth">
-            {!currentSessionId && messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-8">
-                <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-6">
-                  <Bot size={40} className="text-green-500" />
+          {/* Cooldown Alert Banner when Quota is 100% */}
+          {isLimited && (
+            <div className="mx-4 sm:mx-6 mt-3 p-3 sm:p-3.5 bg-gradient-to-r from-rose-50 to-amber-50 border border-rose-200/80 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 shadow-2xs shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4 animate-pulse" />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-2">ยินดีต้อนรับ! {userName ? `คุณ${userName}` : ''}</h2>
-                <p className="text-gray-500 max-w-md">
-                  เลือกประวัติการแชทด้านซ้าย หรือกด "แชทใหม่" เพื่อปรึกษาเกี่ยวกับการสอบใบประกอบวิชาชีพเภสัชกรรมได้เลย!
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-rose-900 truncate">คุณใช้งานความจุแชตบอตครบ 100% สำหรับวันนี้แล้ว</p>
+                  <p className="text-[11px] text-rose-700">ระบบจะรีเซ็ตความจุใหม่ในเวลา 00:00 น.</p>
+                </div>
+              </div>
+              <div className="self-end sm:self-center bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg border border-rose-200/60 text-right shrink-0">
+                <span className="text-[11px] font-mono font-bold text-rose-600">{countdownText || '00:00:00'}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 scroll-smooth">
+            {!currentSessionId && messages.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center p-6">
+                <div className="w-16 h-16 bg-green-100/80 rounded-2xl flex items-center justify-center mb-4 text-green-600 shadow-xs">
+                  <Bot size={34} />
+                </div>
+                <h2 className="text-xl font-bold text-gray-800 mb-1.5">ยินดีต้อนรับ! {userName ? `คุณ${userName}` : ''}</h2>
+                <p className="text-sm text-gray-500 max-w-md">
+                  เลือกประวัติการแชทด้านซ้าย หรือพิมพ์คำถามเกี่ยวกับการสอบใบประกอบวิชาชีพเภสัชกรรมได้เลย!
                 </p>
               </div>
             ) : (
               <>
                 {fetchError && (
-                  <div className="mx-auto max-w-lg bg-red-50 text-red-600 p-4 rounded-xl flex items-center gap-3 mb-4">
-                    <AlertCircle size={20} />
-                    <p className="text-sm">ไม่สามารถโหลดข้อความได้: {fetchError}</p>
+                  <div className="mx-auto max-w-lg bg-red-50 text-red-600 p-3.5 rounded-xl flex items-center gap-2.5 mb-4 text-sm">
+                    <AlertCircle size={18} />
+                    <p>ไม่สามารถโหลดข้อความได้: {fetchError}</p>
                   </div>
                 )}
 
@@ -669,7 +834,7 @@ export default function ChatbotPage() {
                   </div>
                 ) : (
                   messages.length === 0 && !fetchError ? (
-                    <div className="text-center py-10 text-gray-400">
+                    <div className="text-center py-10 text-gray-400 text-sm">
                       ไม่พบข้อความในเซสชันนี้
                     </div>
                   ) : (
@@ -679,17 +844,17 @@ export default function ChatbotPage() {
                           <BotMessage content={msg.text} animate={msg.animate} />
                         ) : (
                           <div className="flex flex-col items-end gap-1 max-w-[85%] sm:max-w-xl w-full">
-                            <div className="bg-green-600 text-white px-5 py-3 rounded-2xl rounded-tr-sm shadow-md relative group">
+                            <div className="bg-green-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs shadow-xs relative group text-sm sm:text-base">
                               <p className="whitespace-pre-wrap">{msg.text}</p>
                               <button
                                 onClick={() => startEditing(msg)}
-                                className="absolute -top-3 -right-3 p-1.5 bg-white text-green-600 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-all hover:bg-green-50 border border-green-100 scale-90 hover:scale-100 z-10 cursor-pointer"
-                                title="คัดลอกข้อความนี้มาแก้ไขและถามใหม่"
+                                className="absolute -top-2.5 -right-2.5 p-1 bg-white text-green-600 rounded-full shadow-xs opacity-0 group-hover:opacity-100 transition-all hover:bg-green-50 border border-green-100 cursor-pointer"
+                                title="แก้ไขและถามใหม่"
                               >
-                                <Pencil size={14} />
+                                <Pencil size={12} />
                               </button>
                             </div>
-                            <span className="text-[10px] text-gray-500 mr-1">
+                            <span className="text-[10px] text-gray-400 mr-1">
                               {msg.created_at ? new Date(msg.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
                             </span>
                           </div>
@@ -700,15 +865,18 @@ export default function ChatbotPage() {
                 )}
 
                 {isLoading && (
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3 animate-fade-in">
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0 mt-1">
-                      <Sparkles className="w-4 h-4 text-white" />
+                      <Sparkles className="w-4 h-4 text-white animate-spin" />
                     </div>
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-neutral-200">
-                      <div className="flex gap-1">
-                        <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                        <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                        <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                    <div className="bg-white p-3.5 rounded-2xl shadow-2xs border border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                          <span className="w-2 h-2 bg-green-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        </div>
+                        <span className="text-xs text-gray-400 ml-1">AI กำลังประมวลผลคำตอบ...</span>
                       </div>
                     </div>
                   </div>
@@ -719,32 +887,60 @@ export default function ChatbotPage() {
           </div>
 
           {/* Input Area */}
-          <div className="p-4 bg-white border-t border-gray-100 px-4 sm:px-6">
-            <div className="max-w-4xl mx-auto relative flex items-end bg-gray-50 border border-gray-200 focus-within:border-green-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-green-100 rounded-2xl shadow-2xs transition-all p-1.5">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder="พิมพ์ข้อความ... (Shift + Enter เพื่อขึ้นบรรทัดใหม่)"
-                className="w-full pl-4 pr-12 py-3 bg-transparent border-0 focus:ring-0 focus:outline-hidden resize-none text-gray-800 text-sm sm:text-base max-h-44 overflow-y-auto leading-relaxed"
-                rows={1}
-                style={{ minHeight: '48px' }}
-              />
+          <div className="p-3 sm:p-4 bg-white border-t border-gray-200 px-4 sm:px-6 shrink-0">
+            <div className="max-w-4xl mx-auto">
+              <div className={`relative flex items-end border rounded-2xl shadow-2xs transition-all p-1.5 ${
+                isLimited 
+                  ? 'bg-gray-100 border-gray-300 opacity-80' 
+                  : 'bg-gray-50 border-gray-200 focus-within:border-green-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-green-100'
+              }`}>
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  disabled={isLimited || isLoading}
+                  maxLength={MAX_INPUT_LENGTH}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder={
+                    isLimited
+                      ? `ความจุเต็ม 100% แล้ว — จะเปิดใช้งานใหม่ในเวลา 00:00 น. (อีก ${countdownText})`
+                      : isLoading
+                      ? "กำลังประมวลผลคำตอบ กรุณารอสักครู่..."
+                      : "พิมพ์คำถามเกี่ยวกับเภสัชกรรม... (Shift + Enter เพื่อขึ้นบรรทัดใหม่)"
+                  }
+                  className="w-full pl-3.5 pr-11 py-2.5 bg-transparent border-0 focus:ring-0 focus:outline-hidden resize-none text-gray-800 text-sm sm:text-base max-h-40 overflow-y-auto leading-relaxed disabled:cursor-not-allowed"
+                  rows={1}
+                  style={{ minHeight: '44px' }}
+                />
 
-              <button
-                onClick={handleSendMessage}
-                disabled={!input.trim() || isLoading}
-                className="flex items-center justify-center w-10 h-10 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-40 transition-colors shadow-2xs shrink-0 cursor-pointer mb-1 mr-1"
-                title="ส่งข้อความ"
-              >
-                <SendHorizonal size={18} />
-              </button>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={!input.trim() || isLoading || isLimited || input.length > MAX_INPUT_LENGTH}
+                  className="flex items-center justify-center w-9 h-9 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-40 transition-colors shadow-2xs shrink-0 cursor-pointer mb-1 mr-1 disabled:cursor-not-allowed"
+                  title="ส่งข้อความ"
+                >
+                  <SendHorizonal size={16} />
+                </button>
+              </div>
+
+              {/* Character Counter & Limit text */}
+              <div className="flex justify-between items-center px-1.5 pt-1 text-[11px] text-gray-400">
+                <span>จำกัดสูงสุด {MAX_INPUT_LENGTH.toLocaleString()} ตัวอักษร</span>
+                <span className={`font-mono font-medium ${
+                  input.length >= 950 
+                    ? 'text-rose-500 font-bold' 
+                    : input.length >= 800 
+                    ? 'text-amber-500 font-semibold' 
+                    : 'text-gray-400'
+                }`}>
+                  {input.length} / {MAX_INPUT_LENGTH.toLocaleString()}
+                </span>
+              </div>
             </div>
           </div>
 
         </main>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 }
