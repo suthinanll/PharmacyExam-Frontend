@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Menu, X, User, LogOut, ChevronLeft, ChevronRight, FileText, Zap, Layers, List, Calendar, Newspaper, MessageSquare, Settings, LayoutDashboard  } from "lucide-react";
+import { Menu, X, User, LogOut, ChevronLeft, ChevronRight, FileText, Zap, List, Calendar, Newspaper, MessageSquare, Settings, LayoutDashboard, SlidersHorizontal } from "lucide-react";
 import Link from "next/link";
 import React from "react";
 import Swal from "sweetalert2";
@@ -84,7 +84,7 @@ export default function Navbar_admin({
     { title: "แดชบอร์ด", href: "/admin", icon: LayoutDashboard },
     { title: "คลังข้อสอบ", href: "/admin/manage_examset", icon: FileText },
     { title: "ข้อสอบแบบ (CAT)", href: "/admin/cat_management", icon: Zap },
-    { title: "ข้อสอบแบบ (MST)", href: "/admin/mst_management", icon: Layers },
+    { title: "จัดการพารามิเตอร์ IRT", href: "/admin/irt_management", icon: SlidersHorizontal },
     { title: "จัดการประเภทข้อสอบ", href: "/admin/manage_category", icon: List },
     { title: "จัดการหัวข้อ", href: "/admin/manage_topics", icon: List },
     { title: "ปฏิทินกำหนดการ", href: "/admin/manage_calendar", icon: Calendar },

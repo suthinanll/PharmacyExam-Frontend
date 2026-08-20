@@ -27,7 +27,8 @@ import {
     ChevronRight,
     Home,
     ArrowLeft,
-    Eye
+    Eye,
+    Download
 } from 'lucide-react';
 
 import ExamPreviewModal from './ExamPreviewModal';
@@ -277,8 +278,51 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                         พรีวิวข้อสอบ
                     </button>
                     <button
+                        onClick={async () => {
+                            try {
+                                const token = getToken();
+                                const r = await fetch(`${API_URL}/items-bank/cat/export-response-matrix?item_bank_id=${itemBankId}`, {
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                if (!r.ok) {
+                                    const errData = await r.json().catch(() => ({}));
+                                    throw new Error(errData.message || `เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ (HTTP ${r.status})`);
+                                }
+                                const res = await r.json();
+                                const blob = new Blob(["\uFEFF" + res.csv], { type: 'text/csv;charset=utf-8;' });
+                                const link = document.createElement('a');
+                                const cleanName = (item_bank?.name || 'bank').replace(/[^a-zA-Z0-9_\u0E00-\u0E7F]/g, '_');
+                                const downloadUrl = URL.createObjectURL(blob);
+                                link.href = downloadUrl;
+                                link.setAttribute('download', `response_matrix_${cleanName}_${new Date().toISOString().slice(0, 10)}.csv`);
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+                                Swal.fire({
+                                    title: 'ส่งออกสำเร็จ',
+                                    html: `ดาวน์โหลดไฟล์ Response Matrix เรียบร้อยแล้ว<br/><span class="text-xs text-gray-500">จำนวน ${res.total_sessions} sessions (${res.total_items} ข้อ)</span>`,
+                                    icon: 'success',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+                            } catch (err: any) {
+                                Swal.fire({
+                                    title: 'ข้อผิดพลาด',
+                                    html: `ไม่สามารถส่งออก CSV ได้<br/><span class="text-xs text-red-500 font-mono mt-1 block">${err.message || 'Network error'}</span>`,
+                                    icon: 'error'
+                                });
+                            }
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-all shadow-sm active:scale-95 whitespace-nowrap cursor-pointer"
+                        title="ส่งออก 0/1 Response Matrix CSV สำหรับนำไป Calibrate IRT ใน R/Python/BILOG"
+                    >
+                        <Download className="w-4 h-4" />
+                        ส่งออก Matrix (CSV)
+                    </button>
+                    <button
                         onClick={onManageExams}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg text-white transition-all shadow-md bg-green-600 hover:bg-green-700 active:scale-95"
+                        className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg text-white transition-all shadow-md bg-green-600 hover:bg-green-700 active:scale-95 cursor-pointer"
                     >
                         จัดการคำถาม
                     </button>

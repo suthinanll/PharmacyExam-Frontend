@@ -8,7 +8,7 @@ import {
     Search, X, Filter, History,
     BookOpen, Brain, Clock, CheckCircle2, XCircle,
     ChevronRight, BarChart3, TrendingUp, CalendarDays,
-    Layers, Sparkles, Award
+    Sparkles, Award
 } from "lucide-react";
 import PageSkeleton from "@/components/Skeleton";
 
@@ -38,15 +38,11 @@ interface ExamRecord {
     num_correct?: number;
     passed?: boolean;
     stop_reason?: string;
-    // MST exam
-    total_items?: number;
-    total_correct?: number;
-    routing_path?: string[];
     // tag
-    examType: "NORMAL" | "CAT" | "MST";
+    examType: "NORMAL" | "CAT";
 }
 
-type TabType = "ALL" | "NORMAL" | "CAT" | "MST";
+type TabType = "ALL" | "NORMAL" | "CAT";
 type StatusFilter = "ALL" | "PASSED" | "FAILED";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -74,7 +70,7 @@ function calcDuration(start: string, end?: string) {
 }
 
 function isPassed(exam: ExamRecord): boolean {
-    if (exam.examType === "CAT" || exam.examType === "MST") return exam.passed ?? false;
+    if (exam.examType === "CAT") return exam.passed ?? false;
     return (exam.final_score ?? 0) >= 50;
 }
 
@@ -85,20 +81,6 @@ function ScoreBadge({ exam }: { exam: ExamRecord }) {
         return (
             <div className="text-center">
                 <div className="text-xl font-bold text-purple-700">
-                    θ {theta != null ? theta.toFixed(2) : "—"}
-                </div>
-                <div className={`text-xs font-semibold mt-0.5 ${exam.passed ? "text-emerald-600" : "text-rose-500"}`}>
-                    {exam.passed ? "ผ่าน" : "ไม่ผ่าน"}
-                </div>
-            </div>
-        );
-    }
-
-    if (exam.examType === "MST") {
-        const theta = exam.final_theta;
-        return (
-            <div className="text-center">
-                <div className="text-xl font-bold text-indigo-700">
                     θ {theta != null ? theta.toFixed(2) : "—"}
                 </div>
                 <div className={`text-xs font-semibold mt-0.5 ${exam.passed ? "text-emerald-600" : "text-rose-500"}`}>
@@ -126,7 +108,6 @@ function StatBar({ records }: { records: ExamRecord[] }) {
     const passed = records.filter(isPassed).length;
     const normal = records.filter((r) => r.examType === "NORMAL").length;
     const cat = records.filter((r) => r.examType === "CAT").length;
-    const mst = records.filter((r) => r.examType === "MST").length;
 
     const stats = [
         {
@@ -161,18 +142,10 @@ function StatBar({ records }: { records: ExamRecord[] }) {
             iconBg: "bg-purple-100 text-purple-600",
             valColor: "text-purple-600",
         },
-        {
-            title: "สอบ MST",
-            value: mst,
-            description: "Adaptive รายด่าน",
-            icon: <Layers className="w-5 h-5" />,
-            iconBg: "bg-indigo-100 text-indigo-600",
-            valColor: "text-indigo-600",
-        },
     ];
 
     return (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4 mb-6">
             {stats.map((s) => (
                 <div
                     key={s.title}
@@ -206,7 +179,6 @@ export default function ExamHistoryPage() {
 
     const [normalRecords, setNormalRecords] = useState<ExamRecord[]>([]);
     const [catRecords, setCatRecords] = useState<ExamRecord[]>([]);
-    const [mstRecords, setMstRecords] = useState<ExamRecord[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -226,18 +198,14 @@ export default function ExamHistoryPage() {
         Promise.allSettled([
             fetch(`${API_URL}/items-bank/exam/history?exam_type=NORMAL`, { headers }).then((r) => r.json()),
             fetch(`${API_URL}/cat/history`, { headers }).then((r) => r.json()),
-            fetch(`${API_URL}/mst/history`, { headers }).then((r) => r.json()),
             fetch(`${API_URL}/items-bank/exam/categories`, { headers }).then((r) => r.json()),
         ])
-            .then(([normalRes, catRes, mstRes, catRes2]) => {
+            .then(([normalRes, catRes, catRes2]) => {
                 if (normalRes.status === "fulfilled" && Array.isArray(normalRes.value)) {
                     setNormalRecords(normalRes.value.map((d: any) => ({ ...d, examType: "NORMAL" as const })));
                 }
                 if (catRes.status === "fulfilled" && Array.isArray(catRes.value)) {
                     setCatRecords(catRes.value.map((d: any) => ({ ...d, examType: "CAT" as const })));
-                }
-                if (mstRes.status === "fulfilled" && Array.isArray(mstRes.value)) {
-                    setMstRecords(mstRes.value.map((d: any) => ({ ...d, examType: "MST" as const })));
                 }
                 if (catRes2.status === "fulfilled" && Array.isArray(catRes2.value)) {
                     setCategories(catRes2.value);
@@ -249,17 +217,16 @@ export default function ExamHistoryPage() {
 
     // ── Combine + Filter ──
     const allRecords = useMemo(() => {
-        return [...normalRecords, ...catRecords, ...mstRecords].sort(
+        return [...normalRecords, ...catRecords].sort(
             (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
         );
-    }, [normalRecords, catRecords, mstRecords]);
+    }, [normalRecords, catRecords]);
 
     const filtered = useMemo(() => {
         let src: ExamRecord[] =
             activeTab === "ALL" ? allRecords
                 : activeTab === "NORMAL" ? normalRecords
-                    : activeTab === "CAT" ? catRecords
-                        : mstRecords;
+                    : catRecords;
 
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
@@ -271,12 +238,11 @@ export default function ExamHistoryPage() {
         if (selectedCats.length > 0) {
             src = src.filter((r) =>
                 r.examType === "CAT" ||
-                r.examType === "MST" ||
                 r.categories?.some((c) => selectedCats.includes(c.category_id))
             );
         }
         return src;
-    }, [allRecords, normalRecords, catRecords, mstRecords, activeTab, searchQuery, statusFilter, selectedCats]);
+    }, [allRecords, normalRecords, catRecords, activeTab, searchQuery, statusFilter, selectedCats]);
 
     const hasFilter = searchQuery || statusFilter !== "ALL" || selectedCats.length > 0;
 
@@ -293,7 +259,7 @@ export default function ExamHistoryPage() {
     if (loading) return (
         <>
             <Navbar />
-            <PageSkeleton variant="list" stats={5} />
+            <PageSkeleton variant="list" stats={4} />
             <Footer />
         </>
     );
@@ -338,7 +304,7 @@ export default function ExamHistoryPage() {
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900">ประวัติการสอบ</h1>
-                            <p className="text-sm text-gray-400">ประวัติการทำข้อสอบทั้งหมดของคุณ (ปกติ, CAT, และ MST)</p>
+                            <p className="text-sm text-gray-400">ประวัติการทำข้อสอบทั้งหมดของคุณ (ปกติ และ CAT)</p>
                         </div>
                     </div>
 
@@ -351,7 +317,6 @@ export default function ExamHistoryPage() {
                             { key: "ALL", label: "ทั้งหมด", count: allRecords.length, icon: null },
                             { key: "NORMAL", label: "สอบปกติ", count: normalRecords.length, icon: BookOpen },
                             { key: "CAT", label: "CAT (รายข้อ)", count: catRecords.length, icon: Brain },
-                            { key: "MST", label: "MST (รายด่าน)", count: mstRecords.length, icon: Layers },
                         ] as { key: TabType; label: string; count: number; icon: any }[]).map((t) => {
                             const IconComp = t.icon;
                             const isSelected = activeTab === t.key;
@@ -363,8 +328,6 @@ export default function ExamHistoryPage() {
                                         isSelected
                                             ? t.key === "CAT"
                                                 ? "bg-purple-600 text-white shadow-sm"
-                                                : t.key === "MST"
-                                                ? "bg-indigo-600 text-white shadow-sm"
                                                 : t.key === "NORMAL"
                                                 ? "bg-blue-600 text-white shadow-sm"
                                                 : "bg-emerald-600 text-white shadow-sm"
@@ -521,12 +484,9 @@ export default function ExamHistoryPage() {
                             {filtered.map((exam) => {
                                 const passed = isPassed(exam);
                                 const isCAT = exam.examType === "CAT";
-                                const isMST = exam.examType === "MST";
 
                                 const title = isCAT
                                     ? "การสอบแบบ CAT (Adaptive รายข้อ)"
-                                    : isMST
-                                    ? exam.item_bank_name || "การสอบแบบ MST (Adaptive รายด่าน)"
                                     : exam.item_bank_name || "ชุดข้อสอบมาตรฐาน";
 
                                 return (
@@ -542,14 +502,10 @@ export default function ExamHistoryPage() {
                                             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
                                                 isCAT
                                                     ? "bg-purple-100 text-purple-600"
-                                                    : isMST
-                                                    ? "bg-indigo-100 text-indigo-600"
                                                     : "bg-blue-100 text-blue-600"
                                             }`}>
                                                 {isCAT ? (
                                                     <Brain size={22} />
-                                                ) : isMST ? (
-                                                    <Layers size={22} />
                                                 ) : (
                                                     <BookOpen size={22} />
                                                 )}
@@ -564,27 +520,14 @@ export default function ExamHistoryPage() {
                                                     <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase shrink-0 ${
                                                         isCAT
                                                             ? "bg-purple-100 text-purple-700"
-                                                            : isMST
-                                                            ? "bg-indigo-100 text-indigo-700"
                                                             : "bg-blue-100 text-blue-700"
                                                     }`}>
-                                                        {isCAT ? "CAT Adaptive" : isMST ? "MST Adaptive" : "NORMAL"}
+                                                        {isCAT ? "CAT Adaptive" : "NORMAL"}
                                                     </span>
                                                 </div>
 
-                                                {/* Routing Path (for MST) */}
-                                                {isMST && exam.routing_path && exam.routing_path.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1 mb-2">
-                                                        {exam.routing_path.map((path, idx) => (
-                                                            <span key={idx} className="text-[11px] px-2 py-0.5 bg-slate-100 text-slate-700 rounded font-medium border border-slate-200">
-                                                                {path}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-
                                                 {/* Categories (for Normal) */}
-                                                {!isCAT && !isMST && exam.categories && exam.categories.length > 0 && (
+                                                {!isCAT && exam.categories && exam.categories.length > 0 && (
                                                     <div className="flex flex-wrap gap-1.5 mb-2">
                                                         {exam.categories.map((c) => (
                                                             <span key={c.category_id} className="text-[11px] px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded font-medium border border-indigo-100">
@@ -612,13 +555,7 @@ export default function ExamHistoryPage() {
                                                             {exam.num_items} ข้อ · {exam.num_correct}/{exam.num_items} ถูก
                                                         </span>
                                                     )}
-                                                    {isMST && exam.total_items != null && (
-                                                        <span className="flex items-center gap-1 text-indigo-600 font-medium">
-                                                            <TrendingUp size={12} />
-                                                            {exam.total_items} ข้อ · {exam.total_correct}/{exam.total_items} ถูก
-                                                        </span>
-                                                    )}
-                                                    {!isCAT && !isMST && exam.total_questions != null && (
+                                                    {!isCAT && exam.total_questions != null && (
                                                         <span className="flex items-center gap-1 text-blue-600 font-medium">
                                                             {exam.correct_count ?? 0}/{exam.total_questions} ถูก
                                                         </span>
@@ -635,15 +572,11 @@ export default function ExamHistoryPage() {
                                                     href={
                                                         isCAT
                                                             ? `/user/cat-exam/result/${exam.session_id}`
-                                                            : isMST
-                                                            ? `/user/mst-exam/result/${exam.session_id}`
                                                             : `/user/examset/take-exam/summarize-exam?session_id=${exam.session_id}`
                                                     }
                                                     className={`px-4 py-2 text-white text-sm font-semibold rounded-xl transition-all shadow-xs hover:shadow-md whitespace-nowrap ${
                                                         isCAT
                                                             ? "bg-purple-600 hover:bg-purple-700"
-                                                            : isMST
-                                                            ? "bg-indigo-600 hover:bg-indigo-700"
                                                             : "bg-emerald-600 hover:bg-emerald-700"
                                                     }`}
                                                 >

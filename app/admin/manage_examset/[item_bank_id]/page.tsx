@@ -44,6 +44,7 @@ interface Situation {
     situation_text: string;
     situation_image_url?: string;
     display_order?: number;
+    is_standalone?: boolean;
     questions: Question[];
 }
 
@@ -303,6 +304,7 @@ export default function ItemBankEditPage() {
                                     temporary_id: `existing_${sitId}`,
                                     situation_text: item.situation.situation_text,
                                     situation_image_url: item.situation.situation_image_url,
+                                    is_standalone: false,
                                     questions: [],
                                     // ใช้ display_order ของ item แรกใน situation (จาก item_bank_items)
                                     // เพื่อให้ sort บน scale เดียวกับ standalone items
@@ -335,6 +337,7 @@ export default function ItemBankEditPage() {
                                 temporary_id: `existing_standalone_${item.item_id}`,
                                 situation_text: '',
                                 situation_image_url: '',
+                                is_standalone: true,
                                 questions: [{
                                     item_id: item.item_id,
                                     question_text: item.question_text,
@@ -371,10 +374,24 @@ export default function ItemBankEditPage() {
 
     const addSituation = () => {
         const newSituation: Situation = {
-            temporary_id: `temp_${Date.now()}_${Math.random()}`, // Unique temporary ID
+            temporary_id: `temp_situation_${Date.now()}_${Math.random()}`,
             situation_text: '',
             situation_image_url: '',
-            questions: []
+            is_standalone: false,
+            questions: [
+                {
+                    question_text: '',
+                    explanation: '',
+                    answer_options: [
+                        { option_text: '', is_correct: true },
+                        { option_text: '', is_correct: false },
+                        { option_text: '', is_correct: false },
+                        { option_text: '', is_correct: false },
+                        { option_text: '', is_correct: false },
+                    ],
+                    sub_topic_ids: []
+                }
+            ]
         };
         const newSituations = [...situations, newSituation];
         setSituations(newSituations);
@@ -394,6 +411,7 @@ export default function ItemBankEditPage() {
             temporary_id: `temp_standalone_${Date.now()}_${Math.random()}`,
             situation_text: '',
             situation_image_url: '',
+            is_standalone: true,
             questions: [
                 {
                     question_text: '',
@@ -405,8 +423,6 @@ export default function ItemBankEditPage() {
                         { option_text: '', is_correct: false },
                         { option_text: '', is_correct: false },
                     ],
-                    irt_a_discrimination: 1,
-                    irt_c_guessing: 0.25,
                     sub_topic_ids: []
                 }
             ]
@@ -494,8 +510,6 @@ export default function ItemBankEditPage() {
                 { option_text: '', is_correct: false },
                 { option_text: '', is_correct: false },
             ],
-            irt_a_discrimination: 1,
-            irt_c_guessing: 0.25,
             sub_topic_ids: []
         };
         const newSituations = [...situations];
@@ -876,9 +890,9 @@ export default function ItemBankEditPage() {
                                 explanation: question.explanation,
                                 sub_topic_id: question.sub_topic_id ? Number(question.sub_topic_id) : undefined,
                                 sub_topic_ids: question.sub_topic_ids ? question.sub_topic_ids.map(Number) : [],
-                                irt_a_discrimination: question.irt_a_discrimination ? Number(question.irt_a_discrimination) : 0,
-                                irt_b_difficulty: question.irt_b_difficulty ? Number(question.irt_b_difficulty) : 0,
-                                irt_c_guessing: question.irt_c_guessing ? Number(question.irt_c_guessing) : 0,
+                                irt_a_discrimination: question.irt_a_discrimination != null ? Number(question.irt_a_discrimination) : null,
+                                irt_b_difficulty: question.irt_b_difficulty != null ? Number(question.irt_b_difficulty) : null,
+                                irt_c_guessing: question.irt_c_guessing != null ? Number(question.irt_c_guessing) : null,
                                 answer_options: question.answer_options
                             })
                         });
@@ -906,9 +920,9 @@ export default function ItemBankEditPage() {
                                     explanation: q.explanation,
                                     sub_topic_id: q.sub_topic_id ? Number(q.sub_topic_id) : undefined,
                                     sub_topic_ids: q.sub_topic_ids ? q.sub_topic_ids.map(Number) : [],
-                                    irt_a_discrimination: q.irt_a_discrimination ? Number(q.irt_a_discrimination) : 0,
-                                    irt_b_difficulty: q.irt_b_difficulty ? Number(q.irt_b_difficulty) : 0,
-                                    irt_c_guessing: q.irt_c_guessing ? Number(q.irt_c_guessing) : 0,
+                                    irt_a_discrimination: q.irt_a_discrimination != null ? Number(q.irt_a_discrimination) : null,
+                                    irt_b_difficulty: q.irt_b_difficulty != null ? Number(q.irt_b_difficulty) : null,
+                                    irt_c_guessing: q.irt_c_guessing != null ? Number(q.irt_c_guessing) : null,
                                     answer_options: q.answer_options
                                 }))
                             })
@@ -961,9 +975,9 @@ export default function ItemBankEditPage() {
                                     explanation: question.explanation,
                                     sub_topic_id: question.sub_topic_id ? Number(question.sub_topic_id) : undefined,
                                     sub_topic_ids: question.sub_topic_ids ? question.sub_topic_ids.map(Number) : [],
-                                    irt_a_discrimination: question.irt_a_discrimination ? Number(question.irt_a_discrimination) : 0,
-                                    irt_b_difficulty: question.irt_b_difficulty ? Number(question.irt_b_difficulty) : 0,
-                                    irt_c_guessing: question.irt_c_guessing ? Number(question.irt_c_guessing) : 0,
+                                    irt_a_discrimination: question.irt_a_discrimination != null ? Number(question.irt_a_discrimination) : null,
+                                    irt_b_difficulty: question.irt_b_difficulty != null ? Number(question.irt_b_difficulty) : null,
+                                    irt_c_guessing: question.irt_c_guessing != null ? Number(question.irt_c_guessing) : null,
                                     answer_options: question.answer_options
                                 })
                             });
@@ -986,9 +1000,9 @@ export default function ItemBankEditPage() {
                                     explanation: question.explanation,
                                     sub_topic_id: question.sub_topic_id ? Number(question.sub_topic_id) : undefined,
                                     sub_topic_ids: question.sub_topic_ids ? question.sub_topic_ids.map(Number) : [],
-                                    irt_a_discrimination: question.irt_a_discrimination ? Number(question.irt_a_discrimination) : 0,
-                                    irt_b_difficulty: question.irt_b_difficulty ? Number(question.irt_b_difficulty) : 0,
-                                    irt_c_guessing: question.irt_c_guessing ? Number(question.irt_c_guessing) : 0,
+                                    irt_a_discrimination: question.irt_a_discrimination != null ? Number(question.irt_a_discrimination) : null,
+                                    irt_b_difficulty: question.irt_b_difficulty != null ? Number(question.irt_b_difficulty) : null,
+                                    irt_c_guessing: question.irt_c_guessing != null ? Number(question.irt_c_guessing) : null,
                                     answer_options: question.answer_options
                                 })
                             });
@@ -1006,9 +1020,9 @@ export default function ItemBankEditPage() {
                                 explanation: q.explanation,
                                 sub_topic_id: q.sub_topic_id ? Number(q.sub_topic_id) : undefined,
                                 sub_topic_ids: q.sub_topic_ids ? q.sub_topic_ids.map(Number) : [],
-                                irt_a_discrimination: q.irt_a_discrimination ? Number(q.irt_a_discrimination) : 0,
-                                irt_b_difficulty: q.irt_b_difficulty ? Number(q.irt_b_difficulty) : 0,
-                                irt_c_guessing: q.irt_c_guessing ? Number(q.irt_c_guessing) : 0,
+                                irt_a_discrimination: q.irt_a_discrimination != null ? Number(q.irt_a_discrimination) : null,
+                                irt_b_difficulty: q.irt_b_difficulty != null ? Number(q.irt_b_difficulty) : null,
+                                irt_c_guessing: q.irt_c_guessing != null ? Number(q.irt_c_guessing) : null,
                                 answer_options: q.answer_options
                             }))
                         };
@@ -1392,19 +1406,16 @@ export default function ItemBankEditPage() {
                                     const isCollapsed = collapsedSituations.has(sitIdx);
                                     // Calculate the starting question number for this situation
                                     const questionStartIndex = situations.slice(0, sitIdx).reduce((acc, s) => acc + s.questions.length, 0);
-                                    const hasSituationContent = Boolean(
-                                        (situation.situation_text && situation.situation_text.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim() !== '') ||
-                                        (situation.situation_image_url && situation.situation_image_url.trim() !== '')
-                                    );
+                                    const isSituation = situation.is_standalone !== true;
 
                                     return (
                                         <div
                                             key={situation.temporary_id || situation.situation_id || sitIdx}
                                             ref={(el) => { situationRefs.current[sitIdx] = el; }}
-                                            className={hasSituationContent ? "bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden scroll-mt-32 transition-shadow hover:shadow-md" : "scroll-mt-32 bg-white rounded-2xl shadow-sm border border-blue-200/80 overflow-hidden"}
+                                            className={isSituation ? "bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden scroll-mt-32 transition-shadow hover:shadow-md" : "scroll-mt-32 bg-white rounded-2xl shadow-sm border border-blue-200/80 overflow-hidden"}
                                         >
-                                            {/* Situation Header (Only when situation has content) */}
-                                            {hasSituationContent && (
+                                            {/* Situation Header (Only when situation) */}
+                                            {isSituation && (
                                                 <div className="flex items-center justify-between px-5 py-4 select-none group">
                                                     {/* Left: badge + title — click to collapse */}
                                                     <div
@@ -1442,10 +1453,10 @@ export default function ItemBankEditPage() {
                                             )}
 
                                             {/* Situation Body + Questions */}
-                                            {(!isCollapsed || !hasSituationContent) && (
-                                                <div className={hasSituationContent ? "border-t border-gray-100" : ""}>
-                                                    {/* Situation text & image — same style as SituationViewer body */}
-                                                    {hasSituationContent && (
+                                            {(!isCollapsed || !isSituation) && (
+                                                <div className={isSituation ? "border-t border-gray-100" : ""}>
+                                                    {/* Situation text & image */}
+                                                    {isSituation && (
                                                         <div className="bg-gradient-to-b from-slate-50 to-white px-5 py-5 border-b border-gray-100">
                                                             <div className="flex items-start gap-3 mb-4">
                                                                 <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-emerald-400 to-emerald-600 shrink-0" />
@@ -1461,14 +1472,14 @@ export default function ItemBankEditPage() {
                                                         </div>
                                                     )}
 
-                                                    {/* Question area header (Only when situation has content) */}
-                                                    {hasSituationContent && (
+                                                    {/* Question area header (Only when situation) */}
+                                                    {isSituation && (
                                                         <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
-                                                            <h4 className="text-sm font-bold text-gray-700">คำถาม</h4>
+                                                            <h4 className="text-sm font-bold text-gray-700">คำถามในสถานการณ์นี้</h4>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => addQuestion(sitIdx)}
-                                                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg font-medium text-xs transition-all active:scale-95"
+                                                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg font-medium text-xs transition-all active:scale-95 cursor-pointer shadow-xs"
                                                             >
                                                                 <Plus className="w-3.5 h-3.5" />
                                                                 เพิ่มคำถาม
@@ -1479,7 +1490,15 @@ export default function ItemBankEditPage() {
                                                     {situation.questions.length === 0 ? (
                                                         <div className="bg-white border-2 border-dashed border-gray-200 rounded-xl p-8 text-center mx-5 my-4">
                                                             <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                                                            <p className="text-gray-400 text-sm">ยังไม่มีคำถามในสถานการณ์นี้</p>
+                                                            <p className="text-gray-400 text-sm mb-3">ยังไม่มีคำถามในสถานการณ์นี้</p>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => addQuestion(sitIdx)}
+                                                                className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium text-xs transition-all cursor-pointer shadow-xs"
+                                                            >
+                                                                <Plus className="w-3.5 h-3.5" />
+                                                                เพิ่มคำถามแรกในสถานการณ์นี้
+                                                            </button>
                                                         </div>
                                                     ) : (
                                                         <div className="divide-y divide-gray-100">
@@ -1488,10 +1507,10 @@ export default function ItemBankEditPage() {
                                                                 return (
                                                                     <div id={`question-${sitIdx}-${qIdx}`} key={qIdx} className="scroll-mt-32">
                                                                         {/* Question Header */}
-                                                                        <div className={`flex items-center gap-3 px-5 py-4 transition-colors group ${!hasSituationContent ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'hover:bg-gray-50/70'}`}>
+                                                                        <div className={`flex items-center gap-3 px-5 py-4 transition-colors group ${!isSituation ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'hover:bg-gray-50/70'}`}>
                                                                             {/* number badge */}
                                                                             <div
-                                                                                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs shrink-0 cursor-pointer ${!hasSituationContent ? 'border-blue-300 bg-blue-600 text-white' : 'border-blue-200 bg-blue-50 text-blue-700'}`}
+                                                                                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-xs shrink-0 cursor-pointer ${!isSituation ? 'border-blue-300 bg-blue-600 text-white' : 'border-blue-200 bg-blue-50 text-blue-700'}`}
                                                                                 onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
                                                                             >
                                                                                 {questionStartIndex + qIdx + 1}
@@ -1503,7 +1522,7 @@ export default function ItemBankEditPage() {
                                                                                 onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
                                                                             >
                                                                                 <div className="flex items-center gap-2">
-                                                                                    {!hasSituationContent && (
+                                                                                    {!isSituation && (
                                                                                         <span className="text-xs font-semibold text-blue-700 bg-blue-100/80 px-2 py-0.5 rounded shrink-0">คำถามเดี่ยว</span>
                                                                                     )}
                                                                                     <div
@@ -1518,8 +1537,8 @@ export default function ItemBankEditPage() {
                                                                                 <div className="flex items-center gap-0.5 py-0.5 px-1 bg-gray-50 rounded border border-gray-100">
                                                                                     <button
                                                                                         type="button"
-                                                                                        onClick={() => hasSituationContent ? moveQuestion(sitIdx, qIdx, 'up') : moveSituation(sitIdx, 'up')}
-                                                                                        disabled={hasSituationContent ? qIdx === 0 : sitIdx === 0}
+                                                                                        onClick={() => isSituation ? moveQuestion(sitIdx, qIdx, 'up') : moveSituation(sitIdx, 'up')}
+                                                                                        disabled={isSituation ? qIdx === 0 : sitIdx === 0}
                                                                                         className="p-1 text-gray-400 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                                         title="ย้ายขึ้น"
                                                                                     >
@@ -1527,8 +1546,8 @@ export default function ItemBankEditPage() {
                                                                                     </button>
                                                                                     <button
                                                                                         type="button"
-                                                                                        onClick={() => hasSituationContent ? moveQuestion(sitIdx, qIdx, 'down') : moveSituation(sitIdx, 'down')}
-                                                                                        disabled={hasSituationContent ? qIdx === situation.questions.length - 1 : sitIdx === situations.length - 1}
+                                                                                        onClick={() => isSituation ? moveQuestion(sitIdx, qIdx, 'down') : moveSituation(sitIdx, 'down')}
+                                                                                        disabled={isSituation ? qIdx === situation.questions.length - 1 : sitIdx === situations.length - 1}
                                                                                         className="p-1 text-gray-400 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                                         title="ย้ายลง"
                                                                                     >
@@ -1537,18 +1556,19 @@ export default function ItemBankEditPage() {
                                                                                 </div>
                                                                                 <button
                                                                                     type="button"
-                                                                                    onClick={() => hasSituationContent ? removeQuestion(sitIdx, qIdx) : removeSituation(sitIdx)}
+                                                                                    onClick={() => isSituation ? removeQuestion(sitIdx, qIdx) : removeSituation(sitIdx)}
                                                                                     className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                                                                                    title={hasSituationContent ? "ลบคำถาม" : "ลบคำถามเดี่ยว"}
+                                                                                    title={isSituation ? "ลบคำถาม" : "ลบคำถามเดี่ยว"}
                                                                                 >
                                                                                     <Trash2 className="w-4 h-4" />
                                                                                 </button>
-                                                                                <div
-                                                                                    className="w-7 h-7 rounded-lg bg-transparent group-hover:bg-gray-100 flex items-center justify-center transition-colors cursor-pointer"
+                                                                                <button
+                                                                                    type="button"
                                                                                     onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
+                                                                                    className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
                                                                                 >
-                                                                                    {isQCollapsed ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronUp className="w-4 h-4 text-gray-400" />}
-                                                                                </div>
+                                                                                    {isQCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
+                                                                                </button>
                                                                             </div>
                                                                         </div>
 

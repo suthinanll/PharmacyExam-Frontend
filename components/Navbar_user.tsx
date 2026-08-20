@@ -109,8 +109,7 @@ const Navbar = () => {
       label: 'คลังข้อสอบ',
       submenu: [
         { href: '/user/examset', label: 'ชุดข้อสอบมาตรฐาน (Standard Exam)' },
-        { href: '/user/cat-exam', label: 'ข้อสอบแบบปรับเหมาะรายข้อ (CAT)' },
-        { href: '/user/mst-exam', label: 'ข้อสอบแบบปรับเหมาะรายด่าน (MST)' }
+        { href: '/user/cat-exam', label: 'ข้อสอบแบบปรับเหมาะรายข้อ (CAT)' }
       ]
     },
     { href: '/user/calendar', label: 'ปฏิทินการสอบ' },

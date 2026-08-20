@@ -1,357 +1,141 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar_admin from "@/components/Navbar_admin";
 import {
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    Line, ReferenceLine, AreaChart, Area, Legend, ComposedChart,
+    BarChart, Bar, Cell, AreaChart, Area, PieChart, Pie, Legend,
 } from 'recharts';
 import {
-    Search, Eye, X, ChevronLeft, ChevronRight, TrendingUp,
-    Database, LayoutGrid, List, ArrowUpDown,
-    SlidersHorizontal, CheckCircle2, AlertCircle, Save, ChevronDown,
+    BrainCircuit, Users, Award, BookOpen, TrendingUp, Sparkles,
+    RefreshCw, CheckCircle2, AlertCircle, ChevronDown, SlidersHorizontal,
+    Target, ArrowRight,
 } from 'lucide-react';
+import Link from 'next/link';
 import Swal from 'sweetalert2';
 import { useAuth } from "@/contexts/AuthContext";
 
 // ======================== TYPES ========================
-interface AnswerOption { option_id: number; option_text: string; is_correct: boolean; }
-interface ItemBank { item_bank_id: number; bank_name: string; description: string; }
-interface ItemWithIRT {
-    item_id: number; question_text: string; question_type: string;
-    irt_a_discrimination: number | null;
-    irt_b_difficulty: number | null;
-    irt_c_guessing: number | null;
-    irt_calibrated: boolean;
-    explanation: string; status: string; display_order: number;
-    item_bank: ItemBank; answer_options: AnswerOption[];
-    situation?: { situation_id: number; situation_text: string; situation_image_url: string };
+interface ItemBank { item_bank_id: number; bank_name: string; description?: string; }
+
+interface CATAdminAnalytics {
+    total_sessions: number;
+    passed: number;
+    failed: number;
+    pass_rate: number;
+    avg_theta: number;
+    avg_se: number;
+    avg_items: number;
+    theta_distribution: Array<{ range: string; count: number }>;
+    stop_reason_breakdown: Record<string, number>;
+    recent_sessions: Array<{
+        session_id: number;
+        user_id: number;
+        user_name?: string;
+        final_theta: number;
+        final_se: number;
+        num_items: number;
+        passed: boolean;
+        stop_reason: string;
+        end_time: string;
+    }>;
 }
+
+interface CATReadinessData {
+    item_bank_id: number;
+    item_bank_name: string;
+    is_ready: boolean;
+    total_items: number;
+    valid_items: number;
+    invalid_items: number;
+    readiness_percentage: number;
+    min_items_required: number;
+    message: string;
+    items_without_irt?: Array<{
+        item_id: number;
+        question_text: string;
+        missing_params: string[];
+    }>;
+}
+
 interface TIFPoint { theta: number; info: number; se: number; }
 
-// ======================== CONSTANTS ========================
 const API = `${process.env.NEXT_PUBLIC_API_URL}`;
-const THETA_RANGE = Array.from({ length: 81 }, (_, i) => +(-4 + i * 0.1).toFixed(2));
 
-const PRESETS = [
-    { label: 'ง่ายมาก', b: -2.0, c: 0.20, color: '#059669', bg: '#ecfdf5', border: '#a7f3d0' },
-    { label: 'ง่าย', b: -1.0, c: 0.20, color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
-    { label: 'ปานกลาง', b: 0.0, c: 0.20, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
-    { label: 'ยาก', b: 1.0, c: 0.20, color: '#ea580c', bg: '#fff7ed', border: '#fed7aa' },
-    { label: 'ยากมาก', b: 2.0, c: 0.20, color: '#dc2626', bg: '#fef2f2', border: '#fecaca' },
-];
-
-// ======================== HELPERS ========================
-function irt3PL(theta: number, a: number, b: number, c: number) {
-    return c + (1 - c) / (1 + Math.exp(-a * (theta - b)));
-}
-function stripHTML(html: string) {
-    if (typeof document === 'undefined') return html || '';
-    const d = document.createElement('div');
-    d.innerHTML = html || '';
-    return d.textContent || d.innerText || '';
-}
-function diffLabel(b: number | null): { label: string; color: string } {
-    if (b === null) return { label: 'ยังไม่ระบุ', color: '#9ca3af' };
-    if (b <= -1.5) return { label: 'ง่ายมาก', color: '#059669' };
-    if (b <= -0.5) return { label: 'ง่าย', color: '#2563eb' };
-    if (b <= 0.5) return { label: 'ปานกลาง', color: '#d97706' };
-    if (b <= 1.5) return { label: 'ยาก', color: '#ea580c' };
-    return { label: 'ยากมาก', color: '#dc2626' };
-}
-
-function getDifficultyCategory(b: number | null, calibrated: boolean): string {
-    if (!calibrated || b === null) return 'unspecified';
-    if (b <= -1.5) return 'very_easy';
-    if (b <= -0.5) return 'easy';
-    if (b <= 0.5) return 'medium';
-    if (b <= 1.5) return 'hard';
-    return 'very_hard';
-}
-
-function getPaginationItems(current: number, total: number): (number | string)[] {
-    if (total <= 7) {
-        return Array.from({ length: total }, (_, i) => i + 1);
+function formatStopReason(reason: string) {
+    switch (reason) {
+        case 'se_threshold': return 'ความแม่นยำถึงเกณฑ์ (SE ≤ Target)';
+        case 'max_items': return 'ทำครบจำนวนข้อสูงสุด (Max Items)';
+        case 'min_items': return 'ทำครบจำนวนข้อขั้นต่ำ';
+        case 'no_more_items': return 'ข้อสอบในคลังหมด';
+        case 'confidence_interval': return 'ช่วงความเชื่อมั่นผ่านเกณฑ์';
+        default: return reason || 'เสร็จสมบูรณ์';
     }
-    if (current <= 4) {
-        return [1, 2, 3, 4, 5, '...', total];
-    }
-    if (current >= total - 3) {
-        return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
-    }
-    return [1, '...', current - 1, current, current + 1, '...', total];
 }
 
-// ======================== ICC CHART ========================
-function ICCChart({ a, b, c }: { a: number; b: number; c: number }) {
-    const data = THETA_RANGE.map(t => ({
-        theta: t,
-        prob: +irt3PL(t, Math.max(0.1, a), b, Math.min(0.99, Math.max(0.01, c))).toFixed(4),
-    }));
-    return (
-        <ResponsiveContainer width="100%" height={160}>
-            <AreaChart data={data} margin={{ top: 8, right: 12, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="theta" tick={{ fontSize: 10, fill: '#9ca3af' }}
-                    tickFormatter={v => Number(v) % 2 === 0 ? String(v) : ''} />
-                <YAxis domain={[0, 1]} tick={{ fontSize: 10, fill: '#9ca3af' }} />
-                <Tooltip
-                    formatter={(v: any) => [v?.toFixed(3), 'P(θ)']}
-                    labelFormatter={l => `θ = ${l}`}
-                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
-                />
-                <ReferenceLine x={b} stroke="#d97706" strokeDasharray="4 3" strokeWidth={1.5} />
-                <Area type="monotone" dataKey="prob" stroke="#6366f1" strokeWidth={2}
-                    fill="#6366f1" fillOpacity={0.08} dot={false} />
-            </AreaChart>
-        </ResponsiveContainer>
-    );
-}
-
-// ======================== SLIDER COMPONENT ========================
-function SliderField({
-    label, sublabel, value, min, max, step, unit,
-    color, onChange, format,
-}: {
-    label: string; sublabel: string;
-    value: number; min: number; max: number; step: number;
-    unit?: string; color: string;
-    onChange: (v: number) => void;
-    format?: (v: number) => string;
-}) {
-    const pct = ((value - min) / (max - min)) * 100;
-    const fmt = format ?? ((v: number) => v.toFixed(step < 0.1 ? 2 : 1));
-    return (
-        <div>
-            <div className="flex items-center justify-between mb-3">
-                <div>
-                    <span className="text-sm font-medium text-gray-800">{label}</span>
-                    <span className="ml-2 text-xs text-gray-400">{sublabel}</span>
-                </div>
-                <input
-                    type="number" step={step} value={value}
-                    onChange={e => {
-                        const v = parseFloat(e.target.value);
-                        if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v)));
-                    }}
-                    className="w-20 text-center border border-gray-200 rounded-lg px-2 py-1.5 text-sm  font-semibold focus:outline-none focus:ring-2 focus:border-transparent"
-                    style={{ color, '--tw-ring-color': color + '40' } as any}
-                />
-            </div>
-            <div className="relative h-5 flex items-center">
-                <div className="absolute inset-x-0 h-1.5 rounded-full bg-gray-100" />
-                <div className="absolute h-1.5 rounded-full" style={{ width: `${pct}%`, background: color }} />
-                <input
-                    type="range" min={min} max={max} step={step} value={value}
-                    onChange={e => onChange(parseFloat(e.target.value))}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    style={{ zIndex: 10 }}
-                />
-                <div
-                    className="absolute w-4 h-4 rounded-full border-2 border-white shadow-md pointer-events-none"
-                    style={{ left: `calc(${pct}% - 8px)`, background: color }}
-                />
-            </div>
-            <div className="flex justify-between text-[10px] text-gray-400 mt-1.5">
-                <span>{fmt(min)}</span>
-                <span>{fmt((min + max) / 2)}</span>
-                <span>{fmt(max)}</span>
-            </div>
-        </div>
-    );
-}
-
-// ======================== MAIN PAGE ========================
-export default function CATManagement() {
+export default function CATManagementPage() {
     const { getToken } = useAuth();
-    const authHeaders = useCallback(() => ({
-        'Authorization': `Bearer ${getToken()}`,
-        'Content-Type': 'application/json',
-    }), [getToken]);
+    const [analytics, setAnalytics] = useState<CATAdminAnalytics | null>(null);
+    const [loadingAnalytics, setLoadingAnalytics] = useState(false);
 
-    // Data
-    const [allBanks, setAllBanks] = useState<ItemBank[]>([]);
-    const [allItems, setAllItems] = useState<ItemWithIRT[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    // UI state
+    // Bank & Readiness
+    const [banks, setBanks] = useState<ItemBank[]>([]);
     const [selectedBankId, setSelectedBankId] = useState<number | null>(null);
-    const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set());
-    const checkedIdsRef = useRef<Set<number>>(new Set()); // always holds latest checkedIds for async handlers
-
-    // Keep ref in sync with state
-    useEffect(() => { checkedIdsRef.current = checkedIds; }, [checkedIds]);
-
-    const [searchTerm, setSearchTerm] = useState('');
-    const [catFilter, setCatFilter] = useState<'all' | 'set' | 'unset'>('all');
-    const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
-    const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
-    const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
-    const [currentPage, setCurrentPage] = useState(1);
-
-    // Edit modal
-    const [editItem, setEditItem] = useState<ItemWithIRT | null>(null);
-    const [editIRT, setEditIRT] = useState({ a: 1.0, b: 0.0, c: 0.20 });
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-
-    // Bulk modal
-    const [showBulkModal, setShowBulkModal] = useState(false);
-    const [bulkIRT, setBulkIRT] = useState({ b: 0.0, c: 0.20 });
+    const [readiness, setReadiness] = useState<CATReadinessData | null>(null);
+    const [loadingReadiness, setLoadingReadiness] = useState(false);
 
     // TIF modal
     const [showTIF, setShowTIF] = useState(false);
     const [tifData, setTifData] = useState<TIFPoint[] | null>(null);
     const [tifBankName, setTifBankName] = useState('');
 
+    const authHeaders = useCallback(() => ({
+        'Authorization': `Bearer ${getToken()}`,
+        'Content-Type': 'application/json',
+    }), [getToken]);
+
+    const fetchAnalytics = useCallback(async () => {
+        try {
+            setLoadingAnalytics(true);
+            const res = await fetch(`${API}/cat/admin/analytics`, { headers: authHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setAnalytics(data);
+            }
+        } catch (error) {
+            console.error('Failed to load CAT analytics:', error);
+        } finally {
+            setLoadingAnalytics(false);
+        }
+    }, [authHeaders]);
+
     const fetchBanks = useCallback(async () => {
         try {
             const r = await fetch(`${API}/items-bank`, { headers: authHeaders() });
-            if (r.ok) setAllBanks(await r.json());
+            if (r.ok) setBanks(await r.json());
         } catch { /* silent */ }
     }, [authHeaders]);
 
-    const fetchItems = useCallback(async () => {
+    const fetchReadiness = useCallback(async (bankId: number | null) => {
+        if (!bankId) {
+            setReadiness(null);
+            return;
+        }
         try {
-            setLoading(true);
-            const r = await fetch(`${API}/items-bank/cat/all-items`, { headers: authHeaders() });
-            if (!r.ok) throw new Error();
-            setAllItems(await r.json());
-        } catch { Swal.fire('ข้อผิดพลาด', 'โหลดข้อมูลไม่ได้', 'error'); }
-        finally { setLoading(false); }
+            setLoadingReadiness(true);
+            const res = await fetch(`${API}/cat/check-readiness/${bankId}`, { headers: authHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setReadiness(data);
+            }
+        } catch (error) {
+            console.error('Failed to load CAT readiness:', error);
+        } finally {
+            setLoadingReadiness(false);
+        }
     }, [authHeaders]);
 
-    useEffect(() => {
-        const saved = localStorage.getItem('cat_viewmode') as 'table' | 'card';
-        if (saved) setViewMode(saved);
-        fetchBanks();
-        fetchItems();
-    }, [fetchBanks, fetchItems]);
-
-    // Derived
-    const bankItems = selectedBankId
-        ? allItems.filter(i => i.item_bank?.item_bank_id === selectedBankId)
-        : allItems;
-    const calibratedCount = bankItems.filter(i => i.irt_calibrated).length;
-    const uncalibratedCount = bankItems.length - calibratedCount;
-    const isReady = calibratedCount >= 20;
-
-    const difficultyCounts = {
-        all: bankItems.length,
-        very_easy: bankItems.filter(i => i.irt_calibrated && i.irt_b_difficulty !== null && i.irt_b_difficulty <= -1.5).length,
-        easy: bankItems.filter(i => i.irt_calibrated && i.irt_b_difficulty !== null && i.irt_b_difficulty > -1.5 && i.irt_b_difficulty <= -0.5).length,
-        medium: bankItems.filter(i => i.irt_calibrated && i.irt_b_difficulty !== null && i.irt_b_difficulty > -0.5 && i.irt_b_difficulty <= 0.5).length,
-        hard: bankItems.filter(i => i.irt_calibrated && i.irt_b_difficulty !== null && i.irt_b_difficulty > 0.5 && i.irt_b_difficulty <= 1.5).length,
-        very_hard: bankItems.filter(i => i.irt_calibrated && i.irt_b_difficulty !== null && i.irt_b_difficulty > 1.5).length,
-    };
-
-    const bankList = allBanks.length > 0 ? allBanks
-        : Array.from(new Map(allItems.filter(i => i.item_bank).map(i => [i.item_bank.item_bank_id, i.item_bank])).values());
-
-    const filtered = bankItems.filter(item => {
-        const text = stripHTML(item.question_text).toLowerCase();
-        const q = searchTerm.toLowerCase();
-        if (q && !text.includes(q) && !(item.item_bank?.bank_name || '').toLowerCase().includes(q)) return false;
-        if (catFilter === 'set' && !item.irt_calibrated) return false;
-        if (catFilter === 'unset' && item.irt_calibrated) return false;
-        if (difficultyFilter !== 'all') {
-            const diffCat = getDifficultyCategory(item.irt_b_difficulty, item.irt_calibrated);
-            if (diffCat !== difficultyFilter) return false;
-        }
-        return true;
-    }).sort((a, b) => (sortOrder === 'desc' ? b.item_id - a.item_id : a.item_id - b.item_id));
-
-    const perPage = viewMode === 'card' ? 9 : 10;
-    const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-
-    // Reset to page 1 on filter/search change
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [searchTerm, selectedBankId, catFilter, difficultyFilter, sortOrder, viewMode]);
-
-    // Keep currentPage within valid bounds
-    useEffect(() => {
-        if (currentPage > totalPages) {
-            setCurrentPage(totalPages);
-        }
-    }, [totalPages, currentPage]);
-
-    const currentItems = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
-    const allPageChecked = currentItems.length > 0 && currentItems.every(i => checkedIds.has(i.item_id));
-
-    // Checkbox
-    function toggleCheck(id: number) {
-        setCheckedIds(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-    }
-    function toggleCheckAll() {
-        const ids = currentItems.map(i => i.item_id);
-        const allOn = ids.every(id => checkedIds.has(id));
-        setCheckedIds(prev => { const n = new Set(prev); ids.forEach(id => allOn ? n.delete(id) : n.add(id)); return n; });
-    }
-
-    // Save single
-    async function handleSaveSingle() {
-        if (!editItem) return;
-        const { a, b, c } = editIRT;
-        if (a <= 0 || a > 3 || b < -4 || b > 4 || c <= 0 || c >= 1)
-            return Swal.fire('ค่าไม่ถูกต้อง', 'a: 0.1–3.0  |  b: -4.0 ถึง +4.0  |  c: 0.01–0.99', 'warning');
-        try {
-            setIsSaving(true);
-            const r = await fetch(`${API}/items-bank/cat/batch-update-irt`, {
-                method: 'PATCH', headers: authHeaders(),
-                body: JSON.stringify({ updates: [{ item_id: editItem.item_id, irt_a_discrimination: a, irt_b_difficulty: b, irt_c_guessing: c }] }),
-            });
-            if (!r.ok) throw new Error();
-            await Swal.fire({ title: 'บันทึกสำเร็จ', icon: 'success', timer: 1200, showConfirmButton: false });
-            setShowEditModal(false);
-            fetchItems();
-        } catch { Swal.fire('ข้อผิดพลาด', 'บันทึกไม่สำเร็จ', 'error'); }
-        finally { setIsSaving(false); }
-    }
-
-    // Save bulk — ใช้ ref เพื่อไม่ติด stale closure
-    async function handleBulkSave(bVal?: number, cVal?: number) {
-        const ids = Array.from(checkedIdsRef.current);  // ← ref แทน state
-        if (!ids.length) return;
-        const b = bVal ?? bulkIRT.b;
-        const c = cVal ?? bulkIRT.c;
-        const preset = PRESETS.find(p => Math.abs(p.b - b) < 0.01);
-        const ok = await Swal.fire({
-            title: `ตั้งค่า IRT — ${ids.length} ข้อ`,
-            html: `<div style="text-align:left;font-size:14px;line-height:1.8">
-                <b>${preset ? preset.label : 'กำหนดเอง'}</b><br>
-                ความยาก b = <b>${b > 0 ? '+' : ''}${b.toFixed(2)}</b>&nbsp;&nbsp;
-                การเดา c = <b>${c.toFixed(2)}</b>
-            </div>`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'ยืนยัน',
-            cancelButtonText: 'ยกเลิก',
-            confirmButtonColor: '#16a34a',
-        });
-        if (!ok.isConfirmed) return;
-        try {
-            setIsSaving(true);
-            const updates = ids.map(id => ({
-                item_id: id,
-                irt_a_discrimination: allItems.find(i => i.item_id === id)?.irt_a_discrimination ?? 1.0,
-                irt_b_difficulty: b,
-                irt_c_guessing: c,
-            }));
-            const r = await fetch(`${API}/items-bank/cat/batch-update-irt`, {
-                method: 'PATCH', headers: authHeaders(),
-                body: JSON.stringify({ updates }),
-            });
-            if (!r.ok) throw new Error();
-            await Swal.fire({ title: `อัปเดต ${ids.length} ข้อสำเร็จ`, icon: 'success', timer: 1500, showConfirmButton: false });
-            setShowBulkModal(false);
-            setCheckedIds(new Set());
-            fetchItems();
-        } catch { Swal.fire('ข้อผิดพลาด', 'บันทึกไม่สำเร็จ', 'error'); }
-        finally { setIsSaving(false); }
-    }
-
-    async function fetchTIF(bankId: number, bankName: string) {
+    const fetchTIF = async (bankId: number, bankName: string) => {
         try {
             const r = await fetch(`${API}/cat/admin/bank/${bankId}/tif`, { headers: authHeaders() });
             if (!r.ok) throw new Error();
@@ -359,692 +143,513 @@ export default function CATManagement() {
             setTifData(data.tif);
             setTifBankName(bankName);
             setShowTIF(true);
-        } catch { Swal.fire('ข้อผิดพลาด', 'โหลด TIF ไม่ได้', 'error'); }
-    }
+        } catch {
+            Swal.fire('ข้อผิดพลาด', 'โหลด TIF ไม่ได้', 'error');
+        }
+    };
 
-    function openEdit(item: ItemWithIRT) {
-        setEditItem(item);
-        setEditIRT({
-            a: (item.irt_a_discrimination && item.irt_a_discrimination > 0) ? item.irt_a_discrimination : 1.0,
-            b: item.irt_b_difficulty ?? 0.0,
-            c: item.irt_c_guessing ?? 0.20,
-        });
-        setShowEditModal(true);
-    }
+    useEffect(() => {
+        fetchAnalytics();
+        fetchBanks();
+    }, [fetchAnalytics, fetchBanks]);
+
+    useEffect(() => {
+        if (selectedBankId) {
+            fetchReadiness(selectedBankId);
+        } else {
+            setReadiness(null);
+        }
+    }, [fetchReadiness, selectedBankId]);
+
+    const handleRefreshAll = () => {
+        fetchAnalytics();
+        fetchBanks();
+        if (selectedBankId) {
+            fetchReadiness(selectedBankId);
+        }
+    };
 
     return (
         <Navbar_admin>
-            <div className="max-w-7xl mx-auto px-4 py-6" suppressHydrationWarning>
+            <div className="max-w-7xl mx-auto px-4 py-6 space-y-6" suppressHydrationWarning>
 
                 {/* ── Page Header ── */}
-                <div className="mb-6">
-                    <h1 className="text-2xl font-semibold text-gray-900">CAT Management</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">ตั้งค่าพารามิเตอร์ IRT สำหรับ Computerized Adaptive Testing</p>
-                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
 
-                {/* ── Bank Selector Card ── */}
-                <div className="bg-white border border-gray-200 rounded-2xl mb-5 overflow-hidden">
-                    {/* selector row */}
-                    <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
-                        <div className="flex-1 relative">
-                            <label className="block text-xs font-medium text-gray-500 mb-1.5">คลังข้อสอบ</label>
-                            <div className="relative">
-                                <select
-                                    value={selectedBankId ?? ''}
-                                    onChange={e => { setSelectedBankId(e.target.value ? +e.target.value : null); setCurrentPage(1); setCheckedIds(new Set()); }}
-                                    className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                                >
-                                    <option value="">ทุกคลังข้อสอบ</option>
-                                    {bankList.map(b => (
-                                        <option key={b.item_bank_id} value={b.item_bank_id}>{b.bank_name}</option>
-                                    ))}
-                                </select>
-                                <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                            </div>
-                        </div>
-
-                        {/* Stats inline */}
-                        <div className="flex gap-4 sm:gap-6 shrink-0 pt-1 sm:pt-5">
-                            <div className="text-center">
-                                <p className="text-xl font-bold text-gray-900">{bankItems.length}</p>
-                                <p className="text-[11px] text-gray-400">ทั้งหมด</p>
-                            </div>
-                            <div className="w-px bg-gray-100" />
-                            <div className="text-center">
-                                <p className="text-xl font-bold text-green-600">{calibratedCount}</p>
-                                <p className="text-[11px] text-gray-400">ระบุ IRT แล้ว</p>
-                            </div>
-                            <div className="w-px bg-gray-100" />
-                            <div className="text-center">
-                                <p className="text-xl font-bold text-amber-500">{uncalibratedCount}</p>
-                                <p className="text-[11px] text-gray-400">ยังไม่ระบุ</p>
-                            </div>
-                            <div className="w-px bg-gray-100" />
-                            <div className="text-center">
-                                {isReady
-                                    ? <p className="text-[11px] font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-lg mt-0.5">พร้อมสอบ CAT</p>
-                                    : <p className="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg mt-0.5">ต้องการ {Math.max(0, 20 - calibratedCount)} ข้ออีก</p>}
-                                <p className="text-[10px] text-gray-400 mt-0.5">สถานะ CAT</p>
-                            </div>
-                        </div>
-
-                        {selectedBankId && (
-                            <button
-                                onClick={() => fetchTIF(selectedBankId, bankList.find(b => b.item_bank_id === selectedBankId)?.bank_name || '')}
-                                className="shrink-0 flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-100 rounded-xl transition-colors sm:mt-5"
-                            >
-                                <TrendingUp size={15} /> ดู TIF
-                            </button>
-                        )}
+                            CAT Management & Analytics
+                        </h1>
+                        <p className="text-sm text-gray-500 mt-1">
+                            วิเคราะห์ผลการสอบแบบปรับเหมาะตามความสามารถ (Computerized Adaptive Testing) และประเมินความพร้อมของคลังข้อสอบ
+                        </p>
                     </div>
-                </div>
-
-                {/* ── Toolbar ── */}
-                <div className="flex flex-col sm:flex-row gap-3 mb-3 items-start sm:items-center justify-between">
-                    <div className="flex flex-wrap gap-2 items-center flex-1">
-                        {/* Search */}
-                        <div className="relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                            <input
-                                type="text" placeholder="ค้นหาข้อสอบ..." value={searchTerm}
-                                onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                                className="pl-8 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 w-52"
-                            />
-                        </div>
-
-                        {/* Filter tabs */}
-                        <div className="flex bg-gray-100 rounded-lg p-0.5 gap-0.5 text-xs">
-                            {[
-                                { k: 'all', l: `ทั้งหมด`, n: bankItems.length },
-                                { k: 'set', l: `ระบุแล้ว`, n: calibratedCount },
-                                { k: 'unset', l: `ยังไม่ระบุ`, n: uncalibratedCount },
-                            ].map(f => (
-                                <button key={f.k}
-                                    onClick={() => { setCatFilter(f.k as any); setCurrentPage(1); }}
-                                    className={`flex items-center gap-1 px-3 py-1.5 rounded-md font-medium transition-all ${catFilter === f.k ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
-                                >
-                                    {f.l}
-                                    <span className={`text-[10px] px-1 py-0.5 rounded ${catFilter === f.k ? 'bg-gray-100 text-gray-600' : 'bg-gray-200/60 text-gray-500'}`}>{f.n}</span>
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Difficulty filter dropdown */}
-                        <div className="relative">
-                            <select
-                                value={difficultyFilter}
-                                onChange={e => { setDifficultyFilter(e.target.value); setCurrentPage(1); }}
-                                className="appearance-none pl-3 pr-8 py-2 border border-gray-200 rounded-lg text-xs font-medium bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer shadow-2xs"
-                            >
-                                <option value="all">ทุกระดับความยาก ({bankItems.length})</option>
-                                <option value="very_easy">🟢 ง่ายมาก ({difficultyCounts.very_easy})</option>
-                                <option value="easy">🔵 ง่าย ({difficultyCounts.easy})</option>
-                                <option value="medium">🟡 ปานกลาง ({difficultyCounts.medium})</option>
-                                <option value="hard">🟠 ยาก ({difficultyCounts.hard})</option>
-                                <option value="very_hard">🔴 ยากมาก ({difficultyCounts.very_hard})</option>
-                            </select>
-                            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                        </div>
-
-                        {/* Sort */}
-                        <button onClick={() => setSortOrder(s => s === 'desc' ? 'asc' : 'desc')}
-                            className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-600 hover:text-gray-900 hover:border-gray-300 text-xs font-medium transition-colors">
-                            <ArrowUpDown size={12} />
-                            {sortOrder === 'desc' ? 'ใหม่ → เก่า' : 'เก่า → ใหม่'}
+                    <div className="flex items-center gap-2">
+                        <Link
+                            href="/admin/irt_management"
+                            className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-xs font-semibold text-white rounded-xl shadow-xs transition cursor-pointer"
+                        >
+                            <SlidersHorizontal className="w-3.5 h-3.5" />
+                            จัดการพารามิเตอร์ IRT
+                        </Link>
+                        <button
+                            onClick={handleRefreshAll}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-gray-700 rounded-xl shadow-xs transition cursor-pointer"
+                        >
+                            <RefreshCw className={`w-3.5 h-3.5 ${loadingAnalytics ? 'animate-spin' : ''}`} />
+                            รีเฟรชข้อมูล
                         </button>
                     </div>
+                </div>
 
-                    {/* View toggle */}
-                    <div className="flex bg-gray-100 rounded-lg p-0.5 gap-0.5 shrink-0">
-                        {(['table', 'card'] as const).map(m => (
-                            <button key={m} onClick={() => { setViewMode(m); localStorage.setItem('cat_viewmode', m); }}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${viewMode === m ? 'bg-white shadow-sm text-green-700' : 'text-gray-500 hover:text-gray-700'}`}>
-                                {m === 'table' ? <List size={13} /> : <LayoutGrid size={13} />}
-                                {m === 'table' ? 'ตาราง' : 'การ์ด'}
-                            </button>
-                        ))}
+                {/* ── Top Metric Cards ── */}
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-gray-500">จำนวนการสอบทั้งหมด</span>
+                            <Users className="w-4 h-4 text-green-600" />
+                        </div>
+                        <div className="text-2xl font-bold text-gray-900 mt-2">
+                            {analytics?.total_sessions ?? 0}
+                        </div>
+                        <div className="text-[11px] text-gray-400 mt-1">CAT Sessions</div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-gray-500">อัตราการสอบผ่าน</span>
+                            <Award className="w-4 h-4 text-emerald-600" />
+                        </div>
+                        <div className="text-2xl font-bold text-emerald-600 mt-2">
+                            {analytics?.pass_rate ?? 0}%
+                        </div>
+                        <div className="text-[11px] text-gray-400 mt-1">
+                            ผ่าน {analytics?.passed ?? 0} / {analytics?.total_sessions ?? 0} คน
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-gray-500">ค่าเฉลี่ยความสามารถ (θ)</span>
+                            <TrendingUp className="w-4 h-4 text-purple-600" />
+                        </div>
+                        <div className="text-2xl font-bold text-purple-700 mt-2">
+                            {analytics?.avg_theta !== undefined ? (analytics.avg_theta > 0 ? `+${analytics.avg_theta}` : analytics.avg_theta) : '-'}
+                        </div>
+                        <div className="text-[11px] text-gray-400 mt-1">Average Ability Score</div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-gray-500">ค่าความคลาดเคลื่อน (SE)</span>
+                            <BrainCircuit className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div className="text-2xl font-bold text-blue-700 mt-2">
+                            {analytics?.avg_se ?? '-'}
+                        </div>
+                        <div className="text-[11px] text-gray-400 mt-1">Standard Error</div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
+                        <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-gray-500">เฉลี่ยจำนวนข้อที่ทำ</span>
+                            <BookOpen className="w-4 h-4 text-amber-600" />
+                        </div>
+                        <div className="text-2xl font-bold text-slate-800 mt-2">
+                            {analytics?.avg_items ?? '-'}
+                        </div>
+                        <div className="text-[11px] text-gray-400 mt-1">ข้อ / Session</div>
                     </div>
                 </div>
 
-                {/* ── Bulk Action Bar (always visible, highlights when items selected) ── */}
-                <div className={`rounded-xl mb-4 transition-all ${checkedIds.size > 0
-                    ? 'bg-blue-50 border border-blue-200 p-3'
-                    : 'bg-gray-50 border border-gray-200 p-2.5'}`}>
-                    <div className="flex flex-wrap items-center gap-3">
-                        {/* Select controls */}
+                {/* ── Item Bank Readiness Checker Card ── */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-5">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600 font-bold">
+                                <Sparkles className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h2 className="text-base font-bold text-gray-900">
+                                    การตรวจสอบความพร้อมของคลังข้อสอบ (CAT Readiness Check)
+                                </h2>
+                                <p className="text-xs text-gray-500">
+                                    ประเมินจำนวนข้อสอบที่มีพารามิเตอร์ IRT ครบถ้วนตามเกณฑ์ขั้นต่ำสำหรับระบบ Adaptive Testing
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Bank Selector Dropdown */}
                         <div className="flex items-center gap-2">
-                            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 cursor-pointer transition-colors select-none">
-                                <input
-                                    type="checkbox"
-                                    checked={allPageChecked}
-                                    onChange={toggleCheckAll}
-                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 accent-blue-600"
-                                />
-                                เลือกหน้านี้
-                            </label>
-                            {filtered.length > perPage && (
-                                <>
-                                    <span className="text-gray-300 text-xs">|</span>
-                                    <button onClick={() => setCheckedIds(new Set(filtered.map(i => i.item_id)))}
-                                        className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                                        เลือกทั้งหมด ({filtered.length})
-                                    </button>
-                                </>
-                            )}
-                            {checkedIds.size > 0 && (
-                                <>
-                                    <span className="text-gray-300 text-xs">|</span>
-                                    <button onClick={() => setCheckedIds(new Set())}
-                                        className="text-xs text-gray-400 hover:text-gray-600 font-medium">
-                                        ล้าง
-                                    </button>
-                                </>
-                            )}
-                        </div>
+                            <div className="relative min-w-[240px]">
+                                <select
+                                    value={selectedBankId ?? ''}
+                                    onChange={(e) => {
+                                        const bId = e.target.value ? Number(e.target.value) : null;
+                                        setSelectedBankId(bId);
+                                    }}
+                                    className="w-full appearance-none px-4 py-2.5 pr-9 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer"
+                                >
+                                    <option value="">เลือกคลังข้อสอบเพื่อตรวจสอบ...</option>
+                                    {banks.map((b) => (
+                                        <option key={b.item_bank_id} value={b.item_bank_id}>
+                                            {b.bank_name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            </div>
 
-                        {/* Selected count badge */}
-                        {checkedIds.size > 0 && (
-                            <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full">
-                                {checkedIds.size} ข้อที่เลือก
-                            </span>
-                        )}
-
-                        {/* Preset quick-set (only when selected) */}
-                        {checkedIds.size > 0 && (
-                            <div className="flex items-center gap-1.5 flex-wrap ml-1">
-                                <span className="text-xs text-gray-500 font-medium">ตั้งค่าทันที:</span>
-                                {PRESETS.map(p => (
-                                    <button key={p.label}
-                                        onClick={() => handleBulkSave(p.b, p.c)}
-                                        disabled={isSaving}
-                                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all hover:opacity-90 disabled:opacity-40"
-                                        style={{ backgroundColor: p.bg, borderColor: p.border, color: p.color }}
-                                    >
-                                        <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
-                                        {p.label}
-                                    </button>
-                                ))}
-                                <button onClick={() => setShowBulkModal(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-xs font-medium rounded-lg transition-colors">
-                                    <SlidersHorizontal size={12} /> กำหนดเอง
+                            {selectedBankId && (
+                                <button
+                                    onClick={() => fetchTIF(selectedBankId, banks.find(b => b.item_bank_id === selectedBankId)?.bank_name || '')}
+                                    className="shrink-0 flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition cursor-pointer"
+                                    title="ดูฟังก์ชันสารสนเทศของแบบทดสอบ (TIF)"
+                                >
+                                    <TrendingUp size={14} /> ดู TIF
                                 </button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* ── Content ── */}
-                {loading ? (
-                    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                        {[1, 2, 3, 4, 5].map(i => (
-                            <div key={i} className="flex items-center gap-4 px-5 py-4 border-b border-gray-50 animate-pulse">
-                                <div className="w-4 h-4 bg-gray-200 rounded" />
-                                <div className="w-10 h-3 bg-gray-200 rounded" />
-                                <div className="w-24 h-5 bg-gray-200 rounded-full" />
-                                <div className="flex-1 h-3 bg-gray-200 rounded" />
-                                <div className="w-12 h-4 bg-gray-200 rounded" />
-                                <div className="w-12 h-4 bg-gray-200 rounded" />
-                                <div className="w-16 h-5 bg-gray-200 rounded-full" />
-                                <div className="w-7 h-7 bg-gray-200 rounded-lg" />
-                            </div>
-                        ))}
-                    </div>
-                ) : viewMode === 'table' ? (
-
-                    /* ── TABLE VIEW ── */
-                    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full">
-                                <thead>
-                                    <tr className="border-b border-gray-200 bg-gray-50">
-                                        <th className="pl-4 pr-2 py-3 w-10">
-                                            <input
-                                                type="checkbox"
-                                                checked={allPageChecked}
-                                                onChange={toggleCheckAll}
-                                                className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer accent-blue-600"
-                                            />
-                                        </th>
-                                        {['#', 'คลังข้อสอบ', 'คำถาม', 'ความยาก b', 'การเดา c', 'ระดับ', ''].map((h, i) => (
-                                            <th key={i} className={`px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide ${i === 0 ? 'w-12' : ''}`}>
-                                                {h}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-50">
-                                    {currentItems.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={8} className="py-20 text-center">
-                                                <Database size={36} className="mx-auto mb-3 text-gray-200" />
-                                                <p className="text-sm text-gray-400">
-                                                    {searchTerm ? 'ไม่พบข้อสอบที่ตรงกับเงื่อนไข' : 'ยังไม่มีข้อสอบ'}
-                                                </p>
-                                            </td>
-                                        </tr>
-                                    ) : currentItems.map(item => {
-                                        const checked = checkedIds.has(item.item_id);
-                                        const { label, color } = diffLabel(item.irt_b_difficulty);
-                                        return (
-                                            <tr key={item.item_id}
-                                                className={`transition-colors ${checked ? 'bg-blue-50/50' : 'hover:bg-gray-50/60'}`}>
-                                                <td className="pl-4 pr-2 py-3.5">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={checked}
-                                                        onChange={() => toggleCheck(item.item_id)}
-                                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer accent-blue-600"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-3.5 text-xs text-gray-400 ">{item.item_id}</td>
-                                                <td className="px-4 py-3.5">
-                                                    <span className="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded-md whitespace-nowrap">
-                                                        {item.item_bank?.bank_name || '—'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3.5 max-w-xs">
-                                                    <p className="text-sm text-gray-700 line-clamp-1">
-                                                        {stripHTML(item.question_text)}
-                                                    </p>
-                                                </td>
-                                                <td className="px-4 py-3.5 text-center">
-                                                    {item.irt_b_difficulty !== null
-                                                        ? <span className="text-sm font-semibold " style={{ color: '#7c3aed' }}>
-                                                            {item.irt_b_difficulty > 0 ? '+' : ''}{item.irt_b_difficulty.toFixed(2)}
-                                                        </span>
-                                                        : <span className="text-xs text-gray-300">—</span>}
-                                                </td>
-                                                <td className="px-4 py-3.5 text-center">
-                                                    {item.irt_c_guessing !== null
-                                                        ? <span className="text-sm font-semibold " style={{ color: '#be185d' }}>
-                                                            {item.irt_c_guessing.toFixed(2)}
-                                                        </span>
-                                                        : <span className="text-xs text-gray-300">—</span>}
-                                                </td>
-                                                <td className="px-4 py-3.5">
-                                                    <span className="text-xs font-medium px-2 py-1 rounded-md"
-                                                        style={{ color, backgroundColor: color + '18' }}>
-                                                        {label}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3.5">
-                                                    <button
-                                                        onClick={() => openEdit(item)}
-                                                        className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
-                                                    >
-                                                        <Eye size={15} />
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                            )}
                         </div>
                     </div>
 
-                ) : (
+                    {loadingReadiness ? (
+                        <div className="h-24 flex items-center justify-center">
+                            <div className="w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                    ) : readiness ? (
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
 
-                    /* ── CARD VIEW ── */
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {currentItems.length === 0 ? (
-                            <div className="col-span-full py-20 text-center border-2 border-dashed border-gray-200 rounded-2xl">
-                                <Database size={36} className="mx-auto mb-3 text-gray-200" />
-                                <p className="text-sm text-gray-400">ไม่พบข้อสอบ</p>
+                            {/* Status box */}
+                            <div className={`md:col-span-4 p-4 rounded-xl border flex flex-col justify-center ${readiness.is_ready
+                                ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
+                                : 'bg-amber-50/70 border-amber-200 text-amber-900'
+                                }`}>
+                                <div className="flex items-center gap-2 font-bold text-sm">
+                                    {readiness.is_ready ? (
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                                    ) : (
+                                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                                    )}
+                                    <span>{readiness.is_ready ? 'พร้อมใช้กับการสอบ CAT' : 'ยังไม่พร้อมใช้กับ CAT'}</span>
+                                </div>
+                                <p className="text-xs mt-1.5 leading-relaxed opacity-90">
+                                    {readiness.message}
+                                </p>
                             </div>
-                        ) : currentItems.map(item => {
-                            const checked = checkedIds.has(item.item_id);
-                            const { label, color } = diffLabel(item.irt_b_difficulty);
-                            return (
-                                <div key={item.item_id}
-                                    className={`bg-white border rounded-2xl overflow-hidden shadow-sm transition-all hover:shadow-md ${checked ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-200'}`}>
-                                    <div className="p-5">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div className="flex items-center gap-2">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={checked}
-                                                    onChange={() => toggleCheck(item.item_id)}
-                                                    className="w-4 h-4 rounded border-gray-300 text-blue-600 cursor-pointer accent-blue-600"
-                                                />
-                                                <span className="text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded-md">
-                                                    {item.item_bank?.bank_name || '—'}
-                                                </span>
-                                            </div>
-                                            <button onClick={() => openEdit(item)}
-                                                className="text-xs text-gray-400 hover:text-green-700 flex items-center gap-1 px-2 py-1 hover:bg-green-50 rounded-lg transition-all border border-gray-100">
-                                                <Eye size={12} /> แก้ไข
-                                            </button>
-                                        </div>
-                                        <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed mb-4">
-                                            {stripHTML(item.question_text)}
-                                        </p>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex gap-3">
-                                                <div>
-                                                    <p className="text-[10px] text-gray-400 mb-0.5">ความยาก b</p>
-                                                    <p className="text-sm font-bold " style={{ color: '#7c3aed' }}>
-                                                        {item.irt_b_difficulty !== null ? `${item.irt_b_difficulty > 0 ? '+' : ''}${item.irt_b_difficulty.toFixed(2)}` : '—'}
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] text-gray-400 mb-0.5">การเดา c</p>
-                                                    <p className="text-sm font-bold " style={{ color: '#be185d' }}>
-                                                        {item.irt_c_guessing !== null ? item.irt_c_guessing.toFixed(2) : '—'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <span className="text-xs font-medium px-2 py-1 rounded-md"
-                                                style={{ color, backgroundColor: color + '18' }}>
-                                                {label}
-                                            </span>
-                                        </div>
+
+                            {/* Stats Breakdown */}
+                            <div className="md:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+                                <div className="p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                                    <span className="text-[11px] font-semibold text-gray-400">ข้อสอบทั้งหมด</span>
+                                    <div className="text-lg font-bold text-gray-800 mt-0.5">{readiness.total_items} ข้อ</div>
+                                </div>
+
+                                <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
+                                    <span className="text-[11px] font-semibold text-emerald-600">ระบุ IRT ครบ</span>
+                                    <div className="text-lg font-bold text-emerald-700 mt-0.5">
+                                        {readiness.valid_items} ข้อ
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
-                )}
 
-                {/* ── Pagination ── */}
-                {totalPages > 1 && (
-                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-gray-100">
-                        <div className="text-xs text-gray-500">
-                            แสดงข้อที่ <span className="font-semibold text-gray-800">{(currentPage - 1) * perPage + 1}</span> -{' '}
-                            <span className="font-semibold text-gray-800">{Math.min(currentPage * perPage, filtered.length)}</span> จากทั้งหมด{' '}
-                            <span className="font-semibold text-gray-800">{filtered.length}</span> ข้อ (หน้า {currentPage}/{totalPages})
+                                <div className="p-3 bg-rose-50 border border-rose-100 rounded-xl">
+                                    <span className="text-[11px] font-semibold text-rose-600">ยังไม่ระบุ IRT</span>
+                                    <div className="text-lg font-bold text-rose-700 mt-0.5">
+                                        {readiness.invalid_items} ข้อ
+                                    </div>
+                                </div>
+
+                                <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                                    <span className="text-[11px] font-semibold text-blue-600">ความพร้อม</span>
+                                    <div className="text-lg font-bold text-blue-700 mt-0.5">
+                                        {readiness.readiness_percentage}%
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    ) : (
+                        <div className="py-6 text-center text-xs text-gray-400">
+                            กรุณาเลือกคลังข้อสอบด้านบนเพื่อตรวจสอบความพร้อม
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Analytics Charts (2 Columns) ── */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                    {/* Left: Termination Criteria Breakdown (Donut Chart) */}
+                    <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4 flex flex-col justify-between">
+                        <div>
+                            <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                                <Target className="w-4 h-4 text-green-600" />
+                                เกณฑ์การสิ้นสุดการสอบ (Stopping Criteria Distribution)
+                            </h2>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                สัดส่วนเหตุผลที่ระบบ CAT ยุติการสอบของผู้เข้าสอบ
+                            </p>
                         </div>
 
-                        <div className="flex items-center gap-1.5">
-                            <button
-                                disabled={currentPage === 1}
-                                onClick={() => {
-                                    setCurrentPage(p => Math.max(1, p - 1));
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-medium transition cursor-pointer"
-                            >
-                                <ChevronLeft size={14} />
-                                <span className="hidden sm:inline">ก่อนหน้า</span>
-                            </button>
+                        {analytics && analytics.stop_reason_breakdown && Object.keys(analytics.stop_reason_breakdown).length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center pt-2">
+                                {/* Donut Chart */}
+                                <div className="sm:col-span-5 relative h-48 flex items-center justify-center">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Tooltip
+                                                contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                                formatter={(value: any, name: any) => [`${value} คน`, name]}
+                                            />
+                                            <Pie
+                                                data={Object.entries(analytics.stop_reason_breakdown).map(([reasonKey, count], idx) => {
+                                                    const colors = ['#10b981', '#6366f1', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6'];
+                                                    const total = analytics.total_sessions || 1;
+                                                    const pct = Math.round((count / total) * 100);
+                                                    return {
+                                                        name: formatStopReason(reasonKey),
+                                                        key: reasonKey,
+                                                        value: count,
+                                                        percentage: pct,
+                                                        color: colors[idx % colors.length],
+                                                    };
+                                                })}
+                                                dataKey="value"
+                                                nameKey="name"
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={45}
+                                                outerRadius={70}
+                                                paddingAngle={3}
+                                            >
+                                                {Object.entries(analytics.stop_reason_breakdown).map((_, index) => {
+                                                    const colors = ['#10b981', '#6366f1', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6'];
+                                                    return (
+                                                        <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                                                    );
+                                                })}
+                                            </Pie>
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                        <span className="text-lg font-bold text-gray-800">{analytics?.total_sessions ?? 0}</span>
+                                        <span className="text-[10px] text-gray-400">การสอบ</span>
+                                    </div>
+                                </div>
 
-                            {getPaginationItems(currentPage, totalPages).map((p, idx) => {
-                                if (typeof p === 'string') {
-                                    return (
-                                        <span key={`dots-${idx}`} className="w-8 h-8 flex items-center justify-center text-xs text-gray-400">
-                                            ...
-                                        </span>
-                                    );
-                                }
+                                {/* Custom Legend List */}
+                                <div className="sm:col-span-7 space-y-2">
+                                    {Object.entries(analytics.stop_reason_breakdown).map(([reasonKey, count], idx) => {
+                                        const colors = ['#10b981', '#6366f1', '#f59e0b', '#3b82f6', '#ec4899', '#8b5cf6'];
+                                        const color = colors[idx % colors.length];
+                                        const total = analytics.total_sessions || 1;
+                                        const pct = Math.round((count / total) * 100);
+                                        const name = formatStopReason(reasonKey);
 
-                                const isActive = p === currentPage;
-                                return (
-                                    <button
-                                        key={`page-${p}`}
-                                        onClick={() => {
-                                            setCurrentPage(p);
-                                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                                        }}
-                                        className={`w-8 h-8 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${isActive
-                                                ? 'bg-green-600 text-white shadow-xs'
-                                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-900'
-                                            }`}
-                                    >
-                                        {p}
-                                    </button>
-                                );
-                            })}
+                                        return (
+                                            <div key={reasonKey} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs">
+                                                <div className="flex items-center gap-2 min-w-0 pr-2">
+                                                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                                                    <span className="text-gray-700 font-medium truncate" title={name}>{name}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1.5 shrink-0 font-semibold">
+                                                    <span className="text-gray-900">{count} คน</span>
+                                                    <span className="text-gray-400 text-[11px]">({pct}%)</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 text-xs text-gray-400">
+                                ยังไม่มีข้อมูลเหตุผลการยุติการสอบจากการสอบที่เสร็จสมบูรณ์
+                            </div>
+                        )}
+                    </div>
 
-                            <button
-                                disabled={currentPage === totalPages}
-                                onClick={() => {
-                                    setCurrentPage(p => Math.min(totalPages, p + 1));
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-medium transition cursor-pointer"
-                            >
-                                <span className="hidden sm:inline">ถัดไป</span>
-                                <ChevronRight size={14} />
-                            </button>
+                    {/* Right: Theta Ability Distribution Chart */}
+                    <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200 p-6 shadow-2xs space-y-4">
+                        <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                            <TrendingUp className="w-4 h-4 text-green-600" />
+                            การกระจายตัวของระดับความสามารถ (Theta Distribution)
+                        </h2>
+                        <p className="text-xs text-gray-500">
+                            ความถี่ของค่าความสามารถθ ที่ประเมินได้จากผู้สอบทั้งหมด
+                        </p>
+
+                        <div className="h-56 pt-2">
+                            {analytics && analytics.theta_distribution ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={analytics.theta_distribution} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                                        <XAxis dataKey="range" tick={{ fontSize: 10, fill: '#64748b' }} />
+                                        <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: '#64748b' }} />
+                                        <Tooltip
+                                            contentStyle={{ fontSize: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
+                                            formatter={(value: any) => [`${value} คน`, 'จำนวนผู้สอบ']}
+                                            labelFormatter={(label) => `ช่วงความสามารถ (θ): ${label}`}
+                                        />
+                                        <Bar dataKey="count" fill="#10b981" radius={[4, 4, 0, 0]}>
+                                            {analytics.theta_distribution.map((entry, index) => {
+                                                const val = parseFloat(entry.range.split('~')[0]);
+                                                return (
+                                                    <Cell
+                                                        key={`cell-${index}`}
+                                                        fill={val >= 0 ? '#10b981' : '#f43f5e'}
+                                                    />
+                                                );
+                                            })}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-xs text-gray-400">
+                                    กำลังโหลดข้อมูล...
+                                </div>
+                            )}
                         </div>
                     </div>
-                )}
+
+                </div>
+
+                {/* ── Recent CAT Sessions Table ── */}
+                <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs space-y-4 p-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                            <Users className="w-4 h-4 text-green-600" />
+                            ประวัติการสอบ CAT ล่าสุด (Recent CAT Sessions)
+                        </h2>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                            <thead>
+                                <tr className="border-b border-slate-200 bg-slate-50/80 text-slate-600">
+                                    <th className="py-3 px-4 font-semibold">Session ID</th>
+                                    <th className="py-3 px-4 font-semibold">ผู้สอบ</th>
+                                    <th className="py-3 px-4 font-semibold text-center">จำนวนข้อที่ทำ</th>
+                                    <th className="py-3 px-4 font-semibold text-center">ระดับความสามารถ (θ)</th>
+                                    <th className="py-3 px-4 font-semibold text-center">ความคลาดเคลื่อน (SE)</th>
+                                    <th className="py-3 px-4 font-semibold text-center">ผลการสอบ</th>
+                                    <th className="py-3 px-4 font-semibold">เหตุผลการสิ้นสุด</th>
+                                    <th className="py-3 px-4 font-semibold">วันที่ / เวลา</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {analytics && analytics.recent_sessions && analytics.recent_sessions.length > 0 ? (
+                                    analytics.recent_sessions.map((s) => (
+                                        <tr key={s.session_id} className="hover:bg-slate-50/60 transition">
+                                            <td className="py-3.5 px-4 font-semibold text-gray-500">#{s.session_id}</td>
+                                            <td className="py-3.5 px-4 font-semibold text-gray-900">{s.user_name || `ผู้สอบ #${s.user_id}`}</td>
+                                            <td className="py-3.5 px-4 text-center font-medium text-gray-700">{s.num_items} ข้อ</td>
+                                            <td className="py-3.5 px-4 text-center">
+                                                <span className=" font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">
+                                                    {s.final_theta !== null && s.final_theta !== undefined ? (s.final_theta > 0 ? `+${s.final_theta.toFixed(2)}` : s.final_theta.toFixed(2)) : '-'}
+                                                </span>
+                                            </td>
+                                            <td className="py-3.5 px-4 text-center  text-gray-600">
+                                                {s.final_se !== null && s.final_se !== undefined ? s.final_se.toFixed(3) : '-'}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-center">
+                                                {s.passed ? (
+                                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                                        <CheckCircle2 className="w-3 h-3 text-emerald-600" /> ผ่าน
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
+                                                        <AlertCircle className="w-3 h-3 text-rose-600" /> ไม่ผ่าน
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className="py-3.5 px-4 text-gray-600">
+                                                <span className="text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded font-medium">
+                                                    {formatStopReason(s.stop_reason)}
+                                                </span>
+                                            </td>
+                                            <td className="py-3.5 px-4 text-gray-500  text-[11px]">
+                                                {s.end_time ? new Date(s.end_time).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-'}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={8} className="py-8 text-center text-gray-400">
+                                            ยังไม่มีประวัติการสอบ CAT ในระบบ
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* ── Banner link to IRT Calibration Matrix ── */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 rounded-xl bg-green-600 text-white flex items-center justify-center font-bold shrink-0 shadow-xs">
+                            <SlidersHorizontal className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-gray-900">
+                                จัดการพารามิเตอร์ IRT รายข้อ (Item Calibration Matrix)
+                            </h3>
+                            <p className="text-xs text-gray-600 mt-0.5">
+                                กำหนดค่าความยาก (b), อำนาจจำแนก (a), การเดา (c) พร้อมกราฟ ICC Curve และเครื่องมือตั้งค่าแบบกลุ่ม (Bulk Setup)
+                            </p>
+                        </div>
+                    </div>
+                    <Link
+                        href="/admin/irt_management"
+                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold rounded-xl shadow-xs transition-all shrink-0 cursor-pointer"
+                    >
+                        <span>ไปยังหน้าจัดการ IRT</span>
+                        <ArrowRight size={14} />
+                    </Link>
+                </div>
+
             </div>
 
             {/* ══════════════════════════════════════════
-                MODAL — Single Item IRT Editor
+                MODAL — TIF (Test Information Function)
             ══════════════════════════════════════════ */}
-            {showEditModal && editItem && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-                    style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(2px)' }}>
-                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-xl max-h-[95vh] overflow-y-auto shadow-2xl flex flex-col">
-
-                        {/* Header */}
-                        <div className="sticky top-0 bg-white px-6 pt-6 pb-4 border-b border-gray-100 z-10">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <h3 className="text-base font-semibold text-gray-900">แก้ไขพารามิเตอร์ IRT</h3>
-                                    <p className="text-xs text-gray-400 mt-0.5">
-                                        ข้อสอบ #{editItem.item_id} · {editItem.item_bank?.bank_name}
-                                    </p>
-                                </div>
-                                <button onClick={() => setShowEditModal(false)}
-                                    className="text-gray-300 hover:text-gray-500 p-1 hover:bg-gray-100 rounded-lg transition-all">
-                                    <X size={18} />
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="px-6 py-5 space-y-6 flex-1">
-                            {/* Question preview */}
-                            <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">คำถาม</p>
-                                <div className="text-sm text-gray-700 leading-relaxed line-clamp-4"
-                                    dangerouslySetInnerHTML={{ __html: editItem.question_text }} />
-                            </div>
-
-                            {/* Difficulty presets — horizontal pills */}
-                            <div>
-                                <p className="text-sm font-semibold text-gray-800 mb-2.5">ระดับความยากสำเร็จรูป</p>
-                                <div className="flex gap-2 flex-wrap">
-                                    {PRESETS.map(p => {
-                                        const active = Math.abs(editIRT.b - p.b) < 0.01 && Math.abs(editIRT.c - p.c) < 0.01;
-                                        return (
-                                            <button key={p.label}
-                                                onClick={() => setEditIRT(prev => ({ ...prev, b: p.b, c: p.c }))}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all"
-                                                style={{
-                                                    backgroundColor: active ? p.color : p.bg,
-                                                    borderColor: active ? p.color : p.border,
-                                                    color: active ? '#fff' : p.color,
-                                                    boxShadow: active ? `0 0 0 3px ${p.color}22` : 'none',
-                                                }}>
-                                                <span className="w-1.5 h-1.5 rounded-full shrink-0"
-                                                    style={{ backgroundColor: active ? '#fff' : p.color }} />
-                                                {p.label}
-                                                <span className="opacity-70  text-[10px]">
-                                                    b={p.b > 0 ? `+${p.b}` : p.b}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Sliders */}
-                            <div className="space-y-5">
-                                <p className="text-sm font-semibold text-gray-800">ปรับค่าพารามิเตอร์</p>
-                                <SliderField
-                                    label="ความยาก" sublabel="— b"
-                                    value={editIRT.b} min={-4} max={4} step={0.1}
-                                    color="#7c3aed"
-                                    onChange={v => setEditIRT(p => ({ ...p, b: v }))}
-                                    format={v => (v > 0 ? `+${v.toFixed(1)}` : v.toFixed(1))}
-                                />
-                                <SliderField
-                                    label="อำนาจจำแนก" sublabel="— a"
-                                    value={editIRT.a} min={0.1} max={3} step={0.1}
-                                    color="#2563eb"
-                                    onChange={v => setEditIRT(p => ({ ...p, a: v }))}
-                                />
-                                <SliderField
-                                    label="การสุ่มเดา" sublabel="— c"
-                                    value={editIRT.c} min={0.01} max={0.5} step={0.01}
-                                    color="#be185d"
-                                    onChange={v => setEditIRT(p => ({ ...p, c: v }))}
-                                />
-                            </div>
-
-                            {/* ICC Curve */}
-                            <div>
-                                <div className="flex items-center justify-between mb-3">
-                                    <p className="text-sm font-semibold text-gray-800">กราฟ ICC</p>
-                                    <div className="flex gap-3 text-[11px]">
-                                        <span style={{ color: '#7c3aed' }}>b = <b>{editIRT.b > 0 ? '+' : ''}{editIRT.b.toFixed(2)}</b></span>
-                                        <span style={{ color: '#2563eb' }}>a = <b>{editIRT.a.toFixed(2)}</b></span>
-                                        <span style={{ color: '#be185d' }}>c = <b>{editIRT.c.toFixed(2)}</b></span>
-                                    </div>
-                                </div>
-                                <div className="bg-gray-50 rounded-xl border border-gray-100 px-3 pt-2 pb-1">
-                                    <ICCChart a={editIRT.a} b={editIRT.b} c={editIRT.c} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex gap-3">
-                            <button onClick={() => setShowEditModal(false)}
-                                className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
-                                ยกเลิก
-                            </button>
-                            <button onClick={handleSaveSingle} disabled={isSaving}
-                                className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors">
-                                <Save size={14} />
-                                {isSaving ? 'กำลังบันทึก...' : 'บันทึกค่า IRT'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ══════════════════════════════════════════
-                MODAL — Bulk IRT Setup
-            ══════════════════════════════════════════ */}
-            {showBulkModal && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-                    style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(2px)' }}>
-                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-lg shadow-2xl">
-                        <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex justify-between items-start">
-                            <div>
-                                <h3 className="text-base font-semibold text-gray-900">ตั้งค่า IRT — {checkedIds.size} ข้อ</h3>
-                                <p className="text-xs text-gray-400 mt-0.5">อัปเดตพร้อมกันทุกข้อที่เลือก</p>
-                            </div>
-                            <button onClick={() => setShowBulkModal(false)}
-                                className="text-gray-300 hover:text-gray-500 p-1 hover:bg-gray-100 rounded-lg transition-all">
-                                <X size={18} />
-                            </button>
-                        </div>
-
-                        <div className="px-6 py-5 space-y-6">
-                            {/* Presets */}
-                            <div>
-                                <p className="text-sm font-semibold text-gray-800 mb-2.5">ระดับสำเร็จรูป</p>
-                                <div className="flex gap-2 flex-wrap">
-                                    {PRESETS.map(p => {
-                                        const active = Math.abs(bulkIRT.b - p.b) < 0.01;
-                                        return (
-                                            <button key={p.label}
-                                                onClick={() => setBulkIRT({ b: p.b, c: p.c })}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all"
-                                                style={{
-                                                    backgroundColor: active ? p.color : p.bg,
-                                                    borderColor: active ? p.color : p.border,
-                                                    color: active ? '#fff' : p.color,
-                                                    boxShadow: active ? `0 0 0 3px ${p.color}22` : 'none',
-                                                }}>
-                                                <span className="w-1.5 h-1.5 rounded-full"
-                                                    style={{ backgroundColor: active ? '#fff' : p.color }} />
-                                                {p.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-
-                            {/* Sliders b & c */}
-                            <div className="space-y-5">
-                                <p className="text-sm font-semibold text-gray-800">ปรับค่าละเอียด</p>
-                                <SliderField
-                                    label="ความยาก" sublabel="— b"
-                                    value={bulkIRT.b} min={-4} max={4} step={0.1}
-                                    color="#7c3aed"
-                                    onChange={v => setBulkIRT(p => ({ ...p, b: v }))}
-                                    format={v => (v > 0 ? `+${v.toFixed(1)}` : v.toFixed(1))}
-                                />
-                                <SliderField
-                                    label="การสุ่มเดา" sublabel="— c"
-                                    value={bulkIRT.c} min={0.01} max={0.5} step={0.01}
-                                    color="#be185d"
-                                    onChange={v => setBulkIRT(p => ({ ...p, c: v }))}
-                                />
-                            </div>
-
-                            {/* ICC preview */}
-                            <div className="bg-gray-50 rounded-xl border border-gray-100 px-3 pt-3 pb-1">
-                                <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">ตัวอย่าง ICC</p>
-                                <ICCChart a={1.0} b={bulkIRT.b} c={bulkIRT.c} />
-                            </div>
-                        </div>
-
-                        <div className="px-6 pb-6 flex gap-3 pt-2">
-                            <button onClick={() => setShowBulkModal(false)}
-                                className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-50">
-                                ยกเลิก
-                            </button>
-                            <button onClick={() => handleBulkSave()} disabled={isSaving}
-                                className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50">
-                                <Save size={14} />
-                                {isSaving ? 'กำลังบันทึก...' : `อัปเดต ${checkedIds.size} ข้อ`}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* ══════════════════════════════════════════
-                MODAL — TIF Chart
-            ══════════════════════════════════════════ */}
-            {showTIF && tifData && (
+            {showTIF && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(2px)' }}>
-                    <div className="bg-white rounded-2xl max-w-2xl w-full shadow-2xl">
-                        <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                    style={{ background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }}>
+                    <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl p-6 space-y-4">
+                        <div className="flex justify-between items-start border-b border-gray-100 pb-3">
                             <div>
-                                <h3 className="text-base font-semibold text-gray-900">Test Information Function</h3>
+                                <h3 className="text-base font-semibold text-gray-900">ฟังก์ชันสารสนเทศของแบบทดสอบ (TIF)</h3>
                                 <p className="text-xs text-gray-400 mt-0.5">{tifBankName}</p>
                             </div>
                             <button onClick={() => setShowTIF(false)}
-                                className="text-gray-300 hover:text-gray-500 p-1 hover:bg-gray-100 rounded-lg">
-                                <X size={18} />
+                                className="text-gray-300 hover:text-gray-500 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer">
+                                ✕
                             </button>
                         </div>
-                        <div className="p-6">
-                            <p className="text-xs text-gray-400 mb-4">กราฟแสดงความแม่นยำของ item bank ที่แต่ละระดับ θ — ยิ่งสูงยิ่งแม่นยำ</p>
-                            <ResponsiveContainer width="100%" height={280}>
-                                <ComposedChart data={tifData.filter((_, i) => i % 2 === 0)} margin={{ top: 8, right: 24, left: -8, bottom: 16 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                                    <XAxis dataKey="theta" label={{ value: 'θ', position: 'insideBottom', offset: -8 }}
-                                        tick={{ fontSize: 10 }} tickFormatter={v => Number(v) % 1 === 0 ? String(v) : ''} />
-                                    <YAxis yAxisId="info" tick={{ fontSize: 10 }} />
-                                    <YAxis yAxisId="se" orientation="right" tick={{ fontSize: 10 }} />
-                                    <Tooltip formatter={(v: any, n: string) => [v?.toFixed(3), n]} labelFormatter={l => `θ = ${l}`} />
-                                    <Area yAxisId="info" type="monotone" dataKey="info" fill="#c7d2fe"
-                                        stroke="#6366f1" strokeWidth={2} name="I(θ)" fillOpacity={0.5} />
-                                    <Line yAxisId="se" type="monotone" dataKey="se" stroke="#f59e0b"
-                                        strokeWidth={2} dot={false} name="SE(θ)" />
-                                    <Legend verticalAlign="top" iconSize={12} />
-                                </ComposedChart>
-                            </ResponsiveContainer>
+
+                        <div className="h-64">
+                            {tifData ? (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={tifData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                                        <XAxis dataKey="theta" tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                                        <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                                        <Tooltip
+                                            contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                                            formatter={(v: any, name: any) => [
+                                                name === 'info' ? Number(v).toFixed(2) : Number(v).toFixed(3),
+                                                name === 'info' ? 'สารสนเทศ I(θ)' : 'SE(θ)',
+                                            ]}
+                                            labelFormatter={l => `θ = ${l}`}
+                                        />
+                                        <Area type="monotone" dataKey="info" stroke="#7c3aed" fill="#7c3aed" fillOpacity={0.1} strokeWidth={2} name="info" />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            ) : null}
+                        </div>
+
+                        <div className="bg-purple-50 p-3.5 rounded-xl border border-purple-100 text-xs text-purple-800 space-y-1">
+                            <p className="font-semibold">💡 ข้อมูล TIF (Test Information Function)</p>
+                            <p className="opacity-90">กราฟแสดงปริมาณสารสนเทศ I(θ) ที่คลังข้อสอบนี้วัดได้ในแต่ละระดับความสามารถ ความสูงของกราฟบอกถึงความแม่นยำในการวัดผล</p>
                         </div>
                     </div>
                 </div>
