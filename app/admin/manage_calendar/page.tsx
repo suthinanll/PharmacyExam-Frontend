@@ -19,13 +19,13 @@ import Link from "next/link";
 import Swal from "sweetalert2";
 
 const CATEGORY_STYLES: Record<string, string> = {
-  "PLE-IP1, PC1, PHCP1": "bg-emerald-50 text-emerald-700 border-emerald-200",
+  "PLE-IP1, PC1, PHCP1": "bg-green-50 text-green-700 border-green-200",
   "PLE-IP2": "bg-teal-50 text-teal-700 border-teal-200",
   "PLE-PC2": "bg-green-50 text-green-700 border-green-200",
   "PLE-PHCP2": "bg-lime-50 text-lime-700 border-lime-200",
 };
 const CATEGORY_DOT: Record<string, string> = {
-  "PLE-IP1, PC1, PHCP1": "bg-emerald-400",
+  "PLE-IP1, PC1, PHCP1": "bg-green-400",
   "PLE-IP2": "bg-teal-400",
   "PLE-PC2": "bg-green-400",
   "PLE-PHCP2": "bg-lime-400",
@@ -70,8 +70,8 @@ function Page() {
     type_event: [] as string[],
   });
 
-  const months = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
-  const daysOfWeek = ["อา.","จ.","อ.","พ.","พฤ.","ศ.","ส."];
+  const months = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+  const daysOfWeek = ["อา.", "จ.", "อ.", "พ.", "พฤ.", "ศ.", "ส."];
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -94,11 +94,11 @@ function Page() {
           is_published: item.is_public,
           raw_start: item.start_time,
           raw_end: item.end_time,
-          type_event: Array.isArray(item.type_event) 
-            ? item.type_event 
-            : (typeof item.type_event === "string" 
-                ? item.type_event.replace(/^{|}$/g, '').split(',') 
-                : []),
+          type_event: Array.isArray(item.type_event)
+            ? item.type_event
+            : (typeof item.type_event === "string"
+              ? item.type_event.replace(/^{|}$/g, '').split(',')
+              : []),
         };
       });
       setEvents(formattedEvents);
@@ -116,7 +116,7 @@ function Page() {
         (event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false);
       const matchesStatus =
         statusFilter === "all" ? true :
-        statusFilter === "published" ? event.is_published : !event.is_published;
+          statusFilter === "published" ? event.is_published : !event.is_published;
       const matchesType =
         typeFilter === "all" ? true : event.type_event.some((t) => t === typeFilter);
       return matchesSearch && matchesStatus && matchesType;
@@ -302,13 +302,13 @@ function Page() {
       const currentDate = new Date(currentYearAD, currentMonth, day);
       currentDate.setHours(0, 0, 0, 0);
       const dayEvents = filteredEvents.filter((event) => {
-        const s = new Date(event.raw_start!); s.setHours(0,0,0,0);
-        const e2 = new Date(event.raw_end!); e2.setHours(0,0,0,0);
+        const s = new Date(event.raw_start!); s.setHours(0, 0, 0, 0);
+        const e2 = new Date(event.raw_end!); e2.setHours(0, 0, 0, 0);
         return currentDate >= s && currentDate <= e2;
       });
 
       days.push(
-        <div key={day} className="p-1.5 border border-gray-100 min-h-[90px] bg-white hover:bg-emerald-50/30 transition-colors flex flex-col">
+        <div key={day} className="p-1.5 border border-gray-100 min-h-[90px] bg-white hover:bg-green-50/30 transition-colors flex flex-col">
           <div className="text-xs font-semibold text-gray-400 text-right mb-1">{day}</div>
           <div className="flex flex-col gap-0.5 overflow-y-auto max-h-[68px]">
             {dayEvents.map((event, idx) => (
@@ -317,7 +317,7 @@ function Page() {
                 onClick={() => handleEditClick(event)}
                 className={`px-1.5 py-0.5 rounded text-xs font-semibold cursor-pointer truncate border
                   ${event.is_published
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                    ? "bg-green-50 text-green-700 border-green-200"
                     : "bg-gray-50 text-gray-400 border-gray-200 italic"}`}
               >
                 <div className="flex gap-0.5 mb-0.5">
@@ -346,7 +346,7 @@ function Page() {
 
   return (
     <Navbar_admin>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-20">
+      <div className="max-w-7xl mx-auto w-full space-y-6 pb-20">
 
         {/* ── Header ──────────────────────────────────────────────────── */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -356,7 +356,7 @@ function Page() {
           </div>
           <Link
             href="/admin/manage_calendar/calendar_add"
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl transition-all font-semibold text-sm shadow-md shadow-emerald-100"
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl transition-all font-semibold text-sm shadow-md shadow-green-100"
           >
             <Plus className="w-4 h-4" /> เพิ่มกำหนดการใหม่
           </Link>
@@ -371,14 +371,14 @@ function Page() {
               placeholder="ค้นหากำหนดการ..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm"
+              className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm"
             />
           </div>
           <div className="flex gap-3 flex-1">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="all">ทุกสถานะ</option>
               <option value="published">เผยแพร่แล้ว</option>
@@ -387,7 +387,7 @@ function Page() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="all">ทุกประเภท</option>
               {Object.keys(CATEGORY_STYLES).map((type) => (
@@ -403,13 +403,13 @@ function Page() {
           <div className="flex bg-gray-100 p-1 rounded-xl gap-1">
             <button
               onClick={() => setActiveTab("calendar")}
-              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "calendar" ? "bg-white text-emerald-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "calendar" ? "bg-white text-green-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
             >
               ปฏิทิน
             </button>
             <button
               onClick={() => setActiveTab("list")}
-              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "list" ? "bg-white text-emerald-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
+              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "list" ? "bg-white text-green-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
             >
               รายการ
             </button>
@@ -418,13 +418,13 @@ function Page() {
           {/* Bulk actions */}
           <div className="flex flex-wrap items-center gap-2">
             {someSelected && (
-              <span className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg font-medium">
+              <span className="text-xs text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg font-medium">
                 เลือก {selectedIds.length} รายการ
               </span>
             )}
             <button
               onClick={() => handleBulkAction("publish")}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-emerald-200 text-emerald-700 rounded-xl text-xs font-semibold hover:bg-emerald-600 hover:text-white hover:border-emerald-600 transition-all"
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-green-200 text-green-700 rounded-xl text-xs font-semibold hover:bg-green-600 hover:text-white hover:border-green-600 transition-all"
             >
               <Eye className="w-3.5 h-3.5" />
               {someSelected ? `เผยแพร่ (${selectedIds.length})` : "เผยแพร่ทั้งหมด"}
@@ -456,7 +456,7 @@ function Page() {
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
-              <h2 className="text-xl font-bold text-gray-800">{months[currentMonth]} {currentYearAD + 543}</h2>
+              <h2 className="text-xl font-medium text-gray-800">{months[currentMonth]} {currentYearAD + 543}</h2>
               <button
                 onClick={() => setViewDate(new Date(currentYearAD, currentMonth + 1))}
                 className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
@@ -482,9 +482,9 @@ function Page() {
             {/* List header with select-all */}
             {filteredEvents.length > 0 && (
               <div className="flex items-center gap-3 px-6 py-3 border-b border-gray-100 bg-gray-50">
-                <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm text-gray-600 hover:text-emerald-700 transition-colors">
+                <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-700 transition-colors">
                   {allSelected
-                    ? <CheckSquare className="w-4 h-4 text-emerald-600" />
+                    ? <CheckSquare className="w-4 h-4 text-green-600" />
                     : <Square className="w-4 h-4 text-gray-400" />}
                   <span className="font-medium">{allSelected ? "ยกเลิกทั้งหมด" : "เลือกทั้งหมด"}</span>
                 </button>
@@ -499,22 +499,22 @@ function Page() {
                   <div
                     key={event.id}
                     className={`flex items-center gap-4 px-6 py-5 border-b border-gray-100 last:border-0 transition-colors
-                      ${isChecked ? "bg-emerald-50/50" : "hover:bg-gray-50"}`}
+                      ${isChecked ? "bg-green-50/50" : "hover:bg-gray-50"}`}
                   >
                     {/* Checkbox */}
                     <button
                       onClick={() => toggleSelect(event.id)}
-                      className="shrink-0 text-gray-400 hover:text-emerald-600 transition-colors"
+                      className="shrink-0 text-gray-400 hover:text-green-600 transition-colors"
                     >
                       {isChecked
-                        ? <CheckSquare className="w-5 h-5 text-emerald-600" />
+                        ? <CheckSquare className="w-5 h-5 text-green-600" />
                         : <Square className="w-5 h-5" />}
                     </button>
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h3 className="text-base font-semibold text-gray-900 truncate ">{event.title}</h3>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${event.is_published ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${event.is_published ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
                           {event.is_published ? "เผยแพร่" : "แบบร่าง"}
                         </span>
                       </div>
@@ -526,7 +526,7 @@ function Page() {
                         ))}
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                        <Calendar className="w-3.5 h-3.5 text-emerald-500" />
+                        <Calendar className="w-3.5 h-3.5 text-green-500" />
                         {new Date(event.raw_start!).toLocaleDateString("th-TH")} – {new Date(event.raw_end!).toLocaleDateString("th-TH")}
                       </div>
                     </div>
@@ -535,13 +535,13 @@ function Page() {
                       <button
                         onClick={() => handleToggleStatus(event)}
                         title={event.is_published ? "งดเผยแพร่" : "เผยแพร่"}
-                        className={`p-2 rounded-lg border transition-all ${event.is_published ? "text-amber-500 bg-amber-50 border-amber-200 hover:bg-amber-500 hover:text-white" : "text-emerald-600 bg-emerald-50 border-emerald-200 hover:bg-emerald-600 hover:text-white"}`}
+                        className={`p-2 rounded-lg border transition-all ${event.is_published ? "text-amber-500 bg-amber-50 border-amber-200 hover:bg-amber-500 hover:text-white" : "text-green-600 bg-green-50 border-green-200 hover:bg-green-600 hover:text-white"}`}
                       >
                         {event.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                       <button
                         onClick={() => handleEditClick(event)}
-                        className="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-all"
+                        className="px-4 py-2 text-xs font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all"
                       >
                         แก้ไข
                       </button>
@@ -570,7 +570,7 @@ function Page() {
             <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col">
               <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800">แก้ไขกำหนดการ</h2>
+                  <h2 className="text-xl font-medium text-gray-800">แก้ไขกำหนดการ</h2>
                   <p className="text-gray-400 text-xs mt-0.5">อัปเดตข้อมูลรายละเอียด</p>
                 </div>
                 <button
@@ -582,18 +582,18 @@ function Page() {
               </div>
               <form onSubmit={handleEditSubmit} className="p-8 space-y-6 overflow-y-auto">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">ชื่อกำหนดการ</label>
+                  <label className="text-xs font-semibold text-gray-500 ">ชื่อกำหนดการ</label>
                   <input
                     type="text"
                     value={editFormData.title}
                     onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
-                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-emerald-500 focus:bg-white rounded-xl outline-none transition-all text-sm font-medium"
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-green-500 focus:bg-white rounded-xl outline-none transition-all text-sm font-medium"
                     placeholder="ระบุชื่อกำหนดการ..."
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">หมวดหมู่</label>
+                  <label className="text-xs font-semibold text-gray-500 ">หมวดหมู่</label>
                   <div className="flex flex-wrap gap-2">
                     {Object.keys(CATEGORY_STYLES).map((tag) => (
                       <button
@@ -602,8 +602,8 @@ function Page() {
                         onClick={() => toggleTag(tag)}
                         className={`px-4 py-2 rounded-lg text-xs font-semibold border transition-all
                           ${editFormData.type_event.includes(tag)
-                            ? CATEGORY_STYLES[tag] + " ring-2 ring-emerald-500/30"
-                            : "bg-white text-gray-500 border-gray-200 hover:border-emerald-300"}`}
+                            ? CATEGORY_STYLES[tag] + " ring-2 ring-green-500/30"
+                            : "bg-white text-gray-500 border-gray-200 hover:border-green-300"}`}
                       >
                         {tag}
                       </button>
@@ -612,27 +612,27 @@ function Page() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">วันเริ่มต้น</label>
+                    <label className="text-xs font-semibold text-gray-500 ">วันเริ่มต้น</label>
                     <div className="relative">
-                      <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+                      <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
                       <input
                         type="date"
                         value={editFormData.startDate}
                         onChange={(e) => setEditFormData({ ...editFormData, startDate: e.target.value })}
-                        className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-emerald-500 focus:bg-white text-sm"
+                        className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:bg-white text-sm"
                         required
                       />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">วันสิ้นสุด</label>
+                    <label className="text-xs font-semibold text-gray-500 ">วันสิ้นสุด</label>
                     <div className="relative">
-                      <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+                      <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
                       <input
                         type="date"
                         value={editFormData.endDate}
                         onChange={(e) => setEditFormData({ ...editFormData, endDate: e.target.value })}
-                        className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-emerald-500 focus:bg-white text-sm"
+                        className="w-full pl-10 pr-3 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-green-500 focus:bg-white text-sm"
                         required
                       />
                     </div>
@@ -648,7 +648,7 @@ function Page() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-[2] py-3 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 transition-all text-sm shadow-md shadow-emerald-100"
+                    className="flex-[2] py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-all text-sm shadow-md shadow-green-100"
                   >
                     บันทึกการแก้ไข
                   </button>

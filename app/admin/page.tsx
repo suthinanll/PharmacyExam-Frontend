@@ -3,7 +3,7 @@
 
 import Navbar_admin from "@/components/Navbar_admin";
 import { Users, BookOpen, Clock, BarChart3, UserCheck, TrendingUp } from "lucide-react";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 
 import {
@@ -44,7 +44,7 @@ const StatCard: React.FC<StatCardProps> = ({
   <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
     <div className="flex justify-between items-start">
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">{title}</p>
+        <p className="text-xs font-semibold  text-gray-400">{title}</p>
         <div className="flex items-baseline space-x-1.5">
           <h3 className="text-3xl font-black text-gray-900 tracking-tight">{value}</h3>
           <span className="text-sm font-medium text-gray-500">{description}</span>
@@ -161,8 +161,8 @@ function AdminDashboardPage() {
 
   return (
     <Navbar_admin>
-      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8 bg-gray-50/50 min-h-screen">
-        
+      <div className="max-w-7xl mx-auto w-full space-y-6">
+
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
           <div>
@@ -171,7 +171,7 @@ function AdminDashboardPage() {
           </div>
           <button
             onClick={() => router.push("/admin/student-tracking")}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-700 active:scale-95 text-white font-bold text-sm rounded-xl shadow-md shadow-green-600/10 transition-all w-full sm:w-auto justify-center cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-700 active:scale-95 text-white font-medium text-sm rounded-xl shadow-md shadow-green-600/10 transition-all w-full sm:w-auto justify-center cursor-pointer"
           >
             <UserCheck className="w-4 h-4" />
             <span>ติดตามผลการเรียนรายบุคคล</span>
@@ -198,7 +198,7 @@ function AdminDashboardPage() {
             title="คลังข้อสอบที่เปิดใช้งาน"
             value={stats?.activeExams ?? "-"}
             description="คลัง"
-            color="bg-emerald-600"
+            color="bg-green-600"
             subValue={`จากทั้งหมด ${stats?.totalAllExams ?? "-"} คลัง`}
           />
           <StatCard
@@ -224,7 +224,7 @@ function AdminDashboardPage() {
               <TrendingUp className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-800">
+              <h2 className="text-lg font-medium text-gray-800">
                 แนวโน้มประสิทธิภาพของผู้เรียน
               </h2>
               <p className="text-xs text-gray-400">สรุปดัชนีคะแนนเฉลี่ยจำแนกตามรายเดือน</p>
@@ -244,33 +244,33 @@ function AdminDashboardPage() {
                 >
                   <defs>
                     <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.0}/>
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                  <XAxis 
-                    dataKey="name" 
-                    tickLine={false} 
-                    axisLine={false} 
+                  <XAxis
+                    dataKey="name"
+                    tickLine={false}
+                    axisLine={false}
                     tick={{ fill: '#9CA3AF', fontSize: 12, fontWeight: 500 }}
                   />
-                  <YAxis 
-                    tickFormatter={(value) => `${value}%`} 
-                    domain={[0, 100]} 
+                  <YAxis
+                    tickFormatter={(value) => `${value}%`}
+                    domain={[0, 100]}
                     tickLine={false}
                     axisLine={false}
                     tick={{ fill: '#9CA3AF', fontSize: 12 }}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#fff', 
-                      border: '1px solid #f0f0f0', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #f0f0f0',
                       borderRadius: '12px',
                       boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)'
                     }}
                     labelStyle={{ fontWeight: 'bold', color: '#1F2937' }}
-                    formatter={(value: number) => [`${value}%`, "คะแนนเฉลี่ยรวม"]} 
+                    formatter={(value: number) => [`${value}%`, "คะแนนเฉลี่ยรวม"]}
                   />
                   <Area
                     type="monotone"

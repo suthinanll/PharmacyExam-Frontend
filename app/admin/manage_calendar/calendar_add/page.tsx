@@ -8,10 +8,10 @@ import Swal from "sweetalert2";
 import { useAuth } from "@/contexts/AuthContext";
 
 const CATEGORY_OPTIONS = [
-  { label: "PLE-IP1, PC1, PHCP1", value: "PLE-IP1, PC1, PHCP1", color: "bg-green-50 text-emerald-700 border-emerald-300" },
-  { label: "PLE-IP2",              value: "PLE-IP2",              color: "bg-teal-50 text-teal-700 border-teal-300" },
-  { label: "PLE-PC2",              value: "PLE-PC2",              color: "bg-green-50 text-green-700 border-green-300" },
-  { label: "PLE-PHCP2",            value: "PLE-PHCP2",            color: "bg-lime-50 text-lime-700 border-lime-300" },
+  { label: "PLE-IP1, PC1, PHCP1", value: "PLE-IP1, PC1, PHCP1", color: "bg-green-50 text-green-700 border-green-300" },
+  { label: "PLE-IP2", value: "PLE-IP2", color: "bg-teal-50 text-teal-700 border-teal-300" },
+  { label: "PLE-PC2", value: "PLE-PC2", color: "bg-green-50 text-green-700 border-green-300" },
+  { label: "PLE-PHCP2", value: "PLE-PHCP2", color: "bg-lime-50 text-lime-700 border-lime-300" },
 ];
 
 interface CalendarEvent {
@@ -225,11 +225,11 @@ function Page() {
 
   return (
     <Navbar_admin>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 pb-32">
+      <div className="max-w-7xl mx-auto w-full space-y-6 pb-32">
 
         {/* ── Header ──────────────────────────────────────────────── */}
         <div className="mb-8">
-          <Link href="/admin/manage_calendar" className="inline-flex items-center gap-1.5 text-emerald-600 hover:text-emerald-700 mb-5 text-sm font-medium transition-colors">
+          <Link href="/admin/manage_calendar" className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 mb-5 text-sm font-medium transition-colors">
             <ChevronLeft className="w-4 h-4" /> กลับสู่หน้าจัดการ
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -257,14 +257,14 @@ function Page() {
         {/* ── PDF Import ───────────────────────────────────────────── */}
         <div className="bg-white border border-green-200 rounded-2xl p-6 mb-8 shadow-sm">
           <h3 className="text-sm font-medium text-gray-700 mb-4 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-emerald-600" />
+            <Calendar className="w-4 h-4 text-green-600" />
             นำเข้าข้อมูลด้วย AI จากไฟล์ PDF
           </h3>
           <div className="flex flex-col sm:flex-row gap-4">
             <label className="flex-1 flex flex-col items-center justify-center h-28 border-2 border-dashed border-green-200 rounded-xl cursor-pointer bg-green-50/30 hover:bg-green-50 transition-all">
               <p className="text-sm text-gray-600 mb-0.5">
                 {pdfFile
-                  ? <span className="font-medium text-emerald-700">{pdfFile.name}</span>
+                  ? <span className="font-medium text-green-700">{pdfFile.name}</span>
                   : "คลิกเพื่อเลือกไฟล์ PDF"}
               </p>
               <p className="text-xs text-gray-400">ระบบจะดึงชื่อ วันที่ และประเภทให้อัตโนมัติ</p>
@@ -309,7 +309,7 @@ function Page() {
                 {/* Title + Dates */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <label className="text-xs font-medium text-gray-500 ">
                       ชื่อกำหนดการ <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -317,33 +317,33 @@ function Page() {
                       value={event.title}
                       onChange={(e) => updateEvent(event.id, "title", e.target.value)}
                       placeholder="เช่น เปิดระบบรับสมัครสอบ"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <label className="text-xs font-medium text-gray-500 ">
                         วันเริ่มต้น <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
                         <input
                           type="date"
                           value={event.startDate}
                           onChange={(e) => updateEvent(event.id, "startDate", e.target.value)}
-                          className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm"
+                          className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm"
                         />
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">วันสิ้นสุด</label>
+                      <label className="text-xs font-medium text-gray-500 ">วันสิ้นสุด</label>
                       <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-500" />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
                         <input
                           type="date"
                           value={event.endDate}
                           onChange={(e) => updateEvent(event.id, "endDate", e.target.value)}
-                          className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm"
+                          className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm"
                         />
                       </div>
                     </div>
@@ -352,19 +352,19 @@ function Page() {
 
                 {/* Description */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">รายละเอียดเพิ่มเติม</label>
+                  <label className="text-xs font-medium text-gray-500 ">รายละเอียดเพิ่มเติม</label>
                   <textarea
                     rows={2}
                     value={event.description}
                     onChange={(e) => updateEvent(event.id, "description", e.target.value)}
                     placeholder="รายละเอียดกิจกรรม..."
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none text-sm resize-none"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm resize-none"
                   />
                 </div>
 
                 {/* Categories */}
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <label className="text-xs font-medium text-gray-500 ">
                     ประเภทหลักสูตร <span className="text-red-500">*</span>
                   </label>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
@@ -394,7 +394,7 @@ function Page() {
         <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-gray-200 px-4 py-4 z-50 shadow-xl">
           <div className="max-w-5xl mx-auto flex justify-between items-center">
             <p className="hidden sm:block text-sm text-gray-500">
-              ทั้งหมด <span className="font-medium text-emerald-600">{events.length}</span> รายการ
+              ทั้งหมด <span className="font-medium text-green-600">{events.length}</span> รายการ
             </p>
             <div className="flex gap-3 w-full sm:w-auto">
               <Link

@@ -257,7 +257,7 @@ const DraftCard = ({
                             >
                                 <div className="text-center text-gray-400">
                                     <Upload className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                                    <p className="text-[10px] font-medium uppercase tracking-widest">Upload Cover</p>
+                                    <p className="text-[10px] font-medium ">Upload Cover</p>
                                 </div>
                             </div>
                         )}
@@ -538,7 +538,7 @@ function AddBlogPage() {
 
     return (
         <Navbar_admin>
-            <div className="max-w-5xl mx-auto px-4 pt-6 pb-20">
+            <div className="max-w-7xl mx-auto w-full space-y-6 pb-20">
                 <button
                     onClick={() => router.back()}
                     className="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors mb-4 font-medium text-sm"

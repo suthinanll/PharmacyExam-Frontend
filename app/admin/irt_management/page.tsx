@@ -148,7 +148,7 @@ function SliderField({
             <div className="flex items-center justify-between mb-3">
                 <div>
                     <span className="text-sm font-medium text-gray-800">{label}</span>
-                    <span className="ml-2 text-xs text-gray-400">{sublabel}</span>
+                    <span className="ml-2 text-sm text-gray-400">{sublabel}</span>
                 </div>
                 <input
                     type="number" step={step} value={value}
@@ -156,7 +156,7 @@ function SliderField({
                         const v = parseFloat(e.target.value);
                         if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v)));
                     }}
-                    className="w-20 text-center border border-gray-200 rounded-lg px-2 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:border-transparent"
+                    className="w-20 text-center border border-gray-200 rounded-lg px-2 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:border-transparent"
                     style={{ color, '--tw-ring-color': color + '40' } as any}
                 />
             </div>
@@ -174,7 +174,7 @@ function SliderField({
                     style={{ left: `calc(${pct}% - 8px)`, background: color }}
                 />
             </div>
-            <div className="flex justify-between text-xs text-gray-400 mt-1.5">
+            <div className="flex justify-between text-sm text-gray-400 mt-1.5">
                 <span>{fmt(min)}</span>
                 <span>{fmt((min + max) / 2)}</span>
                 <span>{fmt(max)}</span>
@@ -409,7 +409,7 @@ export default function IRTManagementPage() {
             title: `ล้างค่า IRT — ${ids.length} ข้อ`,
             html: `<div class="text-left text-sm text-gray-600 space-y-2">
                 <p>ต้องการล้างค่าพารามิเตอร์ IRT ของข้อสอบที่เลือกทั้ง <b>${ids.length} ข้อ</b> ให้กลับเป็นค่าว่าง หรือไม่?</p>
-                <div class="p-3 bg-rose-50 rounded-xl border border-rose-200 text-rose-800 text-xs">
+                <div class="p-3 bg-rose-50 rounded-xl border border-rose-200 text-rose-800 text-sm">
                     ข้อสอบเหล่านี้จะถูกเปลี่ยนสถานะเป็น "ยังไม่ระบุค่า IRT" และจะไม่ถูกนำไปใช้ใน Adaptive Test จนกว่าจะระบุค่าใหม่
                 </div>
             </div>`,
@@ -531,7 +531,7 @@ export default function IRTManagementPage() {
 
             Swal.fire({
                 title: 'ส่งออกสำเร็จ',
-                html: `ดาวน์โหลดไฟล์ <b>${filename}</b> เรียบร้อยแล้ว<br/><span class="text-xs text-gray-500">จำนวน ${data.total_sessions} sessions (${data.total_items} ข้อ)</span>`,
+                html: `ดาวน์โหลดไฟล์ <b>${filename}</b> เรียบร้อยแล้ว<br/><span class="text-sm text-gray-500">จำนวน ${data.total_sessions} sessions (${data.total_items} ข้อ)</span>`,
                 icon: 'success',
                 timer: 2200,
                 showConfirmButton: false
@@ -539,7 +539,7 @@ export default function IRTManagementPage() {
         } catch (err: any) {
             Swal.fire({
                 title: 'เกิดข้อผิดพลาด',
-                html: `ไม่สามารถส่งออก CSV ได้<br/><span class="text-xs text-red-500 font-mono mt-1 block">${err.message || 'Network error'}</span>`,
+                html: `ไม่สามารถส่งออก CSV ได้<br/><span class="text-sm text-red-500  mt-1 block">${err.message || 'Network error'}</span>`,
                 icon: 'error'
             });
         } finally {
@@ -565,7 +565,7 @@ export default function IRTManagementPage() {
         } catch (err: any) {
             Swal.fire({
                 title: 'ข้อผิดพลาด',
-                html: `ไม่สามารถดึงข้อมูลสถิติการสอบได้<br/><span class="text-xs text-red-500 font-mono mt-1 block">${err.message || 'Network error'}</span>`,
+                html: `ไม่สามารถดึงข้อมูลสถิติการสอบได้<br/><span class="text-sm text-red-500  mt-1 block">${err.message || 'Network error'}</span>`,
                 icon: 'error'
             });
         } finally {
@@ -761,7 +761,7 @@ export default function IRTManagementPage() {
 
     return (
         <Navbar_admin>
-            <div className="max-w-7xl mx-auto px-4 py-6 space-y-6" suppressHydrationWarning>
+            <div className="max-w-7xl mx-auto w-full space-y-6" suppressHydrationWarning>
 
                 {/* ── Page Header ── */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -780,7 +780,7 @@ export default function IRTManagementPage() {
                 <div className="bg-white border border-gray-200 rounded-2xl shadow-2xs relative z-30">
                     <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-6">
                         <div className="flex-1 relative">
-                            <label className="block text-xs font-medium text-gray-500 mb-1.5">คลังข้อสอบ</label>
+                            <label className="block text-sm font-medium text-gray-500 mb-1.5">คลังข้อสอบ</label>
                             <div className="relative">
                                 <select
                                     value={selectedBankId ?? ''}
@@ -799,25 +799,25 @@ export default function IRTManagementPage() {
                         {/* Stats inline */}
                         <div className="flex gap-4 sm:gap-6 shrink-0 pt-1 sm:pt-5">
                             <div className="text-center">
-                                <p className="text-xl font-bold text-gray-900">{bankItems.length}</p>
-                                <p className="text-xs text-gray-400">ทั้งหมด</p>
+                                <p className="text-xl font-medium text-gray-900">{bankItems.length}</p>
+                                <p className="text-sm text-gray-400">ทั้งหมด</p>
                             </div>
                             <div className="w-px bg-gray-100" />
                             <div className="text-center">
-                                <p className="text-xl font-bold text-green-600">{calibratedCount}</p>
-                                <p className="text-xs text-gray-400">ระบุ IRT แล้ว</p>
+                                <p className="text-xl font-medium text-green-600">{calibratedCount}</p>
+                                <p className="text-sm text-gray-400">ระบุ IRT แล้ว</p>
                             </div>
                             <div className="w-px bg-gray-100" />
                             <div className="text-center">
-                                <p className="text-xl font-bold text-amber-500">{uncalibratedCount}</p>
-                                <p className="text-xs text-gray-400">ยังไม่ระบุ</p>
+                                <p className="text-xl font-medium text-amber-500">{uncalibratedCount}</p>
+                                <p className="text-sm text-gray-400">ยังไม่ระบุ</p>
                             </div>
                             <div className="w-px bg-gray-100" />
                             <div className="text-center">
                                 {isReady
-                                    ? <p className="text-sm font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-lg mt-0.5">พร้อมสอบ CAT</p>
-                                    : <p className="text-sm font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-lg mt-0.5">ต้องการอีก {Math.max(0, 20 - calibratedCount)} ข้อ</p>}
-                                <p className="text-xs text-gray-400 mt-0.5">สถานะคลัง</p>
+                                    ? <p className="text-sm font-medium text-green-600 bg-green-50 px-2 py-1 rounded-lg mt-0.5">พร้อมสอบ CAT</p>
+                                    : <p className="text-sm font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-lg mt-0.5">ต้องการอีก {Math.max(0, 20 - calibratedCount)} ข้อ</p>}
+                                <p className="text-sm text-gray-400 mt-0.5">สถานะคลัง</p>
                             </div>
                         </div>
 
@@ -825,11 +825,11 @@ export default function IRTManagementPage() {
                         <div className="relative flex items-center sm:pt-5 shrink-0 z-40" ref={actionMenuRef}>
                             <button
                                 onClick={() => setShowActionMenu(prev => !prev)}
-                                className="flex items-center gap-2 px-3.5 py-2.5 text-xs font-bold text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 rounded-xl transition-all shadow-xs cursor-pointer active:scale-95"
+                                className="flex items-center gap-2 px-3.5 py-2.5 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 rounded-xl transition-all shadow-xs cursor-pointer active:scale-95"
                                 title="เครื่องมือจัดการพารามิเตอร์ IRT"
                             >
                                 <SlidersHorizontal size={14} className="text-gray-600" />
-                                <span>เครื่องมือจัดการ</span>
+                                <span className='text-sm'>เครื่องมือจัดการ</span>
                                 <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${showActionMenu ? 'rotate-180' : ''}`} />
                             </button>
 
@@ -844,8 +844,8 @@ export default function IRTManagementPage() {
                                             <Sparkles size={16} />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-xs font-bold text-gray-800">Auto-Calibrate (CTT)</p>
-                                            <p className="text-xs text-gray-500 truncate">คำนวณค่า IRT จากผลสอบจริง</p>
+                                            <p className="text-sm font-medium text-gray-800">Auto-Calibrate (CTT)</p>
+                                            <p className="text-sm text-gray-500 truncate">คำนวณค่า IRT จากผลสอบจริง</p>
                                         </div>
                                     </button>
 
@@ -858,21 +858,21 @@ export default function IRTManagementPage() {
                                             {isExporting ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-xs font-bold text-gray-800">ส่งออก Matrix (CSV)</p>
-                                            <p className="text-xs text-gray-500 truncate">ส่งออก 0/1 Matrix วิเคราะห์ต่อ</p>
+                                            <p className="text-sm font-medium text-gray-800">ส่งออก Matrix (CSV)</p>
+                                            <p className="text-sm text-gray-500 truncate">ส่งออก 0/1 Matrix วิเคราะห์ต่อ</p>
                                         </div>
                                     </button>
 
                                     <button
                                         onClick={() => { setShowActionMenu(false); setImportParsedItems([]); setShowImportModal(true); }}
-                                        className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-emerald-50/80 flex items-center gap-3 transition-colors group cursor-pointer"
+                                        className="w-full text-left px-3 py-2.5 rounded-xl hover:bg-green-50/80 flex items-center gap-3 transition-colors group cursor-pointer"
                                     >
-                                        <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                        <div className="w-8 h-8 rounded-lg bg-green-100 text-green-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                             <Upload size={16} />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <p className="text-xs font-bold text-gray-800">นำเข้า CSV</p>
-                                            <p className="text-xs text-gray-500 truncate">อัปเดตค่า IRT (a, b, c) จากไฟล์</p>
+                                            <p className="text-sm font-medium text-gray-800">นำเข้า CSV</p>
+                                            <p className="text-sm text-gray-500 truncate">อัปเดตค่า IRT (a, b, c) จากไฟล์</p>
                                         </div>
                                     </button>
 
@@ -887,8 +887,8 @@ export default function IRTManagementPage() {
                                                     <TrendingUp size={16} />
                                                 </div>
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="text-xs font-bold text-gray-800">ดู TIF</p>
-                                                    <p className="text-xs text-gray-500 truncate">กราฟ Test Information Function</p>
+                                                    <p className="text-sm font-medium text-gray-800">ดู TIF</p>
+                                                    <p className="text-sm text-gray-500 truncate">กราฟ Test Information Function</p>
                                                 </div>
                                             </button>
                                         </>
@@ -913,7 +913,7 @@ export default function IRTManagementPage() {
                         </div>
 
                         {/* Filter tabs */}
-                        <div className="flex bg-gray-100 rounded-lg p-0.5 gap-0.5 text-xs">
+                        <div className="flex bg-gray-100 rounded-lg p-0.5 gap-0.5 text-sm">
                             {[
                                 { k: 'all', l: `ทั้งหมด`, n: bankItems.length },
                                 { k: 'set', l: `ระบุแล้ว`, n: calibratedCount },
@@ -924,7 +924,7 @@ export default function IRTManagementPage() {
                                     className={`flex items-center gap-1 px-3 py-1.5 rounded-md font-medium transition-all cursor-pointer ${catFilter === f.k ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
                                 >
                                     {f.l}
-                                    <span className={`text-xs px-1.5 py-0.5 rounded ${catFilter === f.k ? 'bg-gray-100 text-gray-600' : 'bg-gray-200/60 text-gray-500'}`}>{f.n}</span>
+                                    <span className={`text-sm px-1.5 py-0.5 rounded ${catFilter === f.k ? 'bg-gray-100 text-gray-600' : 'bg-gray-200/60 text-gray-500'}`}>{f.n}</span>
                                 </button>
                             ))}
                         </div>
@@ -934,23 +934,23 @@ export default function IRTManagementPage() {
                             <select
                                 value={difficultyFilter}
                                 onChange={e => { setDifficultyFilter(e.target.value); setCurrentPage(1); }}
-                                className="appearance-none pl-3 pr-8 py-2 border border-gray-200 rounded-lg text-xs font-medium bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer shadow-2xs"
+                                className="appearance-none pl-3 pr-8 py-2 border border-gray-200 rounded-lg text-sm font-medium bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer shadow-2xs"
                             >
                                 <option value="all">ทุกระดับความยาก ({bankItems.length})</option>
-                                <option value="very_easy">🟢 ง่ายมาก ({difficultyCounts.very_easy})</option>
-                                <option value="easy">🔵 ง่าย ({difficultyCounts.easy})</option>
-                                <option value="medium">🟡 ปานกลาง ({difficultyCounts.medium})</option>
-                                <option value="hard">🟠 ยาก ({difficultyCounts.hard})</option>
-                                <option value="very_hard">🔴 ยากมาก ({difficultyCounts.very_hard})</option>
+                                <option value="very_easy">ง่ายมาก ({difficultyCounts.very_easy})</option>
+                                <option value="easy">ง่าย ({difficultyCounts.easy})</option>
+                                <option value="medium">ปานกลาง ({difficultyCounts.medium})</option>
+                                <option value="hard">ยาก ({difficultyCounts.hard})</option>
+                                <option value="very_hard">ยากมาก ({difficultyCounts.very_hard})</option>
                             </select>
                             <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                         </div>
 
                         {/* Sort */}
                         <button onClick={() => setSortOrder(s => s === 'desc' ? 'asc' : 'desc')}
-                            className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-600 hover:text-gray-900 hover:border-gray-300 text-xs font-medium transition-colors cursor-pointer">
+                            className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-600 hover:text-gray-900 hover:border-gray-300 text-sm font-medium transition-colors cursor-pointer">
                             <ArrowUpDown size={12} />
-                            {sortOrder === 'desc' ? 'ใหม่ → เก่า' : 'เก่า → ใหม่'}
+                            {sortOrder === 'desc' ? 'ใหม่' : 'เก่า'}
                         </button>
                     </div>
 
@@ -958,7 +958,7 @@ export default function IRTManagementPage() {
                     <div className="flex bg-gray-100 rounded-lg p-0.5 gap-0.5 shrink-0">
                         {(['table', 'card'] as const).map(m => (
                             <button key={m} onClick={() => { setViewMode(m); localStorage.setItem('cat_viewmode', m); }}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${viewMode === m ? 'bg-white shadow-sm text-green-700' : 'text-gray-500 hover:text-gray-700'}`}>
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all cursor-pointer ${viewMode === m ? 'bg-white shadow-sm text-green-700' : 'text-gray-500 hover:text-gray-700'}`}>
                                 {m === 'table' ? <List size={13} /> : <LayoutGrid size={13} />}
                                 {m === 'table' ? 'ตาราง' : 'การ์ด'}
                             </button>
@@ -973,7 +973,7 @@ export default function IRTManagementPage() {
                     <div className="flex flex-wrap items-center gap-3">
                         {/* Select controls */}
                         <div className="flex items-center gap-2">
-                            <label className="flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 cursor-pointer transition-colors select-none">
+                            <label className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer transition-colors select-none">
                                 <input
                                     type="checkbox"
                                     checked={allPageChecked}
@@ -984,18 +984,18 @@ export default function IRTManagementPage() {
                             </label>
                             {filtered.length > perPage && (
                                 <>
-                                    <span className="text-gray-300 text-xs">|</span>
+                                    <span className="text-gray-300 text-sm">|</span>
                                     <button onClick={() => setCheckedIds(new Set(filtered.map(i => i.item_id)))}
-                                        className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer">
+                                        className="text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer">
                                         เลือกทั้งหมด ({filtered.length})
                                     </button>
                                 </>
                             )}
                             {checkedIds.size > 0 && (
                                 <>
-                                    <span className="text-gray-300 text-xs">|</span>
+                                    <span className="text-gray-300 text-sm">|</span>
                                     <button onClick={() => setCheckedIds(new Set())}
-                                        className="text-xs text-gray-400 hover:text-gray-600 font-medium cursor-pointer">
+                                        className="text-sm text-gray-400 hover:text-gray-600 font-medium cursor-pointer">
                                         ล้าง
                                     </button>
                                 </>
@@ -1004,7 +1004,7 @@ export default function IRTManagementPage() {
 
                         {/* Selected count badge */}
                         {checkedIds.size > 0 && (
-                            <span className="text-xs font-semibold text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full">
+                            <span className="text-sm font-medium text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full">
                                 {checkedIds.size} ข้อที่เลือก
                             </span>
                         )}
@@ -1012,12 +1012,12 @@ export default function IRTManagementPage() {
                         {/* Preset quick-set */}
                         {checkedIds.size > 0 && (
                             <div className="flex items-center gap-1.5 flex-wrap ml-1">
-                                <span className="text-xs text-gray-500 font-medium">ตั้งค่าทันที:</span>
+                                <span className="text-sm text-gray-500 font-medium">ตั้งค่าทันที:</span>
                                 {PRESETS.map(p => (
                                     <button key={p.label}
                                         onClick={() => handleBulkSave(p.b, p.c)}
                                         disabled={isSaving}
-                                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-all hover:opacity-90 disabled:opacity-40 cursor-pointer"
+                                        className="flex items-center gap-1 px-2.5 py-1.5 text-sm font-medium rounded-lg border transition-all hover:opacity-90 disabled:opacity-40 cursor-pointer"
                                         style={{ backgroundColor: p.bg, borderColor: p.border, color: p.color }}
                                     >
                                         <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: p.color }} />
@@ -1025,12 +1025,12 @@ export default function IRTManagementPage() {
                                     </button>
                                 ))}
                                 <button onClick={() => setShowBulkModal(true)}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-800 hover:bg-gray-900 text-white text-xs font-medium rounded-lg transition-colors cursor-pointer">
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-lg transition-colors cursor-pointer">
                                     <SlidersHorizontal size={12} /> กำหนดเอง
                                 </button>
                                 <button onClick={handleBulkResetToNull}
                                     disabled={isSaving}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-medium rounded-lg transition-colors cursor-pointer"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-sm font-medium rounded-lg transition-colors cursor-pointer"
                                     title="ล้างค่าพารามิเตอร์ IRT ของทุกข้อที่เลือกให้เป็นค่าว่าง">
                                     <RotateCcw size={12} /> ล้างค่า
                                 </button>
@@ -1063,7 +1063,7 @@ export default function IRTManagementPage() {
                             <table className="min-w-full">
                                 <thead>
                                     <tr className="border-b border-gray-200 bg-gray-50">
-                                        <th className="pl-4 pr-2 py-3 w-10">
+                                        <th className="pl-4 pr-2 py-3.5 w-10">
                                             <input
                                                 type="checkbox"
                                                 checked={allPageChecked}
@@ -1071,21 +1071,21 @@ export default function IRTManagementPage() {
                                                 className="w-4 h-4 rounded border-gray-300 text-blue-600 accent-blue-600"
                                             />
                                         </th>
-                                        <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 w-16">ID</th>
-                                        <th className="px-3 py-3 text-left text-xs font-semibold text-gray-500 w-36">คลังข้อสอบ</th>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500">คำถาม</th>
-                                        <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 w-24">อำนาจจำแนก (a)</th>
-                                        <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 w-24">ความยาก (b)</th>
-                                        <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 w-24">การเดา (c)</th>
-                                        <th className="px-3 py-3 text-center text-xs font-semibold text-gray-500 w-28">ระดับ</th>
-                                        <th className="pr-4 pl-2 py-3 text-center text-xs font-semibold text-gray-500 w-20">แก้ไข</th>
+                                        <th className="px-3 py-3.5 text-left text-sm font-medium text-gray-500 whitespace-nowrap w-16">ID</th>
+                                        <th className="px-3 py-3.5 text-left text-sm font-medium text-gray-500 whitespace-nowrap min-w-[140px]">คลังข้อสอบ</th>
+                                        <th className="px-4 py-3.5 text-left text-sm font-medium text-gray-500 min-w-[220px]">คำถาม</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium text-gray-600 whitespace-nowrap">อำนาจจำแนก (a)</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium text-gray-600 whitespace-nowrap">ความยาก (b)</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium text-gray-600 whitespace-nowrap">การเดา (c)</th>
+                                        <th className="px-4 py-3.5 text-center text-sm font-medium text-gray-500 whitespace-nowrap">ระดับ</th>
+                                        <th className="pr-4 pl-2 py-3.5 text-center text-sm font-medium text-gray-500 whitespace-nowrap w-20">จัดการ</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {currentItems.length === 0 ? (
                                         <tr>
                                             <td colSpan={9} className="py-16 text-center text-gray-400 text-sm">
-                                                ไม่พบข้อสอบที่ตรงตามเงื่อนไข
+                                                ไม่พบข้อสอบ
                                             </td>
                                         </tr>
                                     ) : (
@@ -1105,9 +1105,9 @@ export default function IRTManagementPage() {
                                                             className="w-4 h-4 rounded border-gray-300 text-blue-600 accent-blue-600"
                                                         />
                                                     </td>
-                                                    <td className="px-3 py-3.5 text-xs text-gray-400 ">#{item.item_id}</td>
+                                                    <td className="px-3 py-3.5 text-sm text-gray-400 ">#{item.item_id}</td>
                                                     <td className="px-3 py-3.5">
-                                                        <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md line-clamp-1">
+                                                        <span className="text-sm font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md line-clamp-1">
                                                             {item.item_bank?.bank_name || '—'}
                                                         </span>
                                                     </td>
@@ -1116,17 +1116,17 @@ export default function IRTManagementPage() {
                                                             {stripHTML(item.question_text)}
                                                         </p>
                                                     </td>
-                                                    <td className="px-3 py-3.5 text-center text-xs font-semibold" style={{ color: '#2563eb' }}>
+                                                    <td className="px-4 py-3.5 text-center text-sm font-medium whitespace-nowrap" style={{ color: '#2563eb' }}>
                                                         {item.irt_a_discrimination !== null ? item.irt_a_discrimination.toFixed(2) : <span className="text-gray-300 font-normal">—</span>}
                                                     </td>
-                                                    <td className="px-3 py-3.5 text-center text-xs font-semibold" style={{ color: '#7c3aed' }}>
+                                                    <td className="px-4 py-3.5 text-center text-sm font-medium whitespace-nowrap" style={{ color: '#7c3aed' }}>
                                                         {item.irt_b_difficulty !== null ? `${item.irt_b_difficulty > 0 ? '+' : ''}${item.irt_b_difficulty.toFixed(2)}` : <span className="text-gray-300 font-normal">—</span>}
                                                     </td>
-                                                    <td className="px-3 py-3.5 text-center text-xs font-semibold" style={{ color: '#be185d' }}>
+                                                    <td className="px-4 py-3.5 text-center text-sm font-medium whitespace-nowrap" style={{ color: '#be185d' }}>
                                                         {item.irt_c_guessing !== null ? item.irt_c_guessing.toFixed(2) : <span className="text-gray-300 font-normal">—</span>}
                                                     </td>
-                                                    <td className="px-3 py-3.5 text-center">
-                                                        <span className="text-xs font-medium px-2 py-0.5 rounded-md inline-block"
+                                                    <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                                                        <span className="text-sm font-medium px-2 py-0.5 rounded-md inline-block"
                                                             style={{ color, backgroundColor: color + '15' }}>
                                                             {label}
                                                         </span>
@@ -1180,8 +1180,8 @@ export default function IRTManagementPage() {
                                                     onChange={() => toggleCheck(item.item_id)}
                                                     className="w-4 h-4 rounded border-gray-300 text-blue-600 accent-blue-600"
                                                 />
-                                                <span className="text-xs text-gray-400">#{item.item_id}</span>
-                                                <span className="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md truncate max-w-[120px]">
+                                                <span className="text-sm text-gray-400">#{item.item_id}</span>
+                                                <span className="text-sm font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md truncate max-w-[120px]">
                                                     {item.item_bank?.bank_name}
                                                 </span>
                                             </div>
@@ -1192,19 +1192,25 @@ export default function IRTManagementPage() {
                                         <div className="flex items-center justify-between">
                                             <div className="flex gap-3">
                                                 <div>
-                                                    <p className="text-xs text-gray-400 mb-0.5">ความยาก b</p>
-                                                    <p className="text-sm font-bold" style={{ color: '#7c3aed' }}>
+                                                    <p className="text-sm text-gray-400 mb-0.5">อำนาจจำแนก a</p>
+                                                    <p className="text-sm font-medium" style={{ color: '#3b82f6' }}>
+                                                        {item.irt_a_discrimination !== null ? `${item.irt_a_discrimination > 0 ? '+' : ''}${item.irt_a_discrimination.toFixed(2)}` : '—'}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-400 mb-0.5">ความยาก b</p>
+                                                    <p className="text-sm font-medium" style={{ color: '#7c3aed' }}>
                                                         {item.irt_b_difficulty !== null ? `${item.irt_b_difficulty > 0 ? '+' : ''}${item.irt_b_difficulty.toFixed(2)}` : '—'}
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-xs text-gray-400 mb-0.5">การเดา c</p>
-                                                    <p className="text-sm font-bold" style={{ color: '#be185d' }}>
+                                                    <p className="text-sm text-gray-400 mb-0.5">การเดา c</p>
+                                                    <p className="text-sm font-medium" style={{ color: '#be185d' }}>
                                                         {item.irt_c_guessing !== null ? item.irt_c_guessing.toFixed(2) : '—'}
                                                     </p>
                                                 </div>
                                             </div>
-                                            <span className="text-xs font-medium px-2 py-1 rounded-md"
+                                            <span className="text-sm font-medium px-2 py-1 rounded-md"
                                                 style={{ color, backgroundColor: color + '18' }}>
                                                 {label}
                                             </span>
@@ -1213,7 +1219,7 @@ export default function IRTManagementPage() {
                                     <div className="flex gap-2 mt-4">
                                         <button
                                             onClick={() => openEdit(item)}
-                                            className="flex-1 flex items-center justify-center gap-1 text-xs text-gray-500 hover:text-green-600 font-medium px-2 py-1.5 rounded-lg hover:bg-gray-50 border border-gray-100 transition-colors cursor-pointer"
+                                            className="flex-1 flex items-center justify-center gap-1 text-sm text-gray-500 hover:text-green-600 font-medium px-2 py-1.5 rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors cursor-pointer"
                                         >
                                             <Eye size={12} /> แก้ไข
                                         </button>
@@ -1256,8 +1262,8 @@ export default function IRTManagementPage() {
                         <div className="sticky top-0 bg-white px-6 pt-6 pb-4 border-b border-gray-100 z-10">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <h3 className="text-base font-semibold text-gray-900">แก้ไขพารามิเตอร์ IRT</h3>
-                                    <p className="text-xs text-gray-400 mt-0.5">
+                                    <h3 className="text-base font-medium text-gray-900">แก้ไขพารามิเตอร์ IRT</h3>
+                                    <p className="text-sm text-gray-400 mt-0.5">
                                         ข้อสอบ #{editItem.item_id} · {editItem.item_bank?.bank_name}
                                     </p>
                                 </div>
@@ -1271,21 +1277,21 @@ export default function IRTManagementPage() {
                         <div className="px-6 py-5 space-y-6 flex-1">
                             {/* Question preview */}
                             <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">คำถาม</p>
+                                <p className="text-sm font-medium text-gray-400  mb-2">คำถาม</p>
                                 <div className="text-sm text-gray-700 leading-relaxed line-clamp-4"
                                     dangerouslySetInnerHTML={{ __html: editItem.question_text }} />
                             </div>
 
                             {/* Difficulty presets */}
                             <div>
-                                <p className="text-sm font-semibold text-gray-800 mb-2.5">ระดับความยากสำเร็จรูป</p>
+                                <p className="text-sm font-medium text-gray-800 mb-2.5">ระดับความยากสำเร็จรูป</p>
                                 <div className="flex gap-2 flex-wrap">
                                     {PRESETS.map(p => {
                                         const active = Math.abs(editIRT.b - p.b) < 0.01 && Math.abs(editIRT.c - p.c) < 0.01;
                                         return (
                                             <button key={p.label}
                                                 onClick={() => setEditIRT(prev => ({ ...prev, b: p.b, c: p.c }))}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer"
+                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-medium transition-all cursor-pointer"
                                                 style={{
                                                     backgroundColor: active ? p.color : p.bg,
                                                     borderColor: active ? p.color : p.border,
@@ -1295,7 +1301,7 @@ export default function IRTManagementPage() {
                                                 <span className="w-1.5 h-1.5 rounded-full shrink-0"
                                                     style={{ backgroundColor: active ? '#fff' : p.color }} />
                                                 {p.label}
-                                                <span className="opacity-70 text-xs">
+                                                <span className="opacity-70 text-sm">
                                                     b={p.b > 0 ? `+${p.b}` : p.b}
                                                 </span>
                                             </button>
@@ -1306,7 +1312,7 @@ export default function IRTManagementPage() {
 
                             {/* Sliders */}
                             <div className="space-y-5">
-                                <p className="text-sm font-semibold text-gray-800">ปรับค่าพารามิเตอร์</p>
+                                <p className="text-sm font-medium text-gray-800">ปรับค่าพารามิเตอร์</p>
                                 <SliderField
                                     label="ความยาก" sublabel="— b"
                                     value={editIRT.b} min={-4} max={4} step={0.1}
@@ -1331,8 +1337,8 @@ export default function IRTManagementPage() {
                             {/* ICC Curve */}
                             <div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <p className="text-sm font-semibold text-gray-800">กราฟ ICC</p>
-                                    <div className="flex gap-3 text-xs">
+                                    <p className="text-sm font-medium text-gray-800">กราฟ ICC</p>
+                                    <div className="flex gap-3 text-sm">
                                         <span style={{ color: '#7c3aed' }}>b = <b>{editIRT.b > 0 ? '+' : ''}{editIRT.b.toFixed(2)}</b></span>
                                         <span style={{ color: '#2563eb' }}>a = <b>{editIRT.a.toFixed(2)}</b></span>
                                         <span style={{ color: '#be185d' }}>c = <b>{editIRT.c.toFixed(2)}</b></span>
@@ -1351,7 +1357,7 @@ export default function IRTManagementPage() {
                                     type="button"
                                     onClick={() => handleResetSingleToNull()}
                                     disabled={isSaving}
-                                    className="px-4 py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+                                    className="px-4 py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
                                     title="ล้างค่าพารามิเตอร์ IRT กลับเป็นค่าว่าง"
                                 >
                                     <RotateCcw size={14} />
@@ -1363,7 +1369,7 @@ export default function IRTManagementPage() {
                                 ยกเลิก
                             </button>
                             <button onClick={handleSaveSingle} disabled={isSaving}
-                                className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors cursor-pointer">
+                                className="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-medium disabled:opacity-50 transition-colors cursor-pointer">
                                 <Save size={14} />
                                 {isSaving ? 'กำลังบันทึก...' : 'บันทึกค่า IRT'}
                             </button>
@@ -1381,8 +1387,8 @@ export default function IRTManagementPage() {
                     <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-lg shadow-2xl">
                         <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex justify-between items-start">
                             <div>
-                                <h3 className="text-base font-semibold text-gray-900">ตั้งค่า IRT — {checkedIds.size} ข้อ</h3>
-                                <p className="text-xs text-gray-400 mt-0.5">อัปเดตพร้อมกันทุกข้อที่เลือก</p>
+                                <h3 className="text-base font-medium text-gray-900">ตั้งค่า IRT — {checkedIds.size} ข้อ</h3>
+                                <p className="text-sm text-gray-400 mt-0.5">อัปเดตพร้อมกันทุกข้อที่เลือก</p>
                             </div>
                             <button onClick={() => setShowBulkModal(false)}
                                 className="text-gray-300 hover:text-gray-500 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer">
@@ -1393,21 +1399,21 @@ export default function IRTManagementPage() {
                         <div className="px-6 py-5 space-y-6">
                             {/* Presets */}
                             <div>
-                                <p className="text-sm font-semibold text-gray-800 mb-2.5">ระดับสำเร็จรูป</p>
+                                <p className="text-sm font-medium text-gray-800 mb-2.5">ระดับสำเร็จรูป</p>
                                 <div className="flex gap-2 flex-wrap">
                                     {PRESETS.map(p => {
                                         const active = Math.abs(bulkIRT.b - p.b) < 0.01;
                                         return (
                                             <button key={p.label}
                                                 onClick={() => setBulkIRT({ b: p.b, c: p.c })}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer"
+                                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl border text-sm font-medium transition-all cursor-pointer"
                                                 style={{
                                                     backgroundColor: active ? p.color : p.bg,
                                                     borderColor: active ? p.color : p.border,
                                                     color: active ? '#fff' : p.color,
                                                 }}>
                                                 {p.label}
-                                                <span className="opacity-70 text-xs">b={p.b > 0 ? `+${p.b}` : p.b}</span>
+                                                <span className="opacity-70 text-sm">b={p.b > 0 ? `+${p.b}` : p.b}</span>
                                             </button>
                                         );
                                     })}
@@ -1437,7 +1443,7 @@ export default function IRTManagementPage() {
                                 type="button"
                                 onClick={() => { setShowBulkModal(false); handleBulkResetToNull(); }}
                                 disabled={isSaving}
-                                className="px-4 py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
+                                className="px-4 py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-sm font-medium flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
                                 title="ล้างค่าพารามิเตอร์ IRT ของทุกข้อที่เลือกให้เป็น null"
                             >
                                 <RotateCcw size={14} />
@@ -1448,7 +1454,7 @@ export default function IRTManagementPage() {
                                 ยกเลิก
                             </button>
                             <button onClick={() => handleBulkSave()} disabled={isSaving}
-                                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-colors cursor-pointer">
+                                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-sm font-medium disabled:opacity-50 transition-colors cursor-pointer">
                                 {isSaving ? 'กำลังบันทึก...' : `บันทึก ${checkedIds.size} ข้อ`}
                             </button>
                         </div>
@@ -1465,8 +1471,8 @@ export default function IRTManagementPage() {
                     <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl p-6 space-y-4">
                         <div className="flex justify-between items-start border-b border-gray-100 pb-3">
                             <div>
-                                <h3 className="text-base font-semibold text-gray-900">ฟังก์ชันสารสนเทศของแบบทดสอบ (TIF)</h3>
-                                <p className="text-xs text-gray-400 mt-0.5">{tifBankName}</p>
+                                <h3 className="text-base font-medium text-gray-900">ฟังก์ชันสารสนเทศของแบบทดสอบ (TIF)</h3>
+                                <p className="text-sm text-gray-400 mt-0.5">{tifBankName}</p>
                             </div>
                             <button onClick={() => setShowTIF(false)}
                                 className="text-gray-300 hover:text-gray-500 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer">
@@ -1496,7 +1502,7 @@ export default function IRTManagementPage() {
                         </div>
 
                         <div className="bg-purple-50 p-3.5 rounded-xl border border-purple-100 text-sm text-purple-800 space-y-1">
-                            <p className="font-semibold">💡 ข้อมูล TIF (Test Information Function)</p>
+                            <p className="font-medium">💡 ข้อมูล TIF (Test Information Function)</p>
                             <p className="opacity-90">กราฟแสดงปริมาณสารสนเทศ I(θ) ที่คลังข้อสอบนี้วัดได้ในแต่ละระดับความสามารถ ความสูงของกราฟบอกถึงความแม่นยำในการวัดผล</p>
                         </div>
                     </div>
@@ -1516,11 +1522,11 @@ export default function IRTManagementPage() {
                                     <Sparkles size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                    <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
                                         Auto-Calibrate พารามิเตอร์ IRT จากผลสอบจริง (CTT)
-                                        <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-semibold">Beta</span>
+                                        <span className="text-sm px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">Beta</span>
                                     </h3>
-                                    <p className="text-xs text-gray-500 mt-0.5">
+                                    <p className="text-sm text-gray-500 mt-0.5">
                                         คำนวณค่าความยาก (p-value) และอำนาจจำแนก (Point-Biserial) จากประวัติการสอบจริง แล้วประมาณการเป็นค่า a, b, c
                                     </p>
                                 </div>
@@ -1544,51 +1550,51 @@ export default function IRTManagementPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 flex items-center gap-3">
                                             <div className="text-2xl font-black text-amber-700">{autoCalibData.total_sessions}</div>
-                                            <div className="text-xs text-amber-900">
-                                                <p className="font-bold">Sessions ที่นำมาวิเคราะห์</p>
+                                            <div className="text-sm text-amber-900">
+                                                <p className="font-medium">Sessions ที่นำมาวิเคราะห์</p>
                                                 <p className="text-amber-700/80">การสอบปกติที่มีการส่งคำตอบแล้ว</p>
                                             </div>
                                         </div>
                                         <div className="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-4 flex items-center gap-3">
                                             <div className="text-2xl font-black text-blue-700">{autoCalibData.total_items}</div>
-                                            <div className="text-xs text-blue-900">
-                                                <p className="font-bold">จำนวนข้อสอบทั้งหมด</p>
+                                            <div className="text-sm text-blue-900">
+                                                <p className="font-medium">จำนวนข้อสอบทั้งหมด</p>
                                                 <p className="text-blue-700/80">
                                                     {autoCalibData.items.filter(i => i.attempts >= 10).length} ข้อ มีข้อมูลเพียงพอ (&ge;10 ครั้ง)
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-4 flex items-center gap-3">
-                                            <div className="text-2xl font-black text-emerald-700">
+                                        <div className="bg-green-50/70 border border-green-200/80 rounded-2xl p-4 flex items-center gap-3">
+                                            <div className="text-2xl font-black text-green-700">
                                                 {autoCalibSelected.size}
                                             </div>
-                                            <div className="text-xs text-emerald-900">
-                                                <p className="font-bold">ข้อที่เลือกปรับค่า</p>
-                                                <p className="text-emerald-700/80">พร้อมนำไปบันทึกลงระบบ</p>
+                                            <div className="text-sm text-green-900">
+                                                <p className="font-medium">ข้อที่เลือกปรับค่า</p>
+                                                <p className="text-green-700/80">พร้อมนำไปบันทึกลงระบบ</p>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Formula explanation box */}
-                                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-700 space-y-1.5">
-                                        <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm text-slate-700 space-y-1.5">
+                                        <div className="font-medium text-slate-900 flex items-center gap-1.5">
                                             <HelpCircle size={14} className="text-indigo-600" /> หลักการคำนวณ CTT to IRT Approximation:
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                                             <div className="bg-white p-2.5 rounded-xl border border-slate-200/60">
-                                                <span className="font-semibold text-gray-800">1. ความยาก (b):</span><br />
-                                                <span className="text-gray-500 font-mono text-xs">b ≈ ln((1 - p) / p)</span><br />
-                                                <span className="text-xs text-gray-400">จากค่า p-value สัดส่วนคนตอบถูก</span>
+                                                <span className="font-medium text-gray-800">1. ความยาก (b):</span><br />
+                                                <span className="text-gray-500  text-sm">b ≈ ln((1 - p) / p)</span><br />
+                                                <span className="text-sm text-gray-400">จากค่า p-value สัดส่วนคนตอบถูก</span>
                                             </div>
                                             <div className="bg-white p-2.5 rounded-xl border border-slate-200/60">
-                                                <span className="font-semibold text-gray-800">2. อำนาจจำแนก (a):</span><br />
-                                                <span className="text-gray-500 font-mono text-xs">a ≈ 1.7 · r_pb / √(1 - r_pb²)</span><br />
-                                                <span className="text-xs text-gray-400">จาก Point-Biserial Correlation (r_pb)</span>
+                                                <span className="font-medium text-gray-800">2. อำนาจจำแนก (a):</span><br />
+                                                <span className="text-gray-500  text-sm">a ≈ 1.7 · r_pb / √(1 - r_pb²)</span><br />
+                                                <span className="text-sm text-gray-400">จาก Point-Biserial Correlation (r_pb)</span>
                                             </div>
                                             <div className="bg-white p-2.5 rounded-xl border border-slate-200/60">
-                                                <span className="font-semibold text-gray-800">3. การเดา (c):</span><br />
-                                                <span className="text-gray-500 font-mono text-xs">c = 0.20</span><br />
-                                                <span className="text-xs text-gray-400">ค่ามาตรฐานสำหรับ 5 ตัวเลือก</span>
+                                                <span className="font-medium text-gray-800">3. การเดา (c):</span><br />
+                                                <span className="text-gray-500  text-sm">c = 0.20</span><br />
+                                                <span className="text-sm text-gray-400">ค่ามาตรฐานสำหรับ 5 ตัวเลือก</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1596,8 +1602,8 @@ export default function IRTManagementPage() {
                                     {/* Table Filters & Actions */}
                                     <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-xs font-semibold text-gray-700">กรองคุณภาพข้อมูล:</span>
-                                            <div className="flex bg-gray-100 rounded-lg p-0.5 text-xs">
+                                            <span className="text-sm font-medium text-gray-700">กรองคุณภาพข้อมูล:</span>
+                                            <div className="flex bg-gray-100 rounded-lg p-0.5 text-sm">
                                                 {[
                                                     { id: 'all', label: 'ทั้งหมด' },
                                                     { id: 'high_med', label: 'ปานกลาง+สูง (≥10 ครั้ง)' },
@@ -1621,14 +1627,14 @@ export default function IRTManagementPage() {
                                                     const withData = autoCalibData.items.filter(i => i.attempts > 0).map(i => i.item_id);
                                                     setAutoCalibSelected(new Set(withData));
                                                 }}
-                                                className="text-xs text-blue-600 hover:text-blue-800 font-medium px-2 py-1 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                                className="text-sm text-blue-600 hover:text-blue-800 font-medium px-2 py-1 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                             >
                                                 เลือกทั้งหมดที่มีข้อมูล
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => setAutoCalibSelected(new Set())}
-                                                className="text-xs text-gray-500 hover:text-gray-700 font-medium px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                                                className="text-sm text-gray-500 hover:text-gray-700 font-medium px-2 py-1 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                                             >
                                                 ล้างการเลือก
                                             </button>
@@ -1638,8 +1644,8 @@ export default function IRTManagementPage() {
                                     {/* Data Table */}
                                     <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-2xs">
                                         <div className="overflow-x-auto max-h-96">
-                                            <table className="w-full text-left border-collapse text-xs">
-                                                <thead className="bg-gray-50 sticky top-0 z-10 border-b border-gray-200 font-semibold text-gray-700">
+                                            <table className="w-full text-left border-collapse text-sm">
+                                                <thead className="bg-gray-50 sticky top-0 z-10 border-b border-gray-200 font-medium text-gray-700">
                                                     <tr>
                                                         <th className="p-3 w-10 text-center">
                                                             <input
@@ -1661,7 +1667,7 @@ export default function IRTManagementPage() {
                                                         <th className="p-3 text-center">ความยาก p</th>
                                                         <th className="p-3 text-center">อำนาจจำแนก r_pb</th>
                                                         <th className="p-3 text-center bg-gray-100/70">IRT ปัจจุบัน (a, b, c)</th>
-                                                        <th className="p-3 text-center bg-amber-50/80 text-amber-900 font-bold">IRT คำนวณได้ (a, b, c)</th>
+                                                        <th className="p-3 text-center bg-amber-50/80 text-amber-900 font-medium">IRT คำนวณได้ (a, b, c)</th>
                                                         <th className="p-3 text-center">คุณภาพ</th>
                                                     </tr>
                                                 </thead>
@@ -1695,30 +1701,30 @@ export default function IRTManagementPage() {
                                                                             className="rounded border-gray-300 text-amber-600 focus:ring-amber-500 disabled:opacity-30 cursor-pointer"
                                                                         />
                                                                     </td>
-                                                                    <td className="p-3 font-mono font-bold text-gray-500">#{item.item_id}</td>
+                                                                    <td className="p-3  font-medium text-gray-500">#{item.item_id}</td>
                                                                     <td className="p-3 text-gray-800 font-medium max-w-xs truncate" title={stripHTML(item.question_text)}>
                                                                         {stripHTML(item.question_text) || '—'}
                                                                     </td>
-                                                                    <td className="p-3 text-center font-bold text-gray-700">
-                                                                        {item.attempts} <span className="text-xs text-gray-400 font-normal">({item.correct_count} ถูก)</span>
+                                                                    <td className="p-3 text-center font-medium text-gray-700">
+                                                                        {item.attempts} <span className="text-sm text-gray-400 font-normal">({item.correct_count} ถูก)</span>
                                                                     </td>
                                                                     <td className="p-3 text-center">
-                                                                        <span className={`px-2 py-0.5 rounded font-mono font-bold ${item.p_value >= 0.8 ? 'bg-green-100 text-green-700' : item.p_value <= 0.3 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
+                                                                        <span className={`px-2 py-0.5 rounded  font-medium ${item.p_value >= 0.8 ? 'bg-green-100 text-green-700' : item.p_value <= 0.3 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
                                                                             {item.p_value.toFixed(2)}
                                                                         </span>
                                                                     </td>
                                                                     <td className="p-3 text-center">
-                                                                        <span className={`px-2 py-0.5 rounded font-mono font-bold ${item.r_pb >= 0.3 ? 'bg-green-100 text-green-700' : item.r_pb >= 0.15 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                                                                        <span className={`px-2 py-0.5 rounded  font-medium ${item.r_pb >= 0.3 ? 'bg-green-100 text-green-700' : item.r_pb >= 0.15 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
                                                                             {item.r_pb.toFixed(2)}
                                                                         </span>
                                                                     </td>
-                                                                    <td className="p-3 text-center bg-gray-50/50 font-mono text-gray-500">
+                                                                    <td className="p-3 text-center bg-gray-50/50  text-gray-500">
                                                                         {item.current_a !== null
                                                                             ? `${item.current_a.toFixed(2)}, ${item.current_b !== null ? (item.current_b > 0 ? `+${item.current_b.toFixed(2)}` : item.current_b.toFixed(2)) : '0.00'}, ${item.current_c !== null ? item.current_c.toFixed(2) : '0.20'}`
                                                                             : <span className="text-gray-300">ยังไม่ระบุ</span>
                                                                         }
                                                                     </td>
-                                                                    <td className="p-3 text-center bg-amber-50/40 font-mono font-bold text-amber-900">
+                                                                    <td className="p-3 text-center bg-amber-50/40  font-medium text-amber-900">
                                                                         {hasData ? (
                                                                             <span>
                                                                                 a={item.estimated_a.toFixed(2)}, b={item.estimated_b > 0 ? `+${item.estimated_b.toFixed(2)}` : item.estimated_b.toFixed(2)}, c={item.estimated_c.toFixed(2)}
@@ -1728,10 +1734,10 @@ export default function IRTManagementPage() {
                                                                         )}
                                                                     </td>
                                                                     <td className="p-3 text-center">
-                                                                        {item.data_quality === 'HIGH' && <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">🟢 สูง (≥30)</span>}
-                                                                        {item.data_quality === 'MEDIUM' && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-bold">🟡 กลาง (≥10)</span>}
-                                                                        {item.data_quality === 'LOW' && <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 text-xs font-bold">🟠 ต่ำ (&lt;10)</span>}
-                                                                        {item.data_quality === 'NO_DATA' && <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-xs">⚪ ไม่มีข้อมูล</span>}
+                                                                        {item.data_quality === 'HIGH' && <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-sm font-medium">🟢 สูง (≥30)</span>}
+                                                                        {item.data_quality === 'MEDIUM' && <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-sm font-medium">🟡 กลาง (≥10)</span>}
+                                                                        {item.data_quality === 'LOW' && <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 text-sm font-medium">🟠 ต่ำ (&lt;10)</span>}
+                                                                        {item.data_quality === 'NO_DATA' && <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 text-sm">⚪ ไม่มีข้อมูล</span>}
                                                                     </td>
                                                                 </tr>
                                                             );
@@ -1749,7 +1755,7 @@ export default function IRTManagementPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowAutoCalibModal(false)}
-                                className="px-4 py-2.5 border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-white transition-colors cursor-pointer"
+                                className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-white transition-colors cursor-pointer"
                             >
                                 ปิดหน้าต่าง
                             </button>
@@ -1759,7 +1765,7 @@ export default function IRTManagementPage() {
                                     type="button"
                                     onClick={() => handleApplyAutoCalib(false)}
                                     disabled={isSaving || autoCalibSelected.size === 0}
-                                    className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-40"
+                                    className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-sm font-medium transition-all shadow-xs cursor-pointer disabled:opacity-40"
                                 >
                                     {isSaving ? 'กำลังบันทึก...' : `บันทึกค่า ${autoCalibSelected.size} ข้อที่เลือก`}
                                 </button>
@@ -1767,7 +1773,7 @@ export default function IRTManagementPage() {
                                     type="button"
                                     onClick={() => handleApplyAutoCalib(true)}
                                     disabled={isSaving || !autoCalibData || autoCalibData.items.filter(i => i.attempts > 0).length === 0}
-                                    className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-40"
+                                    className="px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-medium transition-all shadow-xs cursor-pointer disabled:opacity-40"
                                 >
                                     {isSaving ? 'กำลังบันทึก...' : `บันทึกทุกข้อที่มีผลสอบ (${autoCalibData?.items.filter(i => i.attempts > 0).length || 0} ข้อ)`}
                                 </button>
@@ -1785,14 +1791,14 @@ export default function IRTManagementPage() {
                     style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(3px)' }}>
                     <div className="bg-white rounded-3xl w-full max-w-3xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
                         {/* Header */}
-                        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-emerald-50/70 via-white to-white shrink-0">
+                        <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gradient-to-r from-green-50/70 via-white to-white shrink-0">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-600 shadow-xs">
+                                <div className="w-10 h-10 rounded-2xl bg-green-100 flex items-center justify-center text-green-600 shadow-xs">
                                     <Upload size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-bold text-gray-900">นำเข้าพารามิเตอร์ IRT (Calibrated CSV)</h3>
-                                    <p className="text-xs text-gray-500 mt-0.5">
+                                    <h3 className="text-lg font-medium text-gray-900">นำเข้าพารามิเตอร์ IRT (Calibrated CSV)</h3>
+                                    <p className="text-sm text-gray-500 mt-0.5">
                                         อัปเดตค่าพารามิเตอร์ a, b, c จากไฟล์ผลลัพธ์ที่ได้จากการ Calibrate ใน R, Python, หรือ BILOG-MG
                                     </p>
                                 </div>
@@ -1808,7 +1814,7 @@ export default function IRTManagementPage() {
                             {/* Upload Area */}
                             <div
                                 onClick={() => importFileInputRef.current?.click()}
-                                className="border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/30 hover:bg-emerald-50/60 rounded-2xl p-8 text-center cursor-pointer transition-all space-y-2 group"
+                                className="border-2 border-dashed border-green-300 hover:border-green-500 bg-green-50/30 hover:bg-green-50/60 rounded-2xl p-8 text-center cursor-pointer transition-all space-y-2 group"
                             >
                                 <input
                                     type="file"
@@ -1827,23 +1833,23 @@ export default function IRTManagementPage() {
                                         }
                                     }}
                                 />
-                                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto text-emerald-600 shadow-xs group-hover:scale-110 transition-transform">
+                                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center mx-auto text-green-600 shadow-xs group-hover:scale-110 transition-transform">
                                     <FileSpreadsheet size={24} />
                                 </div>
-                                <p className="text-sm font-bold text-gray-800">คลิกเพื่อเลือกไฟล์ CSV หรือลากไฟล์มาวางที่นี่</p>
-                                <p className="text-xs text-gray-500">รองรับไฟล์ .csv ที่มีคอลัมน์ <code className="bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-mono">item_id, a, b, c</code></p>
+                                <p className="text-sm font-medium text-gray-800">คลิกเพื่อเลือกไฟล์ CSV หรือลากไฟล์มาวางที่นี่</p>
+                                <p className="text-sm text-gray-500">รองรับไฟล์ .csv ที่มีคอลัมน์ <code className="bg-green-100 text-green-800 px-1 py-0.5 rounded ">item_id, a, b, c</code></p>
                             </div>
 
                             {/* Format Guide & Download Sample */}
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-sm">
                                 <div className="space-y-0.5">
-                                    <p className="font-bold text-slate-800">📋 รูปแบบคอลัมน์ในไฟล์ CSV:</p>
-                                    <p className="text-slate-500 font-mono">item_id, irt_a_discrimination, irt_b_difficulty, irt_c_guessing</p>
+                                    <p className="font-medium text-slate-800">📋 รูปแบบคอลัมน์ในไฟล์ CSV:</p>
+                                    <p className="text-slate-500 ">item_id, irt_a_discrimination, irt_b_difficulty, irt_c_guessing</p>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={downloadSampleCSV}
-                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-white hover:bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl transition-all shadow-2xs shrink-0 cursor-pointer"
+                                    className="inline-flex items-center gap-1.5 text-sm font-medium text-green-700 bg-white hover:bg-green-50 border border-green-200 px-3 py-1.5 rounded-xl transition-all shadow-2xs shrink-0 cursor-pointer"
                                 >
                                     <Download size={13} /> ดาวน์โหลดไฟล์ Template
                                 </button>
@@ -1853,14 +1859,14 @@ export default function IRTManagementPage() {
                             {importParsedItems.length > 0 && (
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <h4 className="text-xs font-bold text-gray-800">
+                                        <h4 className="text-sm font-medium text-gray-800">
                                             ตัวอย่างข้อมูลที่อ่านได้ ({importParsedItems.filter(r => r.valid).length} ข้อถูกต้อง / {importParsedItems.filter(r => !r.valid).length} ไม่ถูกต้อง)
                                         </h4>
                                     </div>
                                     <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-2xs">
                                         <div className="overflow-x-auto max-h-60">
-                                            <table className="w-full text-left border-collapse text-xs">
-                                                <thead className="bg-gray-50 sticky top-0 border-b border-gray-200 font-semibold text-gray-700">
+                                            <table className="w-full text-left border-collapse text-sm">
+                                                <thead className="bg-gray-50 sticky top-0 border-b border-gray-200 font-medium text-gray-700">
                                                     <tr>
                                                         <th className="p-2.5">Item ID</th>
                                                         <th className="p-2.5">โจทย์คำถาม</th>
@@ -1870,21 +1876,21 @@ export default function IRTManagementPage() {
                                                         <th className="p-2.5 text-center">สถานะ</th>
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-gray-100 font-mono">
+                                                <tbody className="divide-y divide-gray-100 ">
                                                     {importParsedItems.map((row, idx) => (
-                                                        <tr key={idx} className={row.valid ? 'hover:bg-emerald-50/20' : 'bg-red-50/40 text-red-700'}>
-                                                            <td className="p-2.5 font-bold">#{row.item_id}</td>
+                                                        <tr key={idx} className={row.valid ? 'hover:bg-green-50/20' : 'bg-red-50/40 text-red-700'}>
+                                                            <td className="p-2.5 font-medium">#{row.item_id}</td>
                                                             <td className="p-2.5 font-sans max-w-xs truncate text-gray-700 font-medium" title={stripHTML(row.item_text || '')}>
                                                                 {stripHTML(row.item_text || '') || '—'}
                                                             </td>
-                                                            <td className="p-2.5 text-center font-bold text-indigo-700">{row.a.toFixed(2)}</td>
-                                                            <td className="p-2.5 text-center font-bold text-amber-700">{row.b > 0 ? `+${row.b.toFixed(2)}` : row.b.toFixed(2)}</td>
-                                                            <td className="p-2.5 text-center font-bold text-rose-700">{row.c.toFixed(2)}</td>
+                                                            <td className="p-2.5 text-center font-medium text-indigo-700">{row.a.toFixed(2)}</td>
+                                                            <td className="p-2.5 text-center font-medium text-amber-700">{row.b > 0 ? `+${row.b.toFixed(2)}` : row.b.toFixed(2)}</td>
+                                                            <td className="p-2.5 text-center font-medium text-rose-700">{row.c.toFixed(2)}</td>
                                                             <td className="p-2.5 text-center font-sans">
                                                                 {row.valid ? (
-                                                                    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">พร้อมนำเข้า</span>
+                                                                    <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-800 font-medium text-sm">พร้อมนำเข้า</span>
                                                                 ) : (
-                                                                    <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-semibold text-xs">{row.error}</span>
+                                                                    <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-medium text-sm">{row.error}</span>
                                                                 )}
                                                             </td>
                                                         </tr>
@@ -1902,7 +1908,7 @@ export default function IRTManagementPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowImportModal(false)}
-                                className="px-4 py-2.5 border border-gray-200 rounded-xl text-xs font-semibold text-gray-600 hover:bg-white transition-colors cursor-pointer"
+                                className="px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-white transition-colors cursor-pointer"
                             >
                                 ยกเลิก
                             </button>
@@ -1911,7 +1917,7 @@ export default function IRTManagementPage() {
                                 type="button"
                                 onClick={handleConfirmImport}
                                 disabled={isImporting || importParsedItems.filter(r => r.valid).length === 0}
-                                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-40"
+                                className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-medium transition-all shadow-xs cursor-pointer disabled:opacity-40"
                             >
                                 {isImporting ? 'กำลังนำเข้า...' : `ยืนยันนำเข้า ${importParsedItems.filter(r => r.valid).length} ข้อ`}
                             </button>

@@ -101,11 +101,11 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
           ) : (
             <div className="h-full w-full flex flex-col items-center justify-center text-gray-300">
               <ImageOff className="w-12 h-12 mb-2 opacity-20" />
-              <span className="text-[10px] uppercase font-medium tracking-widest">No Cover Image</span>
+              <span className="text-[10px]  font-medium tracking-widest">No Cover Image</span>
             </div>
           )}
           <div className="absolute top-3 left-3 flex gap-2">
-            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full uppercase shadow-sm ${isPublished ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}`}>
+            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full  shadow-sm ${isPublished ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}`}>
               {isPublished ? '• Live' : 'Draft'}
             </span>
           </div>
@@ -119,10 +119,10 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
           </p>
           <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400 font-medium">
             <div className="flex items-center gap-1.5">
-               <Clock size={14} className="text-gray-300" />
-               {formatDate(blog.created_at)}
+              <Clock size={14} className="text-gray-300" />
+              {formatDate(blog.created_at)}
             </div>
-            <span className="text-green-600 font-medium uppercase tracking-tighter">Edit Details →</span>
+            <span className="text-green-600 font-medium  tracking-tighter">Edit Details →</span>
           </div>
         </div>
       </Link>
@@ -136,9 +136,9 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
         >
           {isPublished ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
-        <button 
-          disabled={isActionLoading} 
-          onClick={handleDelete} 
+        <button
+          disabled={isActionLoading}
+          onClick={handleDelete}
           className="p-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-xl transition-all active:scale-90"
         >
           <Trash2 size={18} />
@@ -200,7 +200,7 @@ function Page() {
 
   return (
     <Navbar_admin>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+      <div className="max-w-7xl mx-auto w-full space-y-6 pb-20">
         <div className="mb-10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <h1 className="text-3xl font-medium text-gray-900 tracking-tight">จัดการข่าวสาร</h1>
@@ -223,7 +223,7 @@ function Page() {
               />
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             </div>
-            
+
             <div className="flex bg-gray-100/50 p-1.5 rounded-[20px] gap-1">
               {[
                 { id: "ALL", label: "ทั้งหมด" },
@@ -233,11 +233,10 @@ function Page() {
                 <button
                   key={tab.id}
                   onClick={() => setStatusFilter(tab.id)}
-                  className={`flex-1 md:flex-none px-6 py-2.5 text-xs font-black rounded-[15px] transition-all cursor-pointer uppercase tracking-wider ${
-                    statusFilter === tab.id 
-                    ? 'bg-white text-green-600 shadow-sm ring-1 ring-black/5' 
+                  className={`flex-1 md:flex-none px-6 py-2.5 text-xs font-black rounded-[15px] transition-all cursor-pointer  ${statusFilter === tab.id
+                    ? 'bg-white text-green-600 shadow-sm ring-1 ring-black/5'
                     : 'text-gray-400 hover:text-gray-600'
-                  }`}
+                    }`}
                 >
                   {tab.label}
                   <span className={`ml-2 text-[10px] ${statusFilter === tab.id ? 'text-green-400' : 'text-gray-300'}`}>
@@ -252,7 +251,7 @@ function Page() {
         {isLoading ? (
           <div className="flex flex-col items-center py-32 text-gray-300">
             <Loader2 className="w-12 h-12 animate-spin mb-4 text-green-500 opacity-40" />
-            <p className="font-medium uppercase tracking-widest text-xs">Synchronizing Data...</p>
+            <p className="font-medium  text-xs">Synchronizing Data...</p>
           </div>
         ) : filteredBlogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -263,7 +262,7 @@ function Page() {
         ) : (
           <div className="text-center py-32 bg-gray-50/50 border-2 border-dashed border-gray-200 rounded-[40px]">
             <ImageOff className="w-12 h-12 mx-auto mb-4 text-gray-200" />
-            <h3 className="text-gray-400 font-medium uppercase tracking-tighter">No Articles Found</h3>
+            <h3 className="text-gray-400 font-medium  tracking-tighter">No Articles Found</h3>
             <p className="text-gray-400 text-sm mt-1">ลองเปลี่ยนคำค้นหาหรือตัวกรองสถานะ</p>
           </div>
         )}

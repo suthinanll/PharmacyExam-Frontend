@@ -274,7 +274,7 @@ export default function EditBlogDetail() {
 
     return (
         <Navbar_admin>
-            <div className="max-w-5xl mx-auto px-4 pt-6 pb-20">
+            <div className="max-w-7xl mx-auto w-full space-y-6 pb-20">
                 <Link href="/admin/mnblog" className="flex items-center gap-2 text-gray-500 hover:text-gray-800 mb-6 text-sm">
                     <ChevronLeft size={18} /> กลับไปหน้าจัดการ
                 </Link>
@@ -297,11 +297,11 @@ export default function EditBlogDetail() {
 
                 <div className="bg-white p-6 md:p-8 rounded-[32px] border border-gray-200 shadow-sm">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                        
+
                         {/* Content */}
                         <div className="lg:col-span-8 space-y-6">
                             <div>
-                                <label className="block text-xs font-black uppercase text-gray-400 mb-2">หัวข้อข่าวสาร</label>
+                                <label className="block text-xs font-black  text-gray-400 mb-2">หัวข้อข่าวสาร</label>
                                 <input
                                     type="text"
                                     className="w-full text-2xl font-medium border-none p-0 focus:ring-0 text-gray-800"
@@ -312,7 +312,7 @@ export default function EditBlogDetail() {
                             </div>
 
                             <div className="border-t pt-6">
-                                <label className="block text-xs font-black uppercase text-gray-400 mb-3">เนื้อหาข่าวสาร</label>
+                                <label className="block text-xs font-black  text-gray-400 mb-3">เนื้อหาข่าวสาร</label>
                                 <TiptapToolbar
                                     editor={editor}
                                     onAddLink={() => setLinkModalOpen(true)}
@@ -326,18 +326,17 @@ export default function EditBlogDetail() {
 
                         {/* Sidebar */}
                         <div className="lg:col-span-4 space-y-6">
-                            <label className="block text-xs font-black uppercase text-gray-400 mb-4">ภาพหน้าปก</label>
+                            <label className="block text-xs font-black  text-gray-400 mb-4">ภาพหน้าปก</label>
 
                             {/* Toggle: Upload vs URL */}
                             <div className="flex gap-2 mb-4">
                                 <button
                                     type="button"
                                     onClick={() => setImageMode('upload')}
-                                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                                        imageMode === 'upload'
+                                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${imageMode === 'upload'
                                             ? 'bg-green-600 text-white'
                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
+                                        }`}
                                 >
                                     <Upload className="w-4 h-4 inline mr-2" />
                                     อัปโหลดไฟล์
@@ -345,11 +344,10 @@ export default function EditBlogDetail() {
                                 <button
                                     type="button"
                                     onClick={() => setImageMode('url')}
-                                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-                                        imageMode === 'url'
+                                    className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${imageMode === 'url'
                                             ? 'bg-green-600 text-white'
                                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
+                                        }`}
                                 >
                                     <Link2 className="w-4 h-4 inline mr-2" />
                                     ใส่ URL

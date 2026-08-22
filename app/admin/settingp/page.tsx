@@ -40,10 +40,11 @@ function Page() {
       text: "คุณต้องการเปลี่ยนแปลงข้อมูลโปรไฟล์ใช่หรือไม่",
       icon: "question",
       showCancelButton: true,
-      confirmButtonColor: "#4f46e5",
-      cancelButtonColor: "#d33",
+      confirmButtonColor: "#16a34a",
+      cancelButtonColor: "#6b7280",
       confirmButtonText: "ใช่, บันทึกเลย",
       cancelButtonText: "ยกเลิก",
+      reverseButtons: true,
     });
 
     if (!confirmResult.isConfirmed) return;
@@ -100,8 +101,7 @@ function Page() {
   );
   return (
     <Navbar_admin>
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-5xl mx-auto ">
+      <div className="max-w-7xl mx-auto w-full space-y-6">
 
           <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
             <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-white">
@@ -147,7 +147,7 @@ function Page() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อจริง</label>
+                  <label className="text-xs font-medium text-gray-500 ">ชื่อจริง</label>
                   <input
                     type="text"
                     value={formData.first_name}
@@ -161,7 +161,7 @@ function Page() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">นามสกุล</label>
+                  <label className="text-xs font-medium text-gray-500 ">นามสกุล</label>
                   <input
                     type="text"
                     value={formData.last_name}
@@ -175,7 +175,7 @@ function Page() {
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">อีเมล</label>
+                  <label className="text-xs font-medium text-gray-500 ">อีเมล</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -188,7 +188,7 @@ function Page() {
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">เบอร์โทรศัพท์</label>
+                  <label className="text-xs font-medium text-gray-500 ">เบอร์โทรศัพท์</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input
@@ -217,7 +217,6 @@ function Page() {
             </div>
           </div>
         </div>
-      </div>
     </Navbar_admin>
   );
 }

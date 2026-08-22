@@ -97,8 +97,7 @@ export default function AddCategory() {
 
     return (
         <Navbar_admin>
-            <div className="min-h-screen bg-gray-50 py-8">
-                <div className="container mx-auto px-4 max-w-4xl">
+            <div className="max-w-7xl mx-auto w-full space-y-6">
                     {/* Header */}
                     <div className="mb-8">
                         <h1 className="text-3xl font-medium text-gray-900 mb-2">เพิ่มประเภทข้อสอบใหม่</h1>
@@ -170,7 +169,6 @@ export default function AddCategory() {
                         </div>
                     </form>
                 </div>
-            </div>
         </Navbar_admin>
     );
 }

@@ -172,8 +172,7 @@ export default function EditCategory() {
 
     return (
         <Navbar_admin>
-            <div className="min-h-screen bg-gray-50 py-8">
-                <div className="container mx-auto px-4 max-w-4xl">
+            <div className="max-w-7xl mx-auto w-full space-y-6">
                     {/* Back Button */}
                     <Link
                         href="/admin/manage_category"
@@ -265,7 +264,6 @@ export default function EditCategory() {
                         </div>
                     </form>
                 </div>
-            </div>
         </Navbar_admin>
     );
 }
