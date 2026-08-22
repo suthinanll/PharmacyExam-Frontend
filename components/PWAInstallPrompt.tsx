@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import {
   X,
   Download,
-  Pill,
   Share,
   SquarePlus,
   CircleCheck,
@@ -134,8 +133,8 @@ export default function PWAInstallPrompt() {
 
           {/* Header */}
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center mb-4">
-              <Pill className="w-7 h-7 text-green-600" strokeWidth={1.75} />
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 overflow-hidden border border-gray-100 shadow-sm bg-white p-1">
+              <img src="/icons/icon.svg" alt="App Logo" className="w-full h-full object-contain" />
             </div>
             <h2 className="text-lg font-medium text-slate-900 mb-1.5">
               ติดตั้งเภสัชพร้อมสอบ
