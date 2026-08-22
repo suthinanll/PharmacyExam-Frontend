@@ -49,9 +49,32 @@ function normalizeUserData(userData: any): User {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUserState] = useState<User | null>(() => {
+        if (typeof window === 'undefined') return null;
+        try {
+            const token = localStorage.getItem('access_token');
+            const cached = localStorage.getItem('cached_user');
+            if (token && cached) {
+                return JSON.parse(cached);
+            }
+        } catch { }
+        return null;
+    });
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
+
+    const setUser = (userData: User | null) => {
+        setUserState(userData);
+        if (typeof window !== 'undefined') {
+            if (userData) {
+                try {
+                    localStorage.setItem('cached_user', JSON.stringify(userData));
+                } catch { }
+            } else {
+                localStorage.removeItem('cached_user');
+            }
+        }
+    };
 
     const getToken = () => {
         if (typeof window === 'undefined') return null;
@@ -84,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         } catch (error) {
             console.error('Error fetching user:', error);
-            setUser(null);
+            // If offline, keep cached user if available
         } finally {
             setIsLoading(false);
         }
