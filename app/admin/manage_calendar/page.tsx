@@ -14,6 +14,7 @@ import {
   Clock,
   CheckSquare,
   Square,
+  List,
 } from "lucide-react";
 import Link from "next/link";
 import Swal from "sweetalert2";
@@ -349,36 +350,38 @@ function Page() {
       <div className="max-w-7xl mx-auto w-full space-y-6 pb-20">
 
         {/* ── Header ──────────────────────────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">การจัดการปฏิทิน</h1>
-            <p className="text-gray-500 mt-1 text-sm">ตั้งค่ากำหนดการและจัดการสถานะการเผยแพร่</p>
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">จัดการกำหนดการปฏิทิน</h1>
+              <p className="text-sm text-gray-500">ตั้งค่ากำหนดการและจัดการสถานะการเผยแพร่ · {filteredEvents.length} รายการ</p>
+            </div>
+            <Link
+              href="/admin/manage_calendar/calendar_add"
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md"
+            >
+              <Plus size={18} /> เพิ่มกำหนดการใหม่
+            </Link>
           </div>
-          <Link
-            href="/admin/manage_calendar/calendar_add"
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-xl transition-all font-semibold text-sm shadow-md shadow-green-100"
-          >
-            <Plus className="w-4 h-4" /> เพิ่มกำหนดการใหม่
-          </Link>
         </div>
 
-        {/* ── Filters ─────────────────────────────────────────────────── */}
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-6 flex flex-col lg:flex-row gap-3">
-          <div className="flex-[2] relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="ค้นหากำหนดการ..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm"
-            />
-          </div>
-          <div className="flex gap-3 flex-1">
+        {/* ── Toolbar ─────────────────────────────────────────────────── */}
+        <div className="flex flex-col xl:flex-row gap-4 mb-6 justify-between items-start xl:items-center bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+          <div className="flex gap-3 flex-1 flex-wrap w-full xl:w-auto">
+            <div className="relative max-w-sm w-full">
+              <input
+                type="text"
+                placeholder="ค้นหากำหนดการ..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="px-4 py-2 bg-white border border-gray-300 rounded-xl outline-none text-sm focus:ring-green-500 focus:border-green-500 font-medium text-gray-700"
             >
               <option value="all">ทุกสถานะ</option>
               <option value="published">เผยแพร่แล้ว</option>
@@ -387,7 +390,7 @@ function Page() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="px-4 py-2 bg-white border border-gray-300 rounded-xl outline-none text-sm focus:ring-green-500 focus:border-green-500 font-medium text-gray-700"
             >
               <option value="all">ทุกประเภท</option>
               {Object.keys(CATEGORY_STYLES).map((type) => (
@@ -395,54 +398,56 @@ function Page() {
               ))}
             </select>
           </div>
-        </div>
 
-        {/* ── Tab + Bulk Actions ────────────────────────────────────────── */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
-          {/* Tab */}
-          <div className="flex bg-gray-100 p-1 rounded-xl gap-1">
-            <button
-              onClick={() => setActiveTab("calendar")}
-              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "calendar" ? "bg-white text-green-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-            >
-              ปฏิทิน
-            </button>
-            <button
-              onClick={() => setActiveTab("list")}
-              className={`px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${activeTab === "list" ? "bg-white text-green-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}
-            >
-              รายการ
-            </button>
-          </div>
+          {/* View toggle and Bulk actions */}
+          <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto justify-between xl:justify-end">
+            <div className="flex flex-wrap items-center gap-2">
+              {someSelected && (
+                <span className="text-xs text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg font-medium">
+                  เลือก {selectedIds.length}
+                </span>
+              )}
+              {activeTab === "list" && (
+                <>
+                  <button
+                    onClick={() => handleBulkAction("publish")}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-white border border-green-200 text-green-700 rounded-xl text-xs font-semibold hover:bg-green-600 hover:text-white hover:border-green-600 transition-all"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    {someSelected ? `เผยแพร่ (${selectedIds.length})` : "เผยแพร่ทั้งหมด"}
+                  </button>
+                  <button
+                    onClick={() => handleBulkAction("unpublish")}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-white border border-amber-200 text-amber-600 rounded-xl text-xs font-semibold hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all"
+                  >
+                    <EyeOff className="w-3.5 h-3.5" />
+                    {someSelected ? `งดเผยแพร่ (${selectedIds.length})` : "งดเผยแพร่ทั้งหมด"}
+                  </button>
+                  <button
+                    onClick={() => handleBulkAction("delete")}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-white border border-red-200 text-red-500 rounded-xl text-xs font-semibold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    {someSelected ? `ลบ (${selectedIds.length})` : "ลบทั้งหมด"}
+                  </button>
+                </>
+              )}
+            </div>
 
-          {/* Bulk actions */}
-          <div className="flex flex-wrap items-center gap-2">
-            {someSelected && (
-              <span className="text-xs text-green-700 bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg font-medium">
-                เลือก {selectedIds.length} รายการ
-              </span>
-            )}
-            <button
-              onClick={() => handleBulkAction("publish")}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-green-200 text-green-700 rounded-xl text-xs font-semibold hover:bg-green-600 hover:text-white hover:border-green-600 transition-all"
-            >
-              <Eye className="w-3.5 h-3.5" />
-              {someSelected ? `เผยแพร่ (${selectedIds.length})` : "เผยแพร่ทั้งหมด"}
-            </button>
-            <button
-              onClick={() => handleBulkAction("unpublish")}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-amber-200 text-amber-600 rounded-xl text-xs font-semibold hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all"
-            >
-              <EyeOff className="w-3.5 h-3.5" />
-              {someSelected ? `งดเผยแพร่ (${selectedIds.length})` : "งดเผยแพร่ทั้งหมด"}
-            </button>
-            <button
-              onClick={() => handleBulkAction("delete")}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-red-200 text-red-500 rounded-xl text-xs font-semibold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              {someSelected ? `ลบ (${selectedIds.length})` : "ลบทั้งหมด"}
-            </button>
+            <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
+              <button
+                onClick={() => setActiveTab("calendar")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === "calendar" ? "bg-white shadow-sm text-green-700" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                <Calendar className="w-4 h-4" /> ปฏิทิน
+              </button>
+              <button
+                onClick={() => setActiveTab("list")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${activeTab === "list" ? "bg-white shadow-sm text-green-700" : "text-gray-500 hover:text-gray-700"}`}
+              >
+                <List className="w-4 h-4" /> รายการ
+              </button>
+            </div>
           </div>
         </div>
 

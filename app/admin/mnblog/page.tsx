@@ -201,50 +201,58 @@ function Page() {
   return (
     <Navbar_admin>
       <div className="max-w-7xl mx-auto w-full space-y-6 pb-20">
-        <div className="mb-10 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-center md:text-left">
-            <h1 className="text-3xl font-medium text-gray-900 tracking-tight">จัดการข่าวสาร</h1>
-            <p className="text-gray-500 mt-1 font-medium">สรุปและจัดการข่าวสารประชาสัมพันธ์ทั้งหมด</p>
+        {/* ── Header ──────────────────────────────────────────────────── */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">จัดการข่าวสาร</h1>
+              <p className="text-sm text-gray-500">สรุปและจัดการข่าวสารประชาสัมพันธ์ทั้งหมด · {filteredBlogs.length} รายการ</p>
+            </div>
+            <Link
+              href="/admin/mnblog/addblog"
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md"
+            >
+              <Plus size={18} /> สร้างข่าวสารใหม่
+            </Link>
           </div>
-          <Link href="/admin/mnblog/addblog" className="w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-6 py-3 rounded-2xl transition-all font-medium">
-            <Plus className="w-5 h-5" /> สร้างข่าวสารใหม่
-          </Link>
         </div>
 
-        <div className="bg-white p-2 rounded-[24px] shadow-sm border border-gray-100 mb-10">
-          <div className="flex flex-col lg:flex-row gap-2">
-            <div className="relative flex-grow">
+        {/* ── Toolbar ─────────────────────────────────────────────────── */}
+        <div className="flex flex-col xl:flex-row gap-4 mb-6 justify-between items-start xl:items-center bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+          <div className="flex gap-3 flex-1 flex-wrap w-full xl:w-auto">
+            <div className="relative max-w-sm w-full">
               <input
                 type="text"
                 placeholder="ค้นหาข่าวสารของคุณ..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3.5 bg-gray-50/50 border-none rounded-[20px] focus:ring-2 focus:ring-green-500 transition-all text-gray-700 font-medium"
+                className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50"
               />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             </div>
+          </div>
 
-            <div className="flex bg-gray-100/50 p-1.5 rounded-[20px] gap-1">
-              {[
-                { id: "ALL", label: "ทั้งหมด" },
-                { id: "PUBLISHED", label: "Live" },
-                { id: "DRAFT", label: "Draft" }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setStatusFilter(tab.id)}
-                  className={`flex-1 md:flex-none px-6 py-2.5 text-xs font-black rounded-[15px] transition-all cursor-pointer  ${statusFilter === tab.id
-                    ? 'bg-white text-green-600 shadow-sm ring-1 ring-black/5'
-                    : 'text-gray-400 hover:text-gray-600'
-                    }`}
-                >
-                  {tab.label}
-                  <span className={`ml-2 text-[10px] ${statusFilter === tab.id ? 'text-green-400' : 'text-gray-300'}`}>
-                    {counts[tab.id as keyof typeof counts]}
-                  </span>
-                </button>
-              ))}
-            </div>
+          <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1 w-full xl:w-auto overflow-x-auto">
+            {[
+              { id: "ALL", label: "ทั้งหมด" },
+              { id: "PUBLISHED", label: "Live" },
+              { id: "DRAFT", label: "Draft" }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setStatusFilter(tab.id)}
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                  statusFilter === tab.id
+                    ? 'bg-white shadow-sm text-green-700'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab.label}
+                <span className={`text-xs ${statusFilter === tab.id ? 'text-green-500 bg-green-50 px-1.5 rounded-md' : 'text-gray-400'}`}>
+                  {counts[tab.id as keyof typeof counts]}
+                </span>
+              </button>
+            ))}
           </div>
         </div>
 

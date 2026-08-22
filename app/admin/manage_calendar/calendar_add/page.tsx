@@ -237,16 +237,16 @@ function Page() {
               <h1 className="text-3xl font-medium text-gray-900">เพิ่มกำหนดการใหม่</h1>
               <p className="text-gray-500 mt-1 text-sm">ดึงข้อมูลด้วย AI หรือเพิ่มด้วยตนเอง</p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 w-full sm:w-auto">
               <button
                 onClick={() => saveSchedules(false)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 text-sm font-medium text-gray-600 transition-all shadow-sm"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 text-sm font-medium text-gray-600 transition-all shadow-sm"
               >
                 <Save className="w-4 h-4" /> บันทึกร่าง
               </button>
               <button
                 onClick={addNewEvent}
-                className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 text-sm font-medium transition-all shadow-md shadow-green-600/10"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-xl hover:bg-green-700 active:scale-95 text-sm font-medium transition-all shadow-sm hover:shadow-md"
               >
                 <Plus className="w-4 h-4" /> เพิ่มช่องใหม่
               </button>

@@ -21,6 +21,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Pagination from "@/components/Pagination";
 import {
   LineChart,
   Line,
@@ -256,19 +258,17 @@ export default function StudentTrackingPage() {
     <Navbar_admin>
       <div className="max-w-7xl mx-auto w-full space-y-6">
 
-        {/* ส่วนหัวแสดงชื่อเพจ */}
-        <div className="flex items-center gap-3 sm:gap-4 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-          <button
-            onClick={() => router.push("/admin")}
-            className="p-2 hover:bg-gray-100 rounded-xl transition-colors shrink-0"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </button>
-          <div className="min-w-0">
-            <h1 className="text-base sm:text-xl font-black text-gray-900 tracking-tight truncate">
+        <Link href="/admin" className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 mb-5 text-sm font-medium transition-colors">
+          <ChevronLeft className="w-4 h-4" /> กลับสู่หน้าแดชบอร์ด
+        </Link>
+
+        {/* ── Header ──────────────────────────────────────────────────── */}
+        <div className="mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">
               ระบบติดตามผลการเรียนรายบุคคล
             </h1>
-            <p className="text-xs text-gray-500 truncate">
+            <p className="text-sm text-gray-500">
               จำแนกสถิติสอบปกติแบบดั้งเดิม และการประเมินความสามารถปรับเหมาะ (CAT)
             </p>
           </div>
@@ -402,33 +402,16 @@ export default function StudentTrackingPage() {
               )}
             </div>
 
-            {/* ปุ่มเปลี่ยนหน้ารายชื่อ (Pagination Control) */}
-            <div className="flex items-center justify-between border-t border-gray-100 pt-3">
-              <button
-                type="button"
-                disabled={!canGoPrevious}
-                onClick={() => setPage((current) => Math.max(1, current - 1))}
-                className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-medium transition cursor-pointer"
-              >
-                <ChevronLeft size={14} />
-                <span>ก่อนหน้า</span>
-              </button>
-              <div className="text-center">
-                <p className="text-xs font-medium text-gray-800">
-                  หน้า {meta.currentPage} / {meta.totalPages}
-                </p>
-                <p className="text-xs text-gray-400">ทั้งหมด {meta.totalItems} คน</p>
-              </div>
-              <button
-                type="button"
-                disabled={!canGoNext}
-                onClick={() => setPage((current) => current + 1)}
-                className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-medium transition cursor-pointer"
-              >
-                <span>ถัดไป</span>
-                <ChevronRight size={14} />
-              </button>
-            </div>
+            {/* ── Pagination Control ── */}
+            <Pagination
+              currentPage={meta.currentPage}
+              totalPages={meta.totalPages}
+              totalItems={meta.totalItems}
+              perPage={STUDENT_LIMIT}
+              onPageChange={setPage}
+              itemLabel="คน"
+              className="mt-2 pt-3 border-t border-gray-100"
+            />
           </div>
 
           {/* ฝั่งขวา: รายละเอียดผลการเรียนเชิงลึก */}

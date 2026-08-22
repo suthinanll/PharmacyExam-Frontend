@@ -21,6 +21,7 @@ import {
     Minus,
     X,
     Strikethrough,
+    Send,
 } from "lucide-react";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -460,6 +461,7 @@ function AddBlogPage() {
                         title: draft.title,
                         content: draft.content,
                         cover_image_url: draft.imageUrl,
+                        source_url: draft.sourceUrl,
                         categoryIds: draft.categoryIds,
                         status: 'DRAFT',
                         author_id: Number(draft.author_id || 10)
@@ -514,6 +516,7 @@ function AddBlogPage() {
                         title: draft.title,
                         content: draft.content,
                         cover_image_url: draft.imageUrl,
+                        source_url: draft.sourceUrl,
                         categoryIds: draft.categoryIds,
                         status: 'PUBLISHED',
                         author_id: Number(draft.author_id || 10)
@@ -541,34 +544,38 @@ function AddBlogPage() {
             <div className="max-w-7xl mx-auto w-full space-y-6 pb-20">
                 <button
                     onClick={() => router.back()}
-                    className="flex items-center gap-2 text-gray-500 hover:text-gray-800 transition-colors mb-4 font-medium text-sm"
+                    className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 mb-5 text-sm font-medium transition-colors"
                 >
-                    <ChevronLeft className="w-4 h-4" /> กลับ
+                    <ChevronLeft className="w-4 h-4" /> กลับสู่หน้าจัดการ
                 </button>
 
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm gap-4">
-                    <div>
-                        <h1 className="text-2xl font-black text-gray-800 flex items-center gap-3">
-                            <FileText className="w-8 h-8 text-green-600" /> จัดการคิวข่าวสาร
-                        </h1>
-                    </div>
-                    <div className="flex gap-2 w-full md:w-auto">
-                        <button
-                            onClick={handleSaveDraft}
-                            disabled={isSaving || drafts.length === 0}
-                            className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-lg transition-all shadow-md ${isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-gray-600 hover:bg-gray-700 active:scale-95 text-white'}`}
-                        >
-                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <FileText className="w-5 h-5" />}
-                            <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกแบบร่าง'}</span>
-                        </button>
-                        <button
-                            onClick={handleSubmitAll}
-                            disabled={isSaving || drafts.length === 0}
-                            className={`inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-lg text-white transition-all shadow-md ${isSaving ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95'}`}
-                        >
-                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                            <span>{isSaving ? 'กำลังบันทึก...' : 'เผยแพร่ทั้งหมด'}</span>
-                        </button>
+                {/* ── Header ──────────────────────────────────────────────── */}
+                <div className="mb-8">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1 flex items-center gap-3">
+                                <FileText className="w-8 h-8 text-green-600" /> จัดการคิวข่าวสาร
+                            </h1>
+                            <p className="text-sm text-gray-500">สร้างเนื้อหาและตั้งค่ารายละเอียดข่าวสารประชาสัมพันธ์</p>
+                        </div>
+                        <div className="flex gap-2 w-full sm:w-auto">
+                            <button
+                                onClick={handleSaveDraft}
+                                disabled={isSaving || drafts.length === 0}
+                                className={`flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium rounded-xl transition-all shadow-sm border border-gray-200 ${isSaving ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                            >
+                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกร่าง'}</span>
+                            </button>
+                            <button
+                                onClick={handleSubmitAll}
+                                disabled={isSaving || drafts.length === 0}
+                                className={`flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium rounded-xl text-white transition-all shadow-sm ${isSaving ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 active:scale-95 hover:shadow-md'}`}
+                            >
+                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                <span>{isSaving ? 'กำลังบันทึก...' : 'เผยแพร่ทั้งหมด'}</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 

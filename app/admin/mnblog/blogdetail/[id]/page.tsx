@@ -42,7 +42,7 @@ export default function EditBlogDetail() {
     const blogId = params?.id;
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const [formData, setFormData] = useState({ title: "", content: "", cover_image_url: "" });
+    const [formData, setFormData] = useState({ title: "", content: "", cover_image_url: "", source_url: "" });
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -118,7 +118,8 @@ export default function EditBlogDetail() {
                         setFormData({
                             title: parsed.title,
                             content: parsed.content,
-                            cover_image_url: data.cover_image_url || ""
+                            cover_image_url: data.cover_image_url || "",
+                            source_url: data.source_url || ""
                         });
                         editor.commands.setContent(parsed.content);
                         setToast({ type: "info", message: "โหลดแบบร่างที่บันทึกไว้อัตโนมัติ" });
@@ -130,7 +131,8 @@ export default function EditBlogDetail() {
                 setFormData({
                     title: data.title || "",
                     content: data.content || "",
-                    cover_image_url: data.cover_image_url || ""
+                    cover_image_url: data.cover_image_url || "",
+                    source_url: data.source_url || ""
                 });
                 editor.commands.setContent(data.content || "");
             } catch (err) {
@@ -244,7 +246,8 @@ export default function EditBlogDetail() {
                 body: JSON.stringify({
                     title: formData.title,
                     content: formData.content,
-                    cover_image_url: finalImageUrl
+                    cover_image_url: finalImageUrl,
+                    source_url: formData.source_url
                 }),
             });
 
@@ -275,24 +278,30 @@ export default function EditBlogDetail() {
     return (
         <Navbar_admin>
             <div className="max-w-7xl mx-auto w-full space-y-6 pb-20">
-                <Link href="/admin/mnblog" className="flex items-center gap-2 text-gray-500 hover:text-gray-800 mb-6 text-sm">
-                    <ChevronLeft size={18} /> กลับไปหน้าจัดการ
+                <Link href="/admin/mnblog" className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 mb-5 text-sm font-medium transition-colors">
+                    <ChevronLeft className="w-4 h-4" /> กลับสู่หน้าจัดการ
                 </Link>
 
-                <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm gap-4">
-                    <div>
-                        <h1 className="text-2xl font-black text-gray-800 flex items-center gap-3">
-                            <FileText className="w-8 h-8 text-green-600" /> แก้ไขข่าวสาร
-                        </h1>
+                {/* ── Header ──────────────────────────────────────────────── */}
+                <div className="mb-8">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1 flex items-center gap-3">
+                                <FileText className="w-8 h-8 text-green-600" /> แก้ไขข่าวสาร
+                            </h1>
+                            <p className="text-sm text-gray-500">แก้ไขรายละเอียดเนื้อหาและอัปเดตข้อมูลข่าวสาร</p>
+                        </div>
+                        <div className="flex w-full sm:w-auto">
+                            <button
+                                onClick={handleUpdate}
+                                disabled={isSaving}
+                                className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 active:scale-95 hover:shadow-md disabled:opacity-50 transition-all shadow-sm"
+                            >
+                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกการเปลี่ยนแปลง'}</span>
+                            </button>
+                        </div>
                     </div>
-                    <button
-                        onClick={handleUpdate}
-                        disabled={isSaving}
-                        className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-green-600 text-white rounded-2xl font-medium hover:bg-green-700 disabled:opacity-50 transition-all"
-                    >
-                        {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                        บันทึกการเปลี่ยนแปลง
-                    </button>
                 </div>
 
                 <div className="bg-white p-6 md:p-8 rounded-[32px] border border-gray-200 shadow-sm">
@@ -321,6 +330,17 @@ export default function EditBlogDetail() {
                                 <div className="min-h-[400px] border rounded-xl p-4">
                                     <EditorContent editor={editor} className="prose prose-sm sm:prose lg:prose-lg focus:outline-none" />
                                 </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 pt-4 border-t border-gray-100">
+                                <Link2 className="w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    value={formData.source_url}
+                                    onChange={(e) => setFormData({ ...formData, source_url: e.target.value })}
+                                    placeholder="ลิงก์แหล่งข่าว (Facebook / เว็บไซต์อ้างอิง)..."
+                                    className="w-full text-sm text-blue-600 placeholder-gray-400 border-none p-0 focus:ring-0 bg-transparent"
+                                />
                             </div>
                         </div>
 

@@ -163,19 +163,21 @@ function AdminDashboardPage() {
     <Navbar_admin>
       <div className="max-w-7xl mx-auto w-full space-y-6">
 
-        {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-          <div>
-            <h1 className="text-2xl font-black text-gray-900 tracking-tight">ภาพรวมระบบและสถิติ</h1>
-            <p className="text-sm text-gray-500 mt-1">วิเคราะห์และติดตามผลประสิทธิภาพภาพรวมการทดสอบความรู้</p>
+        {/* ── Header ──────────────────────────────────────────────────── */}
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">ภาพรวมระบบและสถิติ</h1>
+              <p className="text-sm text-gray-500">วิเคราะห์และติดตามผลประสิทธิภาพภาพรวมการทดสอบความรู้</p>
+            </div>
+            <button
+              onClick={() => router.push("/admin/student-tracking")}
+              className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium shadow-sm transition-all hover:shadow-md w-full sm:w-auto cursor-pointer"
+            >
+              <UserCheck size={18} />
+              ติดตามผลการเรียนรายบุคคล
+            </button>
           </div>
-          <button
-            onClick={() => router.push("/admin/student-tracking")}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-green-600 hover:bg-green-700 active:scale-95 text-white font-medium text-sm rounded-xl shadow-md shadow-green-600/10 transition-all w-full sm:w-auto justify-center cursor-pointer"
-          >
-            <UserCheck className="w-4 h-4" />
-            <span>ติดตามผลการเรียนรายบุคคล</span>
-          </button>
         </div>
 
         {error && (

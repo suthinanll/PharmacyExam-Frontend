@@ -15,6 +15,7 @@ interface NewsDetail {
     cover_image_url: string;
     created_at: string;
     status: string;
+    source_url?: string;
 }
 
 const NewsDetailPage = () => {
@@ -120,6 +121,26 @@ const NewsDetailPage = () => {
                                 className="prose prose-blue max-w-none text-gray-700 leading-relaxed [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_s]:line-through [&_a]:text-blue-600 [&_a]:underline [&_img]:rounded-lg [&_img]:my-4"
                                 dangerouslySetInnerHTML={{ __html: news.content }}
                             />
+                            
+                            {news.source_url && (
+                                <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-start gap-3">
+                                    <svg className="w-5 h-5 text-blue-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                    </svg>
+                                    <div>
+                                        <p className="text-sm font-medium text-blue-900 mb-1">ลิงก์แหล่งข่าว / อ้างอิง</p>
+                                        <a 
+                                            href={news.source_url.startsWith('http') ? news.source_url : `https://${news.source_url}`} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="text-sm text-blue-600 hover:text-blue-800 hover:underline break-all"
+                                        >
+                                            {news.source_url}
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="mt-12 pt-8 border-t border-gray-100">
                                 <button
                                     onClick={() => router.back()}
