@@ -114,22 +114,21 @@ const CustomThetaTooltip = ({ active, payload }: any) => {
             <div className="bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 text-xs space-y-1.5 min-w-[170px]">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-1.5">
                     <span className="font-semibold text-gray-800">ข้อที่ {data.item}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
-                        data.is_correct ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700"
-                    }`}>
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${data.is_correct ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700"
+                        }`}>
                         {data.is_correct ? "✓ ตอบถูก" : "✗ ตอบผิด"}
                     </span>
                 </div>
                 <div className="flex justify-between items-center text-gray-600 pt-0.5">
                     <span>ระดับความสามารถ (θ):</span>
-                    <span className="font-bold text-blue-600 font-mono text-sm">
+                    <span className="font-bold text-blue-600  text-sm">
                         {data.theta >= 0 ? `+${data.theta.toFixed(3)}` : data.theta.toFixed(3)}
                     </span>
                 </div>
                 {data.se != null && (
                     <div className="flex justify-between items-center text-gray-400 text-[11px]">
                         <span>ความคลาดเคลื่อน (SE):</span>
-                        <span className="font-mono">{data.se.toFixed(3)}</span>
+                        <span className="">{data.se.toFixed(3)}</span>
                     </div>
                 )}
             </div>
@@ -452,30 +451,27 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
                         {topicAnalysis.map(topic => (
                             <div key={topic.topic_id} className="p-3.5 rounded-xl border border-gray-100 bg-white hover:bg-gray-50/50 transition-colors space-y-3">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                        topic.accuracy >= 70 ? 'bg-green-100 text-green-700' :
-                                        topic.accuracy >= 50 ? 'bg-amber-100 text-amber-700' :
-                                        'bg-red-100 text-red-600'
-                                    }`}>
+                                    <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${topic.accuracy >= 70 ? 'bg-green-100 text-green-700' :
+                                            topic.accuracy >= 50 ? 'bg-amber-100 text-amber-700' :
+                                                'bg-red-100 text-red-600'
+                                        }`}>
                                         {topic.accuracy >= 70 ? <Award className="w-5 h-5" /> : topic.accuracy >= 50 ? <Target className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className="font-medium text-gray-800 text-sm truncate">{topic.topic_name}</p>
                                         <p className="text-xs text-gray-500">{topic.correct}/{topic.total} ข้อ</p>
                                     </div>
-                                    <span className={`font-medium text-sm ${
-                                        topic.accuracy >= 70 ? 'text-green-600' :
-                                        topic.accuracy >= 50 ? 'text-amber-500' : 'text-red-500'
-                                    }`}>{topic.accuracy}%</span>
+                                    <span className={`font-medium text-sm ${topic.accuracy >= 70 ? 'text-green-600' :
+                                            topic.accuracy >= 50 ? 'text-amber-500' : 'text-red-500'
+                                        }`}>{topic.accuracy}%</span>
                                 </div>
 
                                 {/* Progress Bar */}
                                 <div className="w-full bg-gray-100 rounded-full h-1">
                                     <div
-                                        className={`h-1 rounded-full ${
-                                            topic.accuracy >= 70 ? 'bg-green-500' :
-                                            topic.accuracy >= 50 ? 'bg-amber-400' : 'bg-red-400'
-                                        }`}
+                                        className={`h-1 rounded-full ${topic.accuracy >= 70 ? 'bg-green-500' :
+                                                topic.accuracy >= 50 ? 'bg-amber-400' : 'bg-red-400'
+                                            }`}
                                         style={{ width: `${topic.accuracy}%` }}
                                     />
                                 </div>
@@ -487,13 +483,12 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
                                             {topic.sub_topics.map(st => (
                                                 <div
                                                     key={st.sub_topic_id}
-                                                    className={`text-[10px] px-2 py-0.5 rounded-md border flex items-center gap-1 ${
-                                                        st.accuracy >= 70
+                                                    className={`text-[10px] px-2 py-0.5 rounded-md border flex items-center gap-1 ${st.accuracy >= 70
                                                             ? 'bg-green-50 border-green-200 text-green-700'
                                                             : st.accuracy >= 50
-                                                            ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                                            : 'bg-red-50 border-red-200 text-red-600'
-                                                    }`}
+                                                                ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                                                : 'bg-red-50 border-red-200 text-red-600'
+                                                        }`}
                                                 >
                                                     <span className="font-medium">{st.sub_topic_name}</span>
                                                     <span className="opacity-60">({st.correct}/{st.total})</span>
@@ -584,129 +579,127 @@ export default function CATResultPage() {
             <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
 
-                {/* ── Breadcrumb ───────────────────────────────── */}
-                <div className="flex items-center text-sm text-gray-500 mb-5">
-                    <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
-                    <span className="mx-2">›</span>
-                    <Link href="/user/cat-exam" className="hover:text-green-600 cursor-pointer transition">สอบแบบปรับตัว (CAT)</Link>
-                    <span className="mx-2">›</span>
-                    <span className="text-gray-600 font-medium">ผลการสอบ</span>
-                </div>
+                    {/* ── Breadcrumb ───────────────────────────────── */}
+                    <div className="flex items-center text-sm text-gray-500 mb-5">
+                        <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+                        <span className="mx-2">›</span>
+                        <Link href="/user/cat-exam" className="hover:text-green-600 cursor-pointer transition">สอบแบบปรับตัว (CAT)</Link>
+                        <span className="mx-2">›</span>
+                        <span className="text-gray-600 font-medium">ผลการสอบ</span>
+                    </div>
 
-                {/* ── Result Header ───────────────────────────────── */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-                        {/* Status icon */}
-                        <div className={`w-16 h-16 shrink-0 rounded-2xl flex items-center justify-center ${
-                            result.passed ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
-                        }`}>
-                            {result.passed ? <Award className="w-8 h-8" /> : <AlertTriangle className="w-8 h-8" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2 mb-1">
-                                <h1 className="text-xl font-medium text-gray-900">
-                                    {result.passed ? "ยินดีด้วย! คุณผ่านเกณฑ์การสอบ" : "การสอบเสร็จสิ้น"}
-                                </h1>
-                                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                                    result.passed
-                                        ? "bg-green-100 text-green-700"
-                                        : "bg-red-100 text-red-700"
+                    {/* ── Result Header ───────────────────────────────── */}
+                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
+                            {/* Status icon */}
+                            <div className={`w-16 h-16 shrink-0 rounded-2xl flex items-center justify-center ${result.passed ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
                                 }`}>
-                                    {result.passed ? "ผ่าน" : "ยังไม่ผ่านเกณฑ์"}
-                                </span>
+                                {result.passed ? <Award className="w-8 h-8" /> : <AlertTriangle className="w-8 h-8" />}
                             </div>
-                            <p className="text-sm text-gray-500">{result.item_bank_name || "คลังข้อสอบรวม (Global Pool)"}</p>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center gap-2 mb-1">
+                                    <h1 className="text-xl font-medium text-gray-900">
+                                        {result.passed ? "ยินดีด้วย! คุณผ่านเกณฑ์การสอบ" : "การสอบเสร็จสิ้น"}
+                                    </h1>
+                                    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${result.passed
+                                            ? "bg-green-100 text-green-700"
+                                            : "bg-red-100 text-red-700"
+                                        }`}>
+                                        {result.passed ? "ผ่าน" : "ยังไม่ผ่านเกณฑ์"}
+                                    </span>
+                                </div>
+                                <p className="text-sm text-gray-500">{result.item_bank_name || "คลังข้อสอบรวม (Global Pool)"}</p>
+                            </div>
+                        </div>
+
+                        {/* Stats grid */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            {[
+                                { label: "ตอบถูก", value: `${result.num_correct} / ${result.num_items} ข้อ`, color: "text-green-600", bg: "bg-green-50 border-green-100" },
+                                { label: "ความแม่นยำ", value: `${accuracy}%`, color: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
+                                { label: "ระดับความสามารถ (θ)", value: result.final_theta.toFixed(2), color: result.passed ? "text-green-600" : "text-rose-600", bg: result.passed ? "bg-green-50 border-green-100" : "bg-rose-50 border-rose-100" },
+                                { label: "ความคลาดเคลื่อน (SE)", value: result.final_se.toFixed(3), color: "text-purple-600", bg: "bg-purple-50 border-purple-100" },
+                            ].map(s => (
+                                <div key={s.label} className={`rounded-xl border p-4 text-center ${s.bg}`}>
+                                    <div className={`text-2xl font-medium ${s.color}`}>{s.value}</div>
+                                    <div className="text-xs text-gray-500 mt-1">{s.label}</div>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
-                    {/* Stats grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {[
-                            { label: "ตอบถูก", value: `${result.num_correct} / ${result.num_items} ข้อ`, color: "text-green-600", bg: "bg-green-50 border-green-100" },
-                            { label: "ความแม่นยำ", value: `${accuracy}%`, color: "text-blue-600", bg: "bg-blue-50 border-blue-100" },
-                            { label: "ระดับความสามารถ (θ)", value: result.final_theta.toFixed(2), color: result.passed ? "text-green-600" : "text-rose-600", bg: result.passed ? "bg-green-50 border-green-100" : "bg-rose-50 border-rose-100" },
-                            { label: "ความคลาดเคลื่อน (SE)", value: result.final_se.toFixed(3), color: "text-purple-600", bg: "bg-purple-50 border-purple-100" },
-                        ].map(s => (
-                            <div key={s.label} className={`rounded-xl border p-4 text-center ${s.bg}`}>
-                                <div className={`text-2xl font-medium ${s.color}`}>{s.value}</div>
-                                <div className="text-xs text-gray-500 mt-1">{s.label}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                    {/* ── Analysis Charts ─────────────────────── */}
+                    <div className="mb-6">
+                        <h2 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
+                            <BarChart3 className="text-green-600" size={20} />
+                            วิเคราะห์ผลการสอบ
+                        </h2>
 
-                {/* ── Analysis Charts ─────────────────────── */}
-                <div className="mb-6">
-                    <h2 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
-                        <BarChart3 className="text-green-600" size={20} />
-                        วิเคราะห์ผลการสอบ
-                    </h2>
+                        {/* Row 1: Theta + SE */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+                            <ThetaProgressChart responses={result.responses} cutScore={CUT_SCORE} />
+                            <SEConvergenceChart responses={result.responses} targetSE={TARGET_SE} />
+                        </div>
 
-                    {/* Row 1: Theta + SE */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-                        <ThetaProgressChart responses={result.responses} cutScore={CUT_SCORE} />
-                        <SEConvergenceChart responses={result.responses} targetSE={TARGET_SE} />
-                    </div>
+                        {/* Topic Analysis */}
+                        <TopicAnalysisSection topicAnalysis={result.topic_analysis} />
 
-                    {/* Topic Analysis */}
-                    <TopicAnalysisSection topicAnalysis={result.topic_analysis} />
+                        {/* Row 2: Posterior + Summary Stats */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                            <PosteriorChart finalTheta={result.final_theta} finalSE={result.final_se} cutScore={CUT_SCORE} />
 
-                    {/* Row 2: Posterior + Summary Stats */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                        <PosteriorChart finalTheta={result.final_theta} finalSE={result.final_se} cutScore={CUT_SCORE} />
-
-                        {/* Summary stats card */}
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                            <h2 className="text-base font-medium text-gray-800 mb-4 flex items-center gap-2">
-                                <ClipboardList className="text-green-600" size={18} />
-                                สรุปสถิติ
-                            </h2>
-                            <div className="space-y-3">
-                                {[
-                                    { label: "ตอบถูก", value: `${result.num_correct} ข้อ`, color: "text-green-600" },
-                                    { label: "ตอบผิด", value: `${result.num_items - result.num_correct} ข้อ`, color: "text-red-500" },
-                                    { label: "ความคลาดเคลื่อนมาตรฐาน (SE)", value: result.final_se.toFixed(3), color: "text-purple-600" },
-                                    { label: "เปอร์เซนไทล์", value: `${result.pass_percentile?.toFixed(1) ?? "N/A"}%`, color: "text-blue-600" },
-                                    { label: "เวลาที่ใช้", value: `${mins}:${secs.toString().padStart(2, "0")}`, color: "text-gray-700" },
-                                ].map(s => (
-                                    <div key={s.label} className="flex justify-between items-center py-2 border-b border-dashed border-gray-100">
-                                        <span className="text-gray-500 text-sm">{s.label}</span>
-                                        <span className={`font-medium text-lg ${s.color}`}>{s.value}</span>
+                            {/* Summary stats card */}
+                            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
+                                <h2 className="text-base font-medium text-gray-800 mb-4 flex items-center gap-2">
+                                    <ClipboardList className="text-green-600" size={18} />
+                                    สรุปสถิติ
+                                </h2>
+                                <div className="space-y-3">
+                                    {[
+                                        { label: "ตอบถูก", value: `${result.num_correct} ข้อ`, color: "text-green-600" },
+                                        { label: "ตอบผิด", value: `${result.num_items - result.num_correct} ข้อ`, color: "text-red-500" },
+                                        { label: "ความคลาดเคลื่อนมาตรฐาน (SE)", value: result.final_se.toFixed(3), color: "text-purple-600" },
+                                        { label: "เปอร์เซนไทล์", value: `${result.pass_percentile?.toFixed(1) ?? "N/A"}%`, color: "text-blue-600" },
+                                        { label: "เวลาที่ใช้", value: `${mins}:${secs.toString().padStart(2, "0")}`, color: "text-gray-700" },
+                                    ].map(s => (
+                                        <div key={s.label} className="flex justify-between items-center py-2 border-b border-dashed border-gray-100">
+                                            <span className="text-gray-500 text-sm">{s.label}</span>
+                                            <span className={`font-medium text-lg ${s.color}`}>{s.value}</span>
+                                        </div>
+                                    ))}
+                                    <div className="pt-2">
+                                        <p className="text-xs text-gray-400">เหตุผลที่จบการสอบ:</p>
+                                        <p className="text-sm font-medium text-gray-700 mt-1">{result.stop_reason}</p>
                                     </div>
-                                ))}
-                                <div className="pt-2">
-                                    <p className="text-xs text-gray-400">เหตุผลที่จบการสอบ:</p>
-                                    <p className="text-sm font-medium text-gray-700 mt-1">{result.stop_reason}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* ── Actions ── */}
-                <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
-                    <Link
-                        href={`/user/cat-exam/result/${sessionId}/answer`}
-                        className="flex-1 sm:flex-none px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm text-center transition-colors shadow-sm"
-                    >
-                        ดูเฉลยคำตอบ
-                    </Link>
-                    <Link
-                        href="/user/cat-exam"
-                        className="flex-1 sm:flex-none px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl text-sm text-center border border-gray-200 transition-colors flex items-center justify-center gap-2"
-                    >
-                        <RefreshCw size={16} />
-                        สอบใหม่อีกครั้ง
-                    </Link>
-                    <Link
-                        href="/user"
-                        className="flex-1 sm:flex-none px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl text-sm text-center border border-gray-200 transition-colors"
-                    >
-                        กลับหน้าหลัก
-                    </Link>
-                </div>
+                    {/* ── Actions ── */}
+                    <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
+                        <Link
+                            href={`/user/cat-exam/result/${sessionId}/answer`}
+                            className="flex-1 sm:flex-none px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm text-center transition-colors shadow-sm"
+                        >
+                            ดูเฉลยคำตอบ
+                        </Link>
+                        <Link
+                            href="/user/cat-exam"
+                            className="flex-1 sm:flex-none px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl text-sm text-center border border-gray-200 transition-colors flex items-center justify-center gap-2"
+                        >
+                            <RefreshCw size={16} />
+                            สอบใหม่อีกครั้ง
+                        </Link>
+                        <Link
+                            href="/user"
+                            className="flex-1 sm:flex-none px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl text-sm text-center border border-gray-200 transition-colors"
+                        >
+                            กลับหน้าหลัก
+                        </Link>
+                    </div>
 
-            </div>
+                </div>
             </div>
 
             <Footer />

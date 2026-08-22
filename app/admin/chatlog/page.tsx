@@ -227,13 +227,41 @@ export default function ChatbotKnowledgePage() {
             }
         } catch (error) {
             console.error("Upload error:", error);
-            Swal.fire({
-                title: "อัปโหลดไม่สำเร็จ",
-                text: "เกิดข้อผิดพลาดในการอัปโหลดเอกสาร: " + (error instanceof Error ? error.message : "ไม่ทราบสาเหตุ"),
-                icon: "error",
-                confirmButtonColor: "#ef4444",
-                confirmButtonText: "ตกลง"
-            });
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            const isQuotaLimit =
+                errorMsg.includes("429") ||
+                errorMsg.toLowerCase().includes("quota") ||
+                errorMsg.includes("โควตา") ||
+                errorMsg.includes("ลิมิต") ||
+                errorMsg.toLowerCase().includes("too many requests") ||
+                errorMsg.toLowerCase().includes("resource_exhausted");
+
+            if (isQuotaLimit) {
+                Swal.fire({
+                    title: "ไม่สามารถอัปโหลดไฟล์ได้ในขณะนี้",
+                    html: `
+                        <div className="text-sm text-gray-700 text-left space-y-3">
+                            <p className="font-medium text-gray-900">
+                                เนื่องจากโควตาการเรียกใช้งานโมเดล AI (Gemini Embedding) เต็มชั่วคราว
+                            </p>
+                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-900 text-xs sm:text-sm font-medium">
+                                คำแนะนำ: กรุณารอสักครู่ (ประมาณ 1 - 2 นาที) เพื่อให้โควตารีเซ็ต แล้วกดปุ่ม "ยืนยันอัปโหลด" ใหม่อีกครั้ง
+                            </div>
+                        </div>
+                    `,
+                    icon: "warning",
+                    confirmButtonColor: "#16a34a",
+                    confirmButtonText: "รับทราบ"
+                });
+            } else {
+                Swal.fire({
+                    title: "อัปโหลดไม่สำเร็จ",
+                    text: errorMsg || "เกิดข้อผิดพลาดในการอัปโหลดเอกสาร",
+                    icon: "error",
+                    confirmButtonColor: "#ef4444",
+                    confirmButtonText: "ตกลง"
+                });
+            }
         } finally {
             setIsUploading(false);
         }
@@ -682,13 +710,12 @@ export default function ChatbotKnowledgePage() {
 
                 {/* ─── Upload Zone (hidden input + drag area) ─── */}
                 <div
-                    className={`relative border-2 border-dashed rounded-2xl transition-all duration-200 ${
-                        dragActive
+                    className={`relative border-2 border-dashed rounded-2xl transition-all duration-200 ${dragActive
                             ? "border-green-500 bg-green-50"
                             : selectedFile
                                 ? "border-green-400 bg-green-50/60"
                                 : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50"
-                    }`}
+                        }`}
                     onDragEnter={handleDrag}
                     onDragLeave={handleDrag}
                     onDragOver={handleDrag}
@@ -770,11 +797,10 @@ export default function ChatbotKnowledgePage() {
                             <button
                                 type="button"
                                 onClick={() => setTab('active')}
-                                className={`pb-3 px-4 text-sm font-medium transition-all relative cursor-pointer ${
-                                    tab === 'active'
+                                className={`pb-3 px-4 text-sm font-medium transition-all relative cursor-pointer ${tab === 'active'
                                         ? 'text-green-700 border-b-2 border-green-600 font-medium'
                                         : 'text-gray-500 hover:text-gray-800'
-                                }`}
+                                    }`}
                             >
                                 <span>เอกสารที่ใช้งาน</span>
                                 <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
@@ -784,11 +810,10 @@ export default function ChatbotKnowledgePage() {
                             <button
                                 type="button"
                                 onClick={() => setTab('deleted')}
-                                className={`pb-3 px-4 text-sm font-medium transition-all relative cursor-pointer ${
-                                    tab === 'deleted'
+                                className={`pb-3 px-4 text-sm font-medium transition-all relative cursor-pointer ${tab === 'deleted'
                                         ? 'text-amber-700 border-b-2 border-amber-600 font-medium'
                                         : 'text-gray-500 hover:text-gray-800'
-                                }`}
+                                    }`}
                             >
                                 <span>ถังขยะ</span>
                                 <span className="ml-2 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
@@ -935,15 +960,14 @@ export default function ChatbotKnowledgePage() {
                                         return (
                                             <tr
                                                 key={doc.id}
-                                                className={`transition-colors ${
-                                                    isSelected
+                                                className={`transition-colors ${isSelected
                                                         ? tab === 'deleted'
                                                             ? 'bg-amber-50/60'
                                                             : 'bg-green-50/60'
                                                         : tab === 'deleted'
                                                             ? 'hover:bg-amber-50/30'
                                                             : 'hover:bg-gray-50/80'
-                                                }`}
+                                                    }`}
                                             >
                                                 {/* Checkbox single */}
                                                 <td className="px-4 py-4 text-center">
@@ -1089,13 +1113,12 @@ export default function ChatbotKnowledgePage() {
                                                 type="button"
                                                 key={p}
                                                 onClick={() => setCurrentPage(p)}
-                                                className={`w-8 h-8 text-sm font-medium rounded-lg transition-colors cursor-pointer ${
-                                                    isActive
+                                                className={`w-8 h-8 text-sm font-medium rounded-lg transition-colors cursor-pointer ${isActive
                                                         ? tab === 'deleted'
                                                             ? 'bg-amber-600 text-white shadow-xs'
                                                             : 'bg-green-600 text-white shadow-xs'
                                                         : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-                                                }`}
+                                                    }`}
                                             >
                                                 {p}
                                             </button>
@@ -1186,7 +1209,7 @@ export default function ChatbotKnowledgePage() {
                                     title={previewData.doc.file_name}
                                 />
                             ) : previewData.fileType === 'text' ? (
-                                <div className="bg-white p-6 rounded-xl border border-gray-200 font-mono text-sm text-gray-800 whitespace-pre-wrap leading-relaxed max-h-[70vh] overflow-auto select-text shadow-xs">
+                                <div className="bg-white p-6 rounded-xl border border-gray-200  text-sm text-gray-800 whitespace-pre-wrap leading-relaxed max-h-[70vh] overflow-auto select-text shadow-xs">
                                     {previewData.textContent || '(ไฟล์นี้ไม่มีเนื้อหาข้อความ)'}
                                 </div>
                             ) : (
