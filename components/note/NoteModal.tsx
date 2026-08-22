@@ -1,25 +1,30 @@
 "use client";
 import { useEffect, useState, useRef } from "react";
-import { X, Upload, Save, Trash2, FileText, Tag, AlignLeft, Type } from "lucide-react";
+import { X, Upload, Save, Trash2, FileText, Tag, AlignLeft, Type, Link as LinkIcon } from "lucide-react";
+import Swal from "sweetalert2";
+import { SWAL_COLORS } from "@/utils/swal";
 import type { UserNote } from "./NoteList";
+import Toast from "../Toast";
 
 type Props = {
   note: UserNote | null;
   onSave: (note: UserNote, files?: File[], deletedFiles?: string[]) => void;
   onClose: () => void;
   onDelete: (id: string) => void;
+  existingTags?: string[];
 };
 
 const emptyForm: UserNote = {
   id: "",
   title: "",
   content: "",
+  link_url: "",
   tags: [],
   files: [],
   createdAt: Date.now(),
 };
 
-export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
+export default function NoteModal({ note, onSave, onClose, onDelete, existingTags = [] }: Props) {
   const isNew = !note;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -31,7 +36,10 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
 
   useEffect(() => {
     if (note) {
-      setFormData({ ...note });
+      setFormData({
+        ...note,
+        link_url: note.link_url || "",
+      });
 
       // ดึงชื่อแท็กแบบละเอียด (ป้องกันโครงสร้าง Relations จาก Backend)
       const tagNames = note.tags?.map((t: any) => {
@@ -83,8 +91,27 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
     setPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  const removeExistingFile = (fileId: any) => {
+  const removeExistingFile = async (fileId: any) => {
     if (!fileId) return;
+
+    const result = await Swal.fire({
+      title: 'ลบไฟล์แนบ?',
+      text: 'คุณต้องการลบไฟล์แนบนี้ใช่หรือไม่?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: SWAL_COLORS.danger,
+      cancelButtonColor: SWAL_COLORS.cancel,
+      confirmButtonText: 'ใช่, ลบไฟล์',
+      cancelButtonText: 'ยกเลิก',
+      reverseButtons: true,
+      customClass: {
+        popup: 'rounded-3xl shadow-2xl',
+        confirmButton: 'rounded-xl px-4 py-2 font-medium text-sm',
+        cancelButton: 'rounded-xl px-4 py-2 font-medium text-sm',
+      }
+    });
+
+    if (!result.isConfirmed) return;
 
     // เก็บ ID ลงในรายการที่จะส่งไปลบที่ Backend
     setDeletedFiles(prev => [...prev, String(fileId)]);
@@ -96,7 +123,18 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
     }));
   };
 
+  const [toast, setToast] = useState<{ type: "error" | "warning" | "success" | "info"; message: string } | null>(null);
+
   const handleSave = () => {
+    if (!formData.title?.trim()) {
+      setToast({ type: "warning", message: "กรุณาระบุหัวข้อบันทึก" });
+      return;
+    }
+    if (!formData.content?.trim()) {
+      setToast({ type: "warning", message: "กรุณาระบุเนื้อหาโดยสรุป" });
+      return;
+    }
+
     // กรองชื่อแท็กให้สะอาดที่สุดก่อนส่งออก
     const tagNames = Array.from(new Set(
       tagInput
@@ -113,6 +151,9 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
 
   return (
     <div className="fixed inset-0 bg-gray-900/60 flex items-center justify-center z-50 p-4 overflow-y-auto">
+      {toast && (
+        <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
+      )}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-200">
 
         {/* Header */}
@@ -163,6 +204,39 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 transition-all text-sm"
               placeholder="เคมี, สอบปลายภาค (คั่นด้วยเครื่องหมายจุลภาค)"
             />
+            {existingTags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                <span className="text-xs text-slate-500 pt-1">แท็กที่เคยใช้:</span>
+                {existingTags.map(tag => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => {
+                      const tags = tagInput.split(',').map(t => t.trim()).filter(Boolean);
+                      if (!tags.includes(tag)) {
+                        setTagInput(tags.length > 0 ? `${tags.join(', ')}, ${tag}` : tag);
+                      }
+                    }}
+                    className="text-xs bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-700 px-2.5 py-1 rounded-lg transition-colors border border-slate-200"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
+              <LinkIcon className="w-4 h-4 text-indigo-500" /> แนบลิงก์เนื้อหา / แหล่งอ้างอิง
+            </label>
+            <input
+              type="url"
+              value={formData.link_url || ""}
+              onChange={(e) => setFormData(prev => ({ ...prev, link_url: e.target.value }))}
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 transition-all text-sm"
+              placeholder="เช่น https://example.com หรือ ลิงก์เอกสาร/วิดีโอ"
+            />
           </div>
 
           <div className="space-y-3">
@@ -194,7 +268,12 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
                 const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/${storagePath}`;
 
                 return (
-                  <div key={fileId || `old-${i}`} className="relative aspect-square rounded-xl border border-slate-200 bg-slate-50 flex flex-col items-center justify-center overflow-hidden group shadow-sm">
+                  <div 
+                    key={fileId || `old-${i}`} 
+                    onClick={() => window.open(fileUrl, '_blank')}
+                    className="relative aspect-square rounded-xl border border-slate-200 bg-slate-50 flex flex-col items-center justify-center overflow-hidden group shadow-sm cursor-pointer hover:border-indigo-300"
+                    title="คลิกเพื่อดูไฟล์"
+                  >
                     {isImage ? (
                       <img
                         src={fileUrl}
@@ -226,11 +305,21 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
 
               {/* แสดงไฟล์ใหม่ที่กำลังเลือก */}
               {selectedFiles.map((file, i) => (
-                <div key={`new-${i}`} className="relative aspect-square rounded-xl border-2 border-indigo-100 overflow-hidden group shadow-sm">
+                <div 
+                  key={`new-${i}`} 
+                  onClick={() => {
+                    if (previews[i]) window.open(previews[i], '_blank');
+                  }}
+                  className="relative aspect-square rounded-xl border-2 border-indigo-100 overflow-hidden group shadow-sm cursor-pointer hover:border-indigo-300"
+                  title="คลิกเพื่อดูไฟล์"
+                >
                   {previews[i] ? (
                     <img src={previews[i]} className="w-full h-full object-cover" alt="preview" />
                   ) : (
-                    <div className="w-full h-full bg-indigo-50 flex items-center justify-center"><FileText className="w-8 h-8 text-indigo-300" /></div>
+                    <div className="w-full h-full bg-indigo-50 flex flex-col items-center justify-center">
+                      <FileText className="w-8 h-8 text-indigo-300 mb-1" />
+                      <p className="text-[9px] text-indigo-400 truncate w-full px-1 text-center">{file.name}</p>
+                    </div>
                   )}
                   <button
                     type="button"
@@ -251,7 +340,38 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
         {/* Footer */}
         <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-3">
           {!isNew && (
-            <button onClick={() => onDelete(formData.id)} className="flex items-center justify-center gap-2 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl font-medium text-sm transition-colors">
+            <button
+              type="button"
+              onClick={async () => {
+                const result = await Swal.fire({
+                  title: 'ยืนยันการลบบันทึก?',
+                  html: `
+                    <div class="text-center py-1">
+                      <p class="text-sm text-gray-600 mb-1">คุณต้องการลบบันทึกนี้ใช่หรือไม่?</p>
+                      <p class="text-base font-semibold text-gray-800 bg-gray-50 py-2 px-3 rounded-xl border border-gray-100 mb-2 truncate">"${formData.title || 'ไม่มีหัวข้อ'}"</p>
+                      <p class="text-xs text-red-500">⚠️ ข้อมูลและไฟล์แนบจะถูกลบถาวร ไม่สามารถกู้คืนได้</p>
+                    </div>
+                  `,
+                  icon: 'warning',
+                  showCancelButton: true,
+                  confirmButtonColor: SWAL_COLORS.danger,
+                  cancelButtonColor: SWAL_COLORS.cancel,
+                  confirmButtonText: 'ใช่, ลบบันทึก',
+                  cancelButtonText: 'ยกเลิก',
+                  reverseButtons: true,
+                  customClass: {
+                    popup: 'rounded-3xl shadow-2xl',
+                    confirmButton: 'rounded-xl px-5 py-2.5 font-medium text-sm',
+                    cancelButton: 'rounded-xl px-5 py-2.5 font-medium text-sm',
+                  }
+                });
+
+                if (result.isConfirmed) {
+                  onDelete(formData.id);
+                }
+              }}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 text-red-600 hover:bg-red-50 rounded-xl font-medium text-sm transition-colors cursor-pointer"
+            >
               <Trash2 className="w-4 h-4" /> ลบบันทึก
             </button>
           )}

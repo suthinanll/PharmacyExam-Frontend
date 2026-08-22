@@ -587,11 +587,11 @@ export default function ChatbotPage() {
 
       {/* Privacy Policy Modal */}
       {showPrivacyModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-300">
             {/* Header */}
             <div className="bg-gradient-to-r from-green-600 to-green-700 px-6 py-5 text-white flex items-center gap-3">
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                 <Shield className="w-6 h-6" />
               </div>
               <div>

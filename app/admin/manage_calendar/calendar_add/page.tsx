@@ -2,7 +2,7 @@
 
 import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useRef } from "react";
-import { ChevronLeft, Plus, X, Calendar, CheckCircle2, Save, Send } from "lucide-react";
+import { ChevronLeft, Plus, X, Calendar, CheckCircle2, Save, Send, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
 import Swal from "sweetalert2";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +18,7 @@ interface CalendarEvent {
   id: number;
   title: string;
   description: string;
+  link_url?: string;
   startDate: string;
   endDate: string;
   type_event: string[];
@@ -28,7 +29,7 @@ function Page() {
   const idCounterRef = useRef(1);
 
   const [events, setEvents] = useState<CalendarEvent[]>([
-    { id: Date.now(), title: "", description: "", startDate: "", endDate: "", type_event: [] },
+    { id: Date.now(), title: "", description: "", link_url: "", startDate: "", endDate: "", type_event: [] },
   ]);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
 
@@ -38,6 +39,7 @@ function Page() {
       id: Date.now() + idCounterRef.current,
       title: "",
       description: "",
+      link_url: "",
       startDate: "",
       endDate: "",
       type_event: [],
@@ -88,9 +90,9 @@ function Page() {
       if (!result.isConfirmed) return;
     }
 
-    const isValid = validEvents.every((e) => e.startDate && e.type_event.length > 0);
+    const isValid = validEvents.every((e) => e.startDate);
     if (!isValid && isPublished) {
-      Swal.fire("ข้อมูลไม่ครบ", "กรุณาระบุวันที่และเลือกประเภทหลักสูตรให้ครบทุกรายการ", "warning");
+      Swal.fire("ข้อมูลไม่ครบ", "กรุณาระบุวันเริ่มต้นให้ครบทุกรายการ", "warning");
       return;
     }
 
@@ -120,6 +122,7 @@ function Page() {
                 body: JSON.stringify({
                   title: e.title,
                   description: e.description,
+                  link_url: e.link_url || null,
                   startDate: e.startDate,
                   endDate: e.endDate || e.startDate,
                   is_public: isPublished,
@@ -211,6 +214,7 @@ function Page() {
           id: baseTime + idx,
           title: e.title || "",
           description: e.description || "",
+          link_url: e.link_url || "",
           startDate: e.startDate || "",
           endDate: e.endDate || "",
           type_event: e.type_event || [],
@@ -362,10 +366,25 @@ function Page() {
                   />
                 </div>
 
+                {/* Link URL (Optional) */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                    <LinkIcon className="w-3.5 h-3.5 text-green-600" />
+                    แนบลิงก์ (URL) / เอกสารอ้างอิง <span className="text-gray-400 font-normal">(ไม่บังคับกรอก)</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={event.link_url || ""}
+                    onChange={(e) => updateEvent(event.id, "link_url", e.target.value)}
+                    placeholder="เช่น https://example.com/exam-info หรือลิงก์รับสมัครสอบ"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm"
+                  />
+                </div>
+
                 {/* Categories */}
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-gray-500 ">
-                    ประเภทหลักสูตร <span className="text-red-500">*</span>
+                    ประเภทหลักสูตร <span className="text-gray-400 font-normal">(ไม่บังคับเลือก)</span>
                   </label>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                     {CATEGORY_OPTIONS.map((cat) => {

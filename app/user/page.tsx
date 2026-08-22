@@ -13,6 +13,7 @@ import {
   Bookmark,
   Clock,
   CheckCircle2,
+  ExternalLink,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -58,6 +59,18 @@ const UpcomingExamCard = ({ exam, index }: { exam: any; index: number }) => {
             year: "numeric",
           })}
         </p>
+        {exam.link_url && (
+          <a
+            href={exam.link_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-700 hover:underline mt-1 bg-blue-50/80 px-2 py-0.5 rounded border border-blue-100 font-medium w-fit"
+          >
+            <ExternalLink size={11} />
+            ลิงก์แนบ
+          </a>
+        )}
       </div>
     </div>
   );
@@ -68,6 +81,7 @@ const CountdownHero = ({
   targetDate,
   targetTitle,
   targetDesc,
+  targetLink,
   timeLeft,
   isExamStarted,
   upcomingExams,
@@ -76,6 +90,7 @@ const CountdownHero = ({
   targetDate: number | null;
   targetTitle: string;
   targetDesc: string;
+  targetLink?: string;
   timeLeft: { days: number; hours: number; minutes: number; seconds: number };
   isExamStarted: boolean | number | null;
   upcomingExams: any[];
@@ -158,7 +173,7 @@ const CountdownHero = ({
                         <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-medium text-sm">
                           {idx + 1}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <h3 className="text-lg font-medium text-gray-800 mb-1">
                             {exam.title}
                           </h3>
@@ -166,6 +181,17 @@ const CountdownHero = ({
                             <p className="text-sm text-gray-600">
                               {exam.description}
                             </p>
+                          )}
+                          {exam.link_url && (
+                            <a
+                              href={exam.link_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-medium border border-blue-200 transition-colors w-fit group"
+                            >
+                              <ExternalLink size={13} className="text-blue-600 group-hover:scale-110 transition-transform" />
+                              ดูข้อมูลเพิ่มเติม / ลิงก์แนบ
+                            </a>
                           )}
                         </div>
                       </div>
@@ -229,10 +255,23 @@ const CountdownHero = ({
               ))}
             </div>
 
-            <div className="max-w-xl p-4 rounded-xl flex items-start gap-3 bg-blue-50 border border-blue-100">
+            <div className="max-w-xl p-4 rounded-xl flex flex-col gap-2 bg-blue-50 border border-blue-100">
               <p className="text-sm font-medium leading-relaxed text-gray-700">
                 {targetDesc}
               </p>
+              {targetLink && (
+                <div className="pt-2 border-t border-blue-200/60">
+                  <a
+                    href={targetLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-medium shadow-sm transition-all group w-fit"
+                  >
+                    <ExternalLink size={15} className="group-hover:scale-110 transition-transform" />
+                    ดูรายละเอียดเพิ่มเติม / ลิงก์แนบ
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
@@ -330,6 +369,7 @@ const Page = () => {
   const [targetDate, setTargetDate] = useState<number | null>(null);
   const [targetTitle, setTargetTitle] = useState<string>("");
   const [targetDesc, setTargetDesc] = useState<string>("");
+  const [targetLink, setTargetLink] = useState<string>("");
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -425,6 +465,7 @@ const Page = () => {
           setTargetDesc(
             ongoingExam.description || "กำหนดการนี้กำลังดำเนินการอยู่",
           );
+          setTargetLink(ongoingExam.link_url || "");
           setTodayExams([ongoingExam]);
 
           const futureExams = allExams.filter((e: any) => e.targetStamp > now);
@@ -448,6 +489,7 @@ const Page = () => {
             setTargetDesc(
               examToday.description || "เข้าร่วมการทดสอบตามกำหนดการวันนี้",
             );
+            setTargetLink(examToday.link_url || "");
             setTodayExams(allTodayExams);
 
             const remaining = allExams.filter(
@@ -480,6 +522,7 @@ const Page = () => {
                 firstExam.description ||
                   "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง",
               );
+              setTargetLink(firstExam.link_url || "");
               setTodayExams(sameDay); // เก็บทุกรายการในวันเดียวกัน
 
               // upcoming เอาเฉพาะที่ไม่ใช่วันเดียวกัน
@@ -492,6 +535,7 @@ const Page = () => {
               setTargetDate(null);
               setTargetTitle("");
               setTargetDesc("");
+              setTargetLink("");
               setTodayExams([]);
               setUpcomingExams([]);
             }
@@ -587,6 +631,7 @@ const Page = () => {
               targetDate={targetDate}
               targetTitle={targetTitle}
               targetDesc={targetDesc}
+              targetLink={targetLink}
               timeLeft={timeLeft}
               isExamStarted={isExamStarted}
               upcomingExams={upcomingExams}
