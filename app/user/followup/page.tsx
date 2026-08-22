@@ -22,9 +22,11 @@ import {
   Minus,
   AlertCircle,
   RefreshCcw,
-  SlidersHorizontal,
-  Award,
   Sparkles,
+  Check,
+  Award,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -185,9 +187,9 @@ const PharmacistDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Radar Chart Filtering States ──────────────────────────────────────────
-  const [radarFilterMode, setRadarFilterMode] = useState<"all" | "strengths" | "weaknesses">("all");
-  const [radarLimit, setRadarLimit] = useState<number>(6);
+  // ── Topic Checklist & Selection States ─────────────────────────────────────
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+  const [showAllWeak, setShowAllWeak] = useState(false);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -211,6 +213,13 @@ const PharmacistDashboard = () => {
 
         const json: DashboardData = await res.json();
         setData(json);
+
+        // ค่าเริ่มต้น: เลือก 5 หัวข้อแรก หรือทั้งหมด
+        if (json.radar_data && json.radar_data.length > 0) {
+          setSelectedSubjects(
+            json.radar_data.slice(0, Math.min(5, json.radar_data.length)).map((d) => d.subject),
+          );
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "เกิดข้อผิดพลาด");
       } finally {
@@ -221,26 +230,49 @@ const PharmacistDashboard = () => {
     fetchDashboard();
   }, [getToken]);
 
-  // ── Filtered Radar Data ───────────────────────────────────────────────────
+  // ── Toggle / Preset Helpers ───────────────────────────────────────────────
+  const toggleSubject = (subjectName: string) => {
+    setSelectedSubjects((prev) =>
+      prev.includes(subjectName)
+        ? prev.filter((s) => s !== subjectName)
+        : [...prev, subjectName],
+    );
+  };
+
+  const selectTopStrengths = (count: number = 3) => {
+    if (!data?.radar_data) return;
+    const sorted = [...data.radar_data].sort((a, b) => b.score - a.score);
+    setSelectedSubjects(sorted.slice(0, count).map((d) => d.subject));
+  };
+
+  const selectTopWeaknesses = (count: number = 3) => {
+    if (!data?.radar_data) return;
+    const sorted = [...data.radar_data].sort((a, b) => a.score - b.score);
+    setSelectedSubjects(sorted.slice(0, count).map((d) => d.subject));
+  };
+
+  const selectAllSubjects = () => {
+    if (!data?.radar_data) return;
+    setSelectedSubjects(data.radar_data.map((d) => d.subject));
+  };
+
+  const clearSelection = () => {
+    setSelectedSubjects([]);
+  };
+
+  // ── Filtered Radar Data & Ranking Comparison ──────────────────────────────
   const filteredRadarData = useMemo(() => {
     if (!data?.radar_data || data.radar_data.length === 0) return [];
+    return data.radar_data.filter((item) => selectedSubjects.includes(item.subject));
+  }, [data?.radar_data, selectedSubjects]);
 
-    let list = [...data.radar_data];
+  // เรียงลำดับหัวข้อที่เลือกจากคะแนนมากไปน้อย เพื่อเปรียบเทียบว่าอันไหนเยอะ/น้อยสุด
+  const sortedSelectedTopics = useMemo(() => {
+    return [...filteredRadarData].sort((a, b) => b.score - a.score);
+  }, [filteredRadarData]);
 
-    // เรียงลำดับตามโหมดที่เลือก
-    if (radarFilterMode === "strengths") {
-      list.sort((a, b) => b.score - a.score);
-    } else if (radarFilterMode === "weaknesses") {
-      list.sort((a, b) => a.score - b.score);
-    }
-
-    // ตัดจำนวนหัวข้อตาม Limit (ถ้าไม่ใช่ 0 หรือ -1)
-    if (radarLimit > 0 && radarLimit < list.length) {
-      list = list.slice(0, radarLimit);
-    }
-
-    return list;
-  }, [data?.radar_data, radarFilterMode, radarLimit]);
+  const highestTopic = sortedSelectedTopics.length > 0 ? sortedSelectedTopics[0] : null;
+  const lowestTopic = sortedSelectedTopics.length > 1 ? sortedSelectedTopics[sortedSelectedTopics.length - 1] : null;
 
   if (loading) {
     return (
@@ -269,7 +301,7 @@ const PharmacistDashboard = () => {
             <p className="text-sm text-gray-600 mb-6">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 transition-colors font-medium text-sm shadow-sm"
+              className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 transition-colors font-medium text-sm shadow-sm cursor-pointer"
             >
               <RefreshCcw className="w-4 h-4" />
               ลองอีกครั้ง
@@ -290,6 +322,10 @@ const PharmacistDashboard = () => {
   const studyTime = formatStudyTime(data?.stats.study_minutes);
   const rankChange = data?.ranking?.rank_change ?? 0;
   const totalRadarCount = data?.radar_data?.length ?? 0;
+
+  // จัดการรายการหัวข้อที่ควรทบทวนเพิ่มเติมโดยไม่ใช้ Scrollbar (Toggle แสดงเพิ่ม)
+  const weakTopicsList = data?.weak_topics ?? [];
+  const displayedWeakTopics = showAllWeak ? weakTopicsList : weakTopicsList.slice(0, 4);
 
   return (
     <>
@@ -475,101 +511,155 @@ const PharmacistDashboard = () => {
           {/* ── Analysis section ─────────────────────────────────────────────── */}
           <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-sm">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Radar Chart Section with Filters */}
-              <div>
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-2xs">
-                      <Sparkles className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h2 className="text-lg sm:text-xl font-medium text-gray-800">
-                        วิเคราะห์จุดแข็ง - จุดอ่อน
-                      </h2>
-                      <p className="text-xs sm:text-sm text-gray-500">กราฟเรดาร์แสดงระดับคะแนนรายหัวข้อ</p>
-                    </div>
+              {/* Radar Chart & Topic Selector Section */}
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2.5 mb-3">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-2xs">
+                    <Sparkles className="w-5 h-5" />
                   </div>
-
-                  {/* Limit Filter Pill Controls */}
-                  {totalRadarCount > 0 && (
-                    <div className="flex items-center gap-1.5 self-start sm:self-auto bg-gray-100 p-1 rounded-xl">
-                      <span className="text-xs text-gray-500 font-medium px-2 flex items-center gap-1">
-                        <SlidersHorizontal className="w-3 h-3" /> แสดง:
-                      </span>
-                      {[
-                        { label: "5", val: 5 },
-                        { label: "7", val: 7 },
-                        { label: "10", val: 10 },
-                        { label: "ทั้งหมด", val: 0 },
-                      ].map((item) => {
-                        const isSelected = item.val === 0 ? radarLimit >= totalRadarCount || radarLimit === 0 : radarLimit === item.val;
-                        return (
-                          <button
-                            key={item.label}
-                            onClick={() => setRadarLimit(item.val === 0 ? totalRadarCount : item.val)}
-                            className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-all cursor-pointer
-                              ${isSelected
-                                ? "bg-white text-indigo-700 shadow-xs ring-1 ring-black/5"
-                                : "text-gray-600 hover:text-gray-900"
-                              }`}
-                          >
-                            {item.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <div>
+                    <h2 className="text-lg sm:text-xl font-medium text-gray-800">
+                      วิเคราะห์จุดแข็ง - จุดอ่อน
+                    </h2>
+                    <p className="text-xs sm:text-sm text-gray-500">
+                      ติ๊กเลือกหัวข้อที่ต้องการเพื่อเปรียบเทียบคะแนนและแสดงบนกราฟ
+                    </p>
+                  </div>
                 </div>
 
-                {/* Filter Mode Selector (ทั้งหมด / จุดแข็ง / จุดอ่อน) */}
+                {/* Quick Selection Presets */}
                 {totalRadarCount > 0 && (
-                  <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-3">
                     <button
-                      onClick={() => setRadarFilterMode("all")}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium border transition-all cursor-pointer shrink-0
-                        ${radarFilterMode === "all"
-                          ? "bg-indigo-600 text-white border-indigo-600 shadow-xs"
-                          : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                        }`}
-                    >
-                      ทั้งหมด
-                    </button>
-                    <button
-                      onClick={() => setRadarFilterMode("strengths")}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium border transition-all cursor-pointer shrink-0 flex items-center gap-1.5
-                        ${radarFilterMode === "strengths"
-                          ? "bg-teal-600 text-white border-teal-600 shadow-xs"
-                          : "bg-white text-teal-700 border-teal-200 hover:bg-teal-50"
-                        }`}
+                      onClick={() => selectTopStrengths(3)}
+                      type="button"
+                      className="px-3 py-1.5 rounded-xl text-xs font-medium bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 transition-colors cursor-pointer flex items-center gap-1"
                     >
                       <Award className="w-3.5 h-3.5" />
-                      ⭐ จุดแข็งสูงสุด (Top Strengths)
+                      3 จุดแข็งสูงสุด 🏆
                     </button>
                     <button
-                      onClick={() => setRadarFilterMode("weaknesses")}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-medium border transition-all cursor-pointer shrink-0 flex items-center gap-1.5
-                        ${radarFilterMode === "weaknesses"
-                          ? "bg-amber-600 text-white border-amber-600 shadow-xs"
-                          : "bg-white text-amber-700 border-amber-200 hover:bg-amber-50"
-                        }`}
+                      onClick={() => selectTopWeaknesses(3)}
+                      type="button"
+                      className="px-3 py-1.5 rounded-xl text-xs font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition-colors cursor-pointer flex items-center gap-1"
                     >
                       <AlertCircle className="w-3.5 h-3.5" />
-                      ⚠️ จุดที่ควรพัฒนา (Needs Improvement)
+                      3 จุดที่ควรพัฒนา ⚠️
                     </button>
+                    <button
+                      onClick={selectAllSubjects}
+                      type="button"
+                      className="px-3 py-1.5 rounded-xl text-xs font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer"
+                    >
+                      เลือกทั้งหมด
+                    </button>
+                    {selectedSubjects.length > 0 && (
+                      <button
+                        onClick={clearSelection}
+                        type="button"
+                        className="px-2.5 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                      >
+                        ล้างการเลือก
+                      </button>
+                    )}
                   </div>
                 )}
 
-                {/* Subtitle indicator */}
+                {/* Topic Checklist Chips (No scrollbar, wraps naturally) */}
                 {totalRadarCount > 0 && (
-                  <div className="flex justify-between items-center text-xs text-gray-500 mb-2 px-1">
-                    <span>
-                      กำลังแสดง <b className="text-indigo-600 font-medium">{filteredRadarData.length}</b> จากทั้งหมด {totalRadarCount} หัวข้อ
-                    </span>
-                    {radarFilterMode !== "all" && (
-                      <span className="text-gray-400">
-                        {radarFilterMode === "strengths" ? "เรียงจากคะแนนสูงสุดไปน้อยสุด" : "เรียงจากคะแนนที่ควรปรับปรุง"}
+                  <div className="flex flex-wrap gap-2 mb-4 p-3 bg-gray-50/80 rounded-2xl border border-gray-100">
+                    {data!.radar_data.map((item) => {
+                      const isChecked = selectedSubjects.includes(item.subject);
+                      return (
+                        <button
+                          key={item.subject}
+                          type="button"
+                          onClick={() => toggleSubject(item.subject)}
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs sm:text-sm font-medium transition-all cursor-pointer select-none
+                            ${isChecked
+                              ? "bg-white border-indigo-300 text-indigo-800 shadow-2xs ring-1 ring-indigo-500/20"
+                              : "bg-white/60 border-gray-200 text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                            }`}
+                        >
+                          <div
+                            className={`w-4 h-4 rounded-md border flex items-center justify-center transition-colors
+                              ${isChecked
+                                ? "bg-indigo-600 border-indigo-600 text-white"
+                                : "border-gray-300 bg-white"
+                              }`}
+                          >
+                            {isChecked && <Check size={11} strokeWidth={3} />}
+                          </div>
+                          <span>{item.subject}</span>
+                          <span
+                            className={`text-xs px-1.5 py-0.5 rounded-md font-medium
+                              ${isChecked
+                                ? "bg-indigo-50 text-indigo-700"
+                                : "bg-gray-100 text-gray-500"
+                              }`}
+                          >
+                            {item.score}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Comparison Insight Box (เมื่อเลือกหัวข้อ จะสรุปว่าอันไหนเยอะสุด/คะแนนเป็นยังไง) */}
+                {sortedSelectedTopics.length > 0 && (
+                  <div className="bg-indigo-50/50 rounded-2xl border border-indigo-100 p-4 mb-4 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+                      <span className="font-medium text-gray-700">
+                        เปรียบเทียบใน <b className="text-indigo-600 font-medium">{sortedSelectedTopics.length}</b> หัวข้อที่เลือก:
                       </span>
-                    )}
+                      {highestTopic && (
+                        <span className="inline-flex items-center gap-1 text-teal-800 bg-teal-100/70 px-2.5 py-0.5 rounded-full font-medium text-xs">
+                          🥇 คะแนนสูงสุด: <b>{highestTopic.subject}</b> ({highestTopic.score} คะแนน)
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Progress bars for each selected topic sorted highest to lowest */}
+                    <div className="space-y-2 pt-1">
+                      {sortedSelectedTopics.map((topic, index) => {
+                        const isHighest = index === 0 && sortedSelectedTopics.length > 1;
+                        const isLowest = index === sortedSelectedTopics.length - 1 && sortedSelectedTopics.length > 1;
+                        return (
+                          <div key={topic.subject} className="bg-white/80 rounded-xl p-2.5 border border-indigo-100/80">
+                            <div className="flex justify-between items-center text-xs sm:text-sm font-medium mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[11px] text-gray-600 font-medium shrink-0">
+                                  {index + 1}
+                                </span>
+                                <span className="text-gray-800">{topic.subject}</span>
+                                {isHighest && (
+                                  <span className="text-[10px] bg-teal-50 text-teal-700 border border-teal-200 px-1.5 py-0.2 rounded font-medium">
+                                    เยอะสุด
+                                  </span>
+                                )}
+                                {isLowest && (
+                                  <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-medium">
+                                    น้อยสุด
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-gray-800 font-medium">
+                                {topic.score} / 100
+                              </span>
+                            </div>
+                            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                              <div
+                                className={`h-2 rounded-full transition-all duration-500 ${
+                                  isHighest ? "bg-teal-500" : isLowest ? "bg-amber-500" : "bg-indigo-500"
+                                }`}
+                                style={{ width: `${Math.min(topic.score, 100)}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
@@ -581,52 +671,65 @@ const PharmacistDashboard = () => {
                     <Sparkles className="w-8 h-8 text-gray-300 mb-2" />
                     ยังไม่มีข้อมูลเพียงพอสำหรับแสดงผลกราฟ
                   </div>
+                ) : selectedSubjects.length === 0 ? (
+                  <div className="h-[320px] flex flex-col items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center">
+                    <Sparkles className="w-8 h-8 text-indigo-400 mb-2" />
+                    <p className="font-medium text-gray-700">กรุณาติ๊กเลือกหัวข้อด้านบน</p>
+                    <p className="text-xs text-gray-400 mt-1">เลือกอย่างน้อย 3 หัวข้อขึ้นไปเพื่อดูรูปทรงกราฟเรดาร์</p>
+                  </div>
                 ) : (
-                  <div className="w-full h-[360px] bg-gray-50/40 rounded-2xl p-2 border border-gray-100">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <RadarChart data={filteredRadarData}>
-                        <PolarGrid stroke="#E5E7EB" />
-                        <PolarAngleAxis
-                          dataKey="subject"
-                          tick={{ fontSize: 12, fill: "#4B5563", fontWeight: 500 }}
-                        />
-                        <PolarRadiusAxis
-                          angle={90}
-                          domain={[0, 100]}
-                          tick={{ fontSize: 11, fill: "#9CA3AF" }}
-                        />
-                        <Radar
-                          name="คะแนนของคุณ"
-                          dataKey="score"
-                          stroke={radarFilterMode === "weaknesses" ? "#D97706" : radarFilterMode === "strengths" ? "#0D9488" : "#4F46E5"}
-                          fill={radarFilterMode === "weaknesses" ? "#F59E0B" : radarFilterMode === "strengths" ? "#14B8A6" : "#6366F1"}
-                          fillOpacity={0.35}
-                          strokeWidth={2.5}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            borderRadius: "14px",
-                            border: "1px solid #E5E7EB",
-                            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
-                            fontSize: "13px",
-                            fontWeight: 500,
-                          }}
-                          formatter={(val: any) => [`${val} คะแนน`, "คะแนนที่ได้"]}
-                        />
-                        <Legend
-                          wrapperStyle={{
-                            fontSize: "13px",
-                            fontWeight: 500,
-                            paddingTop: "10px",
-                          }}
-                        />
-                      </RadarChart>
-                    </ResponsiveContainer>
+                  <div className="w-full bg-gray-50/40 rounded-2xl p-3 border border-gray-100">
+                    {selectedSubjects.length < 3 && (
+                      <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-1.5 mb-2 text-center font-medium">
+                        💡 ติ๊กเลือกตั้งแต่ 3 หัวข้อขึ้นไปเพื่อสร้างรูปกราฟเรดาร์หลายเหลี่ยม (ขณะนี้เลือก {selectedSubjects.length} หัวข้อ)
+                      </p>
+                    )}
+                    <div className="w-full h-[340px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RadarChart data={filteredRadarData}>
+                          <PolarGrid stroke="#E5E7EB" />
+                          <PolarAngleAxis
+                            dataKey="subject"
+                            tick={{ fontSize: 12, fill: "#4B5563", fontWeight: 500 }}
+                          />
+                          <PolarRadiusAxis
+                            angle={90}
+                            domain={[0, 100]}
+                            tick={{ fontSize: 11, fill: "#9CA3AF" }}
+                          />
+                          <Radar
+                            name="คะแนนของคุณ"
+                            dataKey="score"
+                            stroke="#4F46E5"
+                            fill="#6366F1"
+                            fillOpacity={0.35}
+                            strokeWidth={2.5}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              borderRadius: "14px",
+                              border: "1px solid #E5E7EB",
+                              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                              fontSize: "13px",
+                              fontWeight: 500,
+                            }}
+                            formatter={(val: any) => [`${val} คะแนน`, "คะแนนที่ได้"]}
+                          />
+                          <Legend
+                            wrapperStyle={{
+                              fontSize: "13px",
+                              fontWeight: 500,
+                              paddingTop: "10px",
+                            }}
+                          />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Weak Topics List Section */}
+              {/* Weak Topics List Section (Clean layout without scrollbars) */}
               <div className="lg:border-l lg:border-gray-200 lg:pl-8 flex flex-col justify-start">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shadow-2xs">
@@ -646,15 +749,15 @@ const PharmacistDashboard = () => {
                       <Skeleton key={i} className="h-24 w-full" />
                     ))}
                   </div>
-                ) : (data?.weak_topics?.length ?? 0) === 0 ? (
+                ) : weakTopicsList.length === 0 ? (
                   <div className="text-gray-400 text-sm text-center py-16 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center">
                     <CheckCircle2 className="w-10 h-10 text-teal-500 mb-2" />
                     <p className="font-medium text-gray-600">ยินดีด้วย! คุณทำผลงานได้ดีเยี่ยม</p>
                     <p className="text-xs text-gray-400 mt-0.5">ยังไม่มีหัวข้อที่ต้องเร่งทบทวนเพิ่มเติมในขณะนี้</p>
                   </div>
                 ) : (
-                  <div className="space-y-3.5 max-h-[440px] overflow-y-auto pr-1 custom-scrollbar">
-                    {data!.weak_topics.map((topic, index) => {
+                  <div className="space-y-3.5">
+                    {displayedWeakTopics.map((topic, index) => {
                       const style =
                         priorityStyles[
                           topic.priority as keyof typeof priorityStyles
@@ -700,6 +803,25 @@ const PharmacistDashboard = () => {
                         </div>
                       );
                     })}
+
+                    {/* Toggle show all weak topics button */}
+                    {weakTopicsList.length > 4 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllWeak(!showAllWeak)}
+                        className="w-full py-2.5 px-4 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-600 font-medium text-xs sm:text-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                      >
+                        {showAllWeak ? (
+                          <>
+                            <ChevronUp size={16} /> แสดงน้อยลง
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown size={16} /> ดูหัวข้อที่ควรทบทวนทั้งหมดอีก {weakTopicsList.length - 4} รายการ
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
