@@ -38,7 +38,7 @@ function ChatDetailPage() {
 
             if (response.ok) {
                 const data: ChatMessage[] = await response.json();
-                // Backend ส่งมาเป็น DESC (ล่าสุดขึ้นก่อน) แต่แชทต้องอ่านจากเก่าไปใหม่
+                // Backend ส่งมาเป็น DESC (ล่าสุดขึ้นก่อน) แต่แชตต้องอ่านจากเก่าไปใหม่
                 setMessages(data.reverse());
             } else {
                 setError("ไม่สามารถโหลดบทสนทนาได้");
@@ -55,13 +55,13 @@ function ChatDetailPage() {
     const formatDateTime = (dateString: string) => {
         if (!dateString) return { date: "", time: "" };
         const dateObj = new Date(dateString);
-        
+
         const date = dateObj.toLocaleDateString('th-TH', {
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         });
-        
+
         const time = dateObj.toLocaleTimeString('th-TH', {
             hour: '2-digit',
             minute: '2-digit'
@@ -109,7 +109,7 @@ function ChatDetailPage() {
 
     return (
         <Navbar_admin>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            <div className="max-w-7xl mx-auto w-full space-y-6">
                 <Link
                     href="/admin/chatlog"
                     className="inline-flex items-center gap-2 text-green-600 hover:text-green-700 mb-6 transition-colors"
@@ -120,7 +120,7 @@ function ChatDetailPage() {
 
                 {/* Chat Log Container */}
                 <div className="bg-white rounded-xl border border-gray-200 p-6 sm:p-8 min-h-[500px] flex flex-col">
-                    
+
                     {/* Header Date */}
                     {headerDate && (
                         <div className="text-center mb-6">
@@ -133,7 +133,7 @@ function ChatDetailPage() {
                     {/* Chat Messages Area */}
                     <div className="flex flex-col space-y-6 flex-grow">
                         {messages.length === 0 ? (
-                             <p className="text-center text-gray-400 my-auto">ไม่มีข้อความในบทสนทนานี้</p>
+                            <p className="text-center text-gray-400 my-auto">ไม่มีข้อความในบทสนทนานี้</p>
                         ) : (
                             messages.map((message) => {
                                 const { time } = formatDateTime(message.sent_at);
@@ -141,21 +141,20 @@ function ChatDetailPage() {
 
                                 return (
                                     <div key={message.message_id} className={`flex w-full ${isUser ? 'justify-end' : 'justify-start'}`}>
-                                        
+
                                         {/* Avatar for Bot (Left side only) */}
                                         {!isUser && (
                                             <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex items-center justify-center mr-3 mt-1">
-                                                 <Bot className="w-5 h-5 text-blue-600" />
+                                                <Bot className="w-5 h-5 text-blue-600" />
                                             </div>
                                         )}
 
                                         <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-[85%] sm:max-w-[75%]`}>
-                                            <div 
-                                                className={`px-4 py-3 rounded-2xl shadow-sm text-sm break-words whitespace-pre-wrap ${
-                                                    isUser 
-                                                        ? 'bg-green-50 text-gray-900 border border-green-200 rounded-tr-sm' 
+                                            <div
+                                                className={`px-4 py-3 rounded-2xl shadow-sm text-sm break-words whitespace-pre-wrap ${isUser
+                                                        ? 'bg-green-50 text-gray-900 border border-green-200 rounded-tr-sm'
                                                         : 'bg-white text-gray-900 border border-gray-200 rounded-tl-sm'
-                                                }`}
+                                                    }`}
                                             >
                                                 {message.message_text}
                                             </div>
