@@ -195,6 +195,7 @@ const PharmacistDashboard = () => {
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [showAllWeak, setShowAllWeak] = useState(false);
+  const [showComparisonSummary, setShowComparisonSummary] = useState(true);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -621,61 +622,80 @@ const PharmacistDashboard = () => {
                   </div>
                 )}
 
-                {/* Comparison Insight Box (เปรียบเทียบในหัวข้อที่เลือก อันไหนเยอะ/น้อยสุด) */}
+                {/* Comparison Insight Box (เปรียบเทียบในหัวข้อที่เลือก อันไหนเยอะ/น้อยสุด - ซ่อน/แสดงได้) */}
                 {sortedSelectedTopics.length > 0 && (
-                  <div className="bg-indigo-50/40 rounded-2xl border border-indigo-100 p-4 mt-4 space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
-                      <span className="font-medium text-gray-700">
-                        สรุปเปรียบเทียบ <span className="text-indigo-600 font-medium">{sortedSelectedTopics.length}</span> หัวข้อที่เลือก:
-                      </span>
-                      {highestTopic && (
-                        <span className="inline-flex items-center gap-1.5 text-teal-800 bg-teal-100/70 px-2.5 py-0.5 rounded-full font-medium text-xs">
-                          <Trophy className="w-3.5 h-3.5 text-teal-600" />
-                          สูงสุด: {highestTopic.subject} ({highestTopic.score} คะแนน)
+                  <div className="bg-indigo-50/40 rounded-2xl border border-indigo-100 p-4 mt-4 transition-all">
+                    <div
+                      onClick={() => setShowComparisonSummary(!showComparisonSummary)}
+                      className="flex items-center justify-between gap-2 cursor-pointer select-none"
+                    >
+                      <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
+                        <span className="font-medium text-gray-700">
+                          สรุปเปรียบเทียบ <span className="text-indigo-600 font-medium">{sortedSelectedTopics.length}</span> หัวข้อที่เลือก:
                         </span>
-                      )}
+                        {highestTopic && (
+                          <span className="inline-flex items-center gap-1.5 text-teal-800 bg-teal-100/70 px-2.5 py-0.5 rounded-full font-medium text-xs">
+                            <Trophy className="w-3.5 h-3.5 text-teal-600" />
+                            สูงสุด: {highestTopic.subject} ({highestTopic.score} คะแนน)
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        className="flex items-center gap-1 text-xs text-indigo-600 font-medium hover:text-indigo-800 transition shrink-0 p-1 cursor-pointer"
+                      >
+                        <span>{showComparisonSummary ? "ซ่อน" : "แสดงรายละเอียด"}</span>
+                        <ChevronUp
+                          className={`w-4 h-4 transition-transform duration-200 ${
+                            !showComparisonSummary ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
                     </div>
 
                     {/* Progress bars for each selected topic sorted highest to lowest */}
-                    <div className="space-y-2 pt-1">
-                      {sortedSelectedTopics.map((topic, index) => {
-                        const isHighest = index === 0 && sortedSelectedTopics.length > 1;
-                        const isLowest = index === sortedSelectedTopics.length - 1 && sortedSelectedTopics.length > 1;
-                        return (
-                          <div key={topic.subject} className="bg-white/90 rounded-xl p-2.5 border border-indigo-100/80">
-                            <div className="flex justify-between items-center text-xs sm:text-sm font-medium mb-1">
-                              <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[11px] text-gray-600 font-medium shrink-0">
-                                  {index + 1}
+                    {showComparisonSummary && (
+                      <div className="space-y-2 pt-3 border-t border-indigo-100/60 mt-3 animate-in fade-in duration-200">
+                        {sortedSelectedTopics.map((topic, index) => {
+                          const isHighest = index === 0 && sortedSelectedTopics.length > 1;
+                          const isLowest = index === sortedSelectedTopics.length - 1 && sortedSelectedTopics.length > 1;
+                          return (
+                            <div key={topic.subject} className="bg-white/90 rounded-xl p-2.5 border border-indigo-100/80">
+                              <div className="flex justify-between items-center text-xs sm:text-sm font-medium mb-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[11px] text-gray-600 font-medium shrink-0">
+                                    {index + 1}
+                                  </span>
+                                  <span className="text-gray-800">{topic.subject}</span>
+                                  {isHighest && (
+                                    <span className="text-[10px] bg-teal-50 text-teal-700 border border-teal-200 px-1.5 py-0.2 rounded font-medium">
+                                      เยอะสุด
+                                    </span>
+                                  )}
+                                  {isLowest && (
+                                    <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-medium">
+                                      น้อยสุด
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-gray-800 font-medium">
+                                  {topic.score} / 100
                                 </span>
-                                <span className="text-gray-800">{topic.subject}</span>
-                                {isHighest && (
-                                  <span className="text-[10px] bg-teal-50 text-teal-700 border border-teal-200 px-1.5 py-0.2 rounded font-medium">
-                                    เยอะสุด
-                                  </span>
-                                )}
-                                {isLowest && (
-                                  <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-medium">
-                                    น้อยสุด
-                                  </span>
-                                )}
                               </div>
-                              <span className="text-gray-800 font-medium">
-                                {topic.score} / 100
-                              </span>
+                              <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                                <div
+                                  className={`h-2 rounded-full transition-all duration-500 ${
+                                    isHighest ? "bg-teal-500" : isLowest ? "bg-amber-500" : "bg-indigo-500"
+                                  }`}
+                                  style={{ width: `${Math.min(topic.score, 100)}%` }}
+                                />
+                              </div>
                             </div>
-                            <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                              <div
-                                className={`h-2 rounded-full transition-all duration-500 ${
-                                  isHighest ? "bg-teal-500" : isLowest ? "bg-amber-500" : "bg-indigo-500"
-                                }`}
-                                style={{ width: `${Math.min(topic.score, 100)}%` }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
