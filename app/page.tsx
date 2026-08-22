@@ -275,10 +275,66 @@ const CountdownHero = ({
   );
 };
 
+// Countdown Hero Skeleton Component
+const CountdownHeroSkeleton = () => {
+  return (
+    <div className="mb-12">
+      <div className="bg-white rounded-3xl shadow-lg border border-blue-100 overflow-hidden animate-pulse">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
+          {/* Left Skeleton */}
+          <div className="lg:col-span-2 p-8 md:p-12 bg-gradient-to-br from-blue-50/60 to-white">
+            <div className="flex items-center justify-between gap-3 mb-6">
+              <div className="h-8 w-44 bg-blue-200/60 rounded-full" />
+              <div className="h-8 w-28 bg-gray-200 rounded-lg" />
+            </div>
+            <div className="h-9 w-3/4 bg-blue-200/60 rounded-xl mb-4" />
+            <div className="h-5 w-48 bg-gray-200 rounded-lg mb-8" />
+
+            <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-5 mb-8">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="flex flex-col items-center">
+                  <div className="w-full sm:w-28 h-24 sm:h-28 rounded-2xl bg-blue-200/50" />
+                  <div className="h-3 w-10 bg-gray-200 rounded mt-2" />
+                </div>
+              ))}
+            </div>
+            <div className="h-14 w-full max-w-xl bg-blue-100/50 rounded-xl" />
+          </div>
+
+          {/* Right Skeleton */}
+          <div className="lg:col-span-1 bg-gray-50 p-6 border-l border-gray-200 space-y-3">
+            <div className="h-6 w-36 bg-gray-200 rounded mb-2" />
+            <div className="h-4 w-28 bg-gray-200 rounded mb-4" />
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-16 bg-white rounded-xl border border-gray-200"
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const calculateTimeLeft = (targetStamp: number | null) => {
+  if (!targetStamp) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  const distance = targetStamp - Date.now();
+  if (distance <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  return {
+    days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+    minutes: Math.floor((distance % (1000 * 60)) / (1000 * 60)),
+    seconds: Math.floor((distance % (1000 * 60)) / 1000),
+  };
+};
+
 const Page = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const { requireLogin } = useRequireLogin();
+  const [loadingSchedule, setLoadingSchedule] = useState(true);
   const [targetDate, setTargetDate] = useState<number | null>(null);
   const [targetTitle, setTargetTitle] = useState<string>("");
   const [targetDesc, setTargetDesc] = useState<string>("");
@@ -308,12 +364,15 @@ const Page = () => {
   };
 
   const fetchData = useCallback(async () => {
+    setLoadingSchedule(true);
     try {
       const now = Date.now();
       const resSched = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/schedules`,
       );
       const todayStr = new Date().toDateString();
+
+      let calculatedTarget: number | null = null;
 
       if (resSched.ok) {
         const data = await resSched.json();
@@ -344,6 +403,7 @@ const Page = () => {
         );
 
         if (ongoingExam) {
+          calculatedTarget = ongoingExam.endStamp;
           setTargetDate(ongoingExam.endStamp);
           setTargetTitle(ongoingExam.title);
           setTargetDesc(
@@ -366,6 +426,7 @@ const Page = () => {
                 new Date(exam.targetStamp).toDateString() === todayStr,
             );
 
+            calculatedTarget = examToday.targetStamp;
             setTargetDate(examToday.targetStamp);
             setTargetTitle(examToday.title);
             setTargetDesc(
@@ -396,6 +457,7 @@ const Page = () => {
                   firstExamDateStr,
               );
 
+              calculatedTarget = firstExam.targetStamp;
               setTargetDate(firstExam.targetStamp);
               setTargetTitle(firstExam.title);
               setTargetDesc(
@@ -410,9 +472,19 @@ const Page = () => {
                   new Date(e.targetStamp).toDateString() !== firstExamDateStr,
               );
               setUpcomingExams(remaining.slice(0, 4));
+            } else {
+              setTargetDate(null);
+              setTargetTitle("");
+              setTargetDesc("");
+              setTodayExams([]);
+              setUpcomingExams([]);
             }
           }
         }
+      }
+
+      if (calculatedTarget) {
+        setTimeLeft(calculateTimeLeft(calculatedTarget));
       }
 
       setLoadingNews(true);
@@ -426,6 +498,7 @@ const Page = () => {
     } catch (error) {
       console.error("Fetch Error:", error);
     } finally {
+      setLoadingSchedule(false);
       setLoadingNews(false);
     }
   }, []);
@@ -453,6 +526,7 @@ const Page = () => {
               nextExam.description ||
                 "เตรียมตัวให้พร้อมสำหรับการสอบที่กำลังจะมาถึง",
             );
+            setTimeLeft(calculateTimeLeft(nextExam.targetStamp));
             setUpcomingExams((prev) => prev.slice(1));
           } else {
             fetchData();
@@ -519,15 +593,19 @@ const Page = () => {
       <div className="bg-gray-50 min-h-screen py-8 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           {/* ── Countdown Hero ── */}
-          <CountdownHero
-            targetDate={targetDate}
-            targetTitle={targetTitle}
-            targetDesc={targetDesc}
-            timeLeft={timeLeft}
-            isExamStarted={isExamStarted}
-            upcomingExams={upcomingExams}
-            todayExams={todayExams}
-          />
+          {loadingSchedule ? (
+            <CountdownHeroSkeleton />
+          ) : (
+            <CountdownHero
+              targetDate={targetDate}
+              targetTitle={targetTitle}
+              targetDesc={targetDesc}
+              timeLeft={timeLeft}
+              isExamStarted={isExamStarted}
+              upcomingExams={upcomingExams}
+              todayExams={todayExams}
+            />
+          )}
 
           {/* ── Feature cards (ต้อง login) ── */}
           <div className="mb-12">
