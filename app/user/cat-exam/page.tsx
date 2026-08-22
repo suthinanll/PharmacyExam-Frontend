@@ -36,21 +36,38 @@ interface AbilityInfo {
 }
 
 // ==================== HELPERS ====================
-function InfoTooltip({ text }: { text: string }) {
+function InfoTooltip({ text, position = "top" }: { text: string; position?: "top" | "bottom" }) {
     const [show, setShow] = useState(false);
     return (
-        <div className="relative inline-block mt-1">
+        <div
+            className="relative inline-flex items-center"
+            onClick={(e) => e.stopPropagation()}
+        >
             <span
                 onMouseEnter={() => setShow(true)}
                 onMouseLeave={() => setShow(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors cursor-help inline-flex items-center"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setShow((prev) => !prev);
+                }}
+                className="text-gray-400 hover:text-green-600 transition-colors cursor-help inline-flex items-center p-0.5 rounded-full hover:bg-gray-100"
             >
                 <Info className="w-4 h-4" />
             </span>
             {show && (
-                <div className="absolute z-20 left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 bg-gray-800 text-white text-xs rounded-lg px-3 py-2 shadow-xl leading-relaxed">
+                <div
+                    className={`absolute z-50 left-1/2 -translate-x-1/2 ${
+                        position === "bottom" ? "top-full mt-2" : "bottom-full mb-2"
+                    } w-64 bg-white text-gray-600 border border-gray-200 text-sm font-normal rounded-xl p-3 shadow-lg leading-relaxed pointer-events-none transition-all duration-150`}
+                >
                     {text}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+                    <div
+                        className={`absolute left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-white border-gray-200 ${
+                            position === "bottom"
+                                ? "-top-1.5 border-t border-l rotate-45"
+                                : "-bottom-1.5 border-b border-r rotate-45"
+                        }`}
+                    />
                 </div>
             )}
         </div>
@@ -193,306 +210,310 @@ export default function CATSetupPage() {
         <div className="min-h-screen bg-gray-50 text-slate-900">
             <Navbar_user />
 
-            <div className="max-w-5xl mx-auto px-4 py-8">
-                {/* Breadcrumb */}
-                <div className="flex items-center text-sm text-gray-500 mb-6">
-                    <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
-                    <span className="mx-2">›</span>
-                    <span className="text-gray-700 font-medium">สอบแบบปรับตัว (CAT)</span>
-                </div>
-
-                {/* Page Header */}
-                <div className="mb-8">
-                    <div className="flex items-start justify-between gap-4">
-                        <div>
-                            <h1 className="text-3xl font-medium text-gray-900 mb-2">การสอบแบบปรับตัวด้วยคอมพิวเตอร์ (CAT)</h1>
-                            <p className="text-gray-500 text-base leading-relaxed max-w-xl">
-                                ระบบจะเลือกข้อสอบที่เหมาะกับระดับของคุณแบบเรียลไทม์ ปรับแต่งพารามิเตอร์ตามต้องการแล้วกด <strong className="text-gray-700">เริ่มการทดสอบ</strong>
-                            </p>
-                        </div>
-                        <Link
-                            href="/user/cat-exam/info"
-                            className="shrink-0 flex items-center gap-2 text-sm text-green-700 hover:text-green-800 bg-green-50 hover:bg-green-100 border border-green-200 px-4 py-2 rounded-lg transition-colors font-medium"
-                        >
-                            <BookOpen className="w-4 h-4" />
-                            CAT คืออะไร?
-                        </Link>
+            <div className="p-4 md:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto">
+                    {/* Breadcrumb */}
+                    <div className="flex items-center text-sm text-gray-500 mb-5">
+                        <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+                        <span className="mx-2">›</span>
+                        <span className="text-gray-600 font-medium">สอบแบบปรับตัว (CAT)</span>
                     </div>
-                </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* ─── Left Column: Settings ─── */}
-                    <div className="lg:col-span-2 space-y-5">
-
-                        {/* 1. Starting Ability */}
-                        <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                            <div className="flex items-center gap-2 mb-1">
-                                <BrainCircuit className="w-5 h-5 text-amber-500" />
-                                <h2 className="text-base font-medium text-gray-800">ระดับความสามารถเริ่มต้น</h2>
-                                <InfoTooltip text="ระบบ CAT จะเริ่มส่งข้อสอบที่ระดับความยากนี้ก่อน แล้วปรับขึ้นหรือลงตามคำตอบของคุณโดยอัตโนมัติ" />
+                    {/* Page Header */}
+                    <div className="mb-8">
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <h1 className="text-3xl font-medium text-gray-900 mb-2">การสอบแบบปรับตัวด้วยคอมพิวเตอร์ (CAT)</h1>
+                                <p className="text-gray-500 text-base">
+                                    ระบบจะเลือกข้อสอบที่เหมาะกับระดับของคุณแบบเรียลไทม์ปรับการตั้งค่าแล้ว <strong className="text-gray-600">เริ่มการทดสอบ</strong>
+                                </p>
                             </div>
-                            <p className="text-sm text-gray-400 mb-5 ml-7">กำหนดจุดเริ่มต้นของการประเมิน — ระบบจะปรับระดับเองตลอดการสอบ</p>
+                            <Link
+                                href="/user/cat-exam/info"
+                                className="inline-flex items-center justify-center px-4 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-medium text-sm gap-2 shadow cursor-pointer"
+                            >
+                                <BookOpen className="w-4 h-4" />
+                                CAT คืออะไร?
+                            </Link>
+                        </div>
+                    </div>
 
-                            <div className="space-y-3 ml-7">
-                                {/* Option A: Use history */}
-                                {abilityInfo?.has_history && abilityMeta && (
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* ─── Left Column: Settings ─── */}
+                        <div className="lg:col-span-2 space-y-5">
+
+                            {/* 1. Starting Ability */}
+                            <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <BrainCircuit className="w-5 h-5 text-amber-500" />
+                                    <h2 className="text-base font-medium text-gray-800">ระดับความสามารถเริ่มต้น</h2>
+                                    <InfoTooltip text="ระบบ CAT จะเริ่มส่งข้อสอบที่ระดับความยากนี้ก่อน แล้วปรับขึ้นหรือลงตามคำตอบของคุณโดยอัตโนมัติ" />
+                                </div>
+                                <p className="text-sm text-gray-400 mb-5 ml-7">กำหนดจุดเริ่มต้นของการประเมิน — ระบบจะปรับระดับเองตลอดการสอบ</p>
+
+                                <div className="space-y-3 ml-7">
+                                    {/* Option A: Use history */}
+                                    {abilityInfo?.has_history && abilityMeta && (
+                                        <label
+                                            className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${useAbility
+                                                ? 'border-green-500 bg-green-50'
+                                                : 'border-gray-200 hover:border-gray-300 bg-white'}`}
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="abilityMode"
+                                                checked={useAbility}
+                                                onChange={() => setUseAbility(true)}
+                                                className="w-4 h-4 accent-green-600"
+                                            />
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-0.5">
+                                                    <History className="w-4 h-4 text-green-600" />
+                                                    <span className="text-sm font-medium text-gray-800">ใช้ระดับจากประวัติการสอบ</span>
+                                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full  bg-green-100 text-green-700">แนะนำ</span>
+                                                </div>
+                                                <p className="text-sm text-gray-500">
+                                                    ระดับปัจจุบันของคุณ:{' '}
+                                                    <strong className="text-gray-700">{abilityInfo.theta.toFixed(2)}</strong>
+                                                </p>
+                                            </div>
+                                            {useAbility && <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />}
+                                        </label>
+                                    )}
+
+                                    {/* Option B: Manual */}
                                     <label
-                                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${useAbility
+                                        className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${!useAbility
                                             ? 'border-green-500 bg-green-50'
                                             : 'border-gray-200 hover:border-gray-300 bg-white'}`}
                                     >
                                         <input
                                             type="radio"
                                             name="abilityMode"
-                                            checked={useAbility}
-                                            onChange={() => setUseAbility(true)}
+                                            checked={!useAbility}
+                                            onChange={() => setUseAbility(false)}
                                             className="w-4 h-4 accent-green-600"
                                         />
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-0.5">
-                                                <History className="w-4 h-4 text-green-600" />
-                                                <span className="text-sm font-medium text-gray-800">ใช้ระดับจากประวัติการสอบ</span>
-                                                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full uppercase tracking-wide bg-green-100 text-green-700">แนะนำ</span>
+                                                <BarChart3 className="w-4 h-4 text-amber-500" />
+                                                <span className="text-sm font-medium text-gray-800">กำหนดระดับเอง</span>
                                             </div>
-                                            <p className="text-sm text-gray-500">
-                                                ระดับปัจจุบันของคุณ:{' '}
-                                                <strong className="text-gray-700">{abilityInfo.theta.toFixed(2)}</strong>
-                                            </p>
+                                            <p className="text-sm text-gray-500">ลาก slider เพื่อกำหนดจุดเริ่มต้น</p>
+
+                                            {!useAbility && (
+                                                <div className="mt-4 space-y-3">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-sm font-medium text-gray-600">{getDifficultyLabel(difficulty)}</span>
+                                                        <span className="text-sm font-medium text-amber-600 bg-amber-50 px-3 py-0.5 rounded-lg border border-amber-100">
+                                                            {difficulty.toFixed(1)}
+                                                        </span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        min="-3"
+                                                        max="3"
+                                                        step="0.1"
+                                                        value={difficulty}
+                                                        onChange={(e) => setDifficulty(parseFloat(e.target.value))}
+                                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                                                    />
+                                                    <div className="flex justify-between text-sm text-gray-600 font-medium">
+                                                        <span>ง่ายมาก (-3)</span>
+                                                        <span>ปานกลาง (0)</span>
+                                                        <span>ยากมาก (+3)</span>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                        {useAbility && <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />}
+                                        {!useAbility && <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />}
                                     </label>
-                                )}
-
-                                {/* Option B: Manual */}
-                                <label
-                                    className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${!useAbility
-                                        ? 'border-green-500 bg-green-50'
-                                        : 'border-gray-200 hover:border-gray-300 bg-white'}`}
-                                >
-                                    <input
-                                        type="radio"
-                                        name="abilityMode"
-                                        checked={!useAbility}
-                                        onChange={() => setUseAbility(false)}
-                                        className="w-4 h-4 accent-green-600"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-0.5">
-                                            <BarChart3 className="w-4 h-4 text-amber-500" />
-                                            <span className="text-sm font-medium text-gray-800">กำหนดระดับเอง</span>
-                                        </div>
-                                        <p className="text-sm text-gray-500">ลาก slider เพื่อกำหนดจุดเริ่มต้น</p>
-
-                                        {!useAbility && (
-                                            <div className="mt-4 space-y-3">
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-sm font-medium text-gray-600">{getDifficultyLabel(difficulty)}</span>
-                                                    <span className="text-sm font-medium text-amber-600 bg-amber-50 px-3 py-0.5 rounded-lg border border-amber-100">
-                                                        {difficulty.toFixed(1)}
-                                                    </span>
-                                                </div>
-                                                <input
-                                                    type="range"
-                                                    min="-3"
-                                                    max="3"
-                                                    step="0.1"
-                                                    value={difficulty}
-                                                    onChange={(e) => setDifficulty(parseFloat(e.target.value))}
-                                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                                                />
-                                                <div className="flex justify-between text-sm text-gray-600 font-medium">
-                                                    <span>ง่ายมาก (-3)</span>
-                                                    <span>ปานกลาง (0)</span>
-                                                    <span>ยากมาก (+3)</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {!useAbility && <CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" />}
-                                </label>
-                            </div>
-                        </section>
-
-                        {/* 2. Topic Focus */}
-                        <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                            <div className="flex items-center gap-2 mb-1">
-                                <PieChart className="w-5 h-5 text-indigo-500" />
-                                <h2 className="text-base font-medium text-gray-800">เน้นหมวดหมู่ (ไม่บังคับ)</h2>
-                                <InfoTooltip text="เลือกวิชาที่ต้องการฝึกเพิ่มเป็นพิเศษ ระบบจะดึงข้อสอบหมวดนั้นมาให้บ่อยขึ้น โดยไม่ต้องกำหนดเปอร์เซ็นต์เอง หากไม่เลือก ระบบจะสุ่มจากคลังทั้งหมด" />
-                            </div>
-                            <p className="text-sm text-gray-400 mb-5 ml-7">
-                                คลิกวิชาที่ต้องการฝึก — ระบบจะเพิ่มสัดส่วนให้อัตโนมัติ{' '}
-                                {focusedTopics.length > 0 && (
-                                    <span className="text-indigo-600 font-medium">({focusedTopics.length} วิชาที่เลือก)</span>
-                                )}
-                            </p>
-
-                            {topics.length === 0 ? (
-                                <p className="text-sm text-gray-400 text-center py-4">ไม่พบหมวดหมู่</p>
-                            ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 ml-7">
-                                    {topics.map(topic => {
-                                        const isSelected = focusedTopics.includes(topic.topic_id);
-                                        return (
-                                            <button
-                                                key={topic.topic_id}
-                                                type="button"
-                                                onClick={() => handleTopicToggle(topic.topic_id)}
-                                                className={`flex items-center justify-between gap-2 p-3 rounded-lg border-2 text-left transition-all text-sm font-medium group ${isSelected
-                                                    ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                                                    : 'border-gray-200 bg-white text-gray-700 hover:border-indigo-300 hover:bg-indigo-50/50'
-                                                    }`}
-                                            >
-                                                <span className="truncate">{topic.topic_name}</span>
-                                                <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${isSelected ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300'}`}>
-                                                    {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
                                 </div>
-                            )}
+                            </section>
 
-                            {focusedTopics.length > 0 && (
+                            {/* 2. Topic Focus */}
+                            <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <PieChart className="w-5 h-5 text-indigo-500" />
+                                    <h2 className="text-base font-medium text-gray-800">เน้นหมวดหมู่ (ไม่บังคับ)</h2>
+                                    <InfoTooltip text="เลือกวิชาที่ต้องการฝึกเพิ่มเป็นพิเศษ ระบบจะดึงข้อสอบหมวดนั้นมาให้บ่อยขึ้น โดยไม่ต้องกำหนดเปอร์เซ็นต์เอง หากไม่เลือก ระบบจะสุ่มจากคลังทั้งหมด" />
+                                </div>
+                                <p className="text-sm text-gray-400 mb-5 ml-7">
+                                    คลิกวิชาที่ต้องการฝึก — ระบบจะเพิ่มสัดส่วนให้อัตโนมัติ{' '}
+                                    {focusedTopics.length > 0 && (
+                                        <span className="text-indigo-600 font-medium">({focusedTopics.length} วิชาที่เลือก)</span>
+                                    )}
+                                </p>
+
+                                {topics.length === 0 ? (
+                                    <p className="text-sm text-gray-400 text-center py-4">ไม่พบหมวดหมู่</p>
+                                ) : (
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 ml-7">
+                                        {topics.map(topic => {
+                                            const isSelected = focusedTopics.includes(topic.topic_id);
+                                            return (
+                                                <button
+                                                    key={topic.topic_id}
+                                                    type="button"
+                                                    onClick={() => handleTopicToggle(topic.topic_id)}
+                                                    className={`flex items-center justify-between gap-2 p-3 rounded-lg border-2 text-left transition-all text-sm font-medium group ${isSelected
+                                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                                                        : 'border-gray-200 bg-white text-gray-700 hover:border-indigo-300 hover:bg-indigo-50/50'
+                                                        }`}
+                                                >
+                                                    <span className="truncate">{topic.topic_name}</span>
+                                                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${isSelected ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300'}`}>
+                                                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {focusedTopics.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setFocusedTopics([])}
+                                        className="mt-4 ml-7 text-xs text-gray-400 hover:text-red-500 transition-colors underline"
+                                    >
+                                        ล้างการเลือกทั้งหมด
+                                    </button>
+                                )}
+                            </section>
+
+                            {/* 3. Advanced Settings (collapsible) */}
+                            <section className="bg-white rounded-xl shadow-sm border border-gray-200">
                                 <button
                                     type="button"
-                                    onClick={() => setFocusedTopics([])}
-                                    className="mt-4 ml-7 text-xs text-gray-400 hover:text-red-500 transition-colors underline"
+                                    onClick={() => setShowAdvanced(!showAdvanced)}
+                                    className={`w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50/80 transition-colors cursor-pointer ${showAdvanced ? 'rounded-t-xl' : 'rounded-xl'
+                                        }`}
                                 >
-                                    ล้างการเลือกทั้งหมด
-                                </button>
-                            )}
-                        </section>
-
-                        {/* 3. Advanced Settings (collapsible) */}
-                        <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <button
-                                type="button"
-                                onClick={() => setShowAdvanced(!showAdvanced)}
-                                className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-gray-50 transition-colors"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <Target className="w-5 h-5 text-gray-400" />
-                                    <span className="text-base font-medium text-gray-800">การตั้งค่าขั้นสูง</span>
-                                    <InfoTooltip text="ปรับจำนวนข้อสอบขั้นต่ำและสูงสุด สำหรับผู้ใช้ที่ต้องการควบคุมความยาวของการสอบ" />
-                                </div>
-                                {showAdvanced ? (
-                                    <ChevronUp className="w-4 h-4 text-gray-400" />
-                                ) : (
-                                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                                )}
-                            </button>
-
-                            {showAdvanced && (
-                                <div className="px-6 pb-6 border-t border-gray-100 pt-5 space-y-5">
-                                    {/* Min Items — preset cards */}
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <label className="text-sm font-medium text-gray-700">จำนวนข้อขั้นต่ำ</label>
-                                            <InfoTooltip text="ระบบจะสอบอย่างน้อยกี่ข้อก่อนจะพิจารณาหยุด (ค่าแนะนำ: 20)" />
-                                        </div>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {[10, 15, 20, 25].map(val => (
-                                                <button
-                                                    key={val}
-                                                    type="button"
-                                                    onClick={() => setMinItems(val)}
-                                                    className={`py-2 rounded-lg border-2 text-sm font-medium transition-all ${
-                                                        minItems === val
-                                                            ? 'border-green-500 bg-green-50 text-green-700'
-                                                            : 'border-gray-200 text-gray-600 hover:border-green-300'
-                                                    }`}
-                                                >
-                                                    {val} ข้อ
-                                                </button>
-                                            ))}
-                                        </div>
+                                    <div className="flex items-center gap-2">
+                                        <Target className="w-5 h-5 text-gray-400" />
+                                        <span className="text-base font-medium text-gray-800">การตั้งค่าขั้นสูง</span>
+                                        <InfoTooltip
+                                            text="ปรับจำนวนข้อสอบขั้นต่ำและสูงสุด สำหรับผู้ใช้ที่ต้องการควบคุมความยาวของการสอบ"
+                                            position="bottom"
+                                        />
                                     </div>
-
-                                    {/* Max Items — preset cards */}
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <label className="text-sm font-medium text-gray-700">จำนวนข้อสูงสุด</label>
-                                            <InfoTooltip text="ระบบจะหยุดสอบอัตโนมัติเมื่อถึงจำนวนนี้ ไม่ว่าความแม่นยำจะถึงเกณฑ์หรือยัง (ค่าแนะนำ: 60)" />
-                                        </div>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {[40, 50, 60, 80].map(val => (
-                                                <button
-                                                    key={val}
-                                                    type="button"
-                                                    onClick={() => setMaxItems(val)}
-                                                    className={`py-2 rounded-lg border-2 text-sm font-medium transition-all ${
-                                                        maxItems === val
-                                                            ? 'border-green-500 bg-green-50 text-green-700'
-                                                            : 'border-gray-200 text-gray-600 hover:border-green-300'
-                                                    }`}
-                                                >
-                                                    {val} ข้อ
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </section>
-                    </div>
-
-                    {/* ─── Right Column: Summary + Start ─── */}
-                    <div className="lg:col-span-1">
-                        <div className="sticky top-20 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="bg-gray-50 border-b border-gray-200 px-5 py-4">
-                                <h3 className="text-sm font-medium text-gray-700">สรุปการตั้งค่า</h3>
-                            </div>
-
-                            <div className="p-5 space-y-3 text-sm">
-                                {/* Ability row */}
-                                <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                                    <span className="text-gray-500">ระดับเริ่มต้น</span>
-                                    <span className="font-medium text-gray-800">
-                                        {useAbility && abilityInfo
-                                            ? `${abilityInfo.theta.toFixed(2)} (ประวัติ)`
-                                            : `${difficulty.toFixed(1)} (กำหนดเอง)`}
-                                    </span>
-                                </div>
-                                {/* Min */}
-                                <div className="flex items-center justify-between py-2 border-b border-gray-100">
-                                    <span className="text-gray-500">จำนวนข้อ (ต่ำ-สูง)</span>
-                                    <span className="font-medium text-gray-800">{minItems} – {maxItems} ข้อ</span>
-                                </div>
-
-                                {/* Topics */}
-                                <div className="flex items-center justify-between py-2">
-                                    <span className="text-gray-500">หมวดที่เน้น</span>
-                                    <span className="font-medium text-gray-800">
-                                        {focusedTopics.length === 0 ? 'ทั้งหมด' : `${focusedTopics.length} วิชา`}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="px-5 pb-5 space-y-3">
-                                {/* Info box */}
-                                <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 text-sm text-blue-700 flex gap-2 items-start">
-                                    <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                                    <span>ระบบจะหยุดสอบโดยอัตโนมัติเมื่อประเมินความสามารถของคุณได้แม่นยำเพียงพอแล้ว</span>
-                                </div>
-
-                                {/* Start button */}
-                                <button
-                                    onClick={startExam}
-                                    disabled={starting}
-                                    className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
-                                >
-                                    {starting ? (
-                                        <>
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                            กำลังเริ่ม...
-                                        </>
+                                    {showAdvanced ? (
+                                        <ChevronUp className="w-4 h-4 text-gray-400" />
                                     ) : (
-                                        <>
-                                            เริ่มการทดสอบ
-                                        </>
+                                        <ChevronDown className="w-4 h-4 text-gray-400" />
                                     )}
                                 </button>
+
+                                {showAdvanced && (
+                                    <div className="px-6 pb-6 border-t border-gray-100 pt-5 space-y-5">
+                                        {/* Min Items — preset cards */}
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <label className="text-sm font-medium text-gray-700">จำนวนข้อขั้นต่ำ</label>
+                                                <InfoTooltip text="ระบบจะสอบอย่างน้อยกี่ข้อก่อนจะพิจารณาหยุด (ค่าแนะนำ: 20)" />
+                                            </div>
+                                            <div className="grid grid-cols-4 gap-2">
+                                                {[10, 15, 20, 25].map(val => (
+                                                    <button
+                                                        key={val}
+                                                        type="button"
+                                                        onClick={() => setMinItems(val)}
+                                                        className={`py-2 rounded-lg border-2 text-sm font-medium transition-all ${minItems === val
+                                                            ? 'border-green-500 bg-green-50 text-green-700'
+                                                            : 'border-gray-200 text-gray-600 hover:border-green-300'
+                                                            }`}
+                                                    >
+                                                        {val} ข้อ
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Max Items — preset cards */}
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <label className="text-sm font-medium text-gray-700">จำนวนข้อสูงสุด</label>
+                                                <InfoTooltip text="ระบบจะหยุดสอบอัตโนมัติเมื่อถึงจำนวนนี้ ไม่ว่าความแม่นยำจะถึงเกณฑ์หรือยัง (ค่าแนะนำ: 60)" />
+                                            </div>
+                                            <div className="grid grid-cols-4 gap-2">
+                                                {[40, 50, 60, 80].map(val => (
+                                                    <button
+                                                        key={val}
+                                                        type="button"
+                                                        onClick={() => setMaxItems(val)}
+                                                        className={`py-2 rounded-lg border-2 text-sm font-medium transition-all ${maxItems === val
+                                                            ? 'border-green-500 bg-green-50 text-green-700'
+                                                            : 'border-gray-200 text-gray-600 hover:border-green-300'
+                                                            }`}
+                                                    >
+                                                        {val} ข้อ
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </section>
+                        </div>
+
+                        {/* ─── Right Column: Summary + Start ─── */}
+                        <div className="lg:col-span-1">
+                            <div className="sticky top-20 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                                <div className="bg-gray-50 border-b border-gray-200 px-5 py-4">
+                                    <h3 className="text-sm font-medium text-gray-700">สรุปการตั้งค่า</h3>
+                                </div>
+
+                                <div className="p-5 space-y-3 text-sm">
+                                    {/* Ability row */}
+                                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                                        <span className="text-gray-500">ระดับเริ่มต้น</span>
+                                        <span className="font-medium text-gray-800">
+                                            {useAbility && abilityInfo
+                                                ? `${abilityInfo.theta.toFixed(2)} (ประวัติ)`
+                                                : `${difficulty.toFixed(1)} (กำหนดเอง)`}
+                                        </span>
+                                    </div>
+                                    {/* Min */}
+                                    <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                                        <span className="text-gray-500">จำนวนข้อ (ต่ำ-สูง)</span>
+                                        <span className="font-medium text-gray-800">{minItems} – {maxItems} ข้อ</span>
+                                    </div>
+
+                                    {/* Topics */}
+                                    <div className="flex items-center justify-between py-2">
+                                        <span className="text-gray-500">หมวดที่เน้น</span>
+                                        <span className="font-medium text-gray-800">
+                                            {focusedTopics.length === 0 ? 'ทั้งหมด' : `${focusedTopics.length} วิชา`}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="px-5 pb-5 space-y-3">
+                                    {/* Info box */}
+                                    <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 text-sm text-blue-700 flex gap-2 items-start">
+                                        <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                                        <span>ระบบจะหยุดสอบโดยอัตโนมัติเมื่อประเมินความสามารถของคุณได้แม่นยำเพียงพอแล้ว</span>
+                                    </div>
+
+                                    {/* Start button */}
+                                    <button
+                                        onClick={startExam}
+                                        disabled={starting}
+                                        className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-400 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                                    >
+                                        {starting ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                กำลังเริ่ม...
+                                            </>
+                                        ) : (
+                                            <>
+                                                เริ่มการทดสอบ
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

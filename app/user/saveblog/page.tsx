@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar_user';
 import Footer from '@/components/Footer';
 import Search from '@/components/SearchBar';
 import Image from 'next/image';
+import Link from 'next/link';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
@@ -76,11 +77,17 @@ function SaveBlog() {
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
+          {/* Breadcrumb */}
+          <div className="flex items-center text-sm text-gray-500 mb-5">
+            <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+            <span className="mx-2">›</span>
+            <span className="text-gray-600 font-medium">ข่าวที่บันทึกไว้</span>
+          </div>
+
           <Search onSearch={(q) => console.log(q)} /><br />
           <div className="mb-8">
-            <div className="text-sm text-gray-500 mb-2">หน้าหลัก › ข่าวที่บันทึกไว้</div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h1 className="text-3xl sm:text-4xl font-medium text-gray-900 mb-2">ข่าวที่บันทึกไว้</h1>

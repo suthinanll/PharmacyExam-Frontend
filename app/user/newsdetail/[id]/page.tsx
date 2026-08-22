@@ -67,18 +67,18 @@ const NewsDetailPage = () => {
     return (
         <>
             <Navbar />
-            <div className="bg-gray-50 min-h-screen py-8">
-                <div className="max-w-4xl mx-auto px-4">
+            <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto">
 
-                    <div className="flex items-center text-sm text-gray-500 mb-6 space-x-2 bg-transparent">
-                        <Link href="/user" className="hover:text-blue-600 transition-colors">หน้าหลัก</Link>
-                        <span>/</span>
+                    <div className="flex items-center text-sm text-gray-500 mb-5">
+                        <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+                        <span className="mx-2">›</span>
                         <span className="text-gray-400">ข่าวสาร</span>
-                        <span>/</span>
-                        <span className="text-black-600 font-medium truncate">{news.title}</span>
+                        <span className="mx-2">›</span>
+                        <span className="text-gray-600 font-medium truncate">{news.title}</span>
                     </div>
 
-                    <article className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+                    <article className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden max-w-4xl mx-auto">
                         {/* Cover Image */}
                         <div className="relative w-full h-64 md:h-[400px]">
                             <img
@@ -93,7 +93,7 @@ const NewsDetailPage = () => {
                                 className="w-full h-full object-cover"
                             />
                             <div className="absolute top-4 left-4">
-                                <span className="bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-full uppercase">
+                                <span className="bg-blue-600 text-white text-xs font-medium px-3 py-1 rounded-full ">
                                     ข่าวประชาสัมพันธ์
                                 </span>
                             </div>

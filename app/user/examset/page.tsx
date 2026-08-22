@@ -12,6 +12,7 @@ import Swal from "sweetalert2"
 import { useAuth } from '@/contexts/AuthContext'
 import { useRequireLogin } from '@/utils/requireAuth'
 import LoadingSpinner from "@/components/LoadingSpinner"
+import Pagination from "@/components/Pagination"
 
 // Types
 interface Category {
@@ -45,6 +46,10 @@ const examset = () => {
   const [searching, setSearching] = useState(false);
   const [startingExam, setStartingExam] = useState<number | null>(null);
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const perPage = 10;
+
   // Fetch data on mount
   useEffect(() => {
     fetchData();
@@ -53,6 +58,7 @@ const examset = () => {
   // Filter when tab or search changes
   useEffect(() => {
     filterExams();
+    setCurrentPage(1);
   }, [activeTab, searchQuery, itemBanks]);
 
   const fetchData = async () => {
@@ -177,7 +183,7 @@ const examset = () => {
       html: `คุณต้องการเริ่มทำข้อสอบ<br/><strong>${bankName}</strong><br/>ใช่หรือไม่?`,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#3b82f6',
+      confirmButtonColor: '#16a34a',
       cancelButtonColor: '#6b7280',
       confirmButtonText: 'เริ่มทำข้อสอบ',
       cancelButtonText: 'ยกเลิก',
@@ -217,10 +223,11 @@ const examset = () => {
           text: 'คุณมีข้อสอบที่ยังทำไม่เสร็จ ต้องการทำต่อหรือไม่?',
           icon: 'info',
           showCancelButton: true,
-          confirmButtonColor: '#3b82f6',
+          confirmButtonColor: '#16a34a',
           cancelButtonColor: '#6b7280',
           confirmButtonText: 'ทำต่อ',
-          cancelButtonText: 'ยกเลิก'
+          cancelButtonText: 'ยกเลิก',
+          reverseButtons: true
         });
 
         if (!continueResult.isConfirmed) {
@@ -261,17 +268,16 @@ const examset = () => {
   return (
     <>
       {isAuthenticated ? <Navbar_user /> : <NavbarGuest />}
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-5xl mx-auto px-4 py-8">
-          <div className="max-w-7xl mx-auto">
-            {/* Breadcrumb */}
-            <div className="flex items-center text-sm text-gray-500 mb-3 mt-3">
-              <Link href={isAuthenticated ? "/user" : "/"} className="hover:text-blue-600 cursor-pointer transition">
-                หน้าหลัก
-              </Link>
-              <span className="mx-2">›</span>
-              <span className="text-gray-700 font-medium">คลังข้อสอบ</span>
-            </div>
+      <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Breadcrumb */}
+          <div className="flex items-center text-sm text-gray-500 mb-5">
+            <Link href={isAuthenticated ? "/user" : "/"} className="hover:text-green-600 cursor-pointer transition">
+              หน้าหลัก
+            </Link>
+            <span className="mx-2">›</span>
+            <span className="text-gray-600 font-medium">คลังข้อสอบ</span>
+          </div>
 
             {/* Header */}
             <div className="mb-8">
@@ -331,73 +337,98 @@ const examset = () => {
                     </div>
                   ))}
                 </div>
-              ) : filteredBanks.map((bank) => (
-                <div
-                  key={bank.item_bank_id}
-                  className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:border-blue-200"
-                >
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                          <BookOpen className="w-6 h-6 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-xl font-medium text-gray-800 mb-2">
-                            {bank.bank_name}
-                          </h3>
-                          <p className="text-gray-600 text-sm mb-3">
-                            {bank.description}
-                          </p>
+              ) : (
+                (() => {
+                  const totalPages = Math.ceil(filteredBanks.length / perPage);
+                  const startIndex = (currentPage - 1) * perPage;
+                  const currentBanks = filteredBanks.slice(startIndex, startIndex + perPage);
 
-                          {/* Categories Tags */}
-                          {bank.categories && bank.categories.length > 0 && (
-                            <div className="flex flex-wrap gap-2 mb-3">
-                              {bank.categories.map((cat) => (
-                                <span
-                                  key={cat.category_id}
-                                  className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700"
-                                >
-                                  {cat.category_name}
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                  return (
+                    <>
+                      {currentBanks.map((bank) => (
+                        <div
+                          key={bank.item_bank_id}
+                          className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:border-blue-200"
+                        >
+                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-start gap-3 mb-3">
+                                <div className="p-2 bg-blue-100 rounded-lg">
+                                  <BookOpen className="w-6 h-6 text-blue-600" />
+                                </div>
+                                <div className="flex-1">
+                                  <h3 className="text-xl font-medium text-gray-800 mb-2">
+                                    {bank.bank_name}
+                                  </h3>
+                                  <p className="text-gray-600 text-sm mb-3">
+                                    {bank.description}
+                                  </p>
 
-                          {/* Info */}
-                          <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                            <div className="flex items-center gap-1">
-                              <BookOpen className="w-4 h-4" />
-                              <span>
-                                {bank.total_items ? `${bank.total_items} ข้อ` : 'ไม่ระบุจำนวน'}
-                              </span>
+                                  {/* Categories Tags */}
+                                  {bank.categories && bank.categories.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 mb-3">
+                                      {bank.categories.map((cat) => (
+                                        <span
+                                          key={cat.category_id}
+                                          className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700"
+                                        >
+                                          {cat.category_name}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Info */}
+                                  <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                                    <div className="flex items-center gap-1">
+                                      <BookOpen className="w-4 h-4" />
+                                      <span>
+                                        {bank.total_items ? `${bank.total_items} ข้อ` : 'ไม่ระบุจำนวน'}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                      <Clock className="w-4 h-4" />
+                                      <span>{formatDuration(bank.duration)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
-                              <span>{formatDuration(bank.duration)}</span>
-                            </div>
+
+                            <button
+                              onClick={() => handleStartExam(bank.item_bank_id, bank.bank_name)}
+                              disabled={startingExam === bank.item_bank_id}
+                              className="bg-blue-600 hover:bg-blue-500 text-white font-medium px-8 py-3 rounded-xl transition-all duration-300 w-full lg:w-auto text-center active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                              {startingExam === bank.item_bank_id ? (
+                                <>
+                                  <Loader2 className="w-5 h-5 animate-spin" />
+                                  กำลังเริ่ม...
+                                </>
+                              ) : (
+                                'เริ่มทำข้อสอบ'
+                              )}
+                            </button>
                           </div>
                         </div>
-                      </div>
-                    </div>
+                      ))}
 
-                    <button
-                      onClick={() => handleStartExam(bank.item_bank_id, bank.bank_name)}
-                      disabled={startingExam === bank.item_bank_id}
-                      className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium px-8 py-3 rounded-xl transition-all duration-300 w-full lg:w-auto text-center shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {startingExam === bank.item_bank_id ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          กำลังเริ่ม...
-                        </>
-                      ) : (
-                        'เริ่มทำข้อสอบ'
+                      {/* Pagination */}
+                      {filteredBanks.length > 0 && (
+                        <Pagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          totalItems={filteredBanks.length}
+                          perPage={perPage}
+                          onPageChange={setCurrentPage}
+                          itemLabel="ชุดข้อสอบ"
+                          activeColor="bg-[#76B25A] text-white shadow-xs"
+                        />
                       )}
-                    </button>
-                  </div>
-                </div>
-              ))}
+                    </>
+                  );
+                })()
+              )}
             </div>
 
             {/* Empty State */}
@@ -419,7 +450,7 @@ const examset = () => {
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="mt-4 text-blue-600 hover:text-blue-700 font-medium"
+                      className="mt-4 text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
                     >
                       ล้างการค้นหา
                     </button>
@@ -429,7 +460,6 @@ const examset = () => {
             )}
           </div>
         </div>
-      </div>
       <Footer />
     </>
   )

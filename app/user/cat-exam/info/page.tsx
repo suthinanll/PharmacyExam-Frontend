@@ -3,12 +3,13 @@
 import React from "react";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { 
-    Zap, 
-    BrainCircuit, 
-    BarChart, 
-    CheckCircle2, 
+import {
+    Zap,
+    BrainCircuit,
+    BarChart,
+    CheckCircle2,
     LineChart,
     Layers,
     Clock,
@@ -23,24 +24,25 @@ export default function CATInfoBlogPage() {
         <div className="min-h-screen bg-slate-50 text-slate-900">
             <Navbar_user />
 
-            {/* Navigation back */}
-            <div className="max-w-4xl mx-auto px-4 pt-8">
-                <button 
-                    onClick={() => router.push('/user/cat-exam')}
-                    className="flex items-center gap-2 text-green-700 font-medium hover:text-green-800 transition-colors"
-                >
-                    <ChevronLeft className="w-5 h-5" /> ย้อนกลับ
-                </button>
-            </div>
+            <div className="p-4 md:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto">
+                    {/* Breadcrumb */}
+                    <div className="flex items-center text-sm text-gray-500 mb-5">
+                        <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+                        <span className="mx-2">›</span>
+                        <Link href="/user/cat-exam" className="hover:text-green-600 cursor-pointer transition">สอบแบบปรับตัว (CAT)</Link>
+                        <span className="mx-2">›</span>
+                        <span className="text-gray-600 font-medium">CAT คืออะไร?</span>
+                    </div>
 
-            <article className="max-w-4xl mx-auto px-4 pt-6 pb-16">
-                
+                    <article className="max-w-4xl mx-auto pt-6 pb-16">
+
                 {/* Header Title */}
                 <header className="text-center mb-16">
-                   
+
                     <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 mb-6 tracking-tight leading-tight">
-                        การทดสอบแบบปรับตัว <br/>
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
+                        การทดสอบแบบปรับตัว <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-green-600">
                             (Computerized Adaptive Testing - CAT)
                         </span>
                     </h1>
@@ -51,13 +53,13 @@ export default function CATInfoBlogPage() {
 
                 {/* Section 1: Introduction */}
                 <section className="bg-white rounded-[2rem] p-8 md:p-12 shadow-xl shadow-slate-200/40 border border-slate-100 mb-10 overflow-hidden relative">
-                    
+
                     <div className="relative z-10">
                         <h2 className="text-2xl font-medium text-slate-800 mb-6 flex items-center gap-3">
                             <BrainCircuit className="w-8 h-8 text-green-600 bg-green-50 p-1.5 rounded-xl" />
                             CAT คืออะไร?
                         </h2>
-                        
+
                         <div className="prose prose-slate prose-lg max-w-none text-slate-600 leading-relaxed space-y-4">
                             <p>
                                 ปกติแล้วเวลาเราสอบข้อสอบทั่วไป ทุกคนจะได้ทำข้อสอบ <strong>ชุดเดียวกัน จำนวนข้อเท่ากัน</strong> โดยไม่สนใจว่าข้อสอบนั้นจะง่ายหรือยากเกินไปสำหรับใครบางคน
@@ -75,27 +77,27 @@ export default function CATInfoBlogPage() {
                 {/* Section 2: How it works (Flow) */}
                 <section className="mb-16">
                     <h2 className="text-2xl font-medium text-slate-800 mb-8 text-center">วงจรการดึงข้อสอบ (CAT Flow)</h2>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center relative">
                             <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 font-medium text-xl">1</div>
                             <h3 className="font-medium text-slate-800 mb-2">ประเมินพลัง</h3>
                             <p className="text-sm text-slate-500">ระบบประเมินค่าความสามารถ (θ) ตามที่คุณกรอก</p>
-                            
+
                         </div>
 
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center relative">
                             <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 font-medium text-xl">2</div>
                             <h3 className="font-medium text-slate-800 mb-2">เลือกข้อสอบ</h3>
                             <p className="text-sm text-slate-500">หาข้อสอบจากคลังที่ "ตรงระดับความสามารถของคุณ"</p>
-                            
+
                         </div>
 
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center relative">
                             <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 font-medium text-xl">3</div>
                             <h3 className="font-medium text-slate-800 mb-2">รับคำตอบ</h3>
                             <p className="text-sm text-slate-500">ผู้สอบส่งคำตอบ ระบบตรวจสอบว่าถูกหรือผิด (อัปเดตค่าความสามารถของคุณ)</p>
-                            
+
                         </div>
 
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
@@ -135,7 +137,7 @@ export default function CATInfoBlogPage() {
                         <Layers className="w-8 h-8 text-indigo-600 bg-indigo-50 p-1.5 rounded-xl" />
                         เปรียบเทียบการสอบ
                     </h2>
-                    
+
                     <table className="w-full text-left border-collapse min-w-[600px]">
                         <thead>
                             <tr>
@@ -169,8 +171,10 @@ export default function CATInfoBlogPage() {
                     </table>
                 </section>
 
-               
+
             </article>
+                </div>
+            </div>
 
             <Footer />
         </div>

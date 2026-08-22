@@ -263,7 +263,7 @@ export default function CATDebugPage() {
     return (
         <div className="min-h-screen bg-slate-100 pb-10">
             <Navbar_user />
-            
+
             <div className="bg-indigo-900 text-white p-6 shadow-md border-y-4 border-indigo-400">
                 <div className="container mx-auto flex flex-wrap gap-6 items-center justify-between">
                     <div>
@@ -275,7 +275,7 @@ export default function CATDebugPage() {
 
                     <div className="flex gap-4 bg-indigo-800 p-4 rounded-xl border border-indigo-700 w-full md:w-auto">
                         <div>
-                            <label className="block text-xs text-indigo-300 font-medium mb-1 uppercase tracking-wider">เลือกคลังข้อสอบ</label>
+                            <label className="block text-xs text-indigo-300 font-medium mb-1 ">เลือกคลังข้อสอบ</label>
                             <select
                                 className="bg-indigo-950 text-white border-none rounded p-2 text-sm w-48"
                                 value={selectedBankId || ""}
@@ -297,12 +297,12 @@ export default function CATDebugPage() {
             </div>
 
             <div className="container mx-auto p-4 mt-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
-                
+
                 {/* LEFT COLUMN: History & State */}
                 <div className="lg:col-span-3 space-y-6">
                     {/* Current Score Card */}
                     <div className="bg-white rounded-2xl p-6 shadow border border-slate-200">
-                        <h2 className="text-sm font-medium text-slate-500 uppercase tracking-widest mb-4">สถานะปัจจุบัน</h2>
+                        <h2 className="text-sm font-medium text-slate-500  mb-4">สถานะปัจจุบัน</h2>
                         <div className="text-center">
                             <div className="text-6xl font-black text-indigo-600 tracking-tighter mb-2">
                                 {currentTheta.toFixed(3)}
@@ -316,32 +316,32 @@ export default function CATDebugPage() {
                                 <div className="text-sm font-medium text-red-600">
                                     {currentSE === 999 ? "-∞" : (currentTheta - 1.96 * currentSE).toFixed(3)}
                                 </div>
-                                <div className="text-[10px] text-red-400 font-medium uppercase">CI ขอบล่าง</div>
+                                <div className="text-[10px] text-red-400 font-medium ">CI ขอบล่าง</div>
                             </div>
                             <div className="bg-green-50 p-2 rounded-lg text-center border border-green-100">
                                 <div className="text-sm font-medium text-green-600">
                                     {currentSE === 999 ? "+∞" : (currentTheta + 1.96 * currentSE).toFixed(3)}
                                 </div>
-                                <div className="text-[10px] text-green-400 font-medium uppercase">CI ขอบบน</div>
+                                <div className="text-[10px] text-green-400 font-medium ">CI ขอบบน</div>
                             </div>
                         </div>
 
                         <div className="mt-6 pt-4 border-t border-slate-100 flex justify-between px-2">
                             <div className="text-center">
                                 <div className="text-xl font-medium text-slate-700">{currentSE === 999 ? "∞" : currentSE.toFixed(3)}</div>
-                                <div className="text-[10px] text-slate-400 uppercase font-medium">Standard Error (SE)</div>
+                                <div className="text-[10px] text-slate-400  font-medium">Standard Error (SE)</div>
                             </div>
                             <div className="text-center border-l pl-4 border-slate-100">
                                 <div className="text-xl font-medium text-slate-700">{responses.length} / {maxItems}</div>
-                                <div className="text-[10px] text-slate-400 uppercase font-medium">จำนวนข้อสอบ</div>
+                                <div className="text-[10px] text-slate-400  font-medium">จำนวนข้อสอบ</div>
                             </div>
                         </div>
 
                         {/* Theta Graphic */}
                         <div className="mt-6 relative h-6 bg-slate-100 rounded-full border border-slate-200">
                             <div className="absolute top-0 bottom-0 left-1/2 w-[1px] bg-slate-400" />
-                            <div 
-                                className="absolute top-1 bottom-1 w-4 bg-indigo-600 rounded-full shadow transition-all duration-300 transform -translate-x-1/2" 
+                            <div
+                                className="absolute top-1 bottom-1 w-4 bg-indigo-600 rounded-full shadow transition-all duration-300 transform -translate-x-1/2"
                                 style={{ left: `${Math.max(0, Math.min(100, ((currentTheta - (-4)) / 8) * 100))}%` }}
                             />
                         </div>
@@ -355,14 +355,14 @@ export default function CATDebugPage() {
                     {/* History */}
                     <div className="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden flex flex-col h-[500px]">
                         <div className="bg-slate-50 p-4 border-b border-slate-200">
-                            <h2 className="text-sm font-medium text-slate-700 uppercase tracking-widest">ประวัติการตอบ</h2>
+                            <h2 className="text-sm font-medium text-slate-700 ">ประวัติการตอบ</h2>
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
                             {responses.length === 0 && <div className="text-center py-10 text-slate-400">ยังไม่มีการตอบ</div>}
                             {responses.map((r, i) => (
                                 <div key={i} className={`p-3 rounded-lg border-l-4 ${r.isCorrect ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}`}>
                                     <div className="flex justify-between items-center mb-1">
-                                        <span className="font-medium text-sm text-slate-700">ข้อ {i+1} (ID: {r.item_id})</span>
+                                        <span className="font-medium text-sm text-slate-700">ข้อ {i + 1} (ID: {r.item_id})</span>
                                         <span className={`text-xs font-medium px-2 py-0.5 rounded ${r.isCorrect ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
                                             {r.isCorrect ? 'ตอบถูก' : 'ตอบผิด'}
                                         </span>
@@ -380,7 +380,7 @@ export default function CATDebugPage() {
                 {/* MIDDLE COLUMN: Current Question & Action */}
                 <div className="lg:col-span-4 space-y-6">
                     <div className="bg-white rounded-2xl p-6 shadow-lg border border-indigo-100 flex flex-col h-full relative overflow-hidden">
-                        
+
                         {/* Stratum Indicator */}
                         <div className="absolute top-0 left-0 right-0 bg-yellow-100 p-2 text-center text-xs font-medium text-yellow-800 border-b border-yellow-200">
                             เกณฑ์การคัดกรอง: {stratumText}
@@ -388,46 +388,46 @@ export default function CATDebugPage() {
 
                         {nextItem ? (
                             <div className="mt-8 flex flex-col">
-                                <h2 className="text-sm font-medium text-indigo-500 uppercase tracking-widest mb-4">ระบบเลือกข้อนี้ให้ผู้สอบ:</h2>
+                                <h2 className="text-sm font-medium text-indigo-500  mb-4">ระบบเลือกข้อนี้ให้ผู้สอบ:</h2>
                                 <h3 className="text-xl font-medium text-slate-800 mb-6 leading-relaxed">
                                     "{nextItem.question_text}"
                                 </h3>
 
                                 <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-6">
-                                    <h4 className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-3 text-center">IRT Parameters</h4>
+                                    <h4 className="text-xs font-medium text-slate-400  mb-3 text-center">IRT Parameters</h4>
                                     <div className="grid grid-cols-3 gap-2 text-center mb-4">
                                         <div className="bg-white rounded p-2 shadow-sm border border-slate-100">
                                             <div className="text-lg font-medium text-slate-700">{nextItem.irt_a_discrimination.toFixed(2)}</div>
-                                            <div className="text-[10px] text-slate-400 font-medium uppercase">a (ความชัน)</div>
+                                            <div className="text-[10px] text-slate-400 font-medium ">a (ความชัน)</div>
                                         </div>
                                         <div className="bg-white rounded p-2 shadow-sm border border-purple-200 ring-2 ring-purple-50">
                                             <div className="text-lg font-medium text-purple-700">{nextItem.irt_b_difficulty.toFixed(2)}</div>
-                                            <div className="text-[10px] text-purple-400 font-medium uppercase">b (ความยาก)</div>
+                                            <div className="text-[10px] text-purple-400 font-medium ">b (ความยาก)</div>
                                         </div>
                                         <div className="bg-white rounded p-2 shadow-sm border border-slate-100">
                                             <div className="text-lg font-medium text-slate-700">{nextItem.irt_c_guessing.toFixed(2)}</div>
-                                            <div className="text-[10px] text-slate-400 font-medium uppercase">c (การเดา)</div>
+                                            <div className="text-[10px] text-slate-400 font-medium ">c (การเดา)</div>
                                         </div>
                                     </div>
 
                                     <div className="bg-blue-50 border border-blue-200 rounded p-3 text-center">
                                         <div className="text-sm font-medium text-blue-800">ได้คะแนน Information สูงสุดที่:</div>
                                         <div className="text-3xl font-black text-blue-600 my-1">
-                                            {IRT.information(currentTheta, {a: nextItem.irt_a_discrimination, b: nextItem.irt_b_difficulty, c: nextItem.irt_c_guessing}).toFixed(4)}
+                                            {IRT.information(currentTheta, { a: nextItem.irt_a_discrimination, b: nextItem.irt_b_difficulty, c: nextItem.irt_c_guessing }).toFixed(4)}
                                         </div>
-                                        <div className="text-[10px] text-blue-400 font-medium uppercase">( ณ บริเวณ θ = {currentTheta.toFixed(2)} )</div>
+                                        <div className="text-[10px] text-blue-400 font-medium ">( ณ บริเวณ θ = {currentTheta.toFixed(2)} )</div>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 mt-auto">
-                                    <button 
+                                    <button
                                         onClick={() => handleAnswer(true)}
                                         className="bg-green-500 hover:bg-green-600 text-white font-medium py-4 rounded-xl shadow-lg border-b-4 border-green-700 active:border-b-0 active:mt-4 transition-all"
                                     >
                                         <div className="text-2xl mb-1">✅</div>
                                         จำลองการ "ตอบถูก"
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={() => handleAnswer(false)}
                                         className="bg-red-500 hover:bg-red-600 text-white font-medium py-4 rounded-xl shadow-lg border-b-4 border-red-700 active:border-b-0 active:mt-4 transition-all"
                                     >
@@ -449,17 +449,17 @@ export default function CATDebugPage() {
                 {/* RIGHT COLUMN: Brain (Internal Calculation Table) */}
                 <div className="lg:col-span-5 bg-white rounded-2xl shadow border border-slate-200 flex flex-col overflow-hidden max-h-[800px]">
                     <div className="bg-slate-800 text-white p-4 border-b flex justify-between items-center">
-                        <h2 className="text-sm font-medium uppercase tracking-widest flex items-center gap-2">
+                        <h2 className="text-sm font-medium  flex items-center gap-2">
                             <span>🧠</span> กระบวนการคิดเบื้องหลัง (Item Pool)
                         </h2>
                         <div className="text-xs bg-slate-700 px-3 py-1 rounded-full text-slate-300">เรียงตาม Information มากไปน้อย</div>
                     </div>
-                    
+
                     <div className="overflow-x-auto flex-1 h-full relative">
                         {loading && <div className="absolute inset-0 bg-white/50 flex items-center justify-center font-medium">กำลังโหลดข้อสอบ...</div>}
-                        
+
                         <table className="w-full text-sm text-left">
-                            <thead className="text-xs font-medium text-slate-500 bg-slate-50 sticky top-0 uppercase">
+                            <thead className="text-xs font-medium text-slate-500 bg-slate-50 sticky top-0 ">
                                 <tr>
                                     <th className="px-4 py-3">ID</th>
                                     <th className="px-4 py-3">a</th>
@@ -478,13 +478,13 @@ export default function CATDebugPage() {
                                         const isAnswered = responses.some(r => r.item_id === item.item_id);
                                         const isEliminatedByStratum = item.irt_a_discrimination > aMaxLimit;
                                         const isNext = nextItem?.item_id === item.item_id;
-                                        
+
                                         return { ...item, prob, info, isAnswered, isNext, isEliminatedByStratum };
                                     })
                                     .sort((x, y) => y.info - x.info) // เรียงตาม info ลดลง
                                     .map((item, idx) => (
-                                        <tr 
-                                            key={item.item_id} 
+                                        <tr
+                                            key={item.item_id}
                                             className={`
                                                 ${item.isNext ? 'bg-blue-100 ring-2 ring-blue-500 relative z-10' : ''}
                                                 ${item.isAnswered ? 'bg-slate-100 opacity-40' : ''}
@@ -492,7 +492,7 @@ export default function CATDebugPage() {
                                                 hover:bg-slate-50 transition-colors
                                             `}
                                         >
-                                            <td className="px-4 py-2 font-medium">#{item.item_id} 
+                                            <td className="px-4 py-2 font-medium">#{item.item_id}
                                                 {item.isNext && <span className="ml-2 text-[10px] bg-blue-500 text-white px-2 py-0.5 rounded-full inline-block">เลือก!</span>}
                                                 {item.isAnswered && <span className="ml-2 text-[10px] text-slate-400">(ตอบแล้ว)</span>}
                                                 {item.isEliminatedByStratum && !item.isAnswered && <span className="ml-2 text-[10px] text-red-400" title="ถูกตัดเพราะค่า a เกินกำหนด">(!a)</span>}
@@ -510,7 +510,7 @@ export default function CATDebugPage() {
                 </div>
 
             </div>
-            
+
             <Footer />
         </div>
     );

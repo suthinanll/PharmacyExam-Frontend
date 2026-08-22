@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -11,7 +12,9 @@ import {
     ComposedChart,
     Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
 } from "recharts";
-import { CheckCircle2, XCircle, HelpCircle, BookOpen, Info, Award, Target, AlertTriangle, BarChart3, ClipboardList, RefreshCw } from "lucide-react";
+import { CheckCircle2, XCircle, HelpCircle, BookOpen, Info, Award, Target, AlertTriangle, BarChart3, ClipboardList, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
+
+const LABELS = ["ก", "ข", "ค", "ง", "จ", "ฉ", "ช", "ซ"];
 
 // ==================== TYPES ====================
 import ImagePreviewModal from '@/components/ImagePreviewModal';
@@ -84,34 +87,130 @@ const THETA_RANGE = Array.from({ length: 81 }, (_, i) => -4 + i * 0.1);
 
 // ==================== CHART COMPONENTS ====================
 
-/** Chart 1: θ progress + CI band over items */
+/** Custom dot rendering for question points (Green = Correct, Red = Incorrect) */
+const renderCustomThetaDot = (props: any) => {
+    const { cx, cy, payload, index, key } = props;
+    if (!cx || !cy) return <g key={key || `dot-${index}`} />;
+    const isCorrect = payload?.is_correct;
+    return (
+        <circle
+            key={key || `dot-${index}`}
+            cx={cx}
+            cy={cy}
+            r={5}
+            fill={isCorrect ? "#16a34a" : "#dc2626"}
+            stroke="#ffffff"
+            strokeWidth={2}
+            className="transition-transform duration-200 hover:scale-125"
+        />
+    );
+};
+
+/** Tooltip for Theta Progress Chart */
+const CustomThetaTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+        const data = payload[0].payload;
+        return (
+            <div className="bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 text-xs space-y-1.5 min-w-[170px]">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-1.5">
+                    <span className="font-semibold text-gray-800">ข้อที่ {data.item}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                        data.is_correct ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700"
+                    }`}>
+                        {data.is_correct ? "✓ ตอบถูก" : "✗ ตอบผิด"}
+                    </span>
+                </div>
+                <div className="flex justify-between items-center text-gray-600 pt-0.5">
+                    <span>ระดับความสามารถ (θ):</span>
+                    <span className="font-bold text-blue-600 font-mono text-sm">
+                        {data.theta >= 0 ? `+${data.theta.toFixed(3)}` : data.theta.toFixed(3)}
+                    </span>
+                </div>
+                {data.se != null && (
+                    <div className="flex justify-between items-center text-gray-400 text-[11px]">
+                        <span>ความคลาดเคลื่อน (SE):</span>
+                        <span className="font-mono">{data.se.toFixed(3)}</span>
+                    </div>
+                )}
+            </div>
+        );
+    }
+    return null;
+};
+
+/** Chart 1: θ progress over items */
 function ThetaProgressChart({ responses, cutScore }: { responses: Response[]; cutScore: number }) {
     const data = responses.map((r, i) => ({
         item: i + 1,
-        theta: r.theta_after != null ? +r.theta_after.toFixed(3) : null,
-        ci_low: r.theta_after != null && r.se_after != null ? +(r.theta_after - 1.96 * r.se_after).toFixed(3) : null,
-        ci_high: r.theta_after != null && r.se_after != null ? +(r.theta_after + 1.96 * r.se_after).toFixed(3) : null,
-        correct: r.is_correct ? 1 : 0,
+        theta: r.theta_after != null ? +r.theta_after.toFixed(3) : 0,
+        se: r.se_after != null ? +r.se_after.toFixed(3) : null,
+        is_correct: r.is_correct,
     }));
 
+    const thetas = data.map(d => d.theta);
+    const minTheta = Math.floor(Math.min(...thetas, cutScore - 0.5, -2));
+    const maxTheta = Math.ceil(Math.max(...thetas, cutScore + 0.5, 2));
+
     return (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="text-base font-medium text-gray-800 mb-1">ระดับความสามารถ (θ) ตลอดการสอบ</h2>
-            <p className="text-xs text-gray-400 mb-4">เส้นแสดงระดับ θ พร้อมช่วงความเชื่อมั่น 95% ที่แคบลงเมื่อตอบข้อมากขึ้น</p>
-            <ResponsiveContainer width="100%" height={260}>
-                <ComposedChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="item" label={{ value: "ข้อที่", position: "insideBottom", offset: -10 }} tick={{ fontSize: 11 }} />
-                    <YAxis domain={[-4, 4]} label={{ value: "θ", angle: -90, position: "insideLeft", offset: 10 }} tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v: any) => v?.toFixed(3)} />
-                    <ReferenceLine y={cutScore} stroke="#f59e0b" strokeDasharray="4 4" label={{ value: "เกณฑ์", fill: "#f59e0b", fontSize: 11 }} />
-                    <Area dataKey="ci_high" stroke="none" fill="#3b82f6" fillOpacity={0.12} name="CI Upper" legendType="none" />
-                    <Area dataKey="ci_low" stroke="none" fill="#fff" fillOpacity={1} name="CI Lower" legendType="none" />
-                    <Line type="monotone" dataKey="theta" stroke="#2563eb" strokeWidth={2.5} dot={{ r: 4, fill: "#2563eb" }} name="θ" />
-                    <Line type="monotone" dataKey="ci_high" stroke="#93c5fd" strokeDasharray="3 3" strokeWidth={1} dot={false} name="95% CI" />
-                    <Line type="monotone" dataKey="ci_low" stroke="#93c5fd" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
-                    <Legend verticalAlign="top" height={24} />
-                </ComposedChart>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                    <h3 className="text-base font-medium text-gray-800">ระดับความสามารถ (θ) ตลอดการสอบ</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">เส้นทางการประเมินความสามารถตามคำตอบในแต่ละข้อ</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-green-600 inline-block" /> ตอบถูก
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block" /> ตอบผิด
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-3 border-t-2 border-dashed border-amber-500 inline-block" /> เกณฑ์ผ่าน (0.0)
+                    </span>
+                </div>
+            </div>
+
+            <ResponsiveContainer width="100%" height={270}>
+                <AreaChart data={data} margin={{ top: 15, right: 20, left: 10, bottom: 20 }}>
+                    <defs>
+                        <linearGradient id="thetaFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.18} />
+                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis
+                        dataKey="item"
+                        label={{ value: "ข้อที่", position: "insideBottom", offset: -10, fill: "#94a3b8", fontSize: 12 }}
+                        tick={{ fontSize: 11, fill: "#64748b" }}
+                        axisLine={{ stroke: "#cbd5e1" }}
+                    />
+                    <YAxis
+                        domain={[minTheta, maxTheta]}
+                        label={{ value: "ค่าความสามารถ (θ)", angle: -90, position: "insideLeft", offset: 12, fill: "#94a3b8", fontSize: 11 }}
+                        tick={{ fontSize: 11, fill: "#64748b" }}
+                        axisLine={{ stroke: "#cbd5e1" }}
+                        tickFormatter={(v) => v > 0 ? `+${v.toFixed(1)}` : v === 0 ? "0.0" : v.toFixed(1)}
+                    />
+                    <Tooltip content={<CustomThetaTooltip />} />
+                    <ReferenceLine
+                        y={cutScore}
+                        stroke="#f59e0b"
+                        strokeDasharray="4 4"
+                        strokeWidth={1.5}
+                        label={{ value: `เกณฑ์ (${cutScore.toFixed(1)})`, fill: "#d97706", fontSize: 11, position: "insideTopRight" }}
+                    />
+                    <Area
+                        type="monotone"
+                        dataKey="theta"
+                        stroke="#2563eb"
+                        strokeWidth={2.5}
+                        fill="url(#thetaFill)"
+                        dot={renderCustomThetaDot}
+                        activeDot={{ r: 7, strokeWidth: 2, stroke: "#fff" }}
+                    />
+                </AreaChart>
             </ResponsiveContainer>
         </div>
     );
@@ -123,22 +222,75 @@ function SEConvergenceChart({ responses, targetSE }: { responses: Response[]; ta
         item: i + 1,
         se: r.se_after != null ? +r.se_after.toFixed(3) : null,
     }));
+
     return (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="text-base font-medium text-gray-800 mb-1">ความแม่นยำของการวัด (SE)</h2>
-            <p className="text-xs text-gray-400 mb-4">ค่าความคลาดเคลื่อนมาตรฐานลดลงเรื่อยๆ — ยิ่งต่ำยิ่งแม่นยำ</p>
-            <ResponsiveContainer width="100%" height={260}>
-                <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="item" label={{ value: "ข้อที่", position: "insideBottom", offset: -10 }} tick={{ fontSize: 11 }} />
-                    <YAxis domain={[0, 1.5]} label={{ value: "SE", angle: -90, position: "insideLeft", offset: 10 }} tick={{ fontSize: 11 }} />
-                    <Tooltip formatter={(v: any) => v?.toFixed(3)} />
-                    <ReferenceLine y={targetSE} stroke="#22c55e" strokeDasharray="4 4"
-                        label={{ value: `เกณฑ์ (${targetSE})`, fill: "#16a34a", fontSize: 11, position: "right" }} />
-                    <Line type="monotone" dataKey="se" stroke="#8b5cf6" strokeWidth={2.5}
-                        dot={{ r: 4, fill: "#8b5cf6" }} name="SE(θ)" />
-                    <Legend verticalAlign="top" height={24} />
-                </LineChart>
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                    <h3 className="text-base font-medium text-gray-800">ความแม่นยำของการวัด (SE)</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">ค่าความคลาดเคลื่อนมาตรฐานลดลงเรื่อยๆ — ยิ่งต่ำยิ่งแม่นยำ</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-2.5 h-2.5 rounded-full bg-purple-600 inline-block" /> ค่า SE
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-3 border-t-2 border-dashed border-green-500 inline-block" /> เกณฑ์เป้าหมาย ({targetSE})
+                    </span>
+                </div>
+            </div>
+
+            <ResponsiveContainer width="100%" height={270}>
+                <AreaChart data={data} margin={{ top: 15, right: 20, left: 10, bottom: 20 }}>
+                    <defs>
+                        <linearGradient id="seFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.18} />
+                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.0} />
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis
+                        dataKey="item"
+                        label={{ value: "ข้อที่", position: "insideBottom", offset: -10, fill: "#94a3b8", fontSize: 12 }}
+                        tick={{ fontSize: 11, fill: "#64748b" }}
+                        axisLine={{ stroke: "#cbd5e1" }}
+                    />
+                    <YAxis
+                        domain={[0, 1.2]}
+                        label={{ value: "SE", angle: -90, position: "insideLeft", offset: 12, fill: "#94a3b8", fontSize: 11 }}
+                        tick={{ fontSize: 11, fill: "#64748b" }}
+                        axisLine={{ stroke: "#cbd5e1" }}
+                    />
+                    <Tooltip
+                        content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                                const d = payload[0].payload;
+                                return (
+                                    <div className="bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 text-xs space-y-1">
+                                        <p className="font-semibold text-gray-800">ข้อที่ {d.item}</p>
+                                        <p className="text-purple-600 font-medium">SE: {d.se?.toFixed(3)}</p>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        }}
+                    />
+                    <ReferenceLine
+                        y={targetSE}
+                        stroke="#22c55e"
+                        strokeDasharray="4 4"
+                        strokeWidth={1.5}
+                        label={{ value: `เป้าหมาย (${targetSE})`, fill: "#16a34a", fontSize: 11, position: "insideTopRight" }}
+                    />
+                    <Area
+                        type="monotone"
+                        dataKey="se"
+                        stroke="#8b5cf6"
+                        strokeWidth={2.5}
+                        fill="url(#seFill)"
+                        dot={{ r: 4, fill: "#8b5cf6", stroke: "#fff", strokeWidth: 2 }}
+                    />
+                </AreaChart>
             </ResponsiveContainer>
         </div>
     );
@@ -146,28 +298,97 @@ function SEConvergenceChart({ responses, targetSE }: { responses: Response[]; ta
 
 /** Chart 3: Posterior distribution N(θ, SE) */
 function PosteriorChart({ finalTheta, finalSE, cutScore }: { finalTheta: number; finalSE: number; cutScore: number }) {
-    const data = THETA_RANGE.map(x => ({
-        x: +x.toFixed(1),
-        y: +normalPDF(x, finalTheta, finalSE).toFixed(4),
-    }));
+    const pointsCount = 120;
+    const step = 8.0 / pointsCount;
+    const data = [];
+    for (let i = 0; i <= pointsCount; i++) {
+        const xVal = +(-4.0 + i * step).toFixed(2);
+        const yVal = +normalPDF(xVal, finalTheta, Math.max(0.1, finalSE)).toFixed(4);
+        data.push({ x: xVal, y: yVal });
+    }
+
+    const isPassed = finalTheta >= cutScore;
+
     return (
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-            <h2 className="text-base font-medium text-gray-800 mb-1">การกระจายความสามารถ</h2>
-            <p className="text-xs text-gray-400 mb-4">
-                การแจกแจงระดับความสามารถหลังการสอบ — ยิ่งแคบ ยิ่งแม่นยำ (SE = {finalSE.toFixed(3)})
-            </p>
-            <ResponsiveContainer width="100%" height={260}>
-                <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                    <XAxis dataKey="x" label={{ value: "θ", position: "insideBottom", offset: -10 }} tick={{ fontSize: 11 }}
-                        tickFormatter={(v) => Number(v) % 1 === 0 ? v : ""} />
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                <div>
+                    <h3 className="text-base font-medium text-gray-800">การกระจายความสามารถ (Posterior Distribution)</h3>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                        การแจกแจงระดับความสามารถของคุณ (θ = {finalTheta >= 0 ? `+${finalTheta.toFixed(2)}` : finalTheta.toFixed(2)}, SE = {finalSE.toFixed(3)})
+                    </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-3 border-t-2 border-blue-600 inline-block" /> ความสามารถ ({finalTheta >= 0 ? `+${finalTheta.toFixed(2)}` : finalTheta.toFixed(2)})
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                        <span className="w-3 border-t-2 border-dashed border-amber-500 inline-block" /> เกณฑ์ผ่าน ({cutScore.toFixed(1)})
+                    </span>
+                </div>
+            </div>
+
+            <ResponsiveContainer width="100%" height={270}>
+                <AreaChart data={data} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
+                    <defs>
+                        <linearGradient id="posteriorFill" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={isPassed ? "#16a34a" : "#2563eb"} stopOpacity={0.25} />
+                            <stop offset="95%" stopColor={isPassed ? "#16a34a" : "#2563eb"} stopOpacity={0.0} />
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                    <XAxis
+                        dataKey="x"
+                        type="number"
+                        domain={[-4, 4]}
+                        ticks={[-4, -3, -2, -1, 0, 1, 2, 3, 4]}
+                        label={{ value: "ระดับความสามารถ (θ)", position: "insideBottom", offset: -10, fill: "#94a3b8", fontSize: 12 }}
+                        tick={{ fontSize: 11, fill: "#64748b" }}
+                        axisLine={{ stroke: "#cbd5e1" }}
+                        tickFormatter={(v) => v > 0 ? `+${v}` : `${v}`}
+                    />
                     <YAxis hide />
-                    <Tooltip formatter={(v: any) => v?.toFixed(4)} labelFormatter={(l) => `θ = ${l}`} />
-                    <ReferenceLine x={cutScore.toFixed(1)} stroke="#f59e0b" strokeDasharray="4 4"
-                        label={{ value: "เกณฑ์", fill: "#f59e0b", fontSize: 11 }} />
-                    <ReferenceLine x={finalTheta.toFixed(1)} stroke="#2563eb" strokeWidth={2}
-                        label={{ value: `θ=${finalTheta.toFixed(2)}`, fill: "#2563eb", fontSize: 11, position: "top" }} />
-                    <Area type="monotone" dataKey="y" stroke="#3b82f6" fill="#bfdbfe" fillOpacity={0.8} name="P(θ|data)" />
+                    <Tooltip
+                        content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                                const d = payload[0].payload;
+                                return (
+                                    <div className="bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 text-xs space-y-1">
+                                        <p className="font-semibold text-gray-800">θ = {d.x > 0 ? `+${d.x.toFixed(2)}` : d.x.toFixed(2)}</p>
+                                        <p className="text-blue-600">ความน่าจะเป็นสัมพัทธ์: {d.y.toFixed(3)}</p>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        }}
+                    />
+                    <ReferenceLine
+                        x={cutScore}
+                        stroke="#f59e0b"
+                        strokeDasharray="4 4"
+                        strokeWidth={1.5}
+                        label={{ value: "เกณฑ์ (0.0)", fill: "#d97706", fontSize: 11, position: "top" }}
+                    />
+                    <ReferenceLine
+                        x={finalTheta}
+                        stroke="#2563eb"
+                        strokeWidth={2}
+                        label={{
+                            value: `θ = ${finalTheta >= 0 ? `+${finalTheta.toFixed(2)}` : finalTheta.toFixed(2)}`,
+                            fill: "#1d4ed8",
+                            fontSize: 11,
+                            fontWeight: 600,
+                            position: "insideTopLeft",
+                        }}
+                    />
+                    <Area
+                        type="monotone"
+                        dataKey="y"
+                        stroke={isPassed ? "#16a34a" : "#2563eb"}
+                        strokeWidth={2.5}
+                        fill="url(#posteriorFill)"
+                        name="ความน่าจะเป็น"
+                    />
                 </AreaChart>
             </ResponsiveContainer>
         </div>
@@ -299,8 +520,6 @@ export default function CATResultPage() {
 
     const [loading, setLoading] = useState(true);
     const [result, setResult] = useState<CATResult | null>(null);
-    const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     useEffect(() => {
         if (sessionId) fetchResult();
@@ -335,14 +554,6 @@ export default function CATResultPage() {
         }
     }
 
-    const toggleItem = (i: number) => {
-        setExpandedItems(prev => {
-            const next = new Set(prev);
-            next.has(i) ? next.delete(i) : next.add(i);
-            return next;
-        });
-    };
-
     if (loading) {
         return (
             <>
@@ -368,18 +579,18 @@ export default function CATResultPage() {
     const CUT_SCORE = 0.0;
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <>
             <Navbar_user />
-
-            <div className="container mx-auto px-4 py-8 max-w-5xl">
+            <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto">
 
                 {/* ── Breadcrumb ───────────────────────────────── */}
-                <div className="flex items-center text-sm text-gray-500 mb-6">
-                    <button onClick={() => router.push("/user")} className="hover:text-green-600 transition">หน้าหลัก</button>
+                <div className="flex items-center text-sm text-gray-500 mb-5">
+                    <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
                     <span className="mx-2">›</span>
-                    <button onClick={() => router.push("/user/cat-exam")} className="hover:text-green-600 transition">สอบแบบปรับตัว</button>
+                    <Link href="/user/cat-exam" className="hover:text-green-600 cursor-pointer transition">สอบแบบปรับตัว (CAT)</Link>
                     <span className="mx-2">›</span>
-                    <span className="text-gray-700 font-medium">ผลการสอบ</span>
+                    <span className="text-gray-600 font-medium">ผลการสอบ</span>
                 </div>
 
                 {/* ── Result Header ───────────────────────────────── */}
@@ -472,139 +683,33 @@ export default function CATResultPage() {
                     </div>
                 </div>
 
-                {/* ── Actions ──────────────────────────────────────── */}
-                <div className="flex gap-4 justify-center mb-10">
-                    <button
-                        onClick={() => router.push("/user")}
-                        className="px-6 py-3 bg-white border border-gray-200 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors shadow-sm"
+                {/* ── Actions ── */}
+                <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
+                    <Link
+                        href={`/user/cat-exam/result/${sessionId}/answer`}
+                        className="flex-1 sm:flex-none px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm text-center transition-colors shadow-sm"
                     >
-                        ← กลับหน้าหลัก
-                    </button>
-                    <button
-                        onClick={() => router.push("/user/cat-exam")}
-                        className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl font-medium transition-colors shadow-sm flex items-center gap-2"
+                        ดูเฉลยคำตอบ
+                    </Link>
+                    <Link
+                        href="/user/cat-exam"
+                        className="flex-1 sm:flex-none px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl text-sm text-center border border-gray-200 transition-colors flex items-center justify-center gap-2"
                     >
-                        <RefreshCw size={18} />
+                        <RefreshCw size={16} />
                         สอบใหม่อีกครั้ง
-                    </button>
-                </div>
-
-                {/* ── Answer Review ─────────────────────────────────── */}
-                <div className="mb-8">
-                    <h2 className="text-lg font-medium text-gray-800 mb-4 flex items-center gap-2">
-                        <BookOpen className="text-green-600" size={20} />
-                        รีวิวคำตอบ ({result.num_items} ข้อ)
-                    </h2>
-                    <div className="space-y-3">
-                        {result.responses.map((resp, index) => (
-                            <div key={index} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-                                {/* Collapsed header */}
-                                <button
-                                    className={`w-full px-5 py-4 flex items-center justify-between text-left transition-colors ${resp.is_correct ? "hover:bg-green-50" : "hover:bg-red-50"}`}
-                                    onClick={() => toggleItem(index)}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-medium text-white text-sm ${resp.is_correct ? "bg-green-500" : "bg-red-500"}`}>
-                                            {index + 1}
-                                        </div>
-                                        <span className={`font-medium text-sm ${resp.is_correct ? "text-green-700" : "text-red-700"}`}>
-                                            {resp.is_correct ? "✓ ถูกต้อง" : "✗ ไม่ถูกต้อง"}
-                                        </span>
-                                        <span className="text-gray-400 text-xs line-clamp-1 max-w-xs hidden md:block">
-                                            {resp.question_text?.substring(0, 60)}...
-                                        </span>
-                                    </div>
-                                    <span className="text-blue-400 text-sm">{expandedItems.has(index) ? "▲" : "▼"}</span>
-                                </button>
-
-                                {/* Expanded content */}
-                                {expandedItems.has(index) && (
-                                    <div className="p-6 border-t border-gray-100">
-                                        {resp.situation && (
-                                            <div className="mb-4 p-4 bg-blue-50 rounded-xl border-l-4 border-blue-400">
-                                                <div className="flex items-center gap-2 text-blue-600 font-medium mb-2 text-sm">
-                                                    <Info size={16} /> สถานการณ์
-                                                </div>
-                                                <p className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
-                                                    {resp.situation.situation_text}
-                                                </p>
-                                            </div>
-                                        )}
-
-                                        <h3 className="text-base font-medium text-gray-800 mb-4 leading-relaxed">
-                                            {resp.question_text}
-                                        </h3>
-                                        {resp.question_image_url && (
-                                            <div className="mb-4">
-                                                <img
-                                                    src={resp.question_image_url.startsWith("http")
-                                                        ? resp.question_image_url
-                                                        : `${process.env.NEXT_PUBLIC_API_URL}${resp.question_image_url}`}
-                                                    alt="question"
-                                                    className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white"
-                                                />
-                                            </div>
-                                        )}
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-5">
-                                            {resp.answer_options?.map(opt => {
-                                                const selected = opt.option_id === resp.selected_option_id;
-                                                const correct = opt.is_correct;
-                                                let cls = "border-gray-200 bg-white";
-                                                let icon = null;
-                                                if (selected && correct) { cls = "border-green-500 bg-green-50"; icon = <CheckCircle2 className="text-green-500 shrink-0" size={18} />; }
-                                                else if (selected && !correct) { cls = "border-red-500 bg-red-50"; icon = <XCircle className="text-red-500 shrink-0" size={18} />; }
-                                                else if (correct) { cls = "border-green-400 bg-green-50/40"; icon = <CheckCircle2 className="text-green-400 shrink-0" size={18} />; }
-                                                return (
-                                                    <div key={opt.option_id} className={`p-3 rounded-xl border-2 flex items-center gap-2 ${cls}`}>
-                                                        <div className="flex-1 text-sm">
-                                                            {opt.option_text && opt.option_text.replace(/<[^>]*>/g, '').trim() !== '' && (
-                                                                <span>{opt.option_text}</span>
-                                                            )}
-                                                            {opt.option_image_url && opt.option_image_url.trim() !== '' && (
-                                                                <div className={opt.option_text && opt.option_text.replace(/<[^>]*>/g, '').trim() !== '' ? "mt-2" : ""}>
-                                                                    <img
-                                                                        src={opt.option_image_url.startsWith("http")
-                                                                            ? opt.option_image_url
-                                                                            : `${process.env.NEXT_PUBLIC_API_URL}${opt.option_image_url}`}
-                                                                        alt="option image"
-                                                                        className="max-h-32 rounded-lg border border-gray-200 bg-white cursor-pointer hover:opacity-90 transition-opacity object-contain"
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            const url = opt.option_image_url!.startsWith("http")
-                                                                                ? opt.option_image_url!
-                                                                                : `${process.env.NEXT_PUBLIC_API_URL}${opt.option_image_url}`;
-                                                                            setPreviewImage(url);
-                                                                        }}
-                                                                    />
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        {icon}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-
-                                        <div className="p-4 bg-indigo-50/60 rounded-xl border border-indigo-100">
-                                            <div className="flex items-center gap-2 text-indigo-700 font-medium text-sm mb-2">
-                                                <HelpCircle size={16} /> คำอธิบาย
-                                            </div>
-                                            <p className="text-gray-700 text-sm leading-relaxed">
-                                                {resp.explanation || "ไม่มีคำอธิบายเพิ่มเติมสำหรับข้อนี้"}
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                    </Link>
+                    <Link
+                        href="/user"
+                        className="flex-1 sm:flex-none px-6 py-3 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-xl text-sm text-center border border-gray-200 transition-colors"
+                    >
+                        กลับหน้าหลัก
+                    </Link>
                 </div>
 
             </div>
+            </div>
 
-            <ImagePreviewModal src={previewImage} onClose={() => setPreviewImage(null)} />
             <Footer />
-        </div>
+        </>
     );
 }

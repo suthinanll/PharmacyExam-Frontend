@@ -5,7 +5,7 @@ import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { BookOpen, Loader2, Clock, Hash, Award, AlertTriangle, FlaskConical, X } from "lucide-react";
+import { BookOpen, Loader2, Clock, Hash, Award, AlertTriangle, FlaskConical, X, Activity, Sparkles } from "lucide-react";
 import Swal from "sweetalert2";
 import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -240,14 +240,39 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
     { cx: 120, cy: 335, r: 3, className: "bubble-2", delay: "1.2s" },
   ];
 
+  const getAbilityBadge = (val: number) => {
+    if (val >= 1.5) return { label: "ระดับสูง", color: "text-emerald-700 bg-emerald-50 border-emerald-200" };
+    if (val >= 0.0) return { label: "ระดับปานกลาง", color: "text-blue-700 bg-blue-50 border-blue-200" };
+    if (val >= -1.5) return { label: "ระดับพื้นฐาน", color: "text-amber-700 bg-amber-50 border-amber-200" };
+    return { label: "ระดับเริ่มต้น", color: "text-slate-700 bg-slate-100 border-slate-200" };
+  };
+
+  const abilityBadge = getAbilityBadge(displayedTheta);
+
   return (
-    <div className="text-center select-none">
-      <p className="text-[14px] text-gray-600 mb-1">ระดับความสามารถ</p>
-      <svg viewBox="0 0 220 400" className="w-full max-h-[350px] mx-auto" role="img" aria-label="beaker progress">
+    <div className="select-none">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+            <Activity className="w-4 h-4" />
+          </div>
+          <div className="text-left">
+            <h3 className="text-sm font-medium text-gray-800">ระดับความสามารถ</h3>
+            <p className="text-sm text-gray-400">ประเมินแบบเรียลไทม์ (CAT)</p>
+          </div>
+        </div>
+        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${abilityBadge.color}`}>
+          {abilityBadge.label}
+        </span>
+      </div>
+
+      {/* SVG Beaker */}
+      <svg viewBox="0 0 230 380" className="w-full max-h-[350px] mx-auto drop-shadow-sm" role="img" aria-label="beaker progress">
         <defs>
           <linearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#f0f9ff" />
-            <stop offset="100%" stopColor="#dbeafe" />
+            <stop offset="0%" stopColor="#f8fafc" />
+            <stop offset="100%" stopColor="#eff6ff" />
           </linearGradient>
           <linearGradient id="liquidGrad" x1="0" y1="0" x2="0" y2="1">
             <stop
@@ -267,16 +292,19 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
             />
           </linearGradient>
           <linearGradient id="glassSheen" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="white" stopOpacity="0.35" />
-            <stop offset="40%" stopColor="white" stopOpacity="0.08" />
+            <stop offset="0%" stopColor="white" stopOpacity="0.45" />
+            <stop offset="35%" stopColor="white" stopOpacity="0.1" />
             <stop offset="100%" stopColor="white" stopOpacity="0" />
           </linearGradient>
           <clipPath id="beakerClip">
-            <path d="M 80,82 L 70,358 L 150,358 L 140,82 Z" />
+            <path d="M 80,72 L 72,338 Q 72,352 84,352 L 136,352 Q 148,352 148,338 L 140,72 Z" />
           </clipPath>
           <clipPath id="liquidBodyClip">
             <rect x="50" y={liquidTop} width="120" height={360} />
           </clipPath>
+          <filter id="pillShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.12" />
+          </filter>
           <filter id="dropGlow" x="-50%" y="-50%" width="200%" height="200%">
             <feGaussianBlur stdDeviation="4" result="blur" />
             <feMerge>
@@ -302,23 +330,23 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
             }
             @keyframes rise-1 {
               0% { transform: translateY(0) translateX(0); opacity: 0; }
-              10% { opacity: 0.45; }
+              10% { opacity: 0.5; }
               50% { transform: translateY(-100px) translateX(4px); }
-              90% { opacity: 0.45; }
+              90% { opacity: 0.5; }
               100% { transform: translateY(-240px) translateX(-2px); opacity: 0; }
             }
             @keyframes rise-2 {
               0% { transform: translateY(0) translateX(0); opacity: 0; }
-              15% { opacity: 0.4; }
+              15% { opacity: 0.45; }
               50% { transform: translateY(-110px) translateX(-3px); }
-              85% { opacity: 0.4; }
+              85% { opacity: 0.45; }
               100% { transform: translateY(-250px) translateX(3px); opacity: 0; }
             }
             @keyframes rise-3 {
               0% { transform: translateY(0) translateX(0); opacity: 0; }
-              10% { opacity: 0.55; }
+              10% { opacity: 0.6; }
               60% { transform: translateY(-120px) translateX(2px); }
-              90% { opacity: 0.55; }
+              90% { opacity: 0.6; }
               100% { transform: translateY(-230px) translateX(-4px); opacity: 0; }
             }
             .bubble-1 { animation: rise-1 3.5s infinite linear; transform-origin: center; }
@@ -327,16 +355,26 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
           `}</style>
         </defs>
 
-        <rect width="220" height="400" fill="url(#bgGrad)" rx="12" />
+        {/* Zero baseline guideline inside card */}
+        <line
+          x1="55"
+          y1={thetaToLiquidTop(0.0)}
+          x2="165"
+          y2={thetaToLiquidTop(0.0)}
+          stroke="#94a3b8"
+          strokeWidth="1"
+          strokeDasharray="3 3"
+          opacity="0.45"
+        />
 
-
-        {/* === BEAKER GLASS === */}
-        <line x1="80" y1="80" x2="70" y2="360" stroke="#cbd5e1" strokeWidth="4" strokeLinecap="round" />
-        <line x1="140" y1="80" x2="150" y2="360" stroke="#cbd5e1" strokeWidth="4" strokeLinecap="round" />
-        <line x1="70" y1="360" x2="150" y2="360" stroke="#cbd5e1" strokeWidth="5" strokeLinecap="round" />
-        {/* Rim */}
-        <line x1="72" y1="82" x2="148" y2="82" stroke="#94a3b8" strokeWidth="5" strokeLinecap="round" />
-
+        {/* === BEAKER GLASS (Cylinder) === */}
+        {/* Left & right glass walls */}
+        <line x1="80" y1="72" x2="72" y2="338" stroke="#cbd5e1" strokeWidth="3.5" strokeLinecap="round" />
+        <line x1="140" y1="72" x2="148" y2="338" stroke="#cbd5e1" strokeWidth="3.5" strokeLinecap="round" />
+        {/* Curved bottom */}
+        <path d="M 72,338 Q 72,352 84,352 L 136,352 Q 148,352 148,338" fill="none" stroke="#cbd5e1" strokeWidth="3.5" strokeLinecap="round" />
+        {/* Top Rim */}
+        <ellipse cx="110" cy="72" rx="32" ry="5.5" fill="#f1f5f9" stroke="#94a3b8" strokeWidth="3" />
 
         {/* === LIQUID FILL === */}
         <g clipPath="url(#beakerClip)">
@@ -348,7 +386,7 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
                 Q 215,${liquidTop + 4} 240,${liquidTop}
                 L 240,358 L 40,358 Z`}
             fill="url(#liquidGrad)"
-            opacity="0.88"
+            opacity="0.9"
             className="wave-slosh"
           />
 
@@ -372,7 +410,7 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
         </g>
 
         {/* Glass sheen */}
-        <rect x="71" y={liquidTop} width="40" height={358 - liquidTop}
+        <rect x="73" y={liquidTop} width="36" height={352 - liquidTop}
           fill="url(#glassSheen)" clipPath="url(#beakerClip)" />
 
         {/* Bubbles inside liquid */}
@@ -392,25 +430,78 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
           </g>
         </g>
 
-        {/* Glass wall highlight */}
-        <line x1="83" y1="90" x2="76" y2="350" stroke="white" strokeWidth="3" opacity="0.35" strokeLinecap="round" />
+        {/* Glass wall highlights */}
+        <line x1="77" y1="85" x2="74" y2="330" stroke="white" strokeWidth="2.5" opacity="0.6" strokeLinecap="round" />
+        <line x1="82" y1="90" x2="79" y2="325" stroke="white" strokeWidth="1" opacity="0.35" strokeLinecap="round" />
 
-        {/* === Tick marks on right === */}
-        {[0, 25, 50, 75, 100].map((pct) => {
-          const y = LIQUID_BOTTOM - ((pct / 100) * (LIQUID_BOTTOM - LIQUID_TOP_MAX));
+        {/* === Minor sub-ticks (precision markings) === */}
+        {[+2.25, +0.75, -0.75, -2.25].map((val) => {
+          const y = thetaToLiquidTop(val);
           return (
-            <g key={pct}>
-              <line x1="150" y1={y} x2="162" y2={y} stroke="#94a3b8" strokeWidth="1.5" />
-              <text x="165" y={y + 4} fontSize="9" fill="#94a3b8" fontFamily="monospace">{pct}%</text>
+            <line
+              key={val}
+              x1="148"
+              y1={y}
+              x2="153"
+              y2={y}
+              stroke="#cbd5e1"
+              strokeWidth="1"
+            />
+          );
+        })}
+
+        {/* === Major Tick marks on right (Theta Scale) === */}
+        {[+3.0, +1.5, 0.0, -1.5, -3.0].map((val) => {
+          const y = thetaToLiquidTop(val);
+          const isZero = val === 0.0;
+          return (
+            <g key={val}>
+              <line
+                x1="148"
+                y1={y}
+                x2={isZero ? "162" : "157"}
+                y2={y}
+                stroke={isZero ? "#3b82f6" : "#94a3b8"}
+                strokeWidth={isZero ? "2" : "1.2"}
+              />
+              <text
+                x="166"
+                y={y + 3.5}
+                fontSize={isZero ? "9.5" : "9"}
+                fill={isZero ? "#1d4ed8" : "#64748b"}
+                fontFamily="sans-serif"
+                fontWeight={isZero ? "700" : "500"}
+              >
+                {val > 0 ? `+${val.toFixed(1)}` : val === 0 ? "0.0" : val.toFixed(1)}
+              </text>
             </g>
           );
         })}
 
         {/* === THETA LABEL floating on liquid === */}
-        <rect x="78" y={liquidTop - 23} width="64" height="18" rx="5" fill="white" opacity="0.92" />
-        <text x="110" y={liquidTop - 10} fontSize="10" fill="#1d4ed8" textAnchor="middle" fontWeight="700">
-          θ = {theta.toFixed(2)}
-        </text>
+        <g filter="url(#pillShadow)">
+          <rect
+            x="70"
+            y={liquidTop - 25}
+            width="80"
+            height="22"
+            rx="11"
+            fill="white"
+            stroke="#e2e8f0"
+            strokeWidth="1"
+          />
+          <text
+            x="110"
+            y={liquidTop - 10.5}
+            fontSize="11"
+            fill="#1e40af"
+            textAnchor="middle"
+            fontWeight="700"
+            fontFamily="sans-serif"
+          >
+            θ = {displayedTheta >= 0 ? `+${displayedTheta.toFixed(2)}` : displayedTheta.toFixed(2)}
+          </text>
+        </g>
 
         {/* === DROP (rendered last = on top of everything) === */}
         {drop && drop.opacity > 0 && (
@@ -450,6 +541,13 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
         )}
       </svg>
 
+      {/* Footer info bar */}
+      <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+        <span>ค่าความสามารถ (Theta)</span>
+        <span className=" font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+          {displayedTheta >= 0 ? `+${displayedTheta.toFixed(2)}` : displayedTheta.toFixed(2)}
+        </span>
+      </div>
     </div>
   );
 }
@@ -679,7 +777,7 @@ function CATExamPageContent() {
           ? "bg-red-50/60"
           : "bg-gray-50"
         }`}>
-        <div className="container mx-auto px-4 max-w-5xl">
+        <div className="container mx-auto px-4 max-w-7xl">
 
           {/* Breadcrumb */}
           <div className="flex items-center text-sm text-gray-500 mb-4">
@@ -708,8 +806,8 @@ function CATExamPageContent() {
                   `}</style>
 
                   {/* Header/Title Banner */}
-                  <div className="p-6 text-center border-b border-gray-100 bg-gradient-to-r from-blue-50 to-indigo-50">
-                    <h2 className="text-2xl font-bold text-gray-800">การประเมินผลการสอบเสร็จสิ้น</h2>
+                  <div className="p-6 text-center border-b border-gray-100  ">
+                    <h2 className="text-2xl font-medium text-gray-800">การประเมินผลการสอบเสร็จสิ้น</h2>
                     <p className="text-gray-500 text-sm mt-1">ระบบได้ทำการประเมินระดับความสามารถเชิงปรับตัวของคุณเรียบร้อยแล้ว</p>
                   </div>
 
@@ -722,19 +820,19 @@ function CATExamPageContent() {
                           <FlaskConical className="w-6 h-6 text-blue-500" />
                         </div>
                         <div className="text-center">
-                          <h3 className="text-lg font-semibold text-blue-800">กำลังประมวลผลและสรุปคะแนน...</h3>
+                          <h3 className="text-lg font-medium text-blue-800">กำลังประมวลผลและสรุปคะแนน...</h3>
                           <p className="text-sm text-gray-500 mt-1">ปฏิกิริยาเคมีกำลังสรุปผลลัพธ์สุดท้าย</p>
                         </div>
                       </div>
                     ) : finalStatus === "passed" ? (
                       /* Passed State */
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-4 animate-scale-up shadow-sm">
-                        <div className="w-16 h-16 shrink-0 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-md shadow-emerald-200">
+                      <div className="bg-green-50 border border-green-200 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-4 animate-scale-up shadow-sm">
+                        <div className="w-16 h-16 shrink-0 rounded-full bg-green-500 flex items-center justify-center text-white shadow-md shadow-green-200">
                           <Award className="w-8 h-8" />
                         </div>
                         <div className="text-center sm:text-left">
-                          <h3 className="text-xl font-bold text-emerald-800">มีโอกาสสูงที่จะสอบผ่าน!</h3>
-                          <p className="text-sm text-emerald-600 font-medium mt-0.5">ระดับความสามารถของคุณผ่านเกณฑ์มาตรฐานการประเมิน</p>
+                          <h3 className="text-xl font-medium text-green-800">มีโอกาสสูงที่จะสอบผ่าน!</h3>
+                          <p className="text-sm text-green-600 font-medium mt-0.5">ระดับความสามารถของคุณผ่านเกณฑ์มาตรฐานการประเมิน</p>
                         </div>
                       </div>
                     ) : (
@@ -744,38 +842,84 @@ function CATExamPageContent() {
                           <AlertTriangle className="w-8 h-8" />
                         </div>
                         <div className="text-center sm:text-left">
-                          <h3 className="text-xl font-bold text-rose-800">การสอบเสร็จสิ้น (ยังไม่ผ่านเกณฑ์)</h3>
+                          <h3 className="text-xl font-medium text-rose-800">การสอบเสร็จสิ้น (ยังไม่ผ่านเกณฑ์)</h3>
                           <p className="text-sm text-rose-600 font-medium mt-0.5">ระดับความสามารถของคุณในปัจจุบันยังไม่ผ่านเกณฑ์ขั้นต่ำ</p>
                         </div>
                       </div>
                     )}
 
                     {/* Stats Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">จำนวนข้อที่ตอบ</div>
-                        <div className="text-2xl font-bold text-gray-800 mt-1">{session.num_items} ข้อ</div>
-                      </div>
-                      <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">ระดับความสามารถ (θ)</div>
-                        <div className={`text-2xl font-bold mt-1 ${finalStatus === "passed" ? "text-emerald-600" : finalStatus === "failed" ? "text-rose-600" : "text-blue-600"
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+                      {/* 1. Ability Level (Theta) */}
+                      <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100 flex flex-col justify-between text-center transition-all hover:border-gray-200">
+                        <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500 mb-2">
+                          <Activity className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                          <span className="truncate">ระดับความสามารถ (θ)</span>
+                        </div>
+                        <div>
+                          <div className={`text-2xl font-medium ${
+                            finalStatus === "passed" ? "text-green-600" : finalStatus === "failed" ? "text-rose-600" : "text-blue-600"
                           }`}>
-                          {session.current_theta.toFixed(3)}
+                            {session.current_theta >= 0 ? `+${session.current_theta.toFixed(3)}` : session.current_theta.toFixed(3)}
+                          </div>
+                          <div className="text-[11px] text-gray-400 mt-0.5 font-normal">
+                            {session.current_theta >= 1.5 ? "ระดับสูง" : session.current_theta >= 0 ? "ระดับปานกลาง" : "ระดับเริ่มต้น"}
+                          </div>
                         </div>
                       </div>
-                      <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">ค่าความคลาดเคลื่อน (SE)</div>
-                        <div className="text-2xl font-bold text-purple-600 mt-1">{session.current_se.toFixed(3)}</div>
+
+                      {/* 2. Items Answered */}
+                      <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100 flex flex-col justify-between text-center transition-all hover:border-gray-200">
+                        <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500 mb-2">
+                          <Hash className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                          <span className="truncate">จำนวนข้อที่ตอบ</span>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-medium text-gray-800">
+                            {session.num_items}
+                          </div>
+                          <div className="text-[11px] text-gray-400 mt-0.5 font-normal">
+                            จากสูงสุด {session.max_items} ข้อ
+                          </div>
+                        </div>
                       </div>
-                      <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">เวลาที่ใช้ทั้งหมด</div>
-                        <div className="text-2xl font-bold text-indigo-600 mt-1">{formatTime(elapsedTime)}</div>
+
+                      {/* 3. Time Elapsed */}
+                      <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100 flex flex-col justify-between text-center transition-all hover:border-gray-200">
+                        <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500 mb-2">
+                          <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                          <span className="truncate">เวลาที่ใช้ทั้งหมด</span>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-medium text-indigo-600 ">
+                            {formatTime(elapsedTime)}
+                          </div>
+                          <div className="text-[11px] text-gray-400 mt-0.5 font-normal">
+                            นาที : วินาที
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 4. Standard Error (SE) */}
+                      <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100 flex flex-col justify-between text-center transition-all hover:border-gray-200">
+                        <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500 mb-2">
+                          <AlertTriangle className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                          <span className="truncate">ความคลาดเคลื่อน (SE)</span>
+                        </div>
+                        <div>
+                          <div className="text-2xl font-medium text-purple-600">
+                            {session.current_se.toFixed(3)}
+                          </div>
+                          <div className="text-[11px] text-gray-400 mt-0.5 font-normal">
+                            {session.current_se <= 0.35 ? "ความแม่นยำสูง" : "ความแม่นยำปานกลาง"}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
                     {/* Additional details */}
                     {finalStatus !== null && (
-                      <div className="text-center p-4 bg-gray-50/50 rounded-xl text-xs text-gray-400 leading-relaxed max-w-lg mx-auto border border-dashed border-gray-200">
+                      <div className="text-center p-4 bg-gray-50/50 rounded-xl text-sm text-gray-400 leading-relaxed max-w-lg mx-auto border border-dashed border-gray-200">
                         * ผลลัพธ์นี้คำนวณตามทฤษฎีการตอบสนองข้อสอบ (IRT) ความคลาดเคลื่อนมาตรฐานต่ำกว่าเกณฑ์ขั้นต่ำ (SE &le; 0.35) หรือทำข้อสอบถึงจำนวนข้อสูงสุดแล้ว
                       </div>
                     )}
@@ -790,7 +934,7 @@ function CATExamPageContent() {
                           }
                         }}
                         disabled={finalStatus === null || navigating}
-                        className={`w-full max-w-sm py-4 px-6 rounded-2xl font-bold text-white shadow-sm hover:shadow-md transition-colors flex items-center justify-center gap-2 ${finalStatus === "passed"
+                        className={`w-full max-w-sm py-4 px-6 rounded-2xl font-medium text-white shadow-sm hover:shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer ${finalStatus === "passed"
                           ? "bg-green-500 hover:bg-green-600"
                           : finalStatus === "failed"
                             ? "bg-red-500 hover:bg-red-600"
@@ -803,7 +947,7 @@ function CATExamPageContent() {
                             กำลังโหลด...
                           </>
                         ) : (
-                          "สรุปผลการสอบ →"
+                          "สรุปผลการสอบ"
                         )}
                       </button>
                     </div>
@@ -816,12 +960,12 @@ function CATExamPageContent() {
                     <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
                       <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex items-center gap-2">
                         <BookOpen className="w-4 h-4 text-blue-600" />
-                        <span className="text-sm font-semibold text-blue-700">สถานการณ์</span>
+                        <span className="text-sm font-medium text-blue-700">สถานการณ์</span>
                       </div>
                       <div className="p-5">
                         {session.current_item.situation.situation_title && (
                           <p
-                            className="font-bold text-gray-800 mb-2"
+                            className="font-medium text-gray-800 mb-2"
                             dangerouslySetInnerHTML={{ __html: session.current_item.situation.situation_title }}
                           />
                         )}
@@ -858,7 +1002,7 @@ function CATExamPageContent() {
                     {/* Question header */}
                     <div className="px-6 pt-5 pb-4 border-b border-gray-100">
                       <div className="flex items-center gap-3 mb-3">
-                        <span className="text-xs font-bold text-white bg-gray-500 px-2.5 py-1 rounded-full">
+                        <span className="text-xs font-medium text-white bg-gray-500 px-2.5 py-1 rounded-full">
                           ข้อ {session.num_items + 1}
                         </span>
                         {session.current_item.sub_topics && session.current_item.sub_topics.length > 0 && (
@@ -902,7 +1046,7 @@ function CATExamPageContent() {
 
                     {/* Options */}
                     <div className="px-6 py-5">
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">เลือกคำตอบ</p>
+                      <p className="text-sm font-medium text-gray-500  mb-3">เลือกคำตอบ</p>
                       <div className="space-y-2.5">
                         {session.current_item.answer_options.map((option, index) => {
                           const isSelected = selectedOptionId === option.option_id;
@@ -924,7 +1068,7 @@ function CATExamPageContent() {
                               </div>
 
                               {/* Label badge */}
-                              <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 mt-0.5 transition-colors ${isSelected ? "bg-green-500 text-white" : "bg-gray-100 text-gray-600 group-hover:bg-green-100 group-hover:text-green-700"
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded shrink-0 mt-0.5 transition-colors ${isSelected ? "bg-green-500 text-white" : "bg-gray-100 text-gray-600 group-hover:bg-green-100 group-hover:text-green-700"
                                 }`}>
                                 {label}
                               </span>
@@ -970,7 +1114,7 @@ function CATExamPageContent() {
               <div className="sticky top-5 space-y-4">
 
                 {/* Beaker progress card */}
-                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                <div className="bg-gradient-to-b from-slate-50 via-blue-50/20 to-blue-50/40 rounded-2xl border border-gray-200 shadow-sm p-4">
                   <LabBeaker theta={session.current_theta} dropTrigger={dropTrigger} finalStatus={finalStatus} />
                 </div>
 
@@ -983,14 +1127,14 @@ function CATExamPageContent() {
                         <Hash className="w-3.5 h-3.5 text-gray-400" />
                         <span className="text-xs text-gray-500">ตอบแล้ว</span>
                       </div>
-                      <p className="text-xl font-bold text-gray-800">{session.num_items}</p>
+                      <p className="text-xl font-medium text-gray-800">{session.num_items}</p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-3 text-center">
                       <div className="flex items-center justify-center gap-1 mb-0.5">
                         <Clock className="w-3.5 h-3.5 text-gray-400" />
                         <span className="text-xs text-gray-500">เวลา</span>
                       </div>
-                      <p className="text-xl font-bold text-blue-600">{formatTime(elapsedTime)}</p>
+                      <p className="text-xl font-medium text-blue-600">{formatTime(elapsedTime)}</p>
                     </div>
                   </div>
 
@@ -998,7 +1142,7 @@ function CATExamPageContent() {
                   <div>
                     <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                       <span>ความคืบหน้า</span>
-                      <span className="font-semibold text-gray-700">{session.num_items} / {session.max_items} ข้อ</span>
+                      <span className="font-medium text-gray-700">{session.num_items} / {session.max_items} ข้อ</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
@@ -1019,7 +1163,7 @@ function CATExamPageContent() {
                     <button
                       onClick={submitAnswer}
                       disabled={!selectedOptionId || loading}
-                      className="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <>
@@ -1027,7 +1171,7 @@ function CATExamPageContent() {
                           กำลังคำนวณ...
                         </>
                       ) : (
-                        "ส่งคำตอบและถัดไป →"
+                        "ข้อถัดไป"
                       )}
                     </button>
 
@@ -1055,11 +1199,11 @@ function CATExamPageContent() {
 
       {/* Image Preview Modal */}
       {previewImage && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/75 z-[110] flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300"
           onClick={() => setPreviewImage(null)}
         >
-          <div 
+          <div
             className="relative max-w-5xl max-h-[90vh] bg-white rounded-2xl overflow-hidden shadow-2xl p-2 flex flex-col items-center"
             onClick={(e) => e.stopPropagation()}
           >

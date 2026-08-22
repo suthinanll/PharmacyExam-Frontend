@@ -103,10 +103,11 @@ const Profile = () => {
             text: "ข้อมูลโปรไฟล์ของคุณจะถูกอัปเดต",
             icon: "question",
             showCancelButton: true,
-            confirmButtonColor: "#111827",
-            cancelButtonColor: "#ef4444",
+            confirmButtonColor: "#16a34a",
+            cancelButtonColor: "#6b7280",
             confirmButtonText: "ตกลง",
-            cancelButtonText: "ยกเลิก"
+            cancelButtonText: "ยกเลิก",
+            reverseButtons: true
         });
 
         if (!confirm.isConfirmed) return;
@@ -267,12 +268,12 @@ const Profile = () => {
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar_user />
 
-            <main className="flex-grow py-6 md:py-12 px-4">
-                <div className="max-w-3xl mx-auto">
-                    <div className="flex items-center text-sm text-gray-500 mb-4 ml-1 overflow-x-auto whitespace-nowrap pb-2 md:pb-0">
-                        <Link href="/user" className="hover:text-indigo-600 transition">หน้าหลัก</Link>
-                        <span className="mx-2 text-gray-400">›</span>
-                        <span className="text-gray-700 font-medium">โปรไฟล์ของฉัน</span>
+            <main className="flex-grow p-4 md:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex items-center text-sm text-gray-500 mb-5">
+                        <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+                        <span className="mx-2">›</span>
+                        <span className="text-gray-600 font-medium">โปรไฟล์ของฉัน</span>
                     </div>
 
                     {/* แจ้งเตือนข้อมูลที่ยังไม่ครบ */}
@@ -360,7 +361,7 @@ const Profile = () => {
                                     <button
                                         type="button"
                                         onClick={() => setIsEditing(true)}
-                                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition shadow-sm"
+                                        className="w-full sm:w-auto flex items-center cursor-pointer  justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition shadow-sm"
                                     >
                                         <Edit3 className="w-4 h-4" /> แก้ไข
                                     </button>
@@ -378,7 +379,7 @@ const Profile = () => {
                                                     tel: user.tel,
                                                 });
                                             }}
-                                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+                                            className="flex-1 sm:flex-none flex items-center cursor-pointer  justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
                                         >
                                             <X className="w-4 h-4" /> ยกเลิก
                                         </button>
@@ -386,7 +387,7 @@ const Profile = () => {
                                             type="button"
                                             onClick={handleSaveProfile}
                                             disabled={isLoading}
-                                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition shadow-sm disabled:opacity-50"
+                                            className="flex-1 sm:flex-none flex items-center cursor-pointer justify-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition shadow-sm disabled:opacity-50"
                                         >
                                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                             บันทึก
@@ -399,7 +400,7 @@ const Profile = () => {
                         <div className="p-5 md:p-8">
                             <form className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6" onSubmit={(e) => e.preventDefault()}>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">ชื่อจริง</label>
+                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">ชื่อจริง</label>
                                     <input
                                         name="first_name"
                                         type="text"
@@ -418,7 +419,7 @@ const Profile = () => {
                                     )}
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">นามสกุล</label>
+                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">นามสกุล</label>
                                     <input
                                         name="last_name"
                                         type="text"
@@ -437,7 +438,7 @@ const Profile = () => {
                                     )}
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">อีเมล (ไม่สามารถแก้ไขได้)</label>
+                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">อีเมล (ไม่สามารถแก้ไขได้)</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
@@ -449,7 +450,7 @@ const Profile = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">เบอร์โทรศัพท์</label>
+                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">เบอร์โทรศัพท์</label>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
@@ -473,7 +474,7 @@ const Profile = () => {
 
                                 <div className="md:col-span-2 pt-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] md:text-xs font-medium text-gray-400 uppercase tracking-wider">มหาวิทยาลัย</label>
+                                        <label className="text-[10px] md:text-xs font-medium text-gray-400 ">มหาวิทยาลัย</label>
                                         {isEditing ? (
                                             <div className="relative">
                                                 <School className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />

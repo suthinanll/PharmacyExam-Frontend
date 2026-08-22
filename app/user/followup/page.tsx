@@ -310,13 +310,13 @@ const PharmacistDashboard = () => {
                 หน้าหลัก
               </Link>
               <span className="mx-2">›</span>
-              <span className="text-[#6B7089] font-medium">
+              <span className="text-gray-600 font-medium">
                 ติดตามความคืบหน้า
               </span>
             </div>
 
             <h1
-              className="text-2xl md:text-3xl font-medium text-[#1C2033]"
+              className="text-3xl font-medium text-gray-800"
               style={{ fontFamily: "var(--font-display)" }}
             >
               ติดตามความคืบหน้า
