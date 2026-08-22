@@ -85,7 +85,7 @@ function difficultyLabel(b?: number): { label: string; color: string } {
     if (b === undefined || b === null) return { label: '-', color: 'text-gray-400' };
     if (b <= -1.5) return { label: 'ง่ายมาก', color: 'text-blue-600' };
     if (b <= -0.5) return { label: 'ง่าย', color: 'text-cyan-600' };
-    if (b <= 0.5) return { label: 'ปานกลาง', color: 'text-emerald-600' };
+    if (b <= 0.5) return { label: 'ปานกลาง', color: 'text-green-600' };
     if (b <= 1.5) return { label: 'ยาก', color: 'text-amber-600' };
     return { label: 'ยากมาก', color: 'text-red-600' };
 }
@@ -103,13 +103,13 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 sticky top-0 bg-white rounded-t-2xl">
                     <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm">
+                        <div className="w-9 h-9 rounded-full bg-blue-600 text-white flex items-center justify-center font-medium text-sm">
                             {globalNum}
                         </div>
                         <div>
                             <p className="text-xs text-gray-500">คำถามที่ {globalNum}</p>
                             {subTopicName && (
-                                <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+                                <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
                                     {subTopicName}
                                 </span>
                             )}
@@ -125,7 +125,7 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
                     <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
                         <div className="flex items-center gap-2 mb-2">
                             <BookOpen className="w-4 h-4 text-slate-500" />
-                            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+                            <span className="text-xs font-medium text-slate-600 ">
                                 สถานการณ์ที่ {row.sitIdx + 1}
                             </span>
                         </div>
@@ -139,7 +139,7 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
 
                     {/* Question Text */}
                     <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">โจทย์คำถาม</p>
+                        <p className="text-xs font-medium text-gray-500  mb-2">โจทย์คำถาม</p>
                         <div
                             className="prose prose-sm max-w-none text-gray-800 font-medium leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-200"
                             dangerouslySetInnerHTML={{ __html: question.question_text }}
@@ -165,26 +165,24 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
 
                     {/* Options */}
                     <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">ตัวเลือกคำตอบ</p>
+                        <p className="text-xs font-medium text-gray-400  mb-2">ตัวเลือกคำตอบ</p>
                         <div className="space-y-2">
                             {question.answer_options.map((opt, idx) => (
                                 <div
                                     key={idx}
-                                    className={`p-3 rounded-xl border transition-colors ${
-                                        opt.is_correct
-                                            ? 'bg-emerald-50 border-emerald-300'
-                                            : 'bg-gray-50 border-gray-200'
-                                    }`}
+                                    className={`p-3 rounded-xl border transition-colors ${opt.is_correct
+                                        ? 'bg-green-50 border-green-300'
+                                        : 'bg-gray-50 border-gray-200'
+                                        }`}
                                 >
                                     <div className="flex items-start gap-3">
-                                        <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold ${
-                                            opt.is_correct ? 'bg-emerald-500 text-white' : 'bg-white text-gray-600 border border-gray-300'
-                                        }`}>
+                                        <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-xs font-medium ${opt.is_correct ? 'bg-green-500 text-white' : 'bg-white text-gray-600 border border-gray-300'
+                                            }`}>
                                             {OPTION_LABELS[idx] || idx + 1}
                                         </span>
                                         <div className="flex-1">
                                             {opt.option_text && opt.option_text.trim() !== '' && (
-                                                <span className={`text-sm leading-relaxed block ${opt.is_correct ? 'text-emerald-800 font-medium' : 'text-gray-700'}`}>
+                                                <span className={`text-sm leading-relaxed block ${opt.is_correct ? 'text-green-800 font-medium' : 'text-gray-700'}`}>
                                                     {opt.option_text}
                                                 </span>
                                             )}
@@ -206,7 +204,7 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
                                                 </div>
                                             )}
                                         </div>
-                                        {opt.is_correct && <CheckCircle className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />}
+                                        {opt.is_correct && <CheckCircle className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />}
                                     </div>
                                 </div>
                             ))}
@@ -218,7 +216,7 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
                         <div className="flex gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
                             <Lightbulb className="w-5 h-5 text-green-500 shrink-0 mt-0.5" />
                             <div>
-                                <p className="text-xs font-bold text-green-700 uppercase tracking-wide mb-1">คำอธิบายเฉลย</p>
+                                <p className="text-xs font-medium text-green-700  mb-1">คำอธิบายเฉลย</p>
                                 <p className="text-green-800 text-sm leading-relaxed whitespace-pre-wrap">{question.explanation}</p>
                             </div>
                         </div>
@@ -229,7 +227,7 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
                         <div>
                             <div className="flex items-center gap-2 mb-3">
                                 <BarChart2 className="w-4 h-4 text-gray-500" />
-                                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">IRT Parameters</p>
+                                <p className="text-xs font-medium text-gray-500 ">IRT Parameters</p>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 {[
@@ -238,7 +236,7 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
                                     { label: 'c (Guessing)', value: question.irt_c_guessing, bgClassName: 'bg-orange-50', borderClassName: 'border-orange-100', textValClassName: 'text-orange-700', textLblClassName: 'text-orange-500' },
                                 ].map(({ label, value, bgClassName, borderClassName, textValClassName, textLblClassName }) => (
                                     <div key={label} className={`${bgClassName} border ${borderClassName} rounded-xl p-3 text-center`}>
-                                        <p className={`text-xl font-bold ${textValClassName}`}>
+                                        <p className={`text-xl font-medium ${textValClassName}`}>
                                             {value !== undefined && value !== null ? Number(value).toFixed(2) : '-'}
                                         </p>
                                         <p className={`text-xs ${textLblClassName} mt-0.5`}>{label}</p>
@@ -280,7 +278,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                 const questionSubTopicIds = question.sub_topic_ids || (question.sub_topic_id ? [question.sub_topic_id] : []);
                 const matchedSubTopics = subTopics.filter(s => questionSubTopicIds.includes(s.sub_topic_id));
                 const subTopicName = matchedSubTopics.map(s => s.sub_topic_name).join(', ');
-                
+
                 const matchedTopicIds = Array.from(new Set(matchedSubTopics.map(s => s.topic_id)));
                 const matchedTopics = topics.filter(t => matchedTopicIds.includes(t.topic_id));
                 const topicName = matchedTopics.map(t => t.topic_name).join(', ');
@@ -353,7 +351,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
     const ThBtn = ({ col, label }: { col: SortKey; label: string }) => (
         <button
             onClick={() => toggleSort(col)}
-            className="flex items-center gap-1 text-xs font-semibold text-gray-500 uppercase tracking-wide hover:text-gray-700 transition-colors group"
+            className="flex items-center gap-1 text-xs font-medium text-gray-500  hover:text-gray-700 transition-colors group"
         >
             {label}
             <SortIcon col={col} sortKey={sortKey} sortDir={sortDir} />
@@ -364,7 +362,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
         return (
             <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-16 text-center">
                 <FileText className="w-10 h-10 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-600 mb-1">ยังไม่มีคำถาม</h3>
+                <h3 className="text-lg font-medium text-gray-600 mb-1">ยังไม่มีคำถาม</h3>
                 <p className="text-gray-400 text-sm">กดปุ่ม <span className="text-blue-500 font-medium">แก้ไขข้อมูล</span> เพื่อเพิ่มคำถาม</p>
             </div>
         );
@@ -430,13 +428,13 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                                     <ThBtn col="sitIdx" label="สถานการณ์" />
                                 </th>
                                 <th className="px-4 py-3 text-left">
-                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">โจทย์คำถาม</span>
+                                    <span className="text-xs font-medium text-gray-500 ">โจทย์คำถาม</span>
                                 </th>
                                 <th className="px-3 py-3 text-left w-36">
                                     <ThBtn col="subTopicName" label="หัวข้อย่อย" />
                                 </th>
                                 <th className="px-3 py-3 text-center w-16">
-                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">เฉลย</span>
+                                    <span className="text-xs font-medium text-gray-500 ">เฉลย</span>
                                 </th>
                                 <th className="px-3 py-3 text-center w-16">
                                     <ThBtn col="irt_a" label="a" />
@@ -448,7 +446,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                                     <ThBtn col="irt_c" label="c" />
                                 </th>
                                 <th className="px-3 py-3 text-center w-20">
-                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">ระดับ</span>
+                                    <span className="text-xs font-medium text-gray-500 ">ระดับ</span>
                                 </th>
                             </tr>
                         </thead>
@@ -466,14 +464,14 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                                     >
                                         {/* # */}
                                         <td className="px-4 py-3">
-                                            <div className="w-7 h-7 rounded-full bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center text-xs font-bold text-gray-600 group-hover:text-blue-700 transition-colors">
+                                            <div className="w-7 h-7 rounded-full bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center text-xs font-medium text-gray-600 group-hover:text-blue-700 transition-colors">
                                                 {globalNum}
                                             </div>
                                         </td>
 
                                         {/* สถานการณ์ */}
                                         <td className="px-3 py-3">
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-600">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
                                                 #{sitIdx + 1}
                                             </span>
                                         </td>
@@ -493,7 +491,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                                         {/* หัวข้อย่อย */}
                                         <td className="px-3 py-3">
                                             {subTopicName ? (
-                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 line-clamp-1">
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium bg-green-50 text-green-700 border border-green-200 line-clamp-1">
                                                     <Tag className="w-3 h-3 shrink-0" />
                                                     {subTopicName}
                                                 </span>
@@ -505,7 +503,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                                         {/* เฉลย */}
                                         <td className="px-3 py-3 text-center">
                                             {correctIdx >= 0 ? (
-                                                <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-500 text-white font-bold text-xs">
+                                                <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-500 text-white font-medium text-xs">
                                                     {OPTION_LABELS[correctIdx] || correctIdx + 1}
                                                 </span>
                                             ) : (
@@ -536,7 +534,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
 
                                         {/* Level */}
                                         <td className="px-3 py-3 text-center">
-                                            <span className={`text-xs font-semibold ${diff.color}`}>
+                                            <span className={`text-xs font-medium ${diff.color}`}>
                                                 {diff.label}
                                             </span>
                                         </td>

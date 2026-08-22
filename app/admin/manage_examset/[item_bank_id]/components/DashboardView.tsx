@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import {
     BarChart,
@@ -17,6 +17,7 @@ import {
 import {
     Users,
     FileText,
+    FileQuestion,
     BarChart2,
     CheckCircle,
     Clock,
@@ -25,6 +26,7 @@ import {
     PlusCircle,
     PlayCircle,
     ChevronRight,
+    ChevronDown,
     Home,
     ArrowLeft,
     Eye,
@@ -40,6 +42,7 @@ interface DashboardStats {
     item_bank: {
         id: number;
         name: string;
+        description: string;
         created_at: string;
         updated_at: string;
         duration: number;
@@ -90,10 +93,22 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
     const [error, setError] = useState<string | null>(null);
     const [showSettingsModal, setShowSettingsModal] = useState(false);
     const [showPreview, setShowPreview] = useState(false);
+    const [isSettingsMenuOpen, setIsSettingsMenuOpen] = useState(false);
+    const settingsMenuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         fetchDashboardData();
     }, [itemBankId]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (settingsMenuRef.current && !settingsMenuRef.current.contains(event.target as Node)) {
+                setIsSettingsMenuOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const fetchDashboardData = async () => {
         setLoading(true);
@@ -239,7 +254,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                 <div className="bg-red-50 p-4 rounded-full mb-4">
                     <CheckCircle className="w-10 h-10 text-red-500" />
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">ไม่พบข้อมูล</h3>
+                <h3 className="text-xl font-medium text-gray-800 mb-2">ไม่พบข้อมูล</h3>
                 <p className="text-gray-500 mb-6">{error}</p>
                 <button
                     onClick={fetchDashboardData}
@@ -266,71 +281,102 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                 กลับ
             </Link>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                    <span className="text-gray-700 font-normal">{item_bank.name}</span>
-                </h1>
+                <div className="space-y-1">
+                    <h1 className="text-2xl md:text-3xl font-medium text-gray-900">
+                        {item_bank.name}
+                    </h1>
+                    <p className="text-sm text-gray-500 leading-relaxed max-w-2xl">{item_bank.description || 'ไม่มีคำอธิบายชุดข้อสอบ'}</p>
+                </div>
                 <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => setShowPreview(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-all shadow-sm active:scale-95 whitespace-nowrap"
-                    >
-                        <Eye className="w-4 h-4" />
-                        พรีวิวข้อสอบ
-                    </button>
-                    <button
-                        onClick={async () => {
-                            try {
-                                const token = getToken();
-                                const r = await fetch(`${API_URL}/items-bank/cat/export-response-matrix?item_bank_id=${itemBankId}`, {
-                                    headers: { 'Authorization': `Bearer ${token}` }
-                                });
-                                if (!r.ok) {
-                                    const errData = await r.json().catch(() => ({}));
-                                    throw new Error(errData.message || `เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ (HTTP ${r.status})`);
-                                }
-                                const res = await r.json();
-                                const blob = new Blob(["\uFEFF" + res.csv], { type: 'text/csv;charset=utf-8;' });
-                                const link = document.createElement('a');
-                                const cleanName = (item_bank?.name || 'bank').replace(/[^a-zA-Z0-9_\u0E00-\u0E7F]/g, '_');
-                                const downloadUrl = URL.createObjectURL(blob);
-                                link.href = downloadUrl;
-                                link.setAttribute('download', `response_matrix_${cleanName}_${new Date().toISOString().slice(0, 10)}.csv`);
-                                document.body.appendChild(link);
-                                link.click();
-                                document.body.removeChild(link);
-                                setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
-                                Swal.fire({
-                                    title: 'ส่งออกสำเร็จ',
-                                    html: `ดาวน์โหลดไฟล์ Response Matrix เรียบร้อยแล้ว<br/><span class="text-xs text-gray-500">จำนวน ${res.total_sessions} sessions (${res.total_items} ข้อ)</span>`,
-                                    icon: 'success',
-                                    timer: 2000,
-                                    showConfirmButton: false
-                                });
-                            } catch (err: any) {
-                                Swal.fire({
-                                    title: 'ข้อผิดพลาด',
-                                    html: `ไม่สามารถส่งออก CSV ได้<br/><span class="text-xs text-red-500 font-mono mt-1 block">${err.message || 'Network error'}</span>`,
-                                    icon: 'error'
-                                });
-                            }
-                        }}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 transition-all shadow-sm active:scale-95 whitespace-nowrap cursor-pointer"
-                        title="ส่งออก 0/1 Response Matrix CSV สำหรับนำไป Calibrate IRT ใน R/Python/BILOG"
-                    >
-                        <Download className="w-4 h-4" />
-                        ส่งออก Matrix (CSV)
-                    </button>
+                    
+
+                    {/* Settings Dropdown Button */}
+                    <div className="relative" ref={settingsMenuRef}>
+                        <button
+                            onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
+                            className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50 text-sm font-medium shadow-2xs transition-all active:scale-95 cursor-pointer"
+                        >
+                            <Settings className="w-4 h-4 text-gray-500" />
+                            <span>ตั้งค่า</span>
+                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isSettingsMenuOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {isSettingsMenuOpen && (
+                            <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl bg-white shadow-xl ring-1 ring-black/10 overflow-hidden z-50 py-1.5 border border-gray-100">
+                                <button
+                                    onClick={() => {
+                                        setIsSettingsMenuOpen(false);
+                                        setShowPreview(true);
+                                    }}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-800 transition-colors text-left cursor-pointer font-medium"
+                                >
+                                    <Eye className="w-4 h-4 text-amber-600" />
+                                    <span>พรีวิวข้อสอบ</span>
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        setIsSettingsMenuOpen(false);
+                                        try {
+                                            const token = getToken();
+                                            const r = await fetch(`${API_URL}/items-bank/cat/export-response-matrix?item_bank_id=${itemBankId}`, {
+                                                headers: { 'Authorization': `Bearer ${token}` }
+                                            });
+                                            if (!r.ok) {
+                                                const errData = await r.json().catch(() => ({}));
+                                                throw new Error(errData.message || `เกิดข้อผิดพลาดจากเซิร์ฟเวอร์ (HTTP ${r.status})`);
+                                            }
+                                            const res = await r.json();
+                                            const blob = new Blob(["\uFEFF" + res.csv], { type: 'text/csv;charset=utf-8;' });
+                                            const link = document.createElement('a');
+                                            const cleanName = (item_bank?.name || 'bank').replace(/[^a-zA-Z0-9_\u0E00-\u0E7F]/g, '_');
+                                            const downloadUrl = URL.createObjectURL(blob);
+                                            link.href = downloadUrl;
+                                            link.setAttribute('download', `response_matrix_${cleanName}_${new Date().toISOString().slice(0, 10)}.csv`);
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            document.body.removeChild(link);
+                                            setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+                                            Swal.fire({
+                                                title: 'ส่งออกสำเร็จ',
+                                                html: `ดาวน์โหลดไฟล์ Response Matrix เรียบร้อยแล้ว<br/><span class="text-xs text-gray-500">จำนวน ${res.total_sessions} sessions (${res.total_items} ข้อ)</span>`,
+                                                icon: 'success',
+                                                timer: 2000,
+                                                showConfirmButton: false
+                                            });
+                                        } catch (err: any) {
+                                            Swal.fire({
+                                                title: 'ข้อผิดพลาด',
+                                                html: `ไม่สามารถส่งออก CSV ได้<br/><span class="text-xs text-red-500 mt-1 block">${err.message || 'Network error'}</span>`,
+                                                icon: 'error',
+                                                confirmButtonColor: '#16a34a'
+                                            });
+                                        }
+                                    }}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-800 transition-colors text-left cursor-pointer font-medium"
+                                >
+                                    <Download className="w-4 h-4 text-blue-600" />
+                                    <span>ส่งออก Matrix (CSV)</span>
+                                </button>
+                                <div className="border-t border-gray-100 my-1" />
+                                <button
+                                    onClick={() => {
+                                        setIsSettingsMenuOpen(false);
+                                        setShowSettingsModal(true);
+                                    }}
+                                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-green-700 transition-colors text-left cursor-pointer font-medium"
+                                >
+                                    <Settings className="w-4 h-4 text-gray-500" />
+                                    <span>ตั้งค่าชุดข้อสอบ</span>
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     <button
                         onClick={onManageExams}
-                        className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg text-white transition-all shadow-md bg-green-600 hover:bg-green-700 active:scale-95 cursor-pointer"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-xl text-white transition-all shadow-sm bg-green-600 hover:bg-green-700 active:scale-95 cursor-pointer"
                     >
-                        จัดการคำถาม
-                    </button>
-                    <button
-                        onClick={() => setShowSettingsModal(true)}
-                        className="p-2.5 bg-white border border-gray-200 rounded-lg text-gray-600 hover:text-green-700 hover:border-green-200 shadow-sm transition-all"
-                    >
-                        <Settings className="w-5 h-5" />
+                        <FileQuestion size={18} />
+                        <span>จัดการคำถาม</span>
                     </button>
                 </div>
             </div>
@@ -366,7 +412,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                 <div className="lg:col-span-2 space-y-6">
                     {/* Score Distribution Chart */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-bold text-gray-800 mb-6">การกระจายตัวของคะแนน</h3>
+                        <h3 className="text-lg font-medium text-gray-800 mb-6">การกระจายตัวของคะแนน</h3>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart
@@ -413,53 +459,59 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
 
                     {/* Recent Activity */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-bold text-gray-800 mb-4">กิจกรรมล่าสุด</h3>
+                        <h3 className="text-lg font-medium text-gray-800 mb-4">กิจกรรมล่าสุด</h3>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-gray-100">
-                                        <th className="py-3 font-semibold text-gray-600 text-sm">ผู้เข้าสอบ</th>
-                                        <th className="py-3 font-semibold text-gray-600 text-sm">วันที่</th>
-                                        <th className="py-3 font-semibold text-gray-600 text-sm">คะแนน</th>
-                                        <th className="py-3 font-semibold text-gray-600 text-sm">สถานะ</th>
+                                        <th className="py-3 font-medium text-gray-600 text-sm">ผู้เข้าสอบ</th>
+                                        <th className="py-3 font-medium text-gray-600 text-sm">วันที่</th>
+                                        <th className="py-3 font-medium text-gray-600 text-sm">คะแนน</th>
+                                        <th className="py-3 font-medium text-gray-600 text-sm">สถานะ</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-50">
-                                    {recent_activity.length > 0 ? (
-                                        recent_activity.map((session) => (
+                                    {(() => {
+                                        const completedActivities = recent_activity.filter(
+                                            (session) => session.status === 'COMPLETED' || session.end_time != null
+                                        );
+
+                                        if (completedActivities.length === 0) {
+                                            return (
+                                                <tr>
+                                                    <td colSpan={4} className="py-8 text-center text-gray-400 text-sm">
+                                                        ไม่มีข้อมูลกิจกรรมล่าสุดในขณะนี้
+                                                    </td>
+                                                </tr>
+                                            );
+                                        }
+
+                                        return completedActivities.map((session) => (
                                             <tr key={session.session_id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="py-4 text-sm font-medium text-gray-900">
-                                                    {session.user_name || `User: #${session.user_id}`}
+                                                    {session.user_name || `ผู้เข้าสอบ #${session.user_id}`}
                                                 </td>
                                                 <td className="py-4 text-sm text-gray-500">
-                                                    {new Date(session.start_time).toLocaleDateString('th-TH', {
+                                                    {new Date(session.end_time || session.start_time).toLocaleDateString('th-TH', {
                                                         month: 'short', day: 'numeric', year: 'numeric'
                                                     })}
                                                 </td>
                                                 <td className="py-4 text-sm font-medium text-gray-900">
-                                                    {session.status === 'COMPLETED' ? `${session.score}%` : '-'}
+                                                    {session.score != null
+                                                        ? `${Number(Number(session.score).toFixed(2))}%`
+                                                        : '-'}
                                                 </td>
                                                 <td className="py-4">
-                                                    <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${session.status === 'COMPLETED'
-                                                        ? (session.score >= 50
-                                                            ? 'bg-green-100 text-green-700' // Passed
-                                                            : 'bg-red-100 text-red-700')    // Failed
-                                                        : 'bg-yellow-100 text-yellow-700' // In Progress
+                                                    <span className={`px-2.5 py-1 rounded-md text-xs font-medium ${(session.score ?? 0) >= 50
+                                                            ? 'bg-green-100 text-green-700'
+                                                            : 'bg-red-100 text-red-700'
                                                         }`}>
-                                                        {session.status === 'COMPLETED'
-                                                            ? (session.score >= 50 ? 'ผ่าน' : 'ไม่ผ่าน')
-                                                            : 'กำลังทำ'}
+                                                        {(session.score ?? 0) >= 50 ? 'ผ่าน' : 'ไม่ผ่าน'}
                                                     </span>
                                                 </td>
                                             </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={4} className="py-8 text-center text-gray-400 text-sm">
-                                                ไม่มีข้อมูลกิจกรรมล่าสุดในขณะนี้
-                                            </td>
-                                        </tr>
-                                    )}
+                                        ));
+                                    })()}
                                 </tbody>
                             </table>
                         </div>
@@ -470,7 +522,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                 <div className="space-y-6">
                     {/* Item Bank Details Card */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-bold text-gray-800 mb-6">รายละเอียดชุดข้อสอบ</h3>
+                        <h3 className="text-lg font-medium text-gray-800 mb-6">รายละเอียดชุดข้อสอบ</h3>
                         <div className="space-y-4">
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-600 font-medium">วันที่สร้าง</span>
@@ -494,6 +546,12 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                     {Math.floor(item_bank.duration / 60)} นาที
                                 </span>
                             </div>
+                            {item_bank.description && (
+                                <div className="flex flex-col gap-1 pt-2 border-t border-gray-50 mt-2">
+                                    <span className="text-gray-600 font-medium text-sm">คำอธิบาย</span>
+                                    <p className="text-gray-700 text-sm leading-relaxed">{item_bank.description}</p>
+                                </div>
+                            )}
                             <div className="flex flex-col gap-2 pt-2 border-t border-gray-50 mt-2">
                                 <span className="text-gray-600 font-medium text-sm">ประเภทข้อสอบ</span>
                                 <div className="flex flex-wrap gap-1.5">
@@ -501,17 +559,17 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                         item_bank.categories.map((cat) => (
                                             <span
                                                 key={cat.category_id}
-                                                className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-semibold rounded-md border border-blue-100"
+                                                className="px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-md border border-blue-100"
                                             >
                                                 {cat.category_name}
                                             </span>
                                         ))
                                     ) : (
-                                        <span className="text-gray-400 text-xs italic">ไม่ได้ระบุประเภทข้อสอบ</span>
+                                        <span className="text-gray-400 text-sm italic">ไม่ได้ระบุประเภทข้อสอบ</span>
                                     )}
                                 </div>
                             </div>
-                            <div className="flex justify-between items-center text-sm pt-2 border-t border-gray-50 mt-2">
+                            <div className="flex justify-between items-center text-md pt-2 border-t border-gray-50 mt-2">
                                 <span className="text-gray-600 font-medium">สถานะ</span>
                                 <div className="flex items-center gap-2">
                                     <span className={`text-xs font-medium ${item_bank.is_active ? 'text-green-600' : 'text-gray-400'}`}>
@@ -532,7 +590,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
 
                     {/* Quick Actions Card */}
                     {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-bold text-gray-800 mb-6">เมนูจัดการด่วน</h3>
+                        <h3 className="text-lg font-medium text-gray-800 mb-6">เมนูจัดการด่วน</h3>
                         <div className="space-y-3">
                             <button
                                 onClick={onManageExams}
@@ -572,7 +630,7 @@ function StatsCard({ title, value, icon, subtext }: any) {
             <div className="mb-3 p-3 bg-green-50 rounded-full border border-green-100">
                 {icon}
             </div>
-            <h4 className="text-3xl font-bold text-green-700 mb-1">{value}</h4>
+            <h4 className="text-3xl font-medium text-green-700 mb-1">{value}</h4>
             <p className="text-sm font-medium text-gray-500">{title}</p>
             {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
         </div>

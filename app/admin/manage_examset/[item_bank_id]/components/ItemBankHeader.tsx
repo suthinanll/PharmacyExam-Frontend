@@ -89,7 +89,7 @@ export default function ItemBankHeader({
                                     {itemBankInfo?.bank_name || 'Loading...'}
                                 </h1>
                                 {itemBankInfo && (
-                                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold shadow-sm ${itemBankInfo.is_active
+                                    <span className={`px-2.5 py-1 rounded-full text-sm font-medium shadow-sm ${itemBankInfo.is_active
                                         ? 'bg-green-100 text-green-700 border border-green-200'
                                         : 'bg-amber-100 text-amber-700 border border-amber-200'
                                         }`}>
@@ -98,7 +98,7 @@ export default function ItemBankHeader({
                                 )}
                             </div>
                             <p className="text-sm sm:text-base text-gray-600">
-                                {itemBankInfo?.description || 'กำลังโหลดข้อมูล...'}
+                                {itemBankInfo?.description || 'ไม่มีคำอธิบายชุดข้อสอบ'}
                             </p>
                         </div>
                     </div>
@@ -127,7 +127,7 @@ export default function ItemBankHeader({
                                 <button
                                     type="button"
                                     onClick={() => setShowCreateDropdown(!showCreateDropdown)}
-                                    className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all font-semibold text-sm sm:text-base shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
+                                    className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all font-medium text-sm sm:text-base shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
                                 >
                                     <Plus className="w-5 h-5" />
                                     <span>สร้าง</span>
@@ -145,13 +145,13 @@ export default function ItemBankHeader({
                                                 setShowCreateDropdown(false);
                                                 onAddSituation();
                                             }}
-                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors font-medium cursor-pointer"
+                                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 flex items-center gap-3 transition-colors font-medium cursor-pointer"
                                         >
-                                            <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                            <div className="w-8 h-8 rounded-lg bg-green-100 text-green-700 flex items-center justify-center shrink-0">
                                                 <Layers className="w-4 h-4" />
                                             </div>
                                             <div>
-                                                <div className="font-semibold">สร้างสถานการณ์ใหม่</div>
+                                                <div className="font-medium">สร้างสถานการณ์ใหม่</div>
                                                 <div className="text-xs text-gray-400 font-normal">ข้อสอบที่มีบริบท/โจทย์ยาวร่วมกัน</div>
                                             </div>
                                         </button>
@@ -171,7 +171,7 @@ export default function ItemBankHeader({
                                                     <FileText className="w-4 h-4" />
                                                 </div>
                                                 <div>
-                                                    <div className="font-semibold">สร้างคำถาม (ไม่มีสถานการณ์)</div>
+                                                    <div className="font-medium">สร้างคำถาม (ไม่มีสถานการณ์)</div>
                                                     <div className="text-xs text-gray-400 font-normal">คำถามเดี่ยวแบบช้อยส์ทั่วไป</div>
                                                 </div>
                                             </button>

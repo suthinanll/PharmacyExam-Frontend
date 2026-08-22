@@ -110,7 +110,7 @@ export default function TableOfContents({
                 <button
                     type="button"
                     onClick={scrollToTop}
-                    className="bg-white p-2.5 rounded-full shadow-lg border border-gray-200 text-gray-600 hover:text-emerald-600 hover:border-emerald-200 transition-all active:scale-95"
+                    className="bg-white p-2.5 rounded-full shadow-lg border border-gray-200 text-gray-600 hover:text-green-600 hover:border-green-200 transition-all active:scale-95"
                     title="กลับขึ้นข้างบน"
                 >
                     <ArrowUp className="w-4 h-4" />
@@ -118,7 +118,7 @@ export default function TableOfContents({
                 <button
                     type="button"
                     onClick={() => setShowTOC(!showTOC)}
-                    className="bg-white p-2.5 rounded-full shadow-lg border border-gray-200 text-gray-600 hover:text-emerald-600 hover:border-emerald-200 transition-all active:scale-95"
+                    className="bg-white p-2.5 rounded-full shadow-lg border border-gray-200 text-gray-600 hover:text-green-600 hover:border-green-200 transition-all active:scale-95"
                     title={showTOC ? "ซ่อนสารบัญ" : "แสดงสารบัญ"}
                 >
                     {showTOC ? <ChevronRight className="w-4 h-4" /> : <List className="w-4 h-4" />}
@@ -126,16 +126,20 @@ export default function TableOfContents({
             </div>
 
             {/* Content List */}
-            {showTOC && (
-                <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-64 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-200">
-                    <div className="p-3 bg-gray-50 border-b border-gray-200 font-semibold text-gray-700 text-sm flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <List className="w-4 h-4 text-emerald-600" />
-                            <span>สารบัญคำถาม</span>
+            {showTOC && (() => {
+                const totalQuestions = situations.reduce((sum, s) => sum + (s.questions?.length || 0), 0);
+                return (
+                    <div className="bg-white rounded-xl shadow-xl border border-gray-200 w-64 overflow-hidden animate-in fade-in slide-in-from-right-4 duration-200">
+                        <div className="p-3 bg-gray-50 border-b border-gray-200 font-medium text-gray-800 text-sm flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <List className="w-4 h-4 text-green-600" />
+                                <span>สารบัญคำถาม</span>
+                            </div>
+                            <span className="text-sm font-medium px-2 py-0.5 bg-green-100 text-green-700 rounded-full border border-green-200">
+                                {totalQuestions} ข้อ
+                            </span>
                         </div>
-                        
-                    </div>
-                    <div className="max-h-[60vh] overflow-y-auto p-2 space-y-1">
+                        <div className="max-h-[60vh] overflow-y-auto p-2 space-y-1">
                         {situations.map((situation, idx) => {
                             const questionStartIndex = situations.slice(0, idx).reduce((acc, s) => acc + s.questions.length, 0);
                             const isExpanded = expandedSituations.has(idx);
@@ -148,13 +152,13 @@ export default function TableOfContents({
                             if (!hasSituationContent) {
                                 // Standalone question - render directly in TOC
                                 return (
-                                    <div key={idx} className="space-y-1">
+                                    <div key={idx} className="space-y-0.5">
                                         {situation.questions.map((q, qIdx) => {
                                             const globalNum = questionStartIndex + qIdx + 1;
                                             const plainText = stripHtml(q.question_text);
                                             const displayText = plainText
-                                                ? (plainText.length > 18 ? plainText.substring(0, 18) + '...' : plainText)
-                                                : 'คำถามเดี่ยว';
+                                                ? (plainText.length > 20 ? plainText.substring(0, 20) + '...' : plainText)
+                                                : '(ไม่มีโจทย์)';
 
                                             return (
                                                 <button
@@ -164,15 +168,15 @@ export default function TableOfContents({
                                                         const el = document.getElementById(`question-${idx}-${qIdx}`);
                                                         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                                     }}
-                                                    className={`w-full text-left px-2.5 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-2 truncate cursor-pointer ${
+                                                    className={`w-full text-left px-2.5 py-1.5 rounded-lg text-sm transition-all flex items-center gap-2 truncate cursor-pointer ${
                                                         activeSituationIndex === idx
-                                                            ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
-                                                            : 'text-gray-700 hover:bg-gray-50 border border-transparent'
+                                                            ? 'bg-blue-50 text-blue-800 font-medium'
+                                                            : 'text-gray-700 hover:bg-gray-50'
                                                     }`}
                                                     title={plainText || 'คำถามเดี่ยว'}
                                                 >
-                                                    <span className="shrink-0 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded font-bold text-xs">
-                                                        ข้อ {globalNum}
+                                                    <span className="shrink-0 w-5 h-5 rounded-md bg-blue-100 text-blue-700 font-medium text-[11px] flex items-center justify-center">
+                                                        {globalNum}
                                                     </span>
                                                     <span className="truncate">{displayText}</span>
                                                 </button>
@@ -184,22 +188,23 @@ export default function TableOfContents({
 
                             // Standard Situation with Context
                             return (
-                                <div key={idx} className="space-y-1">
-                                    <div className={`flex items-center w-full rounded-lg transition-colors pr-2 ${activeSituationIndex === idx
-                                        ? 'bg-emerald-50 text-emerald-700 font-medium'
-                                        : 'text-gray-700 hover:bg-gray-50'
-                                        }`}>
+                                <div key={idx} className="space-y-0.5">
+                                    <div className={`flex items-center w-full rounded-lg transition-colors pr-2 ${
+                                        activeSituationIndex === idx
+                                            ? 'bg-green-50 text-green-700 font-medium'
+                                            : 'text-gray-700 hover:bg-gray-50'
+                                    }`}>
                                         <button
                                             type="button"
                                             onClick={(e) => toggleExpand(idx, e)}
-                                            className="p-2 hover:bg-black/5 rounded-l-lg text-gray-400 hover:text-gray-600 transition-colors"
+                                            className="p-1.5 hover:bg-black/5 rounded-l-lg text-gray-400 hover:text-gray-600 transition-colors"
                                         >
                                             {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                                         </button>
                                         <button
                                             type="button"
                                             onClick={() => scrollToSituation(idx)}
-                                            className="flex-1 text-left py-2 text-sm font-medium truncate cursor-pointer"
+                                            className="flex-1 text-left py-1.5 text-sm font-medium text-gray-800 truncate cursor-pointer"
                                         >
                                             สถานการณ์ที่ {situationIndexMap[idx] || idx + 1}
                                         </button>
@@ -207,11 +212,12 @@ export default function TableOfContents({
 
                                     {/* Questions Sub-list */}
                                     {isExpanded && situation.questions && situation.questions.length > 0 && (
-                                        <div className="ml-4 pl-2 border-l-2 border-gray-100 space-y-0.5 mb-2">
+                                        <div className="ml-3 pl-2.5 border-l-2 border-gray-100 space-y-0.5 my-0.5">
                                             {situation.questions.map((q, qIdx) => {
+                                                const globalNum = questionStartIndex + qIdx + 1;
                                                 const plainText = stripHtml(q.question_text);
                                                 const displayText = plainText
-                                                    ? (plainText.length > 18 ? plainText.substring(0, 18) + '...' : plainText)
+                                                    ? (plainText.length > 20 ? plainText.substring(0, 20) + '...' : plainText)
                                                     : '(ไม่มีโจทย์)';
 
                                                 return (
@@ -230,11 +236,13 @@ export default function TableOfContents({
                                                                 scrollToQuestion();
                                                             }
                                                         }}
-                                                        className="w-full text-left px-2 py-1.5 rounded text-xs text-gray-500 hover:bg-gray-50 hover:text-emerald-600 transition-colors truncate block cursor-pointer"
+                                                        className="w-full text-left px-2 py-1.5 rounded-lg text-sm text-gray-700 hover:bg-gray-50 hover:text-green-700 transition-all flex items-center gap-2 truncate cursor-pointer group"
                                                         title={plainText || '(ไม่มีโจทย์)'}
                                                     >
-                                                        <span className="mr-1.5 inline-block min-w-[1.5em] text-gray-400 font-semibold">{questionStartIndex + qIdx + 1}.</span>
-                                                        {displayText}
+                                                        <span className="shrink-0 w-5 h-5 rounded-md bg-gray-100 text-gray-700 group-hover:bg-green-100 group-hover:text-green-700 font-medium text-[11px] flex items-center justify-center transition-colors">
+                                                            {globalNum}
+                                                        </span>
+                                                        <span className="truncate">{displayText}</span>
                                                     </button>
                                                 );
                                             })}
@@ -251,7 +259,7 @@ export default function TableOfContents({
                                     <button
                                         type="button"
                                         onClick={onAddSituation}
-                                        className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium text-xs transition-all shadow-sm active:scale-95 cursor-pointer"
+                                        className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-all shadow-sm active:scale-95 cursor-pointer"
                                     >
                                         <Plus className="w-3.5 h-3.5" />
                                         เพิ่มสถานการณ์ใหม่
@@ -261,7 +269,7 @@ export default function TableOfContents({
                                     <button
                                         type="button"
                                         onClick={onAddStandaloneQuestion}
-                                        className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-xs transition-all shadow-sm active:scale-95 cursor-pointer"
+                                        className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm transition-all shadow-sm active:scale-95 cursor-pointer"
                                     >
                                         <Plus className="w-3.5 h-3.5" />
                                         เพิ่มคำถามเดี่ยว
@@ -271,7 +279,8 @@ export default function TableOfContents({
                         )}
                     </div>
                 </div>
-            )}
+                );
+            })()}
         </motion.div>
     );
 }

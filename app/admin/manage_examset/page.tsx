@@ -80,18 +80,18 @@ function BankCard({
   return (
     <div className={`group bg-white border rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col ${isDeletedView ? "border-amber-200 bg-amber-50/20" : "border-gray-200"}`}>
       {/* Top colour band */}
-      <div className={`h-1.5 w-full ${isDeletedView ? "bg-amber-400" : bank.is_active ? "bg-gradient-to-r from-green-400 to-emerald-500" : "bg-gray-300"}`} />
+      <div className={`h-1.5 w-full ${isDeletedView ? "bg-amber-400" : bank.is_active ? "bg-gradient-to-r from-green-400 to-green-500" : "bg-gray-300"}`} />
 
       <div className="p-5 flex flex-col flex-1">
         {/* Status badge */}
         <div className="flex items-start justify-between gap-2 mb-3">
-          <h3 className="text-base font-semibold text-gray-900 leading-snug line-clamp-2">{bank.bank_name}</h3>
+          <h3 className="text-base font-medium text-gray-900 leading-snug line-clamp-2">{bank.bank_name}</h3>
           {isDeletedView ? (
-            <span className="shrink-0 flex items-center gap-1 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">
+            <span className="shrink-0 flex items-center gap-1 text-sm font-medium px-2.5 py-0.5 rounded-full bg-red-100 text-red-700">
               <Trash2 size={11} /> ถูกลบแล้ว
             </span>
           ) : (
-            <span className={`shrink-0 flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${bank.is_active
+            <span className={`shrink-0 flex items-center gap-1 text-sm font-medium px-2 py-0.5 rounded-full ${bank.is_active
               ? "bg-green-100 text-green-700"
               : "bg-gray-100 text-gray-500"}`}>
               {bank.is_active
@@ -102,24 +102,24 @@ function BankCard({
         </div>
 
         {/* Description */}
-        <p className="text-xs text-gray-500 line-clamp-2 mb-4 leading-relaxed">{bank.description || "ไม่มีคำอธิบาย"}</p>
+        <p className="text-sm text-gray-500 line-clamp-2 mb-4 leading-relaxed">{bank.description || "ไม่มีคำอธิบาย"}</p>
 
         {/* Meta */}
         <div className="mt-auto space-y-1.5">
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
             <Clock size={13} className="shrink-0 text-gray-400" />
             <span>{formatDuration(bank.duration)}</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 text-sm text-gray-500">
             <Tag size={13} className="shrink-0 text-gray-400" />
             <span className="truncate">{cats}</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
+          <div className="flex items-center gap-2 text-sm text-gray-400">
             <Calendar size={13} className="shrink-0" />
             <span>สร้างเมื่อ: {formatDate(bank.created_at)}</span>
           </div>
           {isDeletedView && bank.deleted_at && (
-            <div className="flex items-center gap-2 text-xs text-red-500 font-medium pt-1">
+            <div className="flex items-center gap-2 text-sm text-red-500 font-medium pt-1">
               <Trash2 size={13} className="shrink-0" />
               <span>ลบเมื่อ: {formatDate(bank.deleted_at)}</span>
             </div>
@@ -131,7 +131,7 @@ function BankCard({
           <div className="mt-4 flex items-center gap-2">
             <button
               onClick={() => onRestore?.(bank.item_bank_id, bank.bank_name)}
-              className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold py-2.5 rounded-xl transition-colors cursor-pointer shadow-xs"
+              className="flex-1 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 rounded-xl transition-colors cursor-pointer shadow-xs"
             >
               <RotateCcw size={14} />
               กู้คืนคลังข้อสอบ
@@ -216,7 +216,7 @@ function Page() {
   const handleDeleteBank = async (bankId: number, bankName: string) => {
     const result = await Swal.fire({
       title: 'ย้ายไปถังขยะ?',
-      html: `คุณต้องการลบคลังข้อสอบ <b>"${bankName}"</b> ใช่หรือไม่?<br/><span class="text-xs text-gray-500 mt-2 block">คลังข้อสอบจะถูกย้ายไปยัง "คลังข้อสอบที่ลบแล้ว" และสามารถกู้คืนได้ทุกเมื่อ</span>`,
+      html: `คุณต้องการลบคลังข้อสอบ <b>"${bankName}"</b> ใช่หรือไม่?<br/><span class="text-sm text-gray-500 mt-2 block">คลังข้อสอบจะถูกย้ายไปยัง "คลังข้อสอบที่ลบแล้ว" และสามารถกู้คืนได้ทุกเมื่อ</span>`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
@@ -298,7 +298,7 @@ function Page() {
   const handleHardDeleteBank = async (bankId: number, bankName: string) => {
     const result = await Swal.fire({
       title: 'ยืนยันลบถาวร?',
-      html: `คุณต้องการลบคลังข้อสอบ <b>"${bankName}"</b> ออกจากฐานข้อมูลอย่างถาวรใช่หรือไม่?<br/><br/><span class="text-red-500 text-xs font-semibold">⚠️ การกระทำนี้ไม่สามารถกู้คืนได้อีกต่อไป</span>`,
+      html: `คุณต้องการลบคลังข้อสอบ <b>"${bankName}"</b> ออกจากฐานข้อมูลอย่างถาวรใช่หรือไม่?<br/><br/><span class="text-red-500 text-sm font-medium">⚠️ การกระทำนี้ไม่สามารถกู้คืนได้อีกต่อไป</span>`,
       icon: 'error',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
@@ -360,7 +360,7 @@ function Page() {
 
   return (
     <Navbar_admin>
-      <div className="max-w-6xl mx-auto px-4 py-6" suppressHydrationWarning>
+      <div className="max-w-7xl mx-auto w-full space-y-6" suppressHydrationWarning>
 
         {/* Header */}
         <div className="mb-6">
@@ -380,62 +380,95 @@ function Page() {
         {/* Tab Selector */}
         <div className="flex items-center gap-2 mb-4 border-b border-gray-200 pb-3">
           <button
-            onClick={() => setTab("active")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${tab === "active"
+            onClick={() => {
+              setTab("active");
+              setCurrentPage(1);
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer ${tab === "active"
               ? "bg-green-600 text-white shadow-xs"
-              : "text-gray-600 hover:bg-gray-100"}`}
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/80"
+              }`}
           >
             <Layers size={16} />
             <span>คลังข้อสอบทั้งหมด</span>
-            <span className={`px-2 py-0.5 text-xs rounded-full ${tab === "active" ? "bg-white/20 text-white" : "bg-gray-200 text-gray-700"}`}>
+            <span
+              className={`px-2 py-0.5 text-sm font-medium rounded-full ${tab === "active" ? "bg-white/20 text-white" : "bg-gray-200 text-gray-700"
+                }`}
+            >
               {itemBanks.length}
             </span>
           </button>
 
           <button
-            onClick={() => setTab("deleted")}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all cursor-pointer ${tab === "deleted"
-              ? "bg-amber-600 text-white shadow-xs"
-              : "text-gray-600 hover:bg-gray-100"}`}
+            onClick={() => {
+              setTab("deleted");
+              setCurrentPage(1);
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all cursor-pointer ${tab === "deleted"
+              ? "bg-green-600 text-white shadow-xs"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100/80"
+              }`}
           >
             <Trash2 size={16} />
             <span>คลังข้อสอบที่ลบไปแล้ว</span>
-            <span className={`px-2 py-0.5 text-xs rounded-full ${tab === "deleted" ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"}`}>
+            <span
+              className={`px-2 py-0.5 text-sm font-medium rounded-full ${tab === "deleted" ? "bg-white/20 text-white" : "bg-amber-100 text-amber-800"
+                }`}
+            >
               {deletedBanks.length}
             </span>
           </button>
         </div>
 
         {/* Toolbar */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
-          <div className="flex gap-3 flex-1 flex-wrap">
+        <div className="flex flex-col sm:flex-row gap-3 mb-6 justify-between items-stretch sm:items-center bg-white p-3.5 rounded-2xl border border-gray-200 shadow-xs">
+          <div className="flex gap-2.5 flex-1 flex-wrap items-center">
             {/* Search */}
             <div className="relative max-w-sm w-full">
-              <input type="text" placeholder={tab === "deleted" ? "ค้นหาคลังที่ถูกลบ..." : "ค้นหาคลังข้อสอบ..."} value={searchTerm}
+              <input
+                type="text"
+                placeholder={tab === "deleted" ? "ค้นหาคลังที่ถูกลบ..." : "ค้นหาคลังข้อสอบ..."}
+                value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-green-500 focus:border-green-500" />
+                className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+              />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             </div>
+
             {/* Sort */}
-            <button onClick={() => setSortOrder(s => s === "desc" ? "asc" : "desc")}
-              className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium cursor-pointer">
-              <ArrowUpDown size={15} />
-              {sortOrder === "desc" ? (tab === "deleted" ? "ลบล่าสุด" : "ใหม่สุด") : (tab === "deleted" ? "ลบนานสุด" : "เก่าสุด")}
+            <button
+              onClick={() => setSortOrder(s => s === "desc" ? "asc" : "desc")}
+              className="flex items-center gap-1.5 px-3.5 py-2 border border-gray-200 rounded-xl bg-gray-50 text-gray-700 hover:bg-gray-100 text-sm font-medium cursor-pointer transition-all"
+            >
+              <ArrowUpDown size={14} className="text-gray-500" />
+              <span>{sortOrder === "desc" ? (tab === "deleted" ? "ลบล่าสุด" : "ใหม่สุด") : (tab === "deleted" ? "ลบนานสุด" : "เก่าสุด")}</span>
             </button>
           </div>
 
           {/* View toggle */}
-          <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1">
-            {(["table", "card"] as const).map(mode => (
-              <button key={mode} onClick={() => switchView(mode)}
-                title={mode === "table" ? "มุมมอง Table" : "มุมมอง Card"}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${viewMode === mode
-                  ? "bg-white shadow-sm text-green-700"
-                  : "text-gray-500 hover:text-gray-700"}`}>
-                {mode === "table" ? <List size={16} /> : <LayoutGrid size={16} />}
-                {mode === "table" ? "ตาราง" : "การ์ด"}
-              </button>
-            ))}
+          <div className="bg-gray-100 p-1 rounded-xl flex items-center gap-0.5 border border-gray-200/50">
+            <button
+              onClick={() => switchView("table")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${viewMode === "table"
+                ? "bg-white text-green-700 shadow-2xs"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
+              title="แสดงแบบตาราง"
+            >
+              <List size={14} />
+              <span>ตาราง</span>
+            </button>
+            <button
+              onClick={() => switchView("card")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${viewMode === "card"
+                ? "bg-white text-green-700 shadow-2xs"
+                : "text-gray-600 hover:text-gray-900"
+                }`}
+              title="แสดงแบบการ์ด"
+            >
+              <LayoutGrid size={14} />
+              <span>การ์ด</span>
+            </button>
           </div>
         </div>
 
@@ -453,7 +486,7 @@ function Page() {
                 <thead className={tab === "deleted" ? "bg-amber-600 text-white" : "bg-green-600 text-white"}>
                   <tr>
                     {["#", "ชื่อข้อสอบ", "ระยะเวลา", tab === "deleted" ? "วันที่ลบ" : "สถานะ", "วันที่สร้าง", "ประเภท", "จัดการ"].map((h, i) => (
-                      <th key={h} className={`px-5 py-3 text-left text-xs font-semibold tracking-wide ${i === 0 ? "w-12 text-center rounded-tl-2xl" : ""} ${i === 6 ? "rounded-tr-2xl" : ""}`}>{h}</th>
+                      <th key={h} className={`px-5 py-3 text-left text-sm font-medium tracking-wide ${i === 0 ? "w-12 text-center rounded-tl-2xl" : ""} ${i === 6 ? "rounded-tr-2xl" : ""}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -475,18 +508,18 @@ function Page() {
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="text-sm font-medium text-gray-900">{bank.bank_name}</div>
-                          <div className="text-xs text-gray-400 truncate max-w-xs" title={bank.description}>
+                          <div className="text-sm text-gray-400 truncate max-w-xs" title={bank.description}>
                             {bank.description?.substring(0, 50) || "—"}{bank.description?.length > 50 ? "…" : ""}
                           </div>
                         </td>
                         <td className="px-5 py-3.5 text-sm text-gray-600 whitespace-nowrap">{formatDuration(bank.duration)}</td>
                         <td className="px-5 py-3.5">
                           {tab === "deleted" ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-sm font-medium rounded-full bg-red-100 text-red-700">
                               <Trash2 size={11} /> {formatDate(bank.deleted_at)}
                             </span>
                           ) : (
-                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full ${bank.is_active
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 text-sm font-medium rounded-full ${bank.is_active
                               ? "bg-green-100 text-green-700"
                               : "bg-gray-100 text-gray-500"}`}>
                               {bank.is_active ? <CheckCircle size={11} /> : <XCircle size={11} />}
@@ -494,14 +527,14 @@ function Page() {
                             </span>
                           )}
                         </td>
-                        <td className="px-5 py-3.5 text-xs text-gray-400 whitespace-nowrap">{formatDate(bank.created_at)}</td>
-                        <td className="px-5 py-3.5 text-xs text-gray-500 max-w-[160px] truncate">{cats}</td>
+                        <td className="px-5 py-3.5 text-sm text-gray-400 whitespace-nowrap">{formatDate(bank.created_at)}</td>
+                        <td className="px-5 py-3.5 text-sm text-gray-500 max-w-[160px] truncate">{cats}</td>
                         <td className="px-5 py-3.5">
                           {tab === "deleted" ? (
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => handleRestoreBank(bank.item_bank_id, bank.bank_name)}
-                                className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+                                className="flex items-center gap-1 px-2.5 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 border border-green-200 rounded-lg text-sm font-medium transition-colors cursor-pointer"
                                 title="กู้คืนคลังข้อสอบ"
                               >
                                 <RotateCcw size={13} />
