@@ -12,9 +12,12 @@ import {
   Info,
   Bookmark,
   LogIn,
+  ExternalLink,
+  Link as LinkIcon,
 } from "lucide-react";
 import Link from "next/link";
 import NoteList from "@/components/note/NoteList";
+import Toast from "@/components/Toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRequireLogin } from "@/utils/requireAuth";
 
@@ -25,6 +28,7 @@ interface ExamSchedule {
   endDate: Date;
   timeRange: string;
   description: string;
+  link_url?: string;
   type_event: string[];
 }
 
@@ -36,6 +40,7 @@ interface UserNote {
   id: string;
   title: string;
   content: string;
+  link_url?: string;
   tags: Tag[];
   files: string[];
   createdAt: number;
@@ -87,14 +92,16 @@ const CalenderPage = () => {
   const { requireLogin } = useRequireLogin();
   const [adminSchedules, setAdminSchedules] = useState<ExamSchedule[]>([]);
   const [userNotes, setUserNotes] = useState<UserNote[]>([]);
+  const [tagFilter, setTagFilter] = useState("");
+  const [toast, setToast] = useState<{ type: "success" | "error" | "warning" | "info"; message: string } | null>(null);
 
   const [viewDate, setViewDate] = useState(new Date());
   const selectedMonth = viewDate.getMonth();
   const selectedYear = viewDate.getFullYear();
 
-  const [tagFilter, setTagFilter] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<ExamSchedule | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [dayEventsModal, setDayEventsModal] = useState<{ date: number; events: ExamSchedule[] } | null>(null);
 
   const monthsNames = useMemo(
     () => [
@@ -139,6 +146,7 @@ const CalenderPage = () => {
             endDate: end,
             timeRange: `${start.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })} - ${end.toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })}`,
             description: item.description || "",
+            link_url: item.link_url || "",
             type_event: Array.isArray(item.type_event)
               ? item.type_event
               : (typeof item.type_event === "string"
@@ -164,6 +172,7 @@ const CalenderPage = () => {
         id: String(n.note_id),
         title: n.title,
         content: n.content,
+        link_url: n.link_url || "",
         tags: n.tags || [],
         files: n.files || [],
         createdAt: new Date(n.created_at).getTime(),
@@ -215,7 +224,7 @@ const CalenderPage = () => {
       days.push(
         <div
           key={`empty-${i}`}
-          className="min-h-[100px] border border-gray-100 bg-gray-50/40"
+          className="min-h-[48px] sm:min-h-[90px] md:min-h-[105px] border border-gray-100 bg-gray-50/30"
         />,
       );
     }
@@ -223,34 +232,72 @@ const CalenderPage = () => {
     for (let date = 1; date <= daysInMonth; date++) {
       const daySchedules = getSchedulesForDate(date);
       const today = isToday(date);
+      const dayOfWeek = (firstDay + date - 1) % 7;
+      const isSunday = dayOfWeek === 0;
 
       days.push(
         <div
           key={date}
-          className={`min-h-[100px] border p-1.5 flex flex-col transition-colors
+          onClick={() => {
+            if (daySchedules.length === 1) {
+              setSelectedEvent(daySchedules[0]);
+              setIsViewModalOpen(true);
+            } else if (daySchedules.length > 1) {
+              setDayEventsModal({ date, events: daySchedules });
+            }
+          }}
+          className={`min-h-[48px] sm:min-h-[90px] md:min-h-[105px] border p-1 sm:p-1.5 md:p-2 flex flex-col justify-between sm:justify-start transition-all relative
+            ${daySchedules.length > 0 ? "cursor-pointer sm:cursor-default hover:bg-gray-50/90 active:scale-[0.98] sm:active:scale-100" : ""}
             ${today
-              ? "border-green-400 bg-green-50/40 ring-1 ring-green-400"
-              : "border-gray-200 bg-white hover:bg-gray-50"
+              ? "border-green-400 bg-green-50/40 ring-1 ring-green-400 z-1"
+              : "border-gray-200 bg-white hover:bg-gray-50/80"
             }`}
         >
           {/* วันที่ */}
-          <div className="flex justify-between items-center mb-1">
+          <div className="flex items-center justify-between">
             <span
-              className={`text-sm font-medium ${today ? "text-green-700" : "text-gray-500"}`}
+              className={`text-xs sm:text-sm font-semibold inline-flex items-center justify-center
+                ${today
+                  ? "w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-600 text-white shadow-xs text-[11px] sm:text-xs"
+                  : isSunday
+                    ? "text-red-500"
+                    : "text-gray-700"
+                }`}
             >
               {date}
             </span>
             {today && (
-              <span className="text-[8px] bg-green-600 text-white px-1.5 py-0.5 rounded font-medium">
+              <span className="hidden sm:inline-block text-[9px] bg-green-600 text-white px-1.5 py-0.5 rounded font-medium">
                 วันนี้
               </span>
             )}
           </div>
 
-          {/* Events */}
-          <div className="flex flex-col gap-0.5 overflow-y-auto max-h-[72px]">
+          {/* Events - Mobile View (แสดงจุดสัญลักษณ์สีแบบสมมาตร) */}
+          {daySchedules.length > 0 && (
+            <div className="flex sm:hidden items-center justify-center gap-1 mt-0.5 flex-wrap">
+              {daySchedules.slice(0, 3).map((schedule, idx) => {
+                const primaryType = schedule.type_event[0];
+                const style = primaryType ? getTypeStyle(primaryType) : DEFAULT_STYLE;
+                return (
+                  <span
+                    key={idx}
+                    className={`w-1.5 h-1.5 rounded-full ${style.dot} ring-1 ring-white`}
+                    title={schedule.title}
+                  />
+                );
+              })}
+              {daySchedules.length > 3 && (
+                <span className="text-[8px] font-bold text-gray-500 leading-none">
+                  +{daySchedules.length - 3}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* Events - Desktop View (แสดงการ์ดรายการเต็ม) */}
+          <div className="hidden sm:flex flex-col gap-1 mt-1.5 overflow-y-auto max-h-[70px] custom-scrollbar">
             {daySchedules.map((schedule) => {
-              // ใช้ type แรกเป็น accent สี event
               const primaryType = schedule.type_event[0];
               const style = primaryType
                 ? getTypeStyle(primaryType)
@@ -258,11 +305,12 @@ const CalenderPage = () => {
               return (
                 <button
                   key={`${schedule.id}-${date}`}
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setSelectedEvent(schedule);
                     setIsViewModalOpen(true);
                   }}
-                  className={`w-full text-left px-1.5 py-1 rounded border-l-2 text-[9px] font-medium truncate transition-all hover:opacity-80
+                  className={`w-full text-left px-1.5 py-1 rounded-md border-l-2 text-[10px] font-medium truncate transition-all hover:opacity-85 shadow-2xs cursor-pointer
                     ${style.bg} ${style.text} ${style.border}`}
                 >
                   {/* dot tags */}
@@ -285,13 +333,14 @@ const CalenderPage = () => {
       );
     }
 
-    // ช่องว่างเดือนถัดไป
-    const remaining = 42 - days.length;
+    // ช่องว่างเดือนถัดไป (คำนวณจำนวนแถวให้พอดี ไม่เกิน 5-6 แถว)
+    const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+    const remaining = totalCells - (firstDay + daysInMonth);
     for (let day = 1; day <= remaining; day++) {
       days.push(
         <div
           key={`next-${day}`}
-          className="min-h-[100px] border border-gray-100 bg-gray-50/40"
+          className="min-h-[48px] sm:min-h-[90px] md:min-h-[105px] border border-gray-100 bg-gray-50/30"
         />,
       );
     }
@@ -301,19 +350,27 @@ const CalenderPage = () => {
 
   // ── Note CRUD ────────────────────────────────────────────────────────────────
   const createNote = async (note: any, files?: File[]) => {
-    const token = getToken();
-    if (!token) return;
-    const fd = new FormData();
-    fd.append("title", note.title);
-    fd.append("content", note.content);
-    fd.append("tagIds", JSON.stringify(note.tags));
-    if (files) files.forEach((f) => fd.append("files", f));
-    await fetch(`${API_URL}/notes`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}` },
-      body: fd,
-    });
-    fetchNotes();
+    try {
+      const token = getToken();
+      if (!token) return;
+      const fd = new FormData();
+      fd.append("title", note.title);
+      fd.append("content", note.content);
+      if (note.link_url !== undefined && note.link_url !== null) {
+        fd.append("link_url", note.link_url);
+      }
+      fd.append("tagIds", JSON.stringify(note.tags));
+      if (files) files.forEach((f) => fd.append("files", f));
+      await fetch(`${API_URL}/notes`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      fetchNotes();
+      setToast({ type: "success", message: "บันทึกโน้ตสำเร็จ" });
+    } catch (error) {
+      setToast({ type: "error", message: "ไม่สามารถบันทึกโน้ตได้" });
+    }
   };
 
   const updateNote = async (
@@ -321,35 +378,48 @@ const CalenderPage = () => {
     files?: File[],
     deletedFiles?: string[],
   ) => {
-    const token = getToken();
-    if (!token) return;
-    const fd = new FormData();
-    fd.append("title", note.title);
-    fd.append("content", note.content);
-    fd.append(
-      "tagIds",
-      JSON.stringify(
-        note.tags.map((t) => (typeof t === "object" ? (t as any).name : t)),
-      ),
-    );
-    fd.append("deletedFiles", JSON.stringify(deletedFiles || []));
-    if (files) files.forEach((f) => fd.append("files", f));
-    await fetch(`${API_URL}/notes/${note.id}`, {
-      method: "PATCH",
-      headers: { Authorization: `Bearer ${token}` },
-      body: fd,
-    });
-    fetchNotes();
+    try {
+      const token = getToken();
+      if (!token) return;
+      const fd = new FormData();
+      fd.append("title", note.title);
+      fd.append("content", note.content);
+      if (note.link_url !== undefined && note.link_url !== null) {
+        fd.append("link_url", note.link_url);
+      }
+      fd.append(
+        "tagIds",
+        JSON.stringify(
+          note.tags.map((t) => (typeof t === "object" ? (t as any).name : t)),
+        ),
+      );
+      fd.append("deletedFiles", JSON.stringify(deletedFiles || []));
+      if (files) files.forEach((f) => fd.append("files", f));
+      await fetch(`${API_URL}/notes/${note.id}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      fetchNotes();
+      setToast({ type: "success", message: "แก้ไขโน้ตสำเร็จ" });
+    } catch (error) {
+      setToast({ type: "error", message: "ไม่สามารถแก้ไขโน้ตได้" });
+    }
   };
 
   const deleteNote = async (id: string) => {
-    const token = getToken();
-    if (!token) return;
-    await fetch(`${API_URL}/notes/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    fetchNotes();
+    try {
+      const token = getToken();
+      if (!token) return;
+      await fetch(`${API_URL}/notes/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchNotes();
+      setToast({ type: "success", message: "ลบโน้ตสำเร็จ" });
+    } catch (error) {
+      setToast({ type: "error", message: "ไม่สามารถลบโน้ตได้" });
+    }
   };
 
   // ── Unique type_event ทั้งหมดสำหรับ Legend ───────────────────────────────────
@@ -362,34 +432,38 @@ const CalenderPage = () => {
   return (
     <>
       {isAuthenticated ? <Navbar /> : <NavbarGuest />}
-      <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+      {toast && (
+        <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
+      )}
+      <div className="min-h-screen bg-gray-50 p-3.5 sm:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           {/* Breadcrumb */}
-          <div className="flex items-center text-sm text-gray-500 mb-5">
+          <div className="flex items-center text-xs sm:text-sm text-gray-500 mb-3 sm:mb-5">
             <Link href={isAuthenticated ? "/user" : "/"} className="hover:text-green-600 cursor-pointer transition">
               หน้าหลัก
             </Link>
-            <span className="mx-2">›</span>
+            <span className="mx-1.5 sm:mx-2">›</span>
             <span className="text-gray-600 font-medium">ปฏิทินการสอบ</span>
           </div>
 
-          <h1 className="text-3xl font-medium text-gray-800 mb-6">
+          <h1 className="text-2xl sm:text-3xl font-medium text-gray-800 mb-4 sm:mb-6">
             ปฏิทินกำหนดการสอบ
           </h1>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 sm:gap-6">
             {/* ── Calendar ──────────────────────────────────────────────── */}
             <div className="lg:col-span-2">
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-3.5 sm:p-6">
                 {/* Month Nav */}
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
                   <button
                     onClick={handlePreviousMonth}
-                    className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition-colors border border-gray-200"
+                    className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition-colors border border-gray-200 cursor-pointer"
+                    title="เดือนก่อนหน้า"
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
-                  <h2 className="text-xl font-medium text-gray-800">
+                  <h2 className="text-base sm:text-xl font-semibold text-gray-800">
                     {monthsNames[selectedMonth]}{" "}
                     <span className="text-green-600">
                       {selectedYear + 543}
@@ -397,9 +471,10 @@ const CalenderPage = () => {
                   </h2>
                   <button
                     onClick={handleNextMonth}
-                    className="p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition-colors border border-gray-200"
+                    className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-xl text-gray-500 transition-colors border border-gray-200 cursor-pointer"
+                    title="เดือนถัดไป"
                   >
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
                 </div>
 
@@ -408,8 +483,8 @@ const CalenderPage = () => {
                   {["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"].map((day, i) => (
                     <div
                       key={day}
-                      className={`py-3 text-center text-xs font-medium bg-gray-50 border-b border-gray-200
-                        ${i === 0 ? "text-red-500" : "text-gray-500"}`}
+                      className={`py-2 sm:py-3 text-center text-[11px] sm:text-xs font-semibold bg-gray-50 border-b border-gray-200
+                        ${i === 0 ? "text-red-500" : "text-gray-600"}`}
                     >
                       {day}
                     </div>
@@ -485,6 +560,60 @@ const CalenderPage = () => {
         </div>
       </div>
 
+      {/* ── Modal รายการกำหนดการประจำวัน (สำหรับมือถือเมื่อมีหลายรายการ) ──────── */}
+      {dayEventsModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-fade-in">
+            <div className="bg-green-600 px-5 py-3.5 flex justify-between items-center text-white">
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="w-4 h-4" />
+                <h3 className="font-medium text-sm">
+                  กำหนดการวันที่ {dayEventsModal.date} {monthsNames[selectedMonth]} {selectedYear + 543}
+                </h3>
+              </div>
+              <button
+                onClick={() => setDayEventsModal(null)}
+                className="p-1 hover:bg-green-700 rounded-lg transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
+              <p className="text-xs text-gray-500 mb-2">มีทั้งหมด {dayEventsModal.events.length} กำหนดการ (แตะเพื่อดูรายละเอียด):</p>
+              {dayEventsModal.events.map((schedule) => {
+                const primaryType = schedule.type_event[0];
+                const style = primaryType ? getTypeStyle(primaryType) : DEFAULT_STYLE;
+                return (
+                  <button
+                    key={schedule.id}
+                    onClick={() => {
+                      setSelectedEvent(schedule);
+                      setDayEventsModal(null);
+                      setIsViewModalOpen(true);
+                    }}
+                    className={`w-full text-left p-3 rounded-xl border-l-3 transition-all hover:opacity-90 flex flex-col gap-1 cursor-pointer shadow-xs ${style.bg} ${style.border}`}
+                  >
+                    <span className={`text-xs font-semibold ${style.text}`}>{schedule.title}</span>
+                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                      {schedule.type_event.map((t, idx) => (
+                        <span key={idx} className="text-[10px] bg-white/70 px-1.5 py-0.5 rounded text-gray-600 font-medium">
+                          {t}
+                        </span>
+                      ))}
+                      {schedule.link_url && (
+                        <span className="inline-flex items-center gap-0.5 text-[9px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 font-medium">
+                          <ExternalLink className="w-2.5 h-2.5" /> มีลิงก์แนบ
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Modal รายละเอียด ──────────────────────────────────────────── */}
       {isViewModalOpen && selectedEvent && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
@@ -554,7 +683,6 @@ const CalenderPage = () => {
                 </div>
               </div>
 
-
               {/* Description */}
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-green-50 border border-green-200 rounded-lg flex items-center justify-center shrink-0">
@@ -570,9 +698,32 @@ const CalenderPage = () => {
                 </div>
               </div>
 
+              {/* Link Attachment (ถ้ามี) */}
+              {selectedEvent.link_url && (
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-center shrink-0">
+                    <LinkIcon className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-500 mb-1">
+                      ลิงก์แนบ / เอกสารอ้างอิง
+                    </p>
+                    <a
+                      href={selectedEvent.link_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-xl text-sm font-medium border border-blue-200 transition-colors w-full break-all group"
+                    >
+                      <ExternalLink className="w-4 h-4 shrink-0 text-blue-600 group-hover:scale-110 transition-transform" />
+                      <span className="truncate flex-1">{selectedEvent.link_url}</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+
               <button
                 onClick={() => setIsViewModalOpen(false)}
-                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-all text-sm"
+                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-all text-sm cursor-pointer"
               >
                 ปิด
               </button>

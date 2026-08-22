@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
-import { Edit2, Trash2, Tag, Link as LinkIcon, ChevronDown, ChevronUp, FileText } from "lucide-react";
+import { Edit2, Trash2, Tag, Link as LinkIcon, ChevronDown, ChevronUp, FileText, ExternalLink } from "lucide-react";
+import Swal from "sweetalert2";
+import { SWAL_COLORS } from "@/utils/swal";
 import type { UserNote } from "./NoteList";
 
 export default function NoteItem({
@@ -34,6 +36,35 @@ export default function NoteItem({
       });
   })();
 
+  const handleDelete = async () => {
+    const result = await Swal.fire({
+      title: 'ยืนยันการลบบันทึก?',
+      html: `
+        <div class="text-center py-1">
+          <p class="text-sm text-gray-600 mb-1">คุณต้องการลบบันทึกนี้ใช่หรือไม่?</p>
+          <p class="text-base font-semibold text-gray-800 bg-gray-50 py-2 px-3 rounded-xl border border-gray-100 mb-2 truncate">"${note.title || 'ไม่มีหัวข้อ'}"</p>
+          <p class="text-xs text-red-500">⚠️ ข้อมูลและไฟล์แนบจะถูกลบถาวร ไม่สามารถกู้คืนได้</p>
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: SWAL_COLORS.danger,
+      cancelButtonColor: SWAL_COLORS.cancel,
+      confirmButtonText: 'ใช่, ลบบันทึก',
+      cancelButtonText: 'ยกเลิก',
+      reverseButtons: true,
+      customClass: {
+        popup: 'rounded-3xl shadow-2xl',
+        confirmButton: 'rounded-xl px-5 py-2.5 font-medium text-sm',
+        cancelButton: 'rounded-xl px-5 py-2.5 font-medium text-sm',
+      }
+    });
+
+    if (result.isConfirmed) {
+      onDelete(note.id);
+    }
+  };
+
   return (
     <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-all flex flex-col h-full">
       {/* Header: Title & Actions */}
@@ -44,13 +75,15 @@ export default function NoteItem({
         <div className="flex gap-1 flex-shrink-0">
           <button
             onClick={() => onEdit(note)}
-            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+            className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+            title="แก้ไขบันทึก"
           >
             <Edit2 className="w-4 h-4" />
           </button>
           <button
-            onClick={() => onDelete(note.id)}
-            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            onClick={handleDelete}
+            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+            title="ลบบันทึก"
           >
             <Trash2 className="w-4 h-4" />
           </button>
@@ -75,6 +108,22 @@ export default function NoteItem({
           </button>
         )}
       </div>
+
+      {/* Attached Link Section */}
+      {note.link_url && (
+        <div className="mb-3">
+          <a
+            href={note.link_url.startsWith("http://") || note.link_url.startsWith("https://") ? note.link_url : `https://${note.link_url}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-medium rounded-lg transition-colors border border-blue-200/60 max-w-full truncate group"
+            title={note.link_url}
+          >
+            <ExternalLink className="w-3.5 h-3.5 text-blue-500 shrink-0 group-hover:scale-110 transition-transform" />
+            <span className="truncate">{note.link_url}</span>
+          </a>
+        </div>
+      )}
 
       {/* Files Section: แก้ไขการดึง storage_path จาก Object */}
       {note.files && note.files.length > 0 && (

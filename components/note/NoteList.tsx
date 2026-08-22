@@ -1,14 +1,16 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search, X, Bookmark } from "lucide-react";
 import NoteItem from "./NoteItem";
 import NoteModal from "./NoteModal";
 import AddNoteButton from "./AddNoteButton";
+import NotePagination from "./NotePagination";
 
 export interface UserNote {
   id: string;
   content: string;
   title: string;
+  link_url?: string;
   tags: any[];
   files: any[];
   createdAt: number;
@@ -32,6 +34,8 @@ export default function NoteList({
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<UserNote | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 2;
 
   const filteredNotes = useMemo(() => {
     if (!tagFilter) return notes;
@@ -59,6 +63,38 @@ export default function NoteList({
       return matchesTags || matchesTitle || matchesContent || matchesFiles;
     });
   }, [notes, tagFilter]);
+
+  const totalPages = Math.ceil(filteredNotes.length / ITEMS_PER_PAGE);
+
+  // Reset to page 1 when tagFilter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [tagFilter]);
+
+  // Adjust page if current page exceeds total pages
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  const paginatedNotes = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredNotes.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredNotes, currentPage]);
+
+  const existingTags = useMemo(() => {
+    const tags = new Set<string>();
+    notes.forEach(note => {
+      note.tags?.forEach(t => {
+        const tagName = typeof t === "object" ? (t.tag?.tag_name || t.tag_name || t.name) : t;
+        if (tagName && typeof tagName === "string") {
+          tags.add(tagName.trim());
+        }
+      });
+    });
+    return Array.from(tags);
+  }, [notes]);
 
   return (
     <div className="bg-white rounded-xl shadow-xl p-4 border border-slate-100">
@@ -96,9 +132,9 @@ export default function NoteList({
       </div>
 
       {/* Note List Container */}
-      <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-        {filteredNotes.length > 0 ? (
-          filteredNotes.map((note) => (
+      <div className="space-y-4">
+        {paginatedNotes.length > 0 ? (
+          paginatedNotes.map((note) => (
             <NoteItem
               key={note.id}
               note={note}
@@ -119,6 +155,15 @@ export default function NoteList({
         )}
       </div>
 
+      {/* Pagination (จะแสดงอัตโนมัติเมื่อมีมากกว่า 2 รายการ ออกแบบพิเศษสำหรับความกว้างการ์ด) */}
+      <NotePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={filteredNotes.length}
+        perPage={ITEMS_PER_PAGE}
+        onPageChange={setCurrentPage}
+      />
+
       {/* Modal สำหรับ Create/Update */}
       {isModalOpen && (
         <NoteModal
@@ -137,6 +182,7 @@ export default function NoteList({
             onDeleteNote(id);
             setIsModalOpen(false);
           }}
+          existingTags={existingTags}
         />
       )}
     </div>

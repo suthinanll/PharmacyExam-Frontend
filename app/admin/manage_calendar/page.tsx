@@ -15,6 +15,8 @@ import {
   CheckSquare,
   Square,
   List,
+  Link as LinkIcon,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import Swal from "sweetalert2";
@@ -35,6 +37,7 @@ interface CalendarEvent {
   id: number;
   title: string;
   description?: string;
+  link_url?: string;
   startDate: string;
   endDate: string;
   month: number;
@@ -65,6 +68,7 @@ function Page() {
   const [editFormData, setEditFormData] = useState({
     title: "",
     description: "",
+    link_url: "",
     startDate: "",
     endDate: "",
     is_published: true,
@@ -89,6 +93,7 @@ function Page() {
           id: item.id,
           title: item.title,
           description: item.description,
+          link_url: item.link_url,
           startDate: String(start.getDate()),
           endDate: String(end.getDate()),
           month: start.getMonth(),
@@ -241,6 +246,7 @@ function Page() {
     setEditFormData({
       title: event.title,
       description: event.description || "",
+      link_url: event.link_url || "",
       startDate: event.raw_start ? new Date(event.raw_start).toISOString().split("T")[0] : "",
       endDate: event.raw_end ? new Date(event.raw_end).toISOString().split("T")[0] : "",
       is_published: event.is_published,
@@ -269,6 +275,7 @@ function Page() {
         body: JSON.stringify({
           title: editFormData.title,
           description: editFormData.description,
+          link_url: editFormData.link_url || null,
           start_time: editFormData.startDate,
           end_time: editFormData.endDate,
           is_public: editFormData.is_published,
@@ -530,9 +537,22 @@ function Page() {
                           </span>
                         ))}
                       </div>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                        <Calendar className="w-3.5 h-3.5 text-green-500" />
-                        {new Date(event.raw_start!).toLocaleDateString("th-TH")} – {new Date(event.raw_end!).toLocaleDateString("th-TH")}
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-green-500" />
+                          {new Date(event.raw_start!).toLocaleDateString("th-TH")} – {new Date(event.raw_end!).toLocaleDateString("th-TH")}
+                        </span>
+                        {event.link_url && (
+                          <a
+                            href={event.link_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-700 hover:underline bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            ลิงก์แนบ
+                          </a>
+                        )}
                       </div>
                     </div>
                     {/* Actions */}
@@ -595,6 +615,31 @@ function Page() {
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-green-500 focus:bg-white rounded-xl outline-none transition-all text-sm font-medium"
                     placeholder="ระบุชื่อกำหนดการ..."
                     required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-500 ">รายละเอียดเพิ่มเติม</label>
+                  <textarea
+                    rows={2}
+                    value={editFormData.description}
+                    onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-green-500 focus:bg-white rounded-xl outline-none transition-all text-sm resize-none"
+                    placeholder="รายละเอียดกำหนดการ..."
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-500 flex items-center gap-1.5">
+                    <LinkIcon className="w-3.5 h-3.5 text-green-600" />
+                    แนบลิงก์ (URL) / เอกสารอ้างอิง <span className="text-gray-400 font-normal">(ไม่บังคับกรอก)</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={editFormData.link_url || ""}
+                    onChange={(e) => setEditFormData({ ...editFormData, link_url: e.target.value })}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 focus:border-green-500 focus:bg-white rounded-xl outline-none transition-all text-sm"
+                    placeholder="เช่น https://example.com/exam-info"
                   />
                 </div>
                 <div className="space-y-2">
