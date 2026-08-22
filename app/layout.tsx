@@ -35,6 +35,13 @@ export const metadata: Metadata = {
   title: 'เภสัชพร้อมสอบ',
   description: 'แพลตฟอร์มฝึกสอบออนไลน์สำหรับผู้ที่เตรียมสอบใบประกอบวิชาชีพเภสัชกรรม',
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/icons/icon-2.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico' },
+    ],
+    apple: '/icons/icon-192x192.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -52,7 +59,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="th" className={`${myFont.variable}`}>
       <head>
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+        <link rel="alternate icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="theme-color" content="#76B25A" />
       </head>

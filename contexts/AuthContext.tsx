@@ -25,7 +25,28 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/+$/, '');
+
+function normalizeUserData(userData: any): User {
+    if (!userData) return userData;
+    let pic = userData.profile_picture || userData.picture || userData.avatar || userData.google_picture || userData.image_url;
+    if (typeof pic === 'string' && pic.trim() !== '') {
+        if (pic.includes('googleusercontent.com')) {
+            pic = pic.replace('=s96-c', '=s200-c');
+        } else if (!pic.startsWith('http') && !pic.startsWith('data:')) {
+            const cleanPic = pic.startsWith('/') ? pic : `/${pic}`;
+            pic = `${API_URL}${cleanPic}`;
+        }
+    } else {
+        pic = undefined;
+    }
+    return {
+        ...userData,
+        user_id: userData.user_id ?? userData.id,
+        id: userData.id ?? userData.user_id,
+        profile_picture: pic,
+    };
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
@@ -55,15 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (response.ok) {
                 const userData = await response.json();
-                // แก้ปัญหา Google rate limit: เปลี่ยน s96-c เป็น s200-c และเพิ่ม cache buster
-                if (userData.profile_picture && userData.profile_picture.includes('googleusercontent.com')) {
-                    userData.profile_picture = userData.profile_picture.replace('=s96-c', '=s200-c');
-                }
-                // แก้ URL รูปโปรไฟล์ที่อัปโหลดเองให้เป็น absolute URL
-                if (userData.profile_picture && !userData.profile_picture.startsWith('http')) {
-                    userData.profile_picture = `${API_URL}${userData.profile_picture}`;
-                }
-                setUser(userData);
+                setUser(normalizeUserData(userData));
             } else {
                 // Token invalid or expired
                 setUser(null);
@@ -80,13 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = async (token: string, userData?: any) => {
         localStorage.setItem('access_token', token);
         if (userData) {
-            // Normalize userData to ensure both id and user_id are set correctly
-            const normalizedUser = {
-                ...userData,
-                user_id: userData.user_id ?? userData.id,
-                id: userData.id ?? userData.user_id,
-            };
-            setUser(normalizedUser);
+            setUser(normalizeUserData(userData));
             setIsLoading(false);
         } else {
             await fetchUser();

@@ -98,7 +98,7 @@ export default function Navbar_admin({
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === href;
-    if (href ==="/admin") return pathname === href;
+    if (href === "/admin") return pathname === href;
     if (href === "/settings" || href === "/profile") return pathname === href;
     return pathname.startsWith(href);
   };
@@ -141,12 +141,11 @@ export default function Navbar_admin({
     >
       {/* Sidebar - Desktop */}
       <aside
-        className={`hidden lg:flex lg:flex-col bg-white border-r border-gray-200 fixed h-full transition-all duration-300 z-30 ${
-          isCollapsed ? "w-20" : "w-64 xl:w-72"
-        }`}
+        className={`hidden lg:flex lg:flex-col bg-white border-r border-gray-200 fixed h-full transition-all duration-300 z-30 ${isCollapsed ? "w-20" : "w-64 xl:w-72"
+          }`}
       >
         <div
-          className={`p-4 h-20 border-b border-gray-200 flex items-center ${isCollapsed ? "justify-center" : "justify-between"}`}
+          className={`px-4 h-16 border-b border-gray-200 flex items-center shrink-0 ${isCollapsed ? "justify-center" : "justify-between"}`}
         >
           {!isCollapsed && (
             <Link
@@ -160,7 +159,7 @@ export default function Navbar_admin({
           )}
           <button
             onClick={toggleCollapse}
-            className={`p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-green-700 transition-colors ${isCollapsed ? "" : "ml-2"}`}
+            className={`p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-green-700 transition-colors cursor-pointer ${isCollapsed ? "" : "ml-2"}`}
             title={isCollapsed ? "ขยายแถบเมนู" : "หุบแถบเมนู"}
           >
             {isCollapsed ? (
@@ -171,7 +170,7 @@ export default function Navbar_admin({
           </button>
         </div>
 
-        <nav className="flex-1 p-3 overflow-y-auto no-scrollbar">
+        <nav className="flex-1 px-3 py-3 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden flex flex-col justify-between">
           <div className="space-y-1">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
@@ -179,25 +178,24 @@ export default function Navbar_admin({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg group ${
-                    isActive(item.href)
-                      ? "bg-gray-100 text-green-700 font-medium"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
-                  } ${isCollapsed ? "justify-center" : ""}`}
+                  className={`flex items-center gap-3 w-full px-3 py-2.5 transition-all duration-150 rounded-xl group text-sm ${isActive(item.href)
+                    ? "bg-green-50 text-green-700 font-medium"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-green-700 font-medium"
+                    } ${isCollapsed ? "justify-center" : ""}`}
                   title={isCollapsed ? item.title : ""}
                 >
                   <Icon
                     className={`w-5 h-5 flex-shrink-0 ${isActive(item.href) ? "text-green-700" : "text-gray-400 group-hover:text-green-700"}`}
                   />
                   {!isCollapsed && (
-                    <span className="text-sm truncate">{item.title}</span>
+                    <span className="truncate">{item.title}</span>
                   )}
                 </Link>
               );
             })}
           </div>
 
-          <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="my-3 pt-3 border-t border-gray-100">
             <div className="space-y-1">
               {settingsItems.map((item) => {
                 const Icon = item.icon;
@@ -205,18 +203,17 @@ export default function Navbar_admin({
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg group ${
-                      isActive(item.href)
-                        ? "bg-gray-100 text-green-700 font-medium"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-green-700"
-                    } ${isCollapsed ? "justify-center" : ""}`}
+                    className={`flex items-center gap-3 w-full px-3 py-2.5 transition-all duration-150 rounded-xl group text-sm ${isActive(item.href)
+                      ? "bg-green-50 text-green-700 font-medium"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-green-700 font-medium"
+                      } ${isCollapsed ? "justify-center" : ""}`}
                     title={isCollapsed ? item.title : ""}
                   >
                     <Icon
                       className={`w-5 h-5 flex-shrink-0 ${isActive(item.href) ? "text-green-700" : "text-gray-400 group-hover:text-green-700"}`}
                     />
                     {!isCollapsed && (
-                      <span className="text-sm truncate">{item.title}</span>
+                      <span className="truncate">{item.title}</span>
                     )}
                   </Link>
                 );
@@ -224,37 +221,35 @@ export default function Navbar_admin({
 
               <button
                 onClick={handleLogoutClick}
-                className={`flex items-center gap-3 w-full px-3 py-3 transition-all duration-200 rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 ${
-                  isCollapsed ? "justify-center" : ""
-                }`}
+                className={`flex items-center gap-3 w-full px-3 py-2.5 transition-all duration-150 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer ${isCollapsed ? "justify-center" : ""
+                  }`}
                 title={isCollapsed ? "ออกจากระบบ" : ""}
               >
-                <LogOut className="w-5 h-5 flex-shrink-0" />
+                <LogOut className="w-5 h-5 flex-shrink-0 text-red-500" />
                 {!isCollapsed && (
-                  <span className="text-sm font-medium">ออกจากระบบ</span>
+                  <span>ออกจากระบบ</span>
                 )}
               </button>
             </div>
           </div>
         </nav>
 
-        <div className="p-4 border-t border-gray-200 bg-white">
+        <div className="p-3 border-t border-gray-200 bg-white shrink-0">
           <Link
             href="/admin/settingp"
-            className={`flex items-center gap-3 p-2 rounded-xl transition-all duration-200 ${
-              isActive("/admin/settingp") ? "bg-gray-100" : "hover:bg-gray-50"
-            } ${isCollapsed ? "justify-center" : ""}`}
+            className={`flex items-center gap-3 p-2 rounded-xl transition-all duration-150 ${isActive("/admin/settingp") ? "bg-green-50" : "hover:bg-gray-50"
+              } ${isCollapsed ? "justify-center" : ""}`}
             title={isCollapsed ? `${user?.first_name} ${user?.last_name}` : ""}
           >
-            <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0 border border-gray-200">
-              <User className="w-6 h-6 text-green-700" />
+            <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center flex-shrink-0 border border-gray-200">
+              <User className="w-5 h-5 text-green-700" />
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-green-800 truncate">
+                <p className="text-sm font-medium text-gray-900 truncate">
                   {user?.first_name} {user?.last_name}
                 </p>
-                <p className="text-xs text-green-600 truncate">{user?.email}</p>
+                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
               </div>
             )}
           </Link>
@@ -263,9 +258,8 @@ export default function Navbar_admin({
 
       {/* Main Content */}
       <div
-        className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${
-          isCollapsed ? "lg:ml-20" : "lg:ml-64 xl:ml-72"
-        }`}
+        className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${isCollapsed ? "lg:ml-20" : "lg:ml-64 xl:ml-72"
+          }`}
       >
         <header className="lg:hidden bg-white shadow-md sticky top-0 z-50">
           <div className="flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
@@ -298,11 +292,10 @@ export default function Navbar_admin({
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
-                      isActive(item.href)
-                        ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
-                        : "text-green-600 hover:bg-gray-50 hover:text-green-700"
-                    }`}
+                    className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
+                      ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
+                      : "text-green-600 hover:bg-gray-50 hover:text-green-700"
+                      }`}
                   >
                     {item.title}
                   </Link>
@@ -314,11 +307,10 @@ export default function Navbar_admin({
                       key={item.href}
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
-                        isActive(item.href)
-                          ? "bg-gray-100 text-green-700 font-medium border-l-4 border-green-700"
-                          : "text-green-600 hover:bg-gray-50 hover:text-green-700"
-                      }`}
+                      className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${isActive(item.href)
+                        ? "bg-gray-100 text-green-700 font-medium border-l-4 border-green-700"
+                        : "text-green-600 hover:bg-gray-50 hover:text-green-700"
+                        }`}
                     >
                       {item.title}
                     </Link>

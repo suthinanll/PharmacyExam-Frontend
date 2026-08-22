@@ -18,7 +18,8 @@ export function useRequireLogin() {
       showCancelButton: true,
       confirmButtonText: "เข้าสู่ระบบ",
       cancelButtonText: "ยกเลิก",
-      confirmButtonColor: "#22c55e",
+      confirmButtonColor: "#16a34a",
+      cancelButtonColor: "#6b7280",
       reverseButtons: true,
     }).then((result) => {
       if (result.isConfirmed) {

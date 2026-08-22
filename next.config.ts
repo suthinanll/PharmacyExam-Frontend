@@ -40,7 +40,7 @@ const nextConfig = {
                 headers: [
                     {
                         key: 'Content-Security-Policy',
-                        value: "img-src 'self' data: https: http:;",
+                        value: "img-src 'self' data: blob: https: http:;",
                     },
                 ],
             },

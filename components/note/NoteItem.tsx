@@ -28,10 +28,10 @@ export default function NoteItem({
     return isNaN(date.getTime())
       ? "Invalid Date"
       : date.toLocaleDateString("th-TH", {
-          day: "numeric",
-          month: "short",
-          year: "2-digit",
-        });
+        day: "numeric",
+        month: "short",
+        year: "2-digit",
+      });
   })();
 
   return (
@@ -79,41 +79,54 @@ export default function NoteItem({
       {/* Files Section: แก้ไขการดึง storage_path จาก Object */}
       {note.files && note.files.length > 0 && (
         <div className="mb-4 pt-3 border-t border-dashed border-gray-100">
-          <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-1">
+          <p className="text-[10px] font-medium text-gray-400  mb-2 flex items-center gap-1">
             <FileText className="w-3 h-3" /> ไฟล์แนบ ({note.files.length})
           </p>
           <div className="flex flex-wrap gap-1.5">
-              {note.files.map((file: any, i) => {
-                // ดึงชื่อไฟล์จาก storage_path (ตามโครงสร้าง DB/NoteFile Entity)
-                const fileName = file.storage_path || file.original_filename || file;
-                const displayLabel = file.original_filename || fileName;
-                const isImage = file.file_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(displayLabel) || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
-                const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/${fileName}`;
+            {note.files.map((file: any, i) => {
+              // ดึงชื่อไฟล์จาก storage_path (ตามโครงสร้าง DB/NoteFile Entity)
+              let fileName = file.storage_path || file.original_filename || (typeof file === 'string' ? file : '');
+              if (fileName.startsWith('/uploads/')) {
+                fileName = fileName.replace('/uploads/', '');
+              } else if (fileName.startsWith('uploads/')) {
+                fileName = fileName.replace('uploads/', '');
+              }
+              const displayLabel = file.original_filename || fileName;
+              const isImage = file.file_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(displayLabel) || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
+              const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/${fileName}`;
 
-                return isImage ? (
-                  <a
-                    key={file.file_id || i}
-                    href={fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block relative rounded-lg overflow-hidden border border-slate-200 w-16 h-16 hover:opacity-90 hover:ring-2 hover:ring-indigo-500 transition-all shadow-sm"
-                    title={displayLabel}
-                  >
-                    <img src={fileUrl} alt={displayLabel} className="w-full h-full object-cover" />
-                  </a>
-                ) : (
-                  <a
-                    key={file.file_id || i}
-                    href={fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center gap-1.5 text-[11px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all max-w-full"
-                  >
-                    <LinkIcon className="w-3 h-3 flex-shrink-0" />
-                    <span className="truncate max-w-[150px] font-medium">{displayLabel}</span>
-                  </a>
-                );
-              })}
+              return isImage ? (
+                <a
+                  key={file.file_id || i}
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block relative rounded-lg overflow-hidden border border-slate-200 w-16 h-16 hover:opacity-90 hover:ring-2 hover:ring-indigo-500 transition-all shadow-sm"
+                  title={displayLabel}
+                >
+                  <img
+                    src={fileUrl}
+                    alt={displayLabel}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      // ถ้าโหลดรูปไม่ขึ้นให้แสดงไอคอนไฟล์แทน
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </a>
+              ) : (
+                <a
+                  key={file.file_id || i}
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-1.5 text-[11px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all max-w-full"
+                >
+                  <LinkIcon className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate max-w-[150px] font-medium">{displayLabel}</span>
+                </a>
+              );
+            })}
           </div>
         </div>
       )}

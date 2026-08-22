@@ -120,7 +120,7 @@ export default function PWAInstallPrompt() {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-900/55">
       <div className="relative w-full max-w-md rounded-3xl bg-white shadow-2xl border border-slate-100 overflow-hidden animate-fade-in">
         {/* Accent bar */}
-        <div className="h-1.5 bg-emerald-600" />
+        <div className="h-1.5 bg-green-600" />
 
         <div className="p-6">
           {/* Close */}
@@ -134,8 +134,8 @@ export default function PWAInstallPrompt() {
 
           {/* Header */}
           <div className="flex flex-col items-center text-center mb-6">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
-              <Pill className="w-7 h-7 text-emerald-600" strokeWidth={1.75} />
+            <div className="w-14 h-14 rounded-2xl bg-green-50 flex items-center justify-center mb-4">
+              <Pill className="w-7 h-7 text-green-600" strokeWidth={1.75} />
             </div>
             <h2 className="text-lg font-medium text-slate-900 mb-1.5">
               ติดตั้งเภสัชพร้อมสอบ
@@ -149,11 +149,10 @@ export default function PWAInstallPrompt() {
               <button
                 onClick={handleInstall}
                 disabled={!canInstallNow}
-                className={`mt-4 px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors ${
-                  canInstallNow
-                    ? "bg-emerald-600 text-white hover:bg-emerald-700"
+                className={`mt-4 px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors ${canInstallNow
+                    ? "bg-green-600 text-white hover:bg-green-700"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 <Download className="w-4 h-4" strokeWidth={2.5} />
                 ติดตั้งตอนนี้
@@ -175,7 +174,7 @@ export default function PWAInstallPrompt() {
                     {!isLast && <span className="w-px flex-1 bg-slate-200 my-1" />}
                   </div>
                   <div className="flex items-center gap-2.5 pt-1 pb-2">
-                    <Icon className="w-4 h-4 text-emerald-600 shrink-0" strokeWidth={2} />
+                    <Icon className="w-4 h-4 text-green-600 shrink-0" strokeWidth={2} />
                     <span className="text-sm text-slate-700 leading-snug">{step.text}</span>
                   </div>
                 </li>

@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import NavbarGuest from "@/components/Navbar_guest";
 import Footer from "@/components/Footer";
+import Image from "next/image";
 import NewsCard from "@/components/News";
-import { LayoutGrid, Bookmark, BookOpen, Brain, CalendarDays, MessageSquareText, TrendingUp } from "lucide-react";
+import { LayoutGrid, Bookmark, BookOpen, Brain, CalendarDays, MessageSquareText, TrendingUp, LogIn, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { CountdownHero } from "@/components/home/CountdownHero";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
@@ -136,7 +137,7 @@ const Page = () => {
       icon: <BookOpen className="w-6 h-6 text-green-600" />,
       bg: "bg-green-50",
       title: "คลังข้อสอบ",
-      desc: "ฝึกทำข้อสอบเภสัชศาสตร์หลากหลายหมวด",
+      desc: "ฝึกทำข้อสอบใบประกอบวิชาชีพเภสัชศาสตร์หลากหลายหมวด",
       href: "/user/examset",
     },
     {
@@ -172,39 +173,7 @@ const Page = () => {
       <div className="bg-gray-50 min-h-screen py-8 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
 
-          {/* Hero: คำเชิญชวนเข้าใช้งาน */}
-          <div className="relative overflow-hidden rounded-3xl mb-12 bg-gradient-to-r from-green-600 to-green-700 shadow-lg">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8 p-8 md:p-12">
-              <div className="flex-1 text-center md:text-left">
-                <h1 className="text-3xl md:text-4xl font-extrabold text-white mb-3">
-                  เภสัชพร้อมสอบ
-                </h1>
-                <p className="text-green-100 text-base md:text-lg leading-relaxed max-w-xl mx-auto md:mx-0">
-                  แพลตฟอร์มเตรียมสอบใบประกอบวิชาชีพเภสัชกรรม — ฝึกข้อสอบ วัดความสามารถ
-                  ติดตามความคืบหน้า ได้ทุกที่ทุกเวลา
-                </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-3 mt-6">
-                  <button
-                    onClick={() => requireLogin("เริ่มทำข้อสอบ")}
-                    className="w-full sm:w-auto px-8 py-3 bg-white text-green-700 font-bold rounded-xl shadow-lg hover:shadow-xl hover:bg-green-50 transition-all duration-200"
-                  >
-                    เริ่มทำข้อสอบเลย
-                  </button>
-                  <button
-                    onClick={() => router.push("/register")}
-                    className="w-full sm:w-auto px-8 py-3 text-white font-semibold border-2 border-white/60 rounded-xl hover:bg-white/10 transition-all duration-200"
-                  >
-                    สมัครสมาชิกฟรี
-                  </button>
-                </div>
-              </div>
-              <div className="hidden lg:flex items-center justify-center">
-                <div className="w-40 h-40 rounded-3xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-                  <span className="text-7xl">💊</span>
-                </div>
-              </div>
-            </div>
-          </div>
+
 
           <CountdownHero
             targetDate={targetDate}
@@ -220,7 +189,7 @@ const Page = () => {
           <div className="mb-12">
             <div className="flex items-center gap-2 mb-6">
               <BookOpen className="text-green-600" size={24} />
-              <h2 className="text-2xl font-bold text-gray-800">ฟีเจอร์เด่น</h2>
+              <h2 className="text-2xl font-medium text-gray-800 flex items-center gap-2">ฟีเจอร์เด่น</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               {features.map((f) =>
@@ -233,8 +202,8 @@ const Page = () => {
                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 ${f.bg}`}>
                       {f.icon}
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{f.title}</h3>
-                    <p className="text-xs text-gray-500">{f.desc}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1 text-lg">{f.title}</h3>
+                    <p className="text-sm text-gray-500">{f.desc}</p>
                   </Link>
                 ) : (
                   <div
@@ -245,8 +214,8 @@ const Page = () => {
                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center mb-3 ${f.bg}`}>
                       {f.icon}
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-1">{f.title}</h3>
-                    <p className="text-xs text-gray-500">{f.desc}</p>
+                    <h3 className="font-semibold text-gray-900 mb-1 text-lg">{f.title}</h3>
+                    <p className="text-sm text-gray-500">{f.desc}</p>
                   </div>
                 ),
               )}
@@ -254,7 +223,7 @@ const Page = () => {
           </div>
 
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
+            <h2 className="text-2xl font-medium text-gray-800 flex items-center gap-2">
               <LayoutGrid className="text-blue-600" size={28} />
               ข่าวสารและประกาศ
             </h2>
@@ -286,7 +255,7 @@ const Page = () => {
             ) : (
               <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
                 <Bookmark className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="font-semibold text-gray-700">ไม่มีข่าวสารและประกาศในขณะนี้</p>
+                <p className="font-semibold text-gray-700 text-lg">ไม่มีข่าวสารและประกาศในขณะนี้</p>
                 <p className="text-sm text-gray-400 mt-1">กรุณากลับมาตรวจสอบใหม่อีกครั้งในภายหลัง</p>
               </div>
             )}

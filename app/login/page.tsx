@@ -127,7 +127,7 @@ export default function Page() {
 
         <div className="flex items-center my-8">
           <div className="flex-grow border-t border-gray-300"></div>
-          <span className="mx-4 text-gray-400 text-xs font-medium uppercase tracking-widest">หรือ</span>
+          <span className="mx-4 text-gray-400 text-xs font-medium ">หรือ</span>
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 

@@ -30,6 +30,7 @@ interface NotificationContextType {
     markAsRead: (id: number) => Promise<void>;
     markAllAsRead: () => Promise<void>;
     removeNotification: (id: number) => Promise<void>;
+    removeAllNotifications: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -116,6 +117,21 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         }
     }, [getToken]);
 
+    const removeAllNotifications = useCallback(async () => {
+        const token = getToken();
+        if (!token) return;
+        try {
+            await fetch(`${API_URL}/notifications/clear-all`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            setNotifications([]);
+            setUnreadCount(0);
+        } catch (err) {
+            console.error('[Notifications] Failed to clear all:', err);
+        }
+    }, [getToken]);
+
     // เชื่อม WebSocket เมื่อ user login / ตัดเมื่อ logout
     useEffect(() => {
         // ⏳ รอ auth โหลดเสร็จก่อน ป้องกันการ disconnect ระหว่าง loading
@@ -189,6 +205,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 markAsRead,
                 markAllAsRead,
                 removeNotification,
+                removeAllNotifications,
             }}
         >
             {children}

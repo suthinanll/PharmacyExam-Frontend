@@ -63,10 +63,17 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
       const filesArray = Array.from(e.target.files);
       setSelectedFiles(prev => [...prev, ...filesArray]);
 
-      const newPreviews = filesArray.map(file =>
-        file.type.startsWith("image/") ? URL.createObjectURL(file) : ""
-      );
-      setPreviews(prev => [...prev, ...newPreviews]);
+      filesArray.forEach((file) => {
+        if (file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setPreviews(prev => [...prev, reader.result as string]);
+          };
+          reader.readAsDataURL(file);
+        } else {
+          setPreviews(prev => [...prev, ""]);
+        }
+      });
     }
   };
 
@@ -177,14 +184,26 @@ export default function NoteModal({ note, onSave, onClose, onDelete }: Props) {
               {formData.files?.map((file: any, i) => {
                 const fileName = file.original_filename || file.storage_path || "Unnamed File";
                 const fileId = file.file_id || file.id;
-                const storagePath = file.storage_path || fileName;
+                let storagePath = file.storage_path || fileName;
+                if (storagePath.startsWith('/uploads/')) {
+                  storagePath = storagePath.replace('/uploads/', '');
+                } else if (storagePath.startsWith('uploads/')) {
+                  storagePath = storagePath.replace('uploads/', '');
+                }
                 const isImage = file.file_type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileName);
                 const fileUrl = `${process.env.NEXT_PUBLIC_API_URL}/uploads/${storagePath}`;
 
                 return (
                   <div key={fileId || `old-${i}`} className="relative aspect-square rounded-xl border border-slate-200 bg-slate-50 flex flex-col items-center justify-center overflow-hidden group shadow-sm">
                     {isImage ? (
-                      <img src={fileUrl} className="w-full h-full object-cover" alt={fileName} />
+                      <img
+                        src={fileUrl}
+                        className="w-full h-full object-cover"
+                        alt={fileName}
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
                     ) : (
                       <>
                         <FileText className="w-8 h-8 text-slate-300 group-hover:text-indigo-300 transition-colors" />

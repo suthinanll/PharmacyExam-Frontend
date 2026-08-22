@@ -36,7 +36,7 @@ export default function RegisterPage() {
   // Password Strength States
   const [passwordStrength, setPasswordStrength] = useState({
     minLength: false,
-    hasUpperCase: false,
+    has: false,
     hasLowerCase: false,
     hasNumber: false,
     hasSpecialChar: false,
@@ -66,7 +66,7 @@ export default function RegisterPage() {
   useEffect(() => {
     setPasswordStrength({
       minLength: password.length >= 8,
-      hasUpperCase: /[A-Z]/.test(password),
+      has: /[A-Z]/.test(password),
       hasLowerCase: /[a-z]/.test(password),
       hasNumber: /[0-9]/.test(password),
       hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
@@ -143,7 +143,9 @@ export default function RegisterPage() {
         showCancelButton: true,
         confirmButtonText: "ดำเนินการต่อ",
         cancelButtonText: "ยกเลิก",
-        confirmButtonColor: "#ef4444",
+        confirmButtonColor: "#16a34a",
+        cancelButtonColor: "#6b7280",
+        reverseButtons: true,
       });
       if (!result.isConfirmed) return;
     }
@@ -451,7 +453,7 @@ export default function RegisterPage() {
                       text="ความยาวอย่างน้อย 8 ตัวอักษร"
                     />
                     <ChecklistItem
-                      checked={passwordStrength.hasUpperCase}
+                      checked={passwordStrength.has}
                       text="มีตัวอักษรพิมพ์ใหญ่ (A-Z)"
                     />
                     <ChecklistItem
@@ -568,9 +570,8 @@ function ChecklistItem({ checked, text }: { checked: boolean; text: string }) {
   return (
     <div className="flex items-center gap-2">
       <div
-        className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
-          checked ? "bg-green-500" : "bg-gray-300"
-        }`}
+        className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${checked ? "bg-green-500" : "bg-gray-300"
+          }`}
       >
         {checked ? (
           <Check className="w-3 h-3 text-white" />

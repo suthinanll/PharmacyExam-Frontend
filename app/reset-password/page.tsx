@@ -32,7 +32,7 @@ function ResetPasswordContent() {
     // Password Strength States
     const [passwordStrength, setPasswordStrength] = useState({
         minLength: false,
-        hasUpperCase: false,
+        has: false,
         hasLowerCase: false,
         hasNumber: false,
         hasSpecialChar: false,
@@ -42,7 +42,7 @@ function ResetPasswordContent() {
     useEffect(() => {
         setPasswordStrength({
             minLength: password.length >= 8,
-            hasUpperCase: /[A-Z]/.test(password),
+            has: /[A-Z]/.test(password),
             hasLowerCase: /[a-z]/.test(password),
             hasNumber: /[0-9]/.test(password),
             hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
@@ -205,7 +205,7 @@ function ResetPasswordContent() {
                                     text="ความยาวอย่างน้อย 8 ตัวอักษร"
                                 />
                                 <ChecklistItem
-                                    checked={passwordStrength.hasUpperCase}
+                                    checked={passwordStrength.has}
                                     text="มีตัวอักษรพิมพ์ใหญ่ (A-Z)"
                                 />
                                 <ChecklistItem

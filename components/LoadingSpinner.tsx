@@ -30,7 +30,7 @@ export function LoadingSpinner({
         />
       </div>
       {text && (
-        <p className="text-sm font-semibold text-gray-500 tracking-wide animate-pulse">
+        <p className="text-sm text-gray-500">
           {text}
         </p>
       )}

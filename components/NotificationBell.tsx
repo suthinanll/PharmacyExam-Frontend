@@ -5,6 +5,7 @@ import { Bell, X, Check, CheckCheck, Trash2, ExternalLink, Calendar, Newspaper, 
 import { useNotifications, AppNotification } from '../contexts/NotificationContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Swal from 'sweetalert2';
 
 const NOTIFICATION_TYPE_ICONS: Record<number, React.ReactNode> = {
     1: <Calendar className="w-4 h-4 text-blue-500" />,      // ปฏิทิน
@@ -127,7 +128,7 @@ function NotificationItem({
 }
 
 export default function NotificationBell() {
-    const { notifications, unreadCount, isConnected, markAsRead, markAllAsRead, removeNotification } =
+    const { notifications, unreadCount, isConnected, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } =
         useNotifications();
     const [isOpen, setIsOpen] = useState(false);
     const [filter, setFilter] = useState<'all' | 'unread'>('all');
@@ -177,7 +178,7 @@ export default function NotificationBell() {
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
                         <div className="flex items-center gap-2">
                             <Bell className="w-4 h-4 text-green-700" />
-                            <h3 className="font-medium text-gray-900 text-sm">การแจ้งเตือน</h3>
+                            <h3 className="font-semibold text-gray-900 text-sm">การแจ้งเตือน</h3>
                             {unreadCount > 0 && (
                                 <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs font-medium rounded-full">
                                     {unreadCount} ใหม่
@@ -195,9 +196,34 @@ export default function NotificationBell() {
                                     อ่านทั้งหมด
                                 </button>
                             )}
+                            {notifications.length > 0 && (
+                                <button
+                                    onClick={async () => {
+                                        const result = await Swal.fire({
+                                            title: 'ลบการแจ้งเตือนทั้งหมด?',
+                                            text: 'คุณแน่ใจหรือไม่ว่าต้องการลบการแจ้งเตือนทั้งหมด?',
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonText: 'ลบทั้งหมด',
+                                            cancelButtonText: 'ยกเลิก',
+                                            confirmButtonColor: '#ef4444',
+                                            cancelButtonColor: '#6b7280',
+                                            reverseButtons: true,
+                                        });
+                                        if (result.isConfirmed) {
+                                            await removeAllNotifications();
+                                        }
+                                    }}
+                                    title="ลบทั้งหมด"
+                                    className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    ลบทั้งหมด
+                                </button>
+                            )}
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="p-1 rounded-lg hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                                className="p-1 rounded-lg hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors ml-1"
                             >
                                 <X className="w-4 h-4" />
                             </button>

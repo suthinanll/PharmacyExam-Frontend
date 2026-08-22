@@ -40,7 +40,7 @@ const ToolbarButton = ({
         onClick={onClick}
         title={title}
         className={`p-1.5 rounded transition-colors ${active
-            ? 'bg-emerald-100 text-emerald-700'
+            ? 'bg-green-100 text-green-700'
             : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
             }`}
     >
@@ -97,7 +97,7 @@ export default function TiptapEditor({
     if (!editor) return null;
 
     return (
-        <div className={`rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent transition-all bg-white ${className}`}>
+        <div className={`rounded-lg border border-gray-300 focus-within:ring-2 focus-within:ring-green-500 focus-within:border-transparent transition-all bg-white mt-2 ${className}`}>
             {/* Toolbar */}
             <div className="flex flex-wrap items-center gap-0.5 px-2 pt-2 pb-1.5 border-b border-gray-100">
                 <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="ตัวหนา (Ctrl+B)">

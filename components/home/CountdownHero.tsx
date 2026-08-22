@@ -28,7 +28,7 @@ export const CountdownHero = ({
   if (loading) {
     return (
       <div className="relative overflow-hidden rounded-3xl mb-12 bg-white border border-blue-100 shadow-lg min-h-[300px] flex items-center justify-center p-8">
-        <LoadingSpinner size="lg" text="กำลังโหลดกำหนดการสอบ..." />
+        <LoadingSpinner size="lg" text="กำลังโหลดกำหนดการ..." />
       </div>
     );
   }
@@ -45,12 +45,11 @@ export const CountdownHero = ({
       <div className="flex flex-col items-center justify-center p-8 md:p-12 text-center">
         {/* Badge */}
         <div
-          className={`inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full font-bold text-xs uppercase tracking-widest border
-          ${
-            isExamStarted
+          className={`inline-flex items-center gap-2 mb-5 px-4 py-1.5 rounded-full font-medium text-sm  border
+          ${isExamStarted
               ? "bg-red-50 text-red-600 border-red-200"
               : "bg-blue-50 text-blue-700 border-blue-200"
-          }`}
+            }`}
         >
           <AlarmClock size={14} />
           {isExamStarted
@@ -64,17 +63,17 @@ export const CountdownHero = ({
         </h1>
 
         {/* Date */}
-        <p className="text-gray-500 text-sm flex items-center justify-center gap-2 mb-8 font-medium">
+        <p className="text-gray-500 text-lg flex items-center justify-center gap-2 mb-8 font-medium">
           <Calendar size={16} />
           {targetDate
             ? new Date(targetDate).toLocaleDateString("th-TH", {
-                dateStyle: "long",
-              })
+              dateStyle: "long",
+            })
             : "-"}
         </p>
 
         {/* Countdown */}
-        <div className="flex items-center justify-center gap-3 md:gap-5 mb-8 flex-wrap">
+        <div className="flex items-center justify-center gap-3 md:gap-5 mb-8 flex-wrap cursor-default">
           {units.map((item, idx) => (
             <div key={idx} className="flex flex-col items-center">
               <div
@@ -87,7 +86,7 @@ export const CountdownHero = ({
                 </span>
               </div>
 
-              <span className="text-[11px] font-bold text-gray-500 mt-1 uppercase tracking-wider">
+              <span className="text-lg font-medium text-gray-500 mt-2 ">
                 {item.label}
               </span>
             </div>
@@ -108,7 +107,7 @@ export const CountdownHero = ({
             onClick={onCalendarClick}
             className="inline-flex items-center justify-center px-8 py-3
             bg-blue-600 text-white hover:bg-blue-700
-            rounded-xl font-bold text-sm transition-all gap-2
+            rounded-xl font-medium text-sm transition-all gap-2
             shadow hover:scale-105 cursor-pointer"
           >
             เปิดดูปฏิทินกิจกรรม
@@ -122,7 +121,7 @@ export const CountdownHero = ({
             href={calendarHref}
             className="inline-flex items-center justify-center px-8 py-3
             bg-blue-600 text-white hover:bg-blue-700
-            rounded-xl font-bold text-sm transition-all gap-2
+            rounded-xl font-medium text-lg transition-all gap-2
             shadow hover:scale-105"
           >
             เปิดดูปฏิทินกิจกรรม

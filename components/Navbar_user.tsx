@@ -20,6 +20,7 @@ import {
   Trash2,
   Info,
   Newspaper,
+  Zap,
 } from 'lucide-react';
 import Swal from 'sweetalert2';
 import { useNotifications, AppNotification } from '@/contexts/NotificationContext';
@@ -67,11 +68,17 @@ const Navbar = () => {
   const router = useRouter();
 
   // ── Real notifications from WebSocket context ──
-  const { notifications, unreadCount, isConnected, markAsRead, markAllAsRead, removeNotification } =
+  const { notifications, unreadCount, isConnected, markAsRead, markAllAsRead, removeNotification, removeAllNotifications } =
     useNotifications();
+
+  const [imgError, setImgError] = useState(false);
 
   // ดึงข้อมูลผู้ใช้จาก AuthContext
   const { user, logout } = useAuth();
+
+  useEffect(() => {
+    setImgError(false);
+  }, [user?.profile_picture]);
 
   // logout
   const handleLogout = async () => {
@@ -80,7 +87,9 @@ const Navbar = () => {
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#dc2626',
       cancelButtonText: 'ยกเลิก',
+      cancelButtonColor: '#6b7280',
       reverseButtons: true,
     });
     if (result.isConfirmed) {
@@ -165,30 +174,80 @@ const Navbar = () => {
               <div className="flex space-x-1.5 xl:space-x-2">
                 {navItems.slice(1).map((item) => (
                   item.submenu ? (
-                    <div key={item.label} className="relative group" ref={examSetDropdownRef}>
-                      <div className={`flex items-center rounded-lg text-lg font-medium transition-colors duration-200 whitespace-nowrap ${isActive(item.href, true) ? "buttonact text-white shadow-lg" : "text-white hover:bg-white/20 hover:text-white"}`}>
-                        <Link href={item.href} className="pl-2.5 xl:pl-3 pr-1 py-2 rounded-l-lg">
-                          {item.label}
-                        </Link>
-                        <button onClick={() => setIsExamSetDropdownOpen(prev => !prev)} className="p-2 rounded-r-lg hover:bg-white/10 transition-colors">
-                          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isExamSetDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
-                        </button>
-                      </div>
+                    <div key={item.label} className="relative" ref={examSetDropdownRef}>
+                      <button
+                        type="button"
+                        onClick={() => setIsExamSetDropdownOpen(prev => !prev)}
+                        className={`flex items-center gap-1.5 rounded-lg px-2.5 xl:px-3 py-2 text-lg font-medium transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                          isActive(item.href, true)
+                            ? "buttonact text-white shadow-lg"
+                            : "text-white hover:bg-white/20 hover:text-white"
+                        }`}
+                        aria-expanded={isExamSetDropdownOpen}
+                      >
+                        <span>{item.label}</span>
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform duration-200 ${
+                            isExamSetDropdownOpen ? "rotate-180" : "rotate-0"
+                          }`}
+                        />
+                      </button>
                       {isExamSetDropdownOpen && (
-                        <div className="absolute left-0 mt-2 w-64 origin-top-left rounded-xl bg-white py-2 shadow-2xl ring-1 ring-black/10 z-50">
-                          {item.submenu.map((subItem) => (
-                            <Link key={subItem.href} href={subItem.href} onClick={() => setIsExamSetDropdownOpen(false)}
-                              className={`block px-4 py-2.5 text-base text-gray-700 hover:bg-green-50 hover:text-green-800 transition-colors duration-200 ${isActive(subItem.href) ? 'font-medium text-green-700 bg-green-50/50' : ''}`}>
-                              {subItem.label}
-                            </Link>
-                          ))}
+                        <div className="absolute left-0 mt-2 w-72 origin-top-left rounded-2xl bg-white p-2 shadow-2xl ring-1 ring-black/10 z-50 transition-all duration-200">
+                          {item.submenu.map((subItem) => {
+                            const active = isActive(subItem.href);
+                            const isCAT = subItem.href.includes("cat-exam");
+                            return (
+                              <Link
+                                key={subItem.href}
+                                href={subItem.href}
+                                onClick={() => setIsExamSetDropdownOpen(false)}
+                                className={`flex items-start gap-3 p-3 rounded-xl transition-colors duration-150 ${
+                                  active
+                                    ? "bg-green-50 text-green-900 font-medium"
+                                    : "text-gray-700 hover:bg-green-50/60 hover:text-green-800"
+                                }`}
+                              >
+                                <div
+                                  className={`p-2 rounded-lg mt-0.5 shrink-0 transition-colors ${
+                                    active
+                                      ? "bg-green-600 text-white shadow-sm"
+                                      : "bg-green-100/80 text-green-700"
+                                  }`}
+                                >
+                                  {isCAT ? (
+                                    <Zap className="w-4 h-4" />
+                                  ) : (
+                                    <BookOpen className="w-4 h-4" />
+                                  )}
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="text-sm font-medium leading-tight">
+                                    {subItem.label}
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1 leading-snug">
+                                    {isCAT
+                                      ? "ทดสอบแบบปรับเหมาะตามความสามารถ"
+                                      : "ฝึกทำชุดข้อสอบตามหมวดหมู่วิชา"}
+                                  </div>
+                                </div>
+                              </Link>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
                   ) : (
-                    <Link key={item.href} href={item.href}
-                      className={`rounded-lg px-2.5 xl:px-3 py-2 text-lg font-medium transition-colors duration-200 whitespace-nowrap ${isActive(item.href) ? "buttonact text-white shadow-lg" : "text-white hover:bg-white/20 hover:text-white"}`}
-                      aria-current={isActive(item.href) ? 'page' : undefined}>
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`rounded-lg px-2.5 xl:px-3 py-2 text-lg font-medium transition-colors duration-200 whitespace-nowrap ${
+                        isActive(item.href)
+                          ? "buttonact text-white shadow-lg"
+                          : "text-white hover:bg-white/20 hover:text-white"
+                      }`}
+                      aria-current={isActive(item.href) ? "page" : undefined}
+                    >
                       {item.label}
                     </Link>
                   )
@@ -233,13 +292,43 @@ const Navbar = () => {
                           <span className="bg-red-100 text-red-600 text-[10px] px-1.5 py-0.5 rounded-full font-medium">{unreadCount} ใหม่</span>
                         )}
                       </h3>
-                      {unreadCount > 0 && (
-                        <button onClick={markAllAsRead}
-                          className="flex items-center gap-1 text-xs text-green-700 hover:text-green-800 font-medium px-2 py-1 rounded-lg hover:bg-green-100 transition-colors duration-200">
-                          <CheckCheck className="w-3.5 h-3.5" />
-                          อ่านทั้งหมด
-                        </button>
-                      )}
+                      <div className="flex items-center gap-1">
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={markAllAsRead}
+                            title="อ่านทั้งหมด"
+                            className="flex items-center gap-1 text-xs text-green-700 hover:text-green-800 font-medium px-2 py-1 rounded-lg hover:bg-green-100/80 transition-colors duration-200"
+                          >
+                            <CheckCheck className="w-3.5 h-3.5" />
+                            อ่านทั้งหมด
+                          </button>
+                        )}
+                        {notifications.length > 0 && (
+                          <button
+                            onClick={async () => {
+                              const result = await Swal.fire({
+                                title: 'ลบการแจ้งเตือนทั้งหมด?',
+                                text: 'คุณแน่ใจหรือไม่ว่าต้องการลบการแจ้งเตือนทั้งหมด?',
+                                icon: 'warning',
+                                showCancelButton: true,
+                                confirmButtonText: 'ลบทั้งหมด',
+                                cancelButtonText: 'ยกเลิก',
+                                confirmButtonColor: '#ef4444',
+                                cancelButtonColor: '#6b7280',
+                                reverseButtons: true,
+                              });
+                              if (result.isConfirmed) {
+                                await removeAllNotifications();
+                              }
+                            }}
+                            title="ลบทั้งหมด"
+                            className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition-colors duration-200"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            ลบทั้งหมด
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -308,7 +397,7 @@ const Navbar = () => {
               >
                 <span className="absolute -inset-1.5"></span>
                 <span className="sr-only">Open user menu</span>
-                {user?.profile_picture ? (
+                {user?.profile_picture && !imgError ? (
                   <div className="size-8 sm:size-9 md:size-10 rounded-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-200 ring-2 ring-green-400/30 relative">
                     <Image
                       src={user.profile_picture}
@@ -317,6 +406,8 @@ const Navbar = () => {
                       sizes="(max-width: 640px) 32px, (max-width: 768px) 36px, 40px"
                       className="object-cover"
                       priority
+                      unoptimized
+                      onError={() => setImgError(true)}
                     />
                   </div>
                 ) : (
@@ -327,28 +418,28 @@ const Navbar = () => {
               </button>
 
               {isProfileDropdownOpen && (
-                <div className="absolute right-0 z-50 mt-3 w-56 sm:w-60 md:w-64 origin-top-right rounded-xl bg-white py-1 shadow-2xl ring-1 ring-black/10">
-                  <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-gray-100 bg-gradient-to-r from-green-50 to-green-50/50">
+                <div className="absolute right-0 z-50 mt-2 w-56 sm:w-60 md:w-64 origin-top-right rounded-2xl bg-white shadow-2xl ring-1 ring-black/10 overflow-hidden">
+                  <div className="px-4 sm:px-5 py-3.5 border-b border-gray-100 bg-gradient-to-r from-green-50 to-green-50/50">
                     <p className="text-sm sm:text-base font-medium text-green-800 truncate">
-                      {user?.first_name + "  " + user?.last_name || 'นักศึกษาเภสัช'}
+                      {user?.first_name ? `${user.first_name} ${user.last_name}` : 'นักศึกษาเภสัช'}
                     </p>
-                    <p className="text-xs sm:text-sm text-green-600 truncate mt-0.5">
+                    <p className="text-xs sm:text-sm text-green-600 truncate mt-0.5 font-medium">
                       {user?.email || 'student@pharmacy.ac.th'}
                     </p>
                   </div>
                   <div className="py-1">
                     <Link href="/user/profile" className="flex items-center px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200" onClick={() => setIsProfileDropdownOpen(false)}>
-                      <User className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-600" />โปรไฟล์ของฉัน
+                      <User className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />โปรไฟล์ของฉัน
                     </Link>
                     <Link href="/user/saveblog" className="flex items-center px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200" onClick={() => setIsProfileDropdownOpen(false)}>
-                      <Bookmark className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-600" />บันทึกแล้ว
+                      <Bookmark className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />บันทึกแล้ว
                     </Link>
-                    <Link href="/user/examhis" className="flex items-center px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-gray-50 transition-colors duration-200" onClick={() => setIsProfileDropdownOpen(false)}>
-                      <History className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-600" />ประวัติการทำข้อสอบ
+                    <Link href="/user/examhis" className="flex items-center px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200" onClick={() => setIsProfileDropdownOpen(false)}>
+                      <History className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />ประวัติการทำข้อสอบ
                     </Link>
                   </div>
                   <div className="border-t border-gray-100">
-                    <button className="flex items-center w-full px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-red-600 hover:bg-red-50 transition-colors duration-200" onClick={handleLogout}>
+                    <button className="flex items-center w-full px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-red-600 hover:bg-red-50 transition-colors duration-200 cursor-pointer font-medium" onClick={handleLogout}>
                       <LogOut className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4" />ออกจากระบบ
                     </button>
                   </div>
@@ -365,22 +456,41 @@ const Navbar = () => {
         <div className="mobilenav space-y-2 px-3 pt-3 pb-4 backdrop-blur-sm">
           {navItems.slice(1).map((item) => (
             item.submenu ? (
-              <div key={item.label}>
-                <div className={`flex w-full items-center justify-between rounded-lg text-left text-base sm:text-lg font-medium transition-colors duration-200 ${isActive(item.href, true) ? "buttonact text-white shadow-lg" : "text-white hover:bg-white/20 hover:text-white"}`}>
-                  <Link href={item.href} className="flex-grow px-4 py-3" onClick={() => setIsMobileMenuOpen(false)}>
-                    <span>{item.label}</span>
-                  </Link>
-                  <button onClick={() => setMobileSubmenuOpen(!mobileSubmenuOpen)} className="px-4 py-3 hover:bg-white/10 rounded-r-lg transition-colors" aria-label="เปิดเมนูย่อยคลังข้อสอบ">
-                    <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${mobileSubmenuOpen ? 'rotate-180' : 'rotate-0'}`} />
-                  </button>
-                </div>
-                <div className={`overflow-hidden transition-all duration-500 ease-in-out ${mobileSubmenuOpen ? 'max-h-96 mt-2' : 'max-h-0'}`}>
-                  <div className="ml-4 space-y-1.5 border-l-4 border-green-700/30 pl-3 pt-1 pb-2">
+              <div key={item.label} className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => setMobileSubmenuOpen(!mobileSubmenuOpen)}
+                  className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-base sm:text-lg font-medium transition-colors duration-200 cursor-pointer ${
+                    isActive(item.href, true)
+                      ? "buttonact text-white shadow-lg"
+                      : "text-white hover:bg-white/20 hover:text-white"
+                  }`}
+                >
+                  <span>{item.label}</span>
+                  <ChevronDown
+                    className={`h-5 w-5 transition-transform duration-200 ${
+                      mobileSubmenuOpen ? "rotate-180" : "rotate-0"
+                    }`}
+                  />
+                </button>
+                <div
+                  className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    mobileSubmenuOpen ? "max-h-96 mt-1" : "max-h-0"
+                  }`}
+                >
+                  <div className="ml-3 space-y-1.5 border-l-2 border-white/30 pl-3 py-1">
                     {item.submenu.map((subItem) => (
-                      <Link key={subItem.href} href={subItem.href}
-                        className={`block rounded-lg px-4 py-2.5 text-sm font-medium transition-colors duration-200 ${isActive(subItem.href) ? "buttonact text-white shadow-md" : "text-white hover:bg-white/20 hover:text-white"}`}
-                        aria-current={isActive(subItem.href) ? 'page' : undefined}
-                        onClick={() => setIsMobileMenuOpen(false)}>
+                      <Link
+                        key={subItem.href}
+                        href={subItem.href}
+                        className={`block rounded-lg px-3.5 py-2 text-sm sm:text-base font-medium transition-colors duration-200 ${
+                          isActive(subItem.href)
+                            ? "bg-white/25 text-white shadow-sm font-medium"
+                            : "text-white/90 hover:bg-white/15 hover:text-white"
+                        }`}
+                        aria-current={isActive(subItem.href) ? "page" : undefined}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
                         {subItem.label}
                       </Link>
                     ))}
