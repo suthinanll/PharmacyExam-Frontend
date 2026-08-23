@@ -872,26 +872,34 @@ const PharmacistDashboard = () => {
                 ) : (
                   <div className="space-y-2.5">
                     {displayedWeakTopics.map((topic, index) => {
-                      const allAdviceList =
+                      const allAdviceList: any[] =
                         aiAnalysis?.weak_topics_advice ||
                         aiAnalysis?.weak_topics_analysis ||
                         aiAnalysis?.analysis_points ||
                         [];
 
-                      const aiAdvice = allAdviceList.find((a: any) => {
-                        const aTopic = String(a?.topic || a?.title || "").toLowerCase();
-                        const aSubject = String(a?.subject || "").toLowerCase();
-                        const tTopic = topic.topic.toLowerCase();
-                        const tSubject = topic.subject.toLowerCase();
-                        return (
-                          aTopic.includes(tTopic) ||
-                          tTopic.includes(aTopic) ||
-                          aSubject.includes(tSubject) ||
-                          tSubject.includes(aSubject) ||
-                          aSubject.includes(tTopic) ||
-                          tTopic.includes(aSubject)
-                        );
+                      // 1. Match by topic name (exact or substring)
+                      let aiAdvice = allAdviceList.find((a: any) => {
+                        const aTopic = String(a?.topic || a?.title || "").trim().toLowerCase();
+                        const tTopic = topic.topic.trim().toLowerCase();
+                        if (!aTopic || !tTopic) return false;
+                        return aTopic === tTopic || tTopic.includes(aTopic) || aTopic.includes(tTopic);
                       });
+
+                      // 2. If not matched, try matching keywords
+                      if (!aiAdvice) {
+                        aiAdvice = allAdviceList.find((a: any) => {
+                          const aText = `${a?.topic || ""} ${a?.title || ""}`.toLowerCase();
+                          const tTopic = topic.topic.trim().toLowerCase();
+                          if (!tTopic || tTopic.length < 3) return false;
+                          return aText.includes(tTopic) || tTopic.split(/\s+/).some((word) => word.length >= 4 && aText.includes(word));
+                        });
+                      }
+
+                      // 3. Fallback: match by index (Topic 0 -> Advice 0, Topic 1 -> Advice 1, etc.)
+                      if (!aiAdvice && allAdviceList[index]) {
+                        aiAdvice = allAdviceList[index];
+                      }
 
                       const issueText = aiAdvice?.why_challenging || aiAdvice?.issue || (aiAdvice as any)?.problem;
                       const recommendationText = aiAdvice?.clinical_pearl || aiAdvice?.recommendation || (aiAdvice as any)?.study_tip;
