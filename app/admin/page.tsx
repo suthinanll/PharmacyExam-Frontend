@@ -1,10 +1,25 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Navbar_admin from "@/components/Navbar_admin";
-import { Users, BookOpen, Clock, BarChart3, UserCheck, TrendingUp } from "lucide-react";
+import {
+  Users,
+  BookOpen,
+  Clock,
+  BarChart3,
+  UserCheck,
+  TrendingUp,
+  Bot,
+  Sparkles,
+  Brain,
+  AlertCircle,
+  CheckCircle2,
+  Loader2,
+  Lightbulb,
+  ShieldAlert,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
+import { requestAdminAIAnalysis, AIAnalysisResult } from "@/utils/n8nService";
 
 import {
   AreaChart,
@@ -74,6 +89,28 @@ function AdminDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [monthlyData, setMonthlyData] = useState<{ name: string; score: number }[]>([]);
+
+  // ── AI Analysis States (n8n Integration) ──────────────────────────────────
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  const handleRunAdminAIAnalysis = async () => {
+    try {
+      setAiLoading(true);
+      setAiError(null);
+      const result = await requestAdminAIAnalysis({
+        stats,
+        monthly_scores: monthlyData,
+      });
+      setAiAnalysis(result);
+    } catch (err: any) {
+      console.error("n8n Admin AI Error:", err);
+      setAiError(err?.message || "ไม่สามารถเชื่อมต่อกับระบบ AI วิเคราะห์แนวโน้มได้ กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -288,6 +325,172 @@ function AdminDashboardPage() {
               </ResponsiveContainer>
             )}
           </div>
+        </div>
+
+        {/* ── AI Cohort Performance & Trend Analysis ────────────────────── */}
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-5">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                <Bot className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-medium text-gray-800 flex items-center gap-2">
+                  การวิเคราะห์แนวโน้มและข้อเสนอแนะโดย AI
+                </h2>
+                <p className="text-xs text-gray-400">
+                  ประเมินดัชนีผลการเรียนรู้ภาพรวมของผู้สอบทั้งหมดและระบุวิชาที่ต้องส่งเสริม
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleRunAdminAIAnalysis}
+              disabled={aiLoading}
+              className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white px-5 py-2.5 rounded-xl font-medium text-xs sm:text-sm shadow-sm transition-all hover:shadow-md w-full sm:w-auto cursor-pointer"
+            >
+              {aiLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>กำลังประมวลผล...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 text-indigo-200" />
+                  <span>{aiAnalysis ? "วิเคราะห์แนวโน้มใหม่" : "วิเคราะห์แนวโน้มด้วย AI"}</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {aiError && (
+            <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+              <span>{aiError}</span>
+            </div>
+          )}
+
+          {aiLoading ? (
+            <div className="p-8 text-center bg-gray-50/70 rounded-2xl border border-gray-100 space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto animate-pulse">
+                <Brain className="w-6 h-6 animate-bounce" />
+              </div>
+              <p className="text-sm font-medium text-gray-700">ระบบ AI กำลังวิเคราะห์สถิติภาพรวมของผู้สอบ...</p>
+              <p className="text-xs text-gray-400">กำลังประมวลผลข้อมูลคะแนนเฉลี่ย สถิติรายเดือน และจัดทำข้อเสนอแนะเชิงนโยบาย</p>
+            </div>
+          ) : !aiAnalysis ? (
+            <div className="p-8 text-center bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center mx-auto">
+                <Lightbulb className="w-5 h-5" />
+              </div>
+              <p className="text-sm font-medium text-gray-600">ยังไม่มีการประมวลผลการวิเคราะห์แนวโน้ม</p>
+              <p className="text-xs text-gray-400 max-w-lg mx-auto">
+                กดปุ่ม "วิเคราะห์แนวโน้มด้วย AI" ด้านบนเพื่อส่งข้อมูลสถิติไปยัง n8n AI Agent เพื่อรับบทวิเคราะห์และข้อเสนอแนะเชิงลึก
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4 animate-in fade-in duration-300">
+              {/* Trend Summary */}
+              {(aiAnalysis.trend_summary || aiAnalysis.summary || aiAnalysis.overall_feedback) && (
+                <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-1.5">
+                  <div className="flex items-center gap-2 text-xs font-medium text-indigo-700">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>สรุปแนวโน้มภาพรวมของผู้สอบ</span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
+                    {typeof (aiAnalysis.trend_summary || aiAnalysis.summary || aiAnalysis.overall_feedback) === "string"
+                      ? (aiAnalysis.trend_summary || aiAnalysis.summary || aiAnalysis.overall_feedback)
+                      : JSON.stringify(aiAnalysis.trend_summary || aiAnalysis.summary || aiAnalysis.overall_feedback, null, 2)}
+                  </p>
+                </div>
+              )}
+
+              {/* Key Insights & High Risk Areas */}
+              {(Array.isArray(aiAnalysis.key_insights) || Array.isArray(aiAnalysis.analysis_points)) && (
+                <div className="space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs font-medium text-gray-700">
+                    <ShieldAlert className="w-4 h-4 text-amber-600" />
+                    <span>ประเด็นสำคัญและจุดที่ควรให้ความสนใจ</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {(aiAnalysis.key_insights || aiAnalysis.analysis_points)?.map((item: any, i: number) => {
+                      const titleText = typeof item === "string" ? item : item?.title || item?.topic || `ประเด็นที่ ${i + 1}`;
+                      const descText = typeof (item?.description || item?.issue || item?.recommendation) === "string"
+                        ? (item.description || item.issue || item.recommendation)
+                        : (item?.description || item?.issue || item?.recommendation)
+                        ? JSON.stringify(item.description || item.issue || item.recommendation)
+                        : null;
+
+                      return (
+                        <div key={i} className="p-3.5 bg-gray-50 rounded-xl border border-gray-100 space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs font-medium text-gray-900">
+                              {titleText}
+                            </span>
+                            {item?.severity && (
+                              <span
+                                className={`text-[10px] px-2 py-0.5 rounded font-medium ${
+                                  item.severity === "high"
+                                    ? "bg-red-50 text-red-700 border border-red-200"
+                                    : item.severity === "medium"
+                                    ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                    : "bg-teal-50 text-teal-700 border border-teal-200"
+                                }`}
+                              >
+                                ระดับ: {item.severity === "high" ? "สูง" : item.severity === "medium" ? "ปานกลาง" : "ปกติ"}
+                              </span>
+                            )}
+                          </div>
+                          {descText && (
+                            <p className="text-xs sm:text-sm text-gray-600 font-medium">
+                              {descText}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Strategic Recommendations */}
+              {(aiAnalysis.recommendations || aiAnalysis.action_plan) && (
+                <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 space-y-2">
+                  <div className="flex items-center gap-2 text-xs font-medium text-teal-800">
+                    <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                    <span>ข้อเสนอแนะเชิงกลยุทธ์สำหรับผู้ดูแลระบบ</span>
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed">
+                    {Array.isArray(aiAnalysis.recommendations) ? (
+                      <ul className="list-disc list-inside space-y-1.5">
+                        {aiAnalysis.recommendations.map((rec: any, idx: number) => (
+                          <li key={idx}>{typeof rec === "string" ? rec : JSON.stringify(rec)}</li>
+                        ))}
+                      </ul>
+                    ) : Array.isArray(aiAnalysis.action_plan) ? (
+                      <ul className="list-disc list-inside space-y-1.5">
+                        {aiAnalysis.action_plan.map((plan: any, idx: number) => (
+                          <li key={idx}>{typeof plan === "string" ? plan : JSON.stringify(plan)}</li>
+                        ))}
+                      </ul>
+                    ) : typeof (aiAnalysis.recommendations || aiAnalysis.action_plan) === "string" ? (
+                      <p className="whitespace-pre-wrap">{aiAnalysis.recommendations || aiAnalysis.action_plan}</p>
+                    ) : (
+                      <p>{JSON.stringify(aiAnalysis.recommendations || aiAnalysis.action_plan, null, 2)}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Plain text / output fallback */}
+              {!aiAnalysis.summary && !aiAnalysis.trend_summary && !aiAnalysis.key_insights && !aiAnalysis.analysis_points && aiAnalysis.output && (
+                <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 text-xs sm:text-sm text-gray-700 font-medium whitespace-pre-wrap">
+                  {typeof aiAnalysis.output === "string" ? aiAnalysis.output : JSON.stringify(aiAnalysis.output, null, 2)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
       </div>
