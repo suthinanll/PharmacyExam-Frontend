@@ -5,22 +5,30 @@
 
 export interface AIAnalysisResult {
   summary?: string;
+  analysis_summary?: string;
   overall_feedback?: string;
   weak_topics_advice?: Array<{
     topic: string;
+    subject?: string;
     issue?: string;
+    why_challenging?: string;
     recommendation?: string;
+    clinical_pearl?: string;
     study_tip?: string;
+    recommended_resource?: string;
+    link?: string;
+    reference_url?: string;
     priority?: string;
   }>;
-  analysis_points?: Array<{
-    title?: string;
+  weak_topics_analysis?: Array<any>;
+  analysis_points?: Array<any>;
+  memory_techniques?: Array<{
     topic?: string;
-    issue?: string;
-    recommendation?: string;
-    priority?: string;
+    mnemonic_name?: string;
+    mnemonic_detail?: string;
   }>;
-  action_plan?: string | string[];
+  action_plan?: any;
+  study_plan?: any;
   recommendations?: string[];
   trend_summary?: string;
   key_insights?: Array<{
@@ -152,10 +160,55 @@ function normalizeAIResponse(data: any): AIAnalysisResult {
     }
   }
 
-  // Ensure output field is never an object in JSX
-  if (item.output && typeof item.output === "object") {
-    item.output = JSON.stringify(item.output, null, 2);
-  }
+  // Normalize summary alias
+  const summary =
+    item.summary ||
+    item.analysis_summary ||
+    item.overall_feedback ||
+    item.overview ||
+    item.evaluation_summary;
 
-  return item;
+  // Normalize weak topics advice alias
+  const rawWeak =
+    item.weak_topics_advice ||
+    item.weak_topics_analysis ||
+    item.analysis_points ||
+    item.weak_topics ||
+    item.weaknesses ||
+    [];
+
+  const normalizedWeak = Array.isArray(rawWeak)
+    ? rawWeak.map((wt: any) => {
+        if (typeof wt === "string") return { topic: wt, issue: "", recommendation: wt };
+        return {
+          ...wt,
+          topic: wt.topic || wt.title || wt.name || wt.subject || "หัวข้อที่ควรทบทวน",
+          subject: wt.subject || "",
+          issue: wt.issue || wt.why_challenging || wt.problem || wt.mistake || wt.weakness || "",
+          why_challenging: wt.why_challenging || wt.issue || "",
+          recommendation: wt.recommendation || wt.clinical_pearl || wt.study_tip || wt.solution || wt.advice || "",
+          clinical_pearl: wt.clinical_pearl || wt.recommendation || "",
+          link: wt.link || wt.recommended_resource || wt.reference_url || wt.references || "",
+          recommended_resource: wt.recommended_resource || wt.link || "",
+        };
+      })
+    : [];
+
+  // Normalize action plan
+  const actionPlan =
+    item.action_plan ||
+    item.study_plan ||
+    item.learning_plan ||
+    item.schedule;
+
+  return {
+    ...item,
+    summary: typeof summary === "string" ? summary : summary ? JSON.stringify(summary) : undefined,
+    analysis_summary: typeof summary === "string" ? summary : undefined,
+    weak_topics_advice: normalizedWeak,
+    weak_topics_analysis: normalizedWeak,
+    action_plan: actionPlan || item.action_plan,
+    output: typeof item.output === "string" ? item.output : undefined,
+  };
 }
+
