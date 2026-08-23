@@ -889,7 +889,86 @@ const PharmacistDashboard = () => {
 
                       const parsedPlan = unwrapParsedData(aiAnalysis.action_plan);
 
-                      // If structured object with schedule & general_strategies
+                      // ── Array of steps (e.g. [{step,action}, ...]) ─────────
+                      if (Array.isArray(parsedPlan)) {
+                        // Try to detect schedule-like shape inside array
+                        const hasScheduleShape = parsedPlan.length > 0 &&
+                          typeof parsedPlan[0] === "object" &&
+                          ("day" in parsedPlan[0] || "focus_area" in parsedPlan[0] || "study_hours" in parsedPlan[0]);
+
+                        if (hasScheduleShape) {
+                          return (
+                            <div className="space-y-2">
+                              {parsedPlan.slice(0, 2).map((item: any, sIdx: number) => (
+                                <div
+                                  key={sIdx}
+                                  className="bg-white p-3 rounded-xl border border-teal-100/90 shadow-2xs space-y-1"
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span className="font-semibold text-xs text-teal-800">
+                                      วันที่ {item.day ?? sIdx + 1}: {item.focus_area || "ทบทวนเนื้อหา"}
+                                    </span>
+                                    {item.study_hours && (
+                                      <span className="text-[11px] font-medium text-teal-600 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">
+                                        {item.study_hours} ชม.
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                                    {typeof item.activities === "string"
+                                      ? item.activities
+                                      : Array.isArray(item.activities)
+                                      ? item.activities.join(", ")
+                                      : item.action || item.task || item.description || ""}
+                                  </p>
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={() => setIsActionPlanModalOpen(true)}
+                                className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                              >
+                                <BookOpen className="w-3.5 h-3.5" />
+                                <span>เปิดดูตารางและเทคนิคการอ่านฉบับเต็ม</span>
+                              </button>
+                            </div>
+                          );
+                        }
+
+                        // Generic step-list array
+                        return (
+                          <div className="space-y-2">
+                            {parsedPlan.slice(0, 2).map((step: any, idx: number) => {
+                              const stepText = typeof step === "string"
+                                ? step
+                                : step.action || step.text || step.task || step.description || "";
+                              return (
+                                <div
+                                  key={idx}
+                                  className="flex items-start gap-2.5 text-xs sm:text-sm text-gray-700 font-medium bg-white p-3 rounded-xl border border-teal-100/80 shadow-2xs"
+                                >
+                                  <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-800 text-xs font-medium flex items-center justify-center shrink-0 mt-0.5">
+                                    {idx + 1}
+                                  </span>
+                                  <p className="leading-relaxed flex-1">{stepText}</p>
+                                </div>
+                              );
+                            })}
+                            {parsedPlan.length > 2 && (
+                              <button
+                                type="button"
+                                onClick={() => setIsActionPlanModalOpen(true)}
+                                className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                              >
+                                <BookOpen className="w-3.5 h-3.5" />
+                                <span>ดูแผนทั้งหมดอีก {parsedPlan.length - 2} รายการ ↗</span>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      }
+
+                      // ── Plain object with schedule & general_strategies ─────
                       if (typeof parsedPlan === "object" && parsedPlan !== null) {
                         const schedule = Array.isArray(parsedPlan.schedule) ? parsedPlan.schedule : [];
                         const strategies = Array.isArray(parsedPlan.general_strategies)
@@ -923,7 +1002,11 @@ const PharmacistDashboard = () => {
                                         )}
                                       </div>
                                       <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
-                                        {item.activities || JSON.stringify(item)}
+                                        {typeof item.activities === "string"
+                                          ? item.activities
+                                          : Array.isArray(item.activities)
+                                          ? item.activities.join(", ")
+                                          : ""}
                                       </p>
                                     </div>
                                   ))}
@@ -941,31 +1024,29 @@ const PharmacistDashboard = () => {
                                   {strategies.slice(0, 2).map((strat: any, stIdx: number) => (
                                     <div key={stIdx} className="flex items-start gap-2 text-xs text-gray-700 leading-relaxed">
                                       <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0 mt-1.5" />
-                                      <p className="flex-1">{typeof strat === "string" ? strat : JSON.stringify(strat)}</p>
+                                      <p className="flex-1">{typeof strat === "string" ? strat : strat.action || strat.text || JSON.stringify(strat)}</p>
                                     </div>
                                   ))}
                                 </div>
                               </div>
                             )}
 
-                            {/* Other custom keys if not schedule/strategies */}
+                            {/* Other keys fallback */}
                             {schedule.length === 0 && strategies.length === 0 && (
                               <div className="space-y-2">
-                                {Object.entries(parsedPlan).map(([key, val], idx) => {
-                                  const text = typeof val === "string" ? val : JSON.stringify(val);
-                                  return (
-                                    <div key={idx} className="bg-white p-3 rounded-xl border border-teal-100/90 shadow-2xs space-y-1">
-                                      <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-md bg-teal-100 text-teal-800">
-                                        {key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                                      </span>
-                                      <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{text}</p>
-                                    </div>
-                                  );
-                                })}
+                                {Object.entries(parsedPlan).map(([key, val], idx) => (
+                                  <div key={idx} className="bg-white p-3 rounded-xl border border-teal-100/90 shadow-2xs space-y-1">
+                                    <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-md bg-teal-100 text-teal-800">
+                                      {key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                                    </span>
+                                    <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                      {typeof val === "string" ? val : JSON.stringify(val)}
+                                    </p>
+                                  </div>
+                                ))}
                               </div>
                             )}
 
-                            {/* View full plan button */}
                             <button
                               type="button"
                               onClick={() => setIsActionPlanModalOpen(true)}
@@ -978,39 +1059,7 @@ const PharmacistDashboard = () => {
                         );
                       }
 
-                      // If Array format
-                      if (Array.isArray(parsedPlan)) {
-                        return (
-                          <div className="space-y-2">
-                            {parsedPlan.slice(0, 2).map((step: any, idx: number) => {
-                              const stepText = typeof step === "string" ? step : step.text || step.task || step.action || JSON.stringify(step);
-                              return (
-                                <div
-                                  key={idx}
-                                  className="flex items-start gap-2.5 text-xs sm:text-sm text-gray-700 font-medium bg-white p-3 rounded-xl border border-teal-100/80 shadow-2xs"
-                                >
-                                  <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-800 text-xs font-medium flex items-center justify-center shrink-0 mt-0.5">
-                                    {idx + 1}
-                                  </span>
-                                  <p className="leading-relaxed flex-1">{stepText}</p>
-                                </div>
-                              );
-                            })}
-                            {parsedPlan.length > 2 && (
-                              <button
-                                type="button"
-                                onClick={() => setIsActionPlanModalOpen(true)}
-                                className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-                              >
-                                <BookOpen className="w-3.5 h-3.5" />
-                                <span>ดูแผนทั้งหมดอีก {parsedPlan.length - 2} รายการ ↗</span>
-                              </button>
-                            )}
-                          </div>
-                        );
-                      }
-
-                      // Plain string
+                      // ── Plain string ────────────────────────────────────────
                       return (
                         <div className="bg-white p-3.5 rounded-xl border border-teal-100 shadow-2xs">
                           <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
@@ -1416,6 +1465,81 @@ const PharmacistDashboard = () => {
 
                 const plan = unwrap(aiAnalysis.action_plan);
 
+                // ── Array of steps (e.g. [{step,action}, ...]) ───────────────
+                if (Array.isArray(plan)) {
+                  const hasScheduleShape = plan.length > 0 &&
+                    typeof plan[0] === "object" &&
+                    ("day" in plan[0] || "focus_area" in plan[0] || "study_hours" in plan[0]);
+
+                  if (hasScheduleShape) {
+                    return (
+                      <div className="space-y-2.5">
+                        <div className="flex items-center gap-2 text-sm font-semibold text-teal-800 pb-1 border-b border-teal-100">
+                          <Clock className="w-4 h-4 text-teal-600" />
+                          <span>ตารางอ่านหนังสือรายวัน (Daily Study Plan)</span>
+                        </div>
+                        <div className="space-y-2.5">
+                          {plan.map((item: any, idx: number) => (
+                            <div
+                              key={idx}
+                              className="bg-gray-50/80 p-4 rounded-xl border border-gray-200/80 space-y-2"
+                            >
+                              <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-6 h-6 rounded-lg bg-teal-600 text-white text-xs font-semibold flex items-center justify-center">
+                                    {item.day ?? idx + 1}
+                                  </span>
+                                  <span className="font-semibold text-sm text-gray-800">
+                                    {item.focus_area || "ทบทวนเนื้อหา"}
+                                  </span>
+                                </div>
+                                {item.study_hours && (
+                                  <span className="text-xs font-medium text-teal-700 bg-teal-100/70 px-2.5 py-0.5 rounded-full border border-teal-200">
+                                    เป้าหมาย: {item.study_hours} ชั่วโมง
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-white p-3 rounded-lg border border-gray-100">
+                                <p className="font-medium text-gray-800 mb-0.5">กิจกรรมและเนื้อหาที่ต้องเน้น:</p>
+                                <p className="whitespace-pre-wrap">
+                                  {typeof item.activities === "string"
+                                    ? item.activities
+                                    : Array.isArray(item.activities)
+                                    ? item.activities.join("\n")
+                                    : item.action || item.task || item.description || ""}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // Generic step list
+                  return (
+                    <div className="space-y-2.5">
+                      {plan.map((step: any, sIdx: number) => {
+                        const stepText = typeof step === "string"
+                          ? step
+                          : step.action || step.text || step.task || step.description || "";
+                        return (
+                          <div
+                            key={sIdx}
+                            className="flex items-start gap-3 p-3.5 bg-gray-50 rounded-xl border border-gray-200 text-xs sm:text-sm text-gray-700"
+                          >
+                            <span className="w-6 h-6 rounded-full bg-teal-600 text-white font-semibold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                              {sIdx + 1}
+                            </span>
+                            <p className="leading-relaxed flex-1 font-medium">{stepText}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+
+                // ── Plain object with schedule & general_strategies ───────────
                 if (typeof plan === "object" && plan !== null) {
                   const schedule = Array.isArray(plan.schedule) ? plan.schedule : [];
                   const strategies = Array.isArray(plan.general_strategies)
@@ -1456,7 +1580,13 @@ const PharmacistDashboard = () => {
                                 </div>
                                 <div className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-white p-3 rounded-lg border border-gray-100">
                                   <p className="font-medium text-gray-800 mb-0.5">กิจกรรมและเนื้อหาที่ต้องเน้น:</p>
-                                  <p className="whitespace-pre-wrap">{item.activities || JSON.stringify(item)}</p>
+                                  <p className="whitespace-pre-wrap">
+                                    {typeof item.activities === "string"
+                                      ? item.activities
+                                      : Array.isArray(item.activities)
+                                      ? item.activities.join("\n")
+                                      : ""}
+                                  </p>
                                 </div>
                               </div>
                             ))}
@@ -1481,7 +1611,7 @@ const PharmacistDashboard = () => {
                                   {sIdx + 1}
                                 </span>
                                 <p className="leading-relaxed flex-1 font-medium">
-                                  {typeof strat === "string" ? strat : JSON.stringify(strat)}
+                                  {typeof strat === "string" ? strat : strat.action || strat.text || strat.strategy || JSON.stringify(strat)}
                                 </p>
                               </div>
                             ))}
@@ -1504,27 +1634,6 @@ const PharmacistDashboard = () => {
                           ))}
                         </div>
                       )}
-                    </div>
-                  );
-                }
-
-                if (Array.isArray(plan)) {
-                  return (
-                    <div className="space-y-2.5">
-                      {plan.map((step: any, sIdx: number) => {
-                        const stepText = typeof step === "string" ? step : JSON.stringify(step);
-                        return (
-                          <div
-                            key={sIdx}
-                            className="flex items-start gap-3 p-3.5 bg-gray-50 rounded-xl border border-gray-200 text-xs sm:text-sm text-gray-700"
-                          >
-                            <span className="w-6 h-6 rounded-full bg-teal-600 text-white font-semibold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                              {sIdx + 1}
-                            </span>
-                            <p className="leading-relaxed flex-1 font-medium">{stepText}</p>
-                          </div>
-                        );
-                      })}
                     </div>
                   );
                 }
