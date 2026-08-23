@@ -47,6 +47,7 @@ export async function requestUserAIAnalysis(
 ): Promise<AIAnalysisResult> {
   const payload = {
     type: "user",
+    requestType: "user",
     userId,
     timestamp: new Date().toISOString(),
     stats: contextData?.stats,
@@ -84,6 +85,7 @@ export async function requestAdminAIAnalysis(
 ): Promise<AIAnalysisResult> {
   const payload = {
     type: "admin",
+    requestType: "admin",
     timestamp: new Date().toISOString(),
     stats: contextData?.stats,
     monthly_scores: contextData?.monthly_scores,
