@@ -232,6 +232,7 @@ const PharmacistDashboard = () => {
         radar_data: data?.radar_data,
         weak_topics: data?.weak_topics,
       });
+      console.log("🤖 AI Analysis raw result:", JSON.stringify(result, null, 2));
       setAiAnalysis(result);
     } catch (err: any) {
       console.error("n8n AI Error:", err);
