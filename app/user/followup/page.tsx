@@ -790,39 +790,130 @@ const PharmacistDashboard = () => {
 
                 {/* AI Summary Banner (if loaded) */}
                 {aiAnalysis && (aiAnalysis.summary || aiAnalysis.overall_feedback) && !aiLoading && (
-                  <div className="p-3.5 bg-indigo-50/60 rounded-xl border border-indigo-100/80 mb-3.5 space-y-1 animate-in fade-in duration-200">
+                  <div className="p-4 bg-indigo-50/70 rounded-2xl border border-indigo-100 mb-3.5 space-y-1.5 animate-in fade-in duration-200 shadow-2xs">
                     <div className="flex items-center gap-2 text-xs font-medium text-indigo-700">
                       <Brain className="w-4 h-4" />
-                      <span>สรุปผลการประเมินโดย AI:</span>
+                      <span className="font-semibold">สรุปผลการประเมินโดย AI:</span>
                     </div>
-                    <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
-                      {typeof (aiAnalysis.summary || aiAnalysis.overall_feedback) === "string"
-                        ? (aiAnalysis.summary || aiAnalysis.overall_feedback)
-                        : JSON.stringify(aiAnalysis.summary || aiAnalysis.overall_feedback, null, 2)}
-                    </p>
+                    {(() => {
+                      const summaryData = aiAnalysis.summary || aiAnalysis.overall_feedback;
+                      let content = summaryData;
+                      if (typeof summaryData === "string") {
+                        const trimmed = summaryData.trim();
+                        if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+                          try { content = JSON.parse(trimmed); } catch { content = summaryData; }
+                        }
+                      }
+                      if (typeof content === "object" && content !== null && !Array.isArray(content)) {
+                        return (
+                          <div className="space-y-2 mt-1.5">
+                            {Object.entries(content).map(([k, v], i) => (
+                              <div key={i} className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-white p-2.5 rounded-xl border border-indigo-100/60 shadow-2xs">
+                                <span className="font-medium text-indigo-900 block mb-0.5">
+                                  {k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}:
+                                </span>
+                                <span>{typeof v === "string" ? v : JSON.stringify(v)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      }
+                      return (
+                        <div className="bg-white/80 p-3 rounded-xl border border-indigo-100/60 shadow-2xs">
+                          <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
+                            {String(content)}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 
                 {/* AI Action Plan (if loaded) */}
                 {aiAnalysis && aiAnalysis.action_plan && !aiLoading && (
-                  <div className="p-3.5 bg-teal-50/60 rounded-xl border border-teal-100 mb-3.5 space-y-1 animate-in fade-in duration-200">
+                  <div className="p-4 bg-teal-50/70 rounded-2xl border border-teal-100 mb-3.5 space-y-2 animate-in fade-in duration-200 shadow-2xs">
                     <div className="flex items-center gap-2 text-xs font-medium text-teal-800">
                       <CheckCircle2 className="w-4 h-4 text-teal-600" />
-                      <span>แผนการอ่านหนังสือที่แนะนำ (Action Plan):</span>
+                      <span className="font-semibold">แผนการอ่านหนังสือที่แนะนำ (Action Plan):</span>
                     </div>
-                    <div className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed">
-                      {Array.isArray(aiAnalysis.action_plan) ? (
-                        <ul className="list-disc list-inside space-y-0.5">
-                          {aiAnalysis.action_plan.map((step: any, sIdx: number) => (
-                            <li key={sIdx}>{typeof step === "string" ? step : JSON.stringify(step)}</li>
-                          ))}
-                        </ul>
-                      ) : typeof aiAnalysis.action_plan === "string" ? (
-                        <p className="whitespace-pre-wrap">{aiAnalysis.action_plan}</p>
-                      ) : (
-                        <p>{JSON.stringify(aiAnalysis.action_plan, null, 2)}</p>
-                      )}
-                    </div>
+                    {(() => {
+                      const planData = aiAnalysis.action_plan;
+                      let content = planData;
+                      if (typeof planData === "string") {
+                        const trimmed = planData.trim();
+                        if ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"))) {
+                          try { content = JSON.parse(trimmed); } catch { content = planData; }
+                        }
+                      }
+
+                      // Array format
+                      if (Array.isArray(content)) {
+                        return (
+                          <div className="space-y-2 mt-1.5">
+                            {content.map((step: any, idx: number) => {
+                              const stepText = typeof step === "string" ? step : step.text || step.task || step.action || JSON.stringify(step);
+                              return (
+                                <div
+                                  key={idx}
+                                  className="flex items-start gap-2.5 text-xs sm:text-sm text-gray-700 font-medium bg-white p-3 rounded-xl border border-teal-100/80 shadow-2xs"
+                                >
+                                  <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-800 text-xs font-medium flex items-center justify-center shrink-0 mt-0.5">
+                                    {idx + 1}
+                                  </span>
+                                  <p className="leading-relaxed flex-1">{stepText}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      }
+
+                      // Object format (short_term, medium_term, etc.)
+                      if (typeof content === "object" && content !== null) {
+                        const labelMap: Record<string, { label: string; badgeColor: string }> = {
+                          short_term: { label: "แผนเร่งด่วนระยะสั้น (สัปดาห์ที่ 1)", badgeColor: "bg-teal-100 text-teal-800 border-teal-200" },
+                          medium_term: { label: "แผนระยะกลาง (สัปดาห์ที่ 2-3)", badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200" },
+                          long_term: { label: "แผนระยะยาว (สัปดาห์ที่ 4 ขึ้นไป)", badgeColor: "bg-purple-100 text-purple-800 border-purple-200" },
+                          immediate: { label: "สิ่งที่ต้องทำทันที", badgeColor: "bg-amber-100 text-amber-800 border-amber-200" },
+                          daily: { label: "เป้าหมายรายวัน", badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200" },
+                          weekly: { label: "เป้าหมายรายสัปดาห์", badgeColor: "bg-blue-100 text-blue-800 border-blue-200" },
+                        };
+
+                        return (
+                          <div className="space-y-2.5 mt-1.5">
+                            {Object.entries(content).map(([key, val], idx) => {
+                              const config = labelMap[key] || {
+                                label: key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+                                badgeColor: "bg-teal-100 text-teal-800 border-teal-200",
+                              };
+                              const text = typeof val === "string" ? val : JSON.stringify(val);
+                              return (
+                                <div
+                                  key={idx}
+                                  className="bg-white p-3.5 rounded-xl border border-teal-100/90 shadow-2xs space-y-1.5"
+                                >
+                                  <span className={`inline-block text-[11px] font-medium px-2.5 py-0.5 rounded-md border ${config.badgeColor}`}>
+                                    {config.label}
+                                  </span>
+                                  <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
+                                    {text}
+                                  </p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      }
+
+                      // String format
+                      return (
+                        <div className="bg-white p-3.5 rounded-xl border border-teal-100 shadow-2xs mt-1.5">
+                          <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
+                            {String(content)}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
 
