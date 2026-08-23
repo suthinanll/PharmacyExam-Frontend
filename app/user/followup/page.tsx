@@ -833,11 +833,78 @@ const PharmacistDashboard = () => {
                     ))}
                   </div>
                 ) : weakTopicsList.length === 0 ? (
-                  <div className="text-gray-400 text-sm text-center py-16 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center">
-                    <CheckCircle2 className="w-10 h-10 text-teal-500 mb-2" />
-                    <p className="font-medium text-gray-600">ยินดีด้วย! คุณทำผลงานได้ดีเยี่ยม</p>
-                    <p className="text-xs text-gray-400 mt-0.5">ยังไม่มีหัวข้อที่ต้องเร่งทบทวนเพิ่มเติมในขณะนี้</p>
-                  </div>
+                  aiAnalysis && (Array.isArray(aiAnalysis.weak_topics_advice) || Array.isArray(aiAnalysis.analysis_points)) ? (
+                    <div className="space-y-3.5">
+                      {(aiAnalysis.weak_topics_advice || aiAnalysis.analysis_points)?.map((item: any, index: number) => {
+                        const topicName = typeof item === "string" ? item : item.topic || item.title || `หัวข้อที่ ${index + 1}`;
+                        const style = priorityStyles["ต้องรีบทบทวน!"] || defaultPriorityStyle;
+                        return (
+                          <div
+                            key={index}
+                            className={`relative pl-4 pr-4 py-3.5 rounded-xl border transition-all ${style.card}`}
+                          >
+                            <div className={`absolute left-0 top-3.5 bottom-3.5 w-1.5 rounded-full ${style.bar}`} />
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                  <h3 className="font-medium text-gray-800 text-base">{topicName}</h3>
+                                  <span className={`text-xs px-2.5 py-0.5 rounded-full ${style.badge}`}>
+                                    {item.priority || "AI ตรวจพบจุดอ่อน"}
+                                  </span>
+                                </div>
+                                {item.issue && (
+                                  <p className="text-xs text-gray-600 font-medium mb-1.5">
+                                    <span className="text-gray-400">จุดที่มักผิด:</span>{" "}
+                                    {typeof item.issue === "string" ? item.issue : JSON.stringify(item.issue)}
+                                  </p>
+                                )}
+                                {(item.recommendation || item.study_tip) && (
+                                  <p className="text-xs sm:text-sm text-gray-700 font-medium bg-white p-2 rounded-lg border border-indigo-100/60 shadow-2xs mb-2">
+                                    <span className="text-indigo-600">เทคนิค:</span>{" "}
+                                    {typeof (item.recommendation || item.study_tip) === "string"
+                                      ? (item.recommendation || item.study_tip)
+                                      : JSON.stringify(item.recommendation || item.study_tip)}
+                                  </p>
+                                )}
+                                <div className="pt-1">
+                                  <a
+                                    href={
+                                      item.link || item.reference_url
+                                        ? String(item.link || item.reference_url)
+                                        : `https://www.google.com/search?q=${encodeURIComponent(
+                                            `${topicName} แนวทางการรักษา เภสัชกรรม`
+                                          )}`
+                                    }
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium hover:underline transition"
+                                  >
+                                    <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
+                                    <span>อ่านเนื้อหาและแนวทางทบทวนเพิ่มเติม</span>
+                                    <ExternalLink className="w-3 h-3 text-indigo-400" />
+                                  </a>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-gray-400 text-sm text-center py-16 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center">
+                      <CheckCircle2 className="w-10 h-10 text-teal-500 mb-2" />
+                      <p className="font-medium text-gray-600">
+                        {data?.stats?.total_exams === 0
+                          ? "ยังไม่มีประวัติการทำข้อสอบ"
+                          : "ยินดีด้วย! คุณทำผลงานได้ดีเยี่ยม"}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5 max-w-sm px-4">
+                        {data?.stats?.total_exams === 0
+                          ? "กรุณาเข้าไปฝึกทำข้อสอบก่อน เพื่อให้ระบบนำผลคะแนนมาวิเคราะห์จุดแข็ง-จุดอ่อนรายวิชา"
+                          : "ยังไม่มีหัวข้อที่คะแนนต่ำกว่าเกณฑ์ในขณะนี้ หรือกดปุ่ม 'วิเคราะห์ด้วย AI' เพื่อประเมินเชิงลึก"}
+                      </p>
+                    </div>
+                  )
                 ) : (
                   <div className="space-y-3.5">
                     {displayedWeakTopics.map((topic, index) => {
