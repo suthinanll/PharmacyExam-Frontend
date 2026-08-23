@@ -36,6 +36,8 @@ import {
   Lightbulb,
   Loader2,
   Target,
+  BookOpen,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -911,6 +913,39 @@ const PharmacistDashboard = () => {
                                         : JSON.stringify(aiAdvice.recommendation || (aiAdvice as any).study_tip)}
                                     </p>
                                   )}
+
+                                  {/* Link to study / further reading */}
+                                  <div className="pt-1">
+                                    {((aiAdvice as any)?.link || (aiAdvice as any)?.reference_url || (aiAdvice as any)?.references) ? (
+                                      <a
+                                        href={
+                                          typeof ((aiAdvice as any)?.link || (aiAdvice as any)?.reference_url || (aiAdvice as any)?.references) === "string"
+                                            ? ((aiAdvice as any)?.link || (aiAdvice as any)?.reference_url || (aiAdvice as any)?.references)
+                                            : "#"
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium hover:underline transition"
+                                      >
+                                        <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
+                                        <span>อ่านเนื้อหาและแนวทางทบทวนเพิ่มเติม</span>
+                                        <ExternalLink className="w-3 h-3 text-indigo-400" />
+                                      </a>
+                                    ) : (
+                                      <a
+                                        href={`https://www.google.com/search?q=${encodeURIComponent(
+                                          `${topic.subject} ${topic.topic} แนวทางการรักษา เภสัชกรรม`
+                                        )}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-600 font-medium transition group"
+                                      >
+                                        <BookOpen className="w-3.5 h-3.5 text-gray-400 group-hover:text-indigo-500" />
+                                        <span>ค้นหาบทความวิชาการเกี่ยวกับ {topic.topic}</span>
+                                        <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-indigo-500" />
+                                      </a>
+                                    )}
+                                  </div>
                                 </div>
                               )}
                             </div>
