@@ -32,9 +32,22 @@ const nextConfig = {
         ignoreDuringBuilds: true,
     },
 
-    // 4. เพิ่ม headers เพื่อแก้ CSP สำหรับ <img> tag
+    // 4. เพิ่ม headers เพื่อแก้ CSP และป้องกันการแคช sw.js
     async headers() {
         return [
+            {
+                source: '/sw.js',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'no-cache, no-store, must-revalidate',
+                    },
+                    {
+                        key: 'Service-Worker-Allowed',
+                        value: '/',
+                    },
+                ],
+            },
             {
                 source: '/:path*',
                 headers: [

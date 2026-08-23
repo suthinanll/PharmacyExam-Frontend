@@ -83,19 +83,41 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </NotificationProvider>
         </AuthProvider>
 
-        {/* Service Worker Registration */}
+        {/* Service Worker Registration with Auto-Update */}
         <Script id="register-sw" strategy="afterInteractive">
           {`
             if ('serviceWorker' in navigator) {
               window.addEventListener('load', function() {
                 navigator.serviceWorker.register('/sw.js').then(
                   function(registration) {
-                    console.log('Service Worker registered:', registration.scope);
+                    // Check for updates on every page load
+                    registration.update();
+
+                    // Detect new service worker installation
+                    registration.onupdatefound = function() {
+                      var installingWorker = registration.installing;
+                      if (!installingWorker) return;
+                      installingWorker.onstatechange = function() {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                          // New version available -> tell it to skip waiting immediately
+                          installingWorker.postMessage({ type: 'SKIP_WAITING' });
+                        }
+                      };
+                    };
                   },
                   function(err) {
                     console.log('Service Worker registration failed:', err);
                   }
                 );
+
+                // Auto reload when the new Service Worker takes over
+                var refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', function() {
+                  if (!refreshing) {
+                    refreshing = true;
+                    window.location.reload();
+                  }
+                });
               });
             }
           `}
