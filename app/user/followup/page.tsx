@@ -27,10 +27,20 @@ import {
   Award,
   ChevronDown,
   ChevronUp,
+  SlidersHorizontal,
+  Trophy,
+  X,
+  Layers,
+  Bot,
+  Brain,
+  Lightbulb,
+  Loader2,
+  Target,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { requestUserAIAnalysis, AIAnalysisResult } from "@/utils/n8nService";
 
 interface DashboardData {
   stats: {
@@ -182,7 +192,7 @@ const StatRow = ({
 );
 
 const PharmacistDashboard = () => {
-  const { getToken } = useAuth();
+  const { getToken, user } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -190,6 +200,30 @@ const PharmacistDashboard = () => {
   // ── Topic Checklist & Selection States ─────────────────────────────────────
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [showAllWeak, setShowAllWeak] = useState(false);
+
+  // ── AI Analysis States (n8n Integration) ──────────────────────────────────
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  const handleRunAIAnalysis = async () => {
+    if (!user?.user_id) return;
+    try {
+      setAiLoading(true);
+      setAiError(null);
+      const result = await requestUserAIAnalysis(user.user_id, {
+        stats: data?.stats,
+        radar_data: data?.radar_data,
+        weak_topics: data?.weak_topics,
+      });
+      setAiAnalysis(result);
+    } catch (err: any) {
+      console.error("n8n AI Error:", err);
+      setAiError(err?.message || "ไม่สามารถเชื่อมต่อกับระบบ AI ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -533,18 +567,18 @@ const PharmacistDashboard = () => {
                     <button
                       onClick={() => selectTopStrengths(3)}
                       type="button"
-                      className="px-3 py-1.5 rounded-xl text-xs font-medium bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 transition-colors cursor-pointer flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-xl text-xs font-medium bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 transition-colors cursor-pointer flex items-center gap-1.5"
                     >
-                      <Award className="w-3.5 h-3.5" />
-                      3 จุดแข็งสูงสุด 🏆
+                      <Award className="w-3.5 h-3.5 text-teal-600" />
+                      3 จุดแข็งสูงสุด
                     </button>
                     <button
                       onClick={() => selectTopWeaknesses(3)}
                       type="button"
-                      className="px-3 py-1.5 rounded-xl text-xs font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition-colors cursor-pointer flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-xl text-xs font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition-colors cursor-pointer flex items-center gap-1.5"
                     >
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      3 จุดที่ควรพัฒนา ⚠️
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                      3 จุดที่ควรพัฒนา
                     </button>
                     <button
                       onClick={selectAllSubjects}
@@ -614,8 +648,9 @@ const PharmacistDashboard = () => {
                         เปรียบเทียบใน <b className="text-indigo-600 font-medium">{sortedSelectedTopics.length}</b> หัวข้อที่เลือก:
                       </span>
                       {highestTopic && (
-                        <span className="inline-flex items-center gap-1 text-teal-800 bg-teal-100/70 px-2.5 py-0.5 rounded-full font-medium text-xs">
-                          🥇 คะแนนสูงสุด: <b>{highestTopic.subject}</b> ({highestTopic.score} คะแนน)
+                        <span className="inline-flex items-center gap-1.5 text-teal-800 bg-teal-100/70 px-2.5 py-0.5 rounded-full font-medium text-xs">
+                          <Trophy className="w-3.5 h-3.5 text-teal-600" />
+                          คะแนนสูงสุด: <b>{highestTopic.subject}</b> ({highestTopic.score} คะแนน)
                         </span>
                       )}
                     </div>
@@ -681,7 +716,7 @@ const PharmacistDashboard = () => {
                   <div className="w-full bg-gray-50/40 rounded-2xl p-3 border border-gray-100">
                     {selectedSubjects.length < 3 && (
                       <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-1.5 mb-2 text-center font-medium">
-                        💡 ติ๊กเลือกตั้งแต่ 3 หัวข้อขึ้นไปเพื่อสร้างรูปกราฟเรดาร์หลายเหลี่ยม (ขณะนี้เลือก {selectedSubjects.length} หัวข้อ)
+                        เลือกตั้งแต่ 3 หัวข้อขึ้นไปเพื่อสร้างรูปกราฟเรดาร์หลายเหลี่ยม (ขณะนี้เลือก {selectedSubjects.length} หัวข้อ)
                       </p>
                     )}
                     <div className="w-full h-[340px]">
@@ -729,19 +764,99 @@ const PharmacistDashboard = () => {
                 )}
               </div>
 
-              {/* Weak Topics List Section (Clean layout without scrollbars) */}
+              {/* Unified Weak Topics & AI Analysis Section */}
               <div className="lg:border-l lg:border-gray-200 lg:pl-8 flex flex-col justify-start">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shadow-2xs">
-                    <AlertCircle className="w-5 h-5" />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shadow-2xs">
+                      <AlertCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg sm:text-xl font-medium text-gray-800 flex items-center gap-2">
+                        หัวข้อที่ควรทบทวน & คำแนะนำ AI
+                      </h2>
+                      <p className="text-xs sm:text-sm text-gray-500">
+                        วิเคราะห์จุดอ่อนและคำแนะนำรายบุคคลโดย AI
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-medium text-gray-800">
-                      หัวข้อที่ควรทบทวนเพิ่มเติม
-                    </h2>
-                    <p className="text-xs sm:text-sm text-gray-500">ลำดับความสำคัญและเวลาทบทวนที่แนะนำ</p>
-                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleRunAIAnalysis}
+                    disabled={aiLoading}
+                    className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl font-medium text-xs transition-all shadow-sm cursor-pointer self-start sm:self-auto shrink-0"
+                  >
+                    {aiLoading ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>กำลังวิเคราะห์...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-200" />
+                        <span>{aiAnalysis ? "วิเคราะห์ใหม่" : "วิเคราะห์ด้วย AI"}</span>
+                      </>
+                    )}
+                  </button>
                 </div>
+
+                {/* AI Error Alert if any */}
+                {aiError && (
+                  <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs font-medium flex items-center gap-2.5 mb-3.5">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                    <span>{aiError}</span>
+                  </div>
+                )}
+
+                {/* AI Loading Banner */}
+                {aiLoading && (
+                  <div className="p-4 mb-3.5 text-center bg-indigo-50/50 rounded-2xl border border-indigo-100 space-y-2 animate-pulse">
+                    <div className="flex items-center justify-center gap-2 text-xs font-medium text-indigo-700">
+                      <Brain className="w-4 h-4 animate-bounce" />
+                      <span>กำลังประมวลผลข้อมูลผลการสอบและจุดอ่อนด้วย AI...</span>
+                    </div>
+                    <p className="text-[11px] text-gray-500">ระบบ AI กำลังค้นคว้าแนวทางเสริมจุดอ่อนและวางแผนอ่านหนังสือ (ใช้เวลา 2-5 วินาที)</p>
+                  </div>
+                )}
+
+                {/* AI Summary Banner (if loaded) */}
+                {aiAnalysis && (aiAnalysis.summary || aiAnalysis.overall_feedback) && !aiLoading && (
+                  <div className="p-3.5 bg-indigo-50/60 rounded-xl border border-indigo-100/80 mb-3.5 space-y-1 animate-in fade-in duration-200">
+                    <div className="flex items-center gap-2 text-xs font-medium text-indigo-700">
+                      <Brain className="w-4 h-4" />
+                      <span>สรุปผลการประเมินโดย AI:</span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
+                      {typeof (aiAnalysis.summary || aiAnalysis.overall_feedback) === "string"
+                        ? (aiAnalysis.summary || aiAnalysis.overall_feedback)
+                        : JSON.stringify(aiAnalysis.summary || aiAnalysis.overall_feedback, null, 2)}
+                    </p>
+                  </div>
+                )}
+
+                {/* AI Action Plan (if loaded) */}
+                {aiAnalysis && aiAnalysis.action_plan && !aiLoading && (
+                  <div className="p-3.5 bg-teal-50/60 rounded-xl border border-teal-100 mb-3.5 space-y-1 animate-in fade-in duration-200">
+                    <div className="flex items-center gap-2 text-xs font-medium text-teal-800">
+                      <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                      <span>แผนการอ่านหนังสือที่แนะนำ (Action Plan):</span>
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed">
+                      {Array.isArray(aiAnalysis.action_plan) ? (
+                        <ul className="list-disc list-inside space-y-0.5">
+                          {aiAnalysis.action_plan.map((step: any, sIdx: number) => (
+                            <li key={sIdx}>{typeof step === "string" ? step : JSON.stringify(step)}</li>
+                          ))}
+                        </ul>
+                      ) : typeof aiAnalysis.action_plan === "string" ? (
+                        <p className="whitespace-pre-wrap">{aiAnalysis.action_plan}</p>
+                      ) : (
+                        <p>{JSON.stringify(aiAnalysis.action_plan, null, 2)}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {loading ? (
                   <div className="space-y-3">
@@ -762,6 +877,16 @@ const PharmacistDashboard = () => {
                         priorityStyles[
                           topic.priority as keyof typeof priorityStyles
                         ] || defaultPriorityStyle;
+
+                      // Find matching AI advice for this topic
+                      const aiAdvice = (aiAnalysis?.weak_topics_advice || aiAnalysis?.analysis_points)?.find(
+                        (a: any) => {
+                          const aTopic = String(a?.topic || a?.title || "").toLowerCase();
+                          const tTopic = topic.topic.toLowerCase();
+                          return aTopic.includes(tTopic) || tTopic.includes(aTopic);
+                        }
+                      );
+
                       return (
                         <div
                           key={index}
@@ -798,6 +923,30 @@ const PharmacistDashboard = () => {
                                   <span>เวลาทบทวนที่แนะนำ {topic.study_time}</span>
                                 </span>
                               </div>
+
+                              {/* AI advice integrated into weak topic card */}
+                              {aiAdvice && (
+                                <div className="mt-3 pt-2.5 border-t border-indigo-100/70 bg-indigo-50/50 -mx-4 -mb-3.5 p-3 rounded-b-xl space-y-1.5 animate-in fade-in duration-200">
+                                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-indigo-700">
+                                    <Bot className="w-3.5 h-3.5" />
+                                    <span>คำแนะนำและเทคนิคการจำจาก AI:</span>
+                                  </div>
+                                  {aiAdvice.issue && (
+                                    <p className="text-xs text-gray-600 font-medium">
+                                      <span className="text-gray-400">จุดที่มักผิด:</span>{" "}
+                                      {typeof aiAdvice.issue === "string" ? aiAdvice.issue : JSON.stringify(aiAdvice.issue)}
+                                    </p>
+                                  )}
+                                  {(aiAdvice.recommendation || (aiAdvice as any).study_tip) && (
+                                    <p className="text-xs sm:text-sm text-gray-700 font-medium bg-white p-2 rounded-lg border border-indigo-100/60 shadow-2xs">
+                                      <span className="text-indigo-600">เทคนิค:</span>{" "}
+                                      {typeof (aiAdvice.recommendation || (aiAdvice as any).study_tip) === "string"
+                                        ? (aiAdvice.recommendation || (aiAdvice as any).study_tip)
+                                        : JSON.stringify(aiAdvice.recommendation || (aiAdvice as any).study_tip)}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
