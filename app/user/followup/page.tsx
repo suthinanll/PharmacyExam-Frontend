@@ -827,9 +827,9 @@ const PharmacistDashboard = () => {
                   </div>
                 )}
 
-                {/* Sleek AI Active Notification Banner (Single compact line with buttons) */}
+                {/* Sleek AI Active Notification Banner (Single compact line) */}
                 {aiAnalysis && !aiLoading && (
-                  <div className="p-3 bg-gradient-to-r from-indigo-50/90 to-teal-50/80 rounded-2xl border border-indigo-100 mb-4 flex items-center justify-between gap-3 shadow-2xs flex-wrap sm:flex-nowrap">
+                  <div className="p-3 bg-gradient-to-r from-indigo-50/90 to-teal-50/80 rounded-2xl border border-indigo-100 mb-4 flex items-center justify-between gap-3 shadow-2xs">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                         <Brain className="w-4 h-4" />
@@ -838,24 +838,14 @@ const PharmacistDashboard = () => {
                         AI วิเคราะห์จุดอ่อนและจัดทำแผนการอ่านหนังสือให้คุณแล้ว
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => setIsAiModalOpen(true)}
-                        className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 hover:text-amber-950 rounded-xl border border-amber-200/90 font-medium text-xs transition cursor-pointer shadow-2xs flex items-center gap-1.5"
-                      >
-                        <Lightbulb className="w-3.5 h-3.5 text-amber-600" />
-                        <span>เทคนิค & สูตรจำ</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setIsAiModalOpen(true)}
-                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-xs transition cursor-pointer shadow-2xs flex items-center gap-1"
-                      >
-                        <span>เปิดดูรายงาน AI</span>
-                        <Sparkles className="w-3 h-3 text-indigo-200" />
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsAiModalOpen(true)}
+                      className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium text-xs transition cursor-pointer shadow-2xs shrink-0 flex items-center gap-1.5"
+                    >
+                      <span>เปิดดูรายงาน AI</span>
+                      <Sparkles className="w-3 h-3 text-indigo-200" />
+                    </button>
                   </div>
                 )}
 
