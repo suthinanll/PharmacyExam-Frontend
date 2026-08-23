@@ -38,6 +38,7 @@ import {
   Target,
   BookOpen,
   ExternalLink,
+  Calendar,
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -202,6 +203,7 @@ const PharmacistDashboard = () => {
   // ── Topic Selection States ────────────────────────────────────────────────
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isActionPlanModalOpen, setIsActionPlanModalOpen] = useState(false);
   const [showAllWeak, setShowAllWeak] = useState(false);
   const [showComparisonSummary, setShowComparisonSummary] = useState(true);
 
@@ -209,6 +211,16 @@ const PharmacistDashboard = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [expandedWeakTopics, setExpandedWeakTopics] = useState<Set<number>>(new Set());
+
+  const toggleWeakTopic = (index: number) => {
+    setExpandedWeakTopics((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
 
   const handleRunAIAnalysis = async () => {
     if (!user?.user_id) return;
@@ -784,7 +796,7 @@ const PharmacistDashboard = () => {
                       <Brain className="w-4 h-4 animate-bounce" />
                       <span>กำลังประมวลผลข้อมูลผลการสอบและจุดอ่อนด้วย AI...</span>
                     </div>
-                    <p className="text-[11px] text-gray-500">ระบบ AI กำลังค้นคว้าแนวทางเสริมจุดอ่อนและวางแผนอ่านหนังสือ (ใช้เวลา 2-5 วินาที)</p>
+                    <p className="text-[11px] text-gray-500">ระบบ AI กำลังวิเคราะห์ผลคะแนนและจัดทำแผนการทบทวนรายบุคคล</p>
                   </div>
                 )}
 
@@ -831,26 +843,146 @@ const PharmacistDashboard = () => {
 
                 {/* AI Action Plan (if loaded) */}
                 {aiAnalysis && aiAnalysis.action_plan && !aiLoading && (
-                  <div className="p-4 bg-teal-50/70 rounded-2xl border border-teal-100 mb-3.5 space-y-2 animate-in fade-in duration-200 shadow-2xs">
-                    <div className="flex items-center gap-2 text-xs font-medium text-teal-800">
-                      <CheckCircle2 className="w-4 h-4 text-teal-600" />
-                      <span className="font-semibold">แผนการอ่านหนังสือที่แนะนำ (Action Plan):</span>
+                  <div className="p-4 bg-teal-50/70 rounded-2xl border border-teal-100 mb-3.5 space-y-3 animate-in fade-in duration-200 shadow-2xs">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-xs font-medium text-teal-800">
+                        <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                        <span className="font-semibold">แผนการอ่านหนังสือที่แนะนำ (Action Plan):</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsActionPlanModalOpen(true)}
+                        className="text-xs text-teal-700 hover:text-teal-900 font-medium inline-flex items-center gap-1 bg-white hover:bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200 transition cursor-pointer shadow-2xs"
+                      >
+                        <Calendar className="w-3.5 h-3.5 text-teal-600" />
+                        <span>ดูแผนการอ่านฉบับเต็ม ↗</span>
+                      </button>
                     </div>
+
                     {(() => {
-                      const planData = aiAnalysis.action_plan;
-                      let content = planData;
-                      if (typeof planData === "string") {
-                        const trimmed = planData.trim();
-                        if ((trimmed.startsWith("{") && trimmed.endsWith("}")) || (trimmed.startsWith("[") && trimmed.endsWith("]"))) {
-                          try { content = JSON.parse(trimmed); } catch { content = planData; }
+                      const unwrapParsedData = (data: any): any => {
+                        if (typeof data === "string") {
+                          const trimmed = data.trim();
+                          if (
+                            (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+                            (trimmed.startsWith("[") && trimmed.endsWith("]"))
+                          ) {
+                            try {
+                              return unwrapParsedData(JSON.parse(trimmed));
+                            } catch {
+                              return data;
+                            }
+                          }
                         }
+                        if (Array.isArray(data)) {
+                          return data.map((item) => unwrapParsedData(item));
+                        }
+                        if (typeof data === "object" && data !== null) {
+                          const res: Record<string, any> = {};
+                          for (const [k, v] of Object.entries(data)) {
+                            res[k] = unwrapParsedData(v);
+                          }
+                          return res;
+                        }
+                        return data;
+                      };
+
+                      const parsedPlan = unwrapParsedData(aiAnalysis.action_plan);
+
+                      // If structured object with schedule & general_strategies
+                      if (typeof parsedPlan === "object" && parsedPlan !== null) {
+                        const schedule = Array.isArray(parsedPlan.schedule) ? parsedPlan.schedule : [];
+                        const strategies = Array.isArray(parsedPlan.general_strategies)
+                          ? parsedPlan.general_strategies
+                          : Array.isArray(parsedPlan.strategies)
+                          ? parsedPlan.strategies
+                          : [];
+
+                        return (
+                          <div className="space-y-2.5">
+                            {/* Schedule highlights (first 2 days preview) */}
+                            {schedule.length > 0 && (
+                              <div className="space-y-1.5">
+                                <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-md bg-teal-100 text-teal-800 border border-teal-200">
+                                  ตารางอ่านหนังสือ ({schedule.length} วัน)
+                                </span>
+                                <div className="grid grid-cols-1 gap-2">
+                                  {schedule.slice(0, 2).map((item: any, sIdx: number) => (
+                                    <div
+                                      key={sIdx}
+                                      className="bg-white p-3 rounded-xl border border-teal-100/90 shadow-2xs space-y-1"
+                                    >
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="font-semibold text-xs text-teal-800">
+                                          วันที่ {item.day ?? sIdx + 1}: {item.focus_area || "ทบทวนเนื้อหา"}
+                                        </span>
+                                        {item.study_hours && (
+                                          <span className="text-[11px] font-medium text-teal-600 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">
+                                            {item.study_hours} ชม.
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
+                                        {item.activities || JSON.stringify(item)}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* General Strategies highlights */}
+                            {strategies.length > 0 && (
+                              <div className="space-y-1.5">
+                                <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-800 border border-indigo-200">
+                                  เทคนิคและกลยุทธ์สำคัญ
+                                </span>
+                                <div className="bg-white p-3 rounded-xl border border-teal-100/90 shadow-2xs space-y-1.5">
+                                  {strategies.slice(0, 2).map((strat: any, stIdx: number) => (
+                                    <div key={stIdx} className="flex items-start gap-2 text-xs text-gray-700 leading-relaxed">
+                                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0 mt-1.5" />
+                                      <p className="flex-1">{typeof strat === "string" ? strat : JSON.stringify(strat)}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Other custom keys if not schedule/strategies */}
+                            {schedule.length === 0 && strategies.length === 0 && (
+                              <div className="space-y-2">
+                                {Object.entries(parsedPlan).map(([key, val], idx) => {
+                                  const text = typeof val === "string" ? val : JSON.stringify(val);
+                                  return (
+                                    <div key={idx} className="bg-white p-3 rounded-xl border border-teal-100/90 shadow-2xs space-y-1">
+                                      <span className="inline-block text-[11px] font-medium px-2 py-0.5 rounded-md bg-teal-100 text-teal-800">
+                                        {key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                                      </span>
+                                      <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{text}</p>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* View full plan button */}
+                            <button
+                              type="button"
+                              onClick={() => setIsActionPlanModalOpen(true)}
+                              className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                            >
+                              <BookOpen className="w-3.5 h-3.5" />
+                              <span>เปิดดูตารางและเทคนิคการอ่านฉบับเต็ม</span>
+                            </button>
+                          </div>
+                        );
                       }
 
-                      // Array format
-                      if (Array.isArray(content)) {
+                      // If Array format
+                      if (Array.isArray(parsedPlan)) {
                         return (
-                          <div className="space-y-2 mt-1.5">
-                            {content.map((step: any, idx: number) => {
+                          <div className="space-y-2">
+                            {parsedPlan.slice(0, 2).map((step: any, idx: number) => {
                               const stepText = typeof step === "string" ? step : step.text || step.task || step.action || JSON.stringify(step);
                               return (
                                 <div
@@ -864,52 +996,25 @@ const PharmacistDashboard = () => {
                                 </div>
                               );
                             })}
+                            {parsedPlan.length > 2 && (
+                              <button
+                                type="button"
+                                onClick={() => setIsActionPlanModalOpen(true)}
+                                className="w-full py-2 bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                              >
+                                <BookOpen className="w-3.5 h-3.5" />
+                                <span>ดูแผนทั้งหมดอีก {parsedPlan.length - 2} รายการ ↗</span>
+                              </button>
+                            )}
                           </div>
                         );
                       }
 
-                      // Object format (short_term, medium_term, etc.)
-                      if (typeof content === "object" && content !== null) {
-                        const labelMap: Record<string, { label: string; badgeColor: string }> = {
-                          short_term: { label: "แผนเร่งด่วนระยะสั้น (สัปดาห์ที่ 1)", badgeColor: "bg-teal-100 text-teal-800 border-teal-200" },
-                          medium_term: { label: "แผนระยะกลาง (สัปดาห์ที่ 2-3)", badgeColor: "bg-indigo-100 text-indigo-800 border-indigo-200" },
-                          long_term: { label: "แผนระยะยาว (สัปดาห์ที่ 4 ขึ้นไป)", badgeColor: "bg-purple-100 text-purple-800 border-purple-200" },
-                          immediate: { label: "สิ่งที่ต้องทำทันที", badgeColor: "bg-amber-100 text-amber-800 border-amber-200" },
-                          daily: { label: "เป้าหมายรายวัน", badgeColor: "bg-emerald-100 text-emerald-800 border-emerald-200" },
-                          weekly: { label: "เป้าหมายรายสัปดาห์", badgeColor: "bg-blue-100 text-blue-800 border-blue-200" },
-                        };
-
-                        return (
-                          <div className="space-y-2.5 mt-1.5">
-                            {Object.entries(content).map(([key, val], idx) => {
-                              const config = labelMap[key] || {
-                                label: key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
-                                badgeColor: "bg-teal-100 text-teal-800 border-teal-200",
-                              };
-                              const text = typeof val === "string" ? val : JSON.stringify(val);
-                              return (
-                                <div
-                                  key={idx}
-                                  className="bg-white p-3.5 rounded-xl border border-teal-100/90 shadow-2xs space-y-1.5"
-                                >
-                                  <span className={`inline-block text-[11px] font-medium px-2.5 py-0.5 rounded-md border ${config.badgeColor}`}>
-                                    {config.label}
-                                  </span>
-                                  <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
-                                    {text}
-                                  </p>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        );
-                      }
-
-                      // String format
+                      // Plain string
                       return (
-                        <div className="bg-white p-3.5 rounded-xl border border-teal-100 shadow-2xs mt-1.5">
+                        <div className="bg-white p-3.5 rounded-xl border border-teal-100 shadow-2xs">
                           <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
-                            {String(content)}
+                            {String(parsedPlan)}
                           </p>
                         </div>
                       );
@@ -997,14 +1102,13 @@ const PharmacistDashboard = () => {
                     </div>
                   )
                 ) : (
-                  <div className="space-y-3.5">
+                  <div className="space-y-2">
                     {displayedWeakTopics.map((topic, index) => {
                       const style =
                         priorityStyles[
                           topic.priority as keyof typeof priorityStyles
                         ] || defaultPriorityStyle;
 
-                      // Find matching AI advice for this topic
                       const aiAdvice = (aiAnalysis?.weak_topics_advice || aiAnalysis?.analysis_points)?.find(
                         (a: any) => {
                           const aTopic = String(a?.topic || a?.title || "").toLowerCase();
@@ -1013,101 +1117,94 @@ const PharmacistDashboard = () => {
                         }
                       );
 
+                      const isExpanded = expandedWeakTopics.has(index);
+                      const hasDetail = aiAdvice && (aiAdvice.issue || aiAdvice.recommendation || (aiAdvice as any).study_tip);
+
                       return (
                         <div
                           key={index}
-                          className={`relative pl-4 pr-4 py-3.5 rounded-xl border transition-all ${style.card}`}
+                          className={`relative rounded-xl border overflow-hidden transition-all ${style.card}`}
                         >
-                          <div
-                            className={`absolute left-0 top-3.5 bottom-3.5 w-1.5 rounded-full ${style.bar}`}
-                          />
-                          <div className="flex items-start justify-between gap-3">
+                          {/* Left accent bar */}
+                          <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.bar}`} />
+
+                          {/* Main row */}
+                          <div className="flex items-center gap-3 pl-4 pr-3 py-3">
+                            {/* Topic name + badge */}
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <h3 className="font-medium text-gray-800 text-base">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-gray-800 text-sm truncate">
                                   {topic.topic}
-                                </h3>
-                                <span
-                                  className={`text-xs px-2.5 py-0.5 rounded-full ${style.badge}`}
-                                >
+                                </span>
+                                <span className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${style.badge}`}>
                                   {topic.priority}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-500 mb-2 font-medium">
-                                หมวดวิชา: {topic.subject}
-                              </p>
-                              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                                <span className="inline-flex items-center gap-1.5">
-                                  <span>คะแนนที่ได้:</span>
-                                  <span className="font-medium text-gray-800">
-                                    {topic.score}
-                                  </span>
-                                  <span>/ 100</span>
-                                </span>
-                                <span className="inline-flex items-center gap-1.5 text-gray-500">
-                                  <Clock className="w-4 h-4 text-gray-400" />
-                                  <span>เวลาทบทวนที่แนะนำ {topic.study_time}</span>
+                              <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                <span className="font-medium text-gray-600">{topic.subject}</span>
+                                <span className="text-gray-300">·</span>
+                                <span>
+                                  คะแนน{" "}
+                                  <span className="font-semibold text-gray-700">{topic.score}</span>
+                                  <span className="text-gray-400">/100</span>
                                 </span>
                               </div>
+                            </div>
 
-                              {/* AI advice integrated into weak topic card */}
-                              {aiAdvice && (
-                                <div className="mt-3 pt-2.5 border-t border-indigo-100/70 bg-indigo-50/50 -mx-4 -mb-3.5 p-3 rounded-b-xl space-y-1.5 animate-in fade-in duration-200">
-                                  <div className="flex items-center gap-1.5 text-[11px] font-medium text-indigo-700">
-                                    <Bot className="w-3.5 h-3.5" />
-                                    <span>คำแนะนำและเทคนิคการจำจาก AI:</span>
-                                  </div>
-                                  {aiAdvice.issue && (
-                                    <p className="text-xs text-gray-600 font-medium">
-                                      <span className="text-gray-400">จุดที่มักผิด:</span>{" "}
-                                      {typeof aiAdvice.issue === "string" ? aiAdvice.issue : JSON.stringify(aiAdvice.issue)}
-                                    </p>
-                                  )}
-                                  {(aiAdvice.recommendation || (aiAdvice as any).study_tip) && (
-                                    <p className="text-xs sm:text-sm text-gray-700 font-medium bg-white p-2 rounded-lg border border-indigo-100/60 shadow-2xs">
-                                      <span className="text-indigo-600">เทคนิค:</span>{" "}
-                                      {typeof (aiAdvice.recommendation || (aiAdvice as any).study_tip) === "string"
-                                        ? (aiAdvice.recommendation || (aiAdvice as any).study_tip)
-                                        : JSON.stringify(aiAdvice.recommendation || (aiAdvice as any).study_tip)}
-                                    </p>
-                                  )}
+                            {/* Right actions */}
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {/* Link button */}
+                              <a
+                                href={`https://www.google.com/search?q=${encodeURIComponent(
+                                  `${topic.subject} ${topic.topic} เภสัชกรรม แนวทาง`
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-7 h-7 rounded-lg flex items-center justify-center bg-white hover:bg-indigo-50 border border-gray-200 hover:border-indigo-300 text-gray-400 hover:text-indigo-600 transition"
+                                title="ค้นหาบทความทบทวน"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
 
-                                  {/* Link to study / further reading */}
-                                  <div className="pt-1">
-                                    {((aiAdvice as any)?.link || (aiAdvice as any)?.reference_url || (aiAdvice as any)?.references) ? (
-                                      <a
-                                        href={
-                                          typeof ((aiAdvice as any)?.link || (aiAdvice as any)?.reference_url || (aiAdvice as any)?.references) === "string"
-                                            ? ((aiAdvice as any)?.link || (aiAdvice as any)?.reference_url || (aiAdvice as any)?.references)
-                                            : "#"
-                                        }
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 text-xs text-indigo-600 hover:text-indigo-800 font-medium hover:underline transition"
-                                      >
-                                        <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
-                                        <span>อ่านเนื้อหาและแนวทางทบทวนเพิ่มเติม</span>
-                                        <ExternalLink className="w-3 h-3 text-indigo-400" />
-                                      </a>
-                                    ) : (
-                                      <a
-                                        href={`https://www.google.com/search?q=${encodeURIComponent(
-                                          `${topic.subject} ${topic.topic} แนวทางการรักษา เภสัชกรรม`
-                                        )}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-indigo-600 font-medium transition group"
-                                      >
-                                        <BookOpen className="w-3.5 h-3.5 text-gray-400 group-hover:text-indigo-500" />
-                                        <span>ค้นหาบทความวิชาการเกี่ยวกับ {topic.topic}</span>
-                                        <ExternalLink className="w-3 h-3 text-gray-400 group-hover:text-indigo-500" />
-                                      </a>
-                                    )}
-                                  </div>
-                                </div>
+                              {/* Expand toggle (only if AI advice exists) */}
+                              {hasDetail && (
+                                <button
+                                  type="button"
+                                  onClick={() => toggleWeakTopic(index)}
+                                  className={`w-7 h-7 rounded-lg flex items-center justify-center border transition ${
+                                    isExpanded
+                                      ? "bg-indigo-100 border-indigo-300 text-indigo-700"
+                                      : "bg-white border-gray-200 text-gray-400 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600"
+                                  }`}
+                                  title={isExpanded ? "ซ่อนเทคนิค AI" : "ดูเทคนิค AI"}
+                                >
+                                  {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
+                                </button>
                               )}
                             </div>
                           </div>
+
+                          {/* Expandable AI detail */}
+                          {hasDetail && isExpanded && (
+                            <div className="pl-4 pr-3 pb-3 border-t border-indigo-100/50 bg-indigo-50/40 space-y-2 pt-2.5">
+                              {aiAdvice.issue && (
+                                <p className="text-xs text-gray-600 leading-relaxed">
+                                  <span className="font-medium text-gray-500">จุดที่มักผิด: </span>
+                                  {typeof aiAdvice.issue === "string" ? aiAdvice.issue : JSON.stringify(aiAdvice.issue)}
+                                </p>
+                              )}
+                              {(aiAdvice.recommendation || (aiAdvice as any).study_tip) && (
+                                <div className="flex items-start gap-1.5 text-xs text-indigo-800 bg-white p-2.5 rounded-lg border border-indigo-100 shadow-2xs">
+                                  <Lightbulb className="w-3.5 h-3.5 text-indigo-500 shrink-0 mt-0.5" />
+                                  <p className="leading-relaxed font-medium">
+                                    {typeof (aiAdvice.recommendation || (aiAdvice as any).study_tip) === "string"
+                                      ? (aiAdvice.recommendation || (aiAdvice as any).study_tip)
+                                      : JSON.stringify(aiAdvice.recommendation || (aiAdvice as any).study_tip)}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -1255,6 +1352,201 @@ const PharmacistDashboard = () => {
                 className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition cursor-pointer shadow-sm"
               >
                 บันทึกและนำไปแสดงผล
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: แผนการอ่านหนังสือและการเตรียมสอบฉบับเต็ม (Action Plan Modal) ────── */}
+      {isActionPlanModalOpen && aiAnalysis?.action_plan && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-gray-200 flex flex-col max-h-[85vh]">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-gray-100 mb-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 shadow-2xs">
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    แผนการอ่านหนังสือและการเตรียมสอบรายบุคคล
+                  </h3>
+                  <p className="text-xs text-gray-500">
+                    วิเคราะห์และวางแผนแบบเจาะจงตามจุดอ่อนจากผลคะแนนสอบของคุณ
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsActionPlanModalOpen(false)}
+                className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="space-y-4 overflow-y-auto pr-1 flex-1 py-1">
+              {(() => {
+                const unwrap = (data: any): any => {
+                  if (typeof data === "string") {
+                    const trimmed = data.trim();
+                    if (
+                      (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+                      (trimmed.startsWith("[") && trimmed.endsWith("]"))
+                    ) {
+                      try {
+                        return unwrap(JSON.parse(trimmed));
+                      } catch {
+                        return data;
+                      }
+                    }
+                  }
+                  if (Array.isArray(data)) return data.map(unwrap);
+                  if (typeof data === "object" && data !== null) {
+                    const res: Record<string, any> = {};
+                    for (const [k, v] of Object.entries(data)) {
+                      res[k] = unwrap(v);
+                    }
+                    return res;
+                  }
+                  return data;
+                };
+
+                const plan = unwrap(aiAnalysis.action_plan);
+
+                if (typeof plan === "object" && plan !== null) {
+                  const schedule = Array.isArray(plan.schedule) ? plan.schedule : [];
+                  const strategies = Array.isArray(plan.general_strategies)
+                    ? plan.general_strategies
+                    : Array.isArray(plan.strategies)
+                    ? plan.strategies
+                    : [];
+
+                  return (
+                    <div className="space-y-5">
+                      {/* Full Timetable */}
+                      {schedule.length > 0 && (
+                        <div className="space-y-2.5">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-teal-800 pb-1 border-b border-teal-100">
+                            <Clock className="w-4 h-4 text-teal-600" />
+                            <span>ตารางอ่านหนังสือรายวัน (Daily Study Plan)</span>
+                          </div>
+                          <div className="space-y-2.5">
+                            {schedule.map((item: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="bg-gray-50/80 p-4 rounded-xl border border-gray-200/80 space-y-2"
+                              >
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-6 h-6 rounded-lg bg-teal-600 text-white text-xs font-semibold flex items-center justify-center">
+                                      {item.day ?? idx + 1}
+                                    </span>
+                                    <span className="font-semibold text-sm text-gray-800">
+                                      {item.focus_area || "ทบทวนเนื้อหา"}
+                                    </span>
+                                  </div>
+                                  {item.study_hours && (
+                                    <span className="text-xs font-medium text-teal-700 bg-teal-100/70 px-2.5 py-0.5 rounded-full border border-teal-200">
+                                      เป้าหมาย: {item.study_hours} ชั่วโมง
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-white p-3 rounded-lg border border-gray-100">
+                                  <p className="font-medium text-gray-800 mb-0.5">กิจกรรมและเนื้อหาที่ต้องเน้น:</p>
+                                  <p className="whitespace-pre-wrap">{item.activities || JSON.stringify(item)}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Full Strategies */}
+                      {strategies.length > 0 && (
+                        <div className="space-y-2.5">
+                          <div className="flex items-center gap-2 text-sm font-semibold text-indigo-900 pb-1 border-b border-indigo-100">
+                            <Lightbulb className="w-4 h-4 text-indigo-600" />
+                            <span>เทคนิคและกลยุทธ์การจำ (Key Strategies & Techniques)</span>
+                          </div>
+                          <div className="space-y-2">
+                            {strategies.map((strat: any, sIdx: number) => (
+                              <div
+                                key={sIdx}
+                                className="flex items-start gap-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100/70 text-xs sm:text-sm text-gray-700"
+                              >
+                                <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                                  {sIdx + 1}
+                                </span>
+                                <p className="leading-relaxed flex-1 font-medium">
+                                  {typeof strat === "string" ? strat : JSON.stringify(strat)}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Generic key values if not schedule */}
+                      {schedule.length === 0 && strategies.length === 0 && (
+                        <div className="space-y-3">
+                          {Object.entries(plan).map(([k, v], idx) => (
+                            <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-1.5">
+                              <span className="inline-block text-xs font-semibold px-2.5 py-0.5 rounded-md bg-teal-100 text-teal-800">
+                                {k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                              </span>
+                              <p className="text-xs sm:text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">
+                                {typeof v === "string" ? v : JSON.stringify(v, null, 2)}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+
+                if (Array.isArray(plan)) {
+                  return (
+                    <div className="space-y-2.5">
+                      {plan.map((step: any, sIdx: number) => {
+                        const stepText = typeof step === "string" ? step : JSON.stringify(step);
+                        return (
+                          <div
+                            key={sIdx}
+                            className="flex items-start gap-3 p-3.5 bg-gray-50 rounded-xl border border-gray-200 text-xs sm:text-sm text-gray-700"
+                          >
+                            <span className="w-6 h-6 rounded-full bg-teal-600 text-white font-semibold text-xs flex items-center justify-center shrink-0 mt-0.5">
+                              {sIdx + 1}
+                            </span>
+                            <p className="leading-relaxed flex-1 font-medium">{stepText}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                    <p className="text-xs sm:text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">
+                      {String(plan)}
+                    </p>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-4 mt-3 border-t border-gray-100 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setIsActionPlanModalOpen(false)}
+                className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-xl transition cursor-pointer shadow-sm"
+              >
+                ปิดหน้าต่าง
               </button>
             </div>
           </div>
