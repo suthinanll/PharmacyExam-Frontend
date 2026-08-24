@@ -36,11 +36,13 @@ interface UserItem {
   email: string;
   tel: string | null;
   bod: string | null;
-  role_id: number;
+  role_id?: number | null;
   role?: {
-    role_id: number;
-    name: string;
-  };
+    role_id?: number;
+    role_name?: string;
+    name?: string;
+  } | null;
+  university_id?: number | null;
   university?: {
     university_id: number;
     name: string;
@@ -51,6 +53,14 @@ interface UserItem {
   created_at: string;
   updated_at: string;
 }
+
+export const getUserRoleId = (u: UserItem): number => {
+  if (typeof u.role_id === "number" && !isNaN(u.role_id)) return Number(u.role_id);
+  if (u.role && typeof u.role.role_id === "number") return Number(u.role.role_id);
+  const rName = (u.role?.role_name || u.role?.name || "").toLowerCase();
+  if (rName.includes("admin")) return 2;
+  return 1;
+};
 
 interface UniversityItem {
   university_id: number;
@@ -218,10 +228,11 @@ export default function ManageUsersPage() {
         tel.includes(q) ||
         uni.includes(q);
 
+      const uRole = getUserRoleId(u);
       const matchesRole =
         selectedRole === "all" ||
-        (selectedRole === "2" && u.role_id === 2) ||
-        (selectedRole === "1" && u.role_id === 1);
+        (selectedRole === "2" && uRole === 2) ||
+        (selectedRole === "1" && uRole === 1);
 
       const matchesProvider =
         selectedProvider === "all" || u.provider === selectedProvider;
@@ -236,8 +247,8 @@ export default function ManageUsersPage() {
   // Statistics
   const stats = useMemo(() => {
     const total = users.length;
-    const admins = users.filter((u) => u.role_id === 2).length;
-    const students = users.filter((u) => u.role_id === 1).length;
+    const admins = users.filter((u) => getUserRoleId(u) === 2).length;
+    const students = users.filter((u) => getUserRoleId(u) === 1).length;
     const googleUsers = users.filter((u) => u.provider === "google").length;
     return { total, admins, students, googleUsers };
   }, [users]);
@@ -607,7 +618,7 @@ export default function ManageUsersPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-xs">
                   {paginatedUsers.map((item) => {
-                    const isAdmin = item.role_id === 2;
+                    const isAdmin = getUserRoleId(item) === 2;
                     const isGoogle = item.provider === "google";
                     const initial = (item.first_name?.[0] || item.email?.[0] || "U").toUpperCase();
 
@@ -663,7 +674,7 @@ export default function ManageUsersPage() {
                                 {item.university.name}
                               </span>
                             </div>
-                          ) : item.role_id === 2 ? (
+                          ) : isAdmin ? (
                             <span className="text-gray-400 text-xs italic">ส่วนกลาง / ระบบ</span>
                           ) : (
                             <span className="text-gray-400 italic text-xs">- ไม่ได้ระบุ -</span>
