@@ -102,7 +102,8 @@ function ResetPasswordContent() {
                 });
                 router.push("/login");
             } else {
-                throw new Error(data.message || "ลิงก์หมดอายุหรือผิดพลาด");
+                const errorMsg = Array.isArray(data.message) ? data.message[0] : data.message;
+                throw new Error(errorMsg || "ลิงก์หมดอายุหรือไม่ถูกต้อง");
             }
         } catch (err: any) {
             Swal.fire({
