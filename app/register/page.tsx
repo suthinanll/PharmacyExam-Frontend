@@ -33,6 +33,33 @@ export default function RegisterPage() {
   const [isSendingOTP, setIsSendingOTP] = useState(false);
   const [otpCooldown, setOtpCooldown] = useState(0);
 
+  // Phone Validation State
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+
+  // ตรวจสอบความถูกต้องของเบอร์โทรศัพท์ (Real-time)
+  const validatePhone = (phoneValue: string): string | null => {
+    if (!phoneValue) return null;
+    if (!phoneValue.startsWith("0")) {
+      return "เบอร์โทรศัพท์ต้องขึ้นต้นด้วยเลข 0";
+    }
+    if (phoneValue.length < 10) {
+      return `กรุณากรอกให้ครบ 10 หลัก (${phoneValue.length}/10)`;
+    }
+    if (/^(\d)\1{9}$/.test(phoneValue)) {
+      return "รูปแบบเบอร์ไม่ถูกต้อง (ไม่สามารถใช้ตัวเลขซ้ำกันทั้งหมดได้)";
+    }
+    if (!/^0[23456789][0-9]{8}$/.test(phoneValue)) {
+      return "กรุณากรอกเบอร์โทรศัพท์ที่ถูกต้อง (เช่น 0812345678)";
+    }
+    return null;
+  };
+
+  const handleTelChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, "").slice(0, 10);
+    setTel(val);
+    setPhoneError(validatePhone(val));
+  };
+
   // Password Strength States
   const [passwordStrength, setPasswordStrength] = useState({
     minLength: false,
@@ -128,15 +155,11 @@ export default function RegisterPage() {
       return;
     }
 
-    // เช็คเบอร์โทรศัพท์ไทย 10 หลัก
+    // เช็คเบอร์โทรศัพท์
     const cleanTel = tel.replace(/[-\s]/g, "");
-    if (!/^0[0-9]{9}$/.test(cleanTel)) {
-      Swal.fire({
-        icon: "warning",
-        title: "เบอร์โทรศัพท์ไม่ถูกต้อง",
-        text: "กรุณากรอกเบอร์โทรศัพท์มือถือให้ครบ 10 หลัก (เช่น 0812345678)",
-        confirmButtonColor: "#16a34a",
-      });
+    const phoneErr = validatePhone(cleanTel);
+    if (phoneErr) {
+      setPhoneError(phoneErr);
       return;
     }
 
@@ -346,17 +369,28 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                    เบอร์โทรศัพท์
+                  <label className="text-sm font-medium text-gray-700 flex items-center justify-between">
+                    <span>เบอร์โทรศัพท์ (10 หลัก)</span>
+                    <span className="text-xs text-gray-400 font-normal">{tel.length}/10</span>
                   </label>
                   <input
                     type="tel"
-                    className="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm"
+                    maxLength={10}
+                    className={`w-full border rounded-2xl px-4 py-3 outline-none transition-all shadow-sm ${
+                      phoneError
+                        ? "border-red-300 ring-2 ring-red-50 focus:border-red-500"
+                        : "border-gray-200 focus:ring-4 focus:ring-green-100 focus:border-green-500"
+                    }`}
                     placeholder="08xxxxxxxx"
                     value={tel}
-                    onChange={(e) => setTel(e.target.value)}
+                    onChange={handleTelChange}
                     required
                   />
+                  {phoneError && (
+                    <p className="text-xs text-red-500 font-medium mt-1">
+                      {phoneError}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">
