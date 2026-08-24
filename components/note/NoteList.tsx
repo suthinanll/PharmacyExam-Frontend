@@ -16,21 +16,56 @@ export interface UserNote {
   createdAt: number;
 }
 
+function NoteSkeleton() {
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 animate-pulse space-y-3">
+      {/* Header: Title & Action Buttons skeleton */}
+      <div className="flex justify-between items-start gap-2">
+        <div className="h-5 bg-gray-200 rounded-md w-3/5"></div>
+        <div className="flex gap-1.5 flex-shrink-0">
+          <div className="w-7 h-7 bg-gray-100 rounded-lg"></div>
+          <div className="w-7 h-7 bg-gray-100 rounded-lg"></div>
+        </div>
+      </div>
+
+      {/* Content skeleton lines */}
+      <div className="space-y-2 py-1">
+        <div className="h-3.5 bg-gray-100 rounded w-full"></div>
+        <div className="h-3.5 bg-gray-100 rounded w-4/5"></div>
+      </div>
+
+      {/* Attached link/file placeholder */}
+      <div className="h-6 bg-gray-50 rounded-lg w-2/3"></div>
+
+      {/* Footer: Tags & Date */}
+      <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+        <div className="flex gap-1.5">
+          <div className="h-5 bg-gray-100 rounded-md w-14"></div>
+          <div className="h-5 bg-gray-100 rounded-md w-12"></div>
+        </div>
+        <div className="h-3.5 bg-gray-100 rounded w-16"></div>
+      </div>
+    </div>
+  );
+}
+
 export default function NoteList({
   notes,
-  onSaveNote,
-  onUpdateNote,
-  onDeleteNote,
+  isLoading = false,
+  onSaveNoteAction,
+  onUpdateNoteAction,
+  onDeleteNoteAction,
   tagFilter,
-  setTagFilter,
+  setTagFilterAction,
 }: {
   notes: UserNote[];
-  onSaveNote: (note: UserNote, files?: File[]) => void;
+  isLoading?: boolean;
+    onSaveNoteAction: (note: UserNote, files?: File[]) => void;
   // เพิ่ม deletedFiles พารามิเตอร์ที่ 3 เพื่อรองรับการลบไฟล์จาก Modal
-  onUpdateNote: (note: UserNote, files?: File[], deletedFiles?: string[]) => void;
-  onDeleteNote: (id: string) => void;
+    onUpdateNoteAction: (note: UserNote, files?: File[], deletedFiles?: string[]) => void;
+    onDeleteNoteAction: (id: string) => void;
   tagFilter: string;
-  setTagFilter: (val: string) => void;
+    setTagFilterAction: (val: string) => void;
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<UserNote | null>(null);
@@ -107,13 +142,13 @@ export default function NoteList({
         <Search className="w-5 h-5 text-gray-400 absolute left-3" />
         <input
           value={tagFilter || ""} 
-          onChange={(e) => setTagFilter(e.target.value)}
+          onChange={(e) => setTagFilterAction(e.target.value)}
           placeholder="ค้นหาด้วยหัวข้อ, Tags หรือเนื้อหา..."
           className="w-full p-2.5 pl-10 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-all"
         />
         {tagFilter && (
           <button
-            onClick={() => setTagFilter("")}
+            onClick={() => setTagFilterAction("")}
             className="absolute right-3 p-1 text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X className="w-4 h-4" />
@@ -124,7 +159,7 @@ export default function NoteList({
       {/* Add Button */}
       <div className="mb-4">
         <AddNoteButton
-          onClick={() => {
+          onClickAction={() => {
             setEditingNote(null);
             setIsModalOpen(true);
           }}
@@ -133,17 +168,22 @@ export default function NoteList({
 
       {/* Note List Container */}
       <div className="space-y-4">
-        {paginatedNotes.length > 0 ? (
+        {isLoading ? (
+          <>
+            <NoteSkeleton />
+            <NoteSkeleton />
+          </>
+        ) : paginatedNotes.length > 0 ? (
           paginatedNotes.map((note) => (
             <NoteItem
               key={note.id}
               note={note}
-              onEdit={(n) => {
+              onEditAction={(n) => {
                 setEditingNote(n);
                 setIsModalOpen(true);
               }}
-              onDelete={onDeleteNote}
-              setTagFilter={setTagFilter}
+              onDeleteAction={onDeleteNoteAction}
+              setTagFilterAction={setTagFilterAction}
             />
           ))
         ) : (
@@ -155,14 +195,16 @@ export default function NoteList({
         )}
       </div>
 
-      {/* Pagination (จะแสดงอัตโนมัติเมื่อมีมากกว่า 2 รายการ ออกแบบพิเศษสำหรับความกว้างการ์ด) */}
-      <NotePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={filteredNotes.length}
-        perPage={ITEMS_PER_PAGE}
-        onPageChange={setCurrentPage}
-      />
+      {/* Pagination (จะแสดงอัตโนมัติเมื่อมีมากกว่า 2 รายการ และโหลดเสร็จแล้ว) */}
+      {!isLoading && (
+        <NotePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredNotes.length}
+          perPage={ITEMS_PER_PAGE}
+          onPageChange={setCurrentPage}
+        />
+      )}
 
       {/* Modal สำหรับ Create/Update */}
       {isModalOpen && (
@@ -171,15 +213,15 @@ export default function NoteList({
           // ปรับพารามิเตอร์ onSave ให้สอดคล้องกับ NoteModal ที่ส่ง deletedFiles กลับมา
           onSave={(noteData: UserNote, files?: File[], deletedFiles?: string[]) => {
             if (editingNote) {
-              onUpdateNote(noteData, files, deletedFiles);
+              onUpdateNoteAction(noteData, files, deletedFiles);
             } else {
-              onSaveNote(noteData, files);
+              onSaveNoteAction(noteData, files);
             }
             setIsModalOpen(false);
           }}
           onClose={() => setIsModalOpen(false)}
           onDelete={(id) => {
-            onDeleteNote(id);
+            onDeleteNoteAction(id);
             setIsModalOpen(false);
           }}
           existingTags={existingTags}

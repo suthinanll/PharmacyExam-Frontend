@@ -23,6 +23,7 @@ import {
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import {
   LineChart,
   Line,
@@ -81,7 +82,9 @@ type CatExam = {
 type ChartPoint = {
   date: string;
   theta: number;
-  examName: string;
+  score?: number | null;
+  examName?: string;
+  name?: string;
   type: "CAT" | "Classical";
 };
 
@@ -240,6 +243,14 @@ export default function StudentTrackingPage() {
     loadProgress(selectedStudentId);
   }, [loadProgress, selectedStudentId]);
 
+  const tabChartData = useMemo(() => {
+    if (!activeData?.chart) return [];
+    if (activeTab === "CAT") {
+      return activeData.chart.filter((item) => item.type === "CAT");
+    }
+    return activeData.chart.filter((item) => item.type === "Classical");
+  }, [activeData?.chart, activeTab]);
+
   const calculateThetaProgress = (theta: number) => {
     const clamped = Math.max(-3, Math.min(3, theta));
     return ((clamped + 3) / 6) * 100;
@@ -298,11 +309,11 @@ export default function StudentTrackingPage() {
             <div className="space-y-3 pb-3 border-b border-gray-100">
               {/* Alphabet filter */}
               <div>
-                <label className="text-xs font-medium text-gray-400  mb-2 block">ตัวอักษร</label>
+                <label className="text-sm font-medium text-gray-400  mb-2 block">ตัวอักษร</label>
                 <div className="flex gap-1 flex-wrap">
                   <button
                     onClick={() => { setAlphabetFilter("all"); setPage(1); }}
-                    className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${alphabetFilter === "all"
+                    className={`px-2 py-1 text-sm font-medium rounded-lg transition-all cursor-pointer ${alphabetFilter === "all"
                       ? "bg-green-600 text-white"
                       : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                       }`}
@@ -313,7 +324,7 @@ export default function StudentTrackingPage() {
                     <button
                       key={range}
                       onClick={() => { setAlphabetFilter(range); setPage(1); }}
-                      className={`px-2 py-1 text-xs font-medium rounded-lg transition-all ${alphabetFilter === range
+                      className={`px-2 py-1 text-sm font-medium rounded-lg transition-all cursor-pointer ${alphabetFilter === range
                         ? "bg-green-600 text-white"
                         : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                         }`}
@@ -326,7 +337,7 @@ export default function StudentTrackingPage() {
 
               {/* Date filter */}
               <div>
-                <label className="text-xs font-medium text-gray-400  mb-2 block">ทำข้อสอบล่าสุด</label>
+                <label className="text-sm font-medium text-gray-400  mb-2 block">ทำข้อสอบล่าสุด</label>
                 <div className="flex gap-2">
                   {[
                     { value: "all", label: "ทั้งหมด" },
@@ -337,7 +348,7 @@ export default function StudentTrackingPage() {
                     <button
                       key={opt.value}
                       onClick={() => { setDateFilter(opt.value as typeof dateFilter); setPage(1); }}
-                      className={`flex-1 py-1.5 px-2 text-xs font-medium rounded-lg transition-all ${dateFilter === opt.value
+                      className={`flex-1 py-1.5 px-2 text-sm font-medium rounded-lg transition-all cursor-pointer ${dateFilter === opt.value
                         ? "bg-green-600 text-white"
                         : "bg-gray-50 text-gray-600 hover:bg-gray-100"
                         }`}
@@ -351,21 +362,13 @@ export default function StudentTrackingPage() {
 
             {/* กล่องรายชื่อนักเรียนแบบเลื่อนได้ */}
             <div className="space-y-2 h-[320px] sm:h-[450px] lg:h-[480px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
-              <p className="text-xs font-medium text-gray-400  px-1 sticky top-0 bg-white pb-2 z-10">
+              <p className="text-sm font-medium text-gray-400  px-1 sticky top-0 bg-white pb-2 z-10">
                 รายชื่อนักเรียน ({meta.totalItems})
               </p>
 
               {isStudentsLoading ? (
-                <div className="py-4 space-y-2">
-                  {[1, 2, 3, 4, 5, 6].map((i) => (
-                    <div key={i} className="flex items-center gap-3 px-3 py-3">
-                      <div className="w-9 h-9 rounded-full bg-gray-200 animate-pulse" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-3.5 w-2/3 animate-pulse rounded bg-gray-200" />
-                        <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
-                      </div>
-                    </div>
-                  ))}
+                <div className="py-12 flex flex-col items-center justify-center">
+                  <LoadingSpinner size="md" text="กำลังโหลดรายชื่อนักเรียน..." />
                 </div>
               ) : students.length === 0 ? (
                 <p className="text-sm text-gray-400 text-center py-8">ไม่พบรายชื่อดังกล่าว</p>
@@ -391,7 +394,7 @@ export default function StudentTrackingPage() {
                       </div>
                       <div className="min-w-0">
                         <h4 className="text-sm font-medium text-gray-800 truncate">{student.name}</h4>
-                        <p className="text-xs text-gray-400 truncate">{student.email}</p>
+                        <p className="text-sm text-gray-400 truncate">{student.email}</p>
                       </div>
                     </div>
                     <ChevronRight
@@ -425,58 +428,78 @@ export default function StudentTrackingPage() {
             {selectedStudent && activeData ? (
               <div className="relative space-y-4 sm:space-y-6">
                 {isProgressLoading && (
-                  <div className="absolute inset-0 z-20 bg-white/70 backdrop-blur-[1px] rounded-2xl flex items-start justify-center pt-16">
-                    <div className="w-full max-w-2xl mx-4 space-y-4">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="bg-white border border-gray-100 shadow-sm rounded-2xl p-5 space-y-3">
-                          <div className="h-4 w-1/2 animate-pulse rounded bg-gray-200" />
-                          <div className="h-3 w-full animate-pulse rounded bg-gray-100" />
-                          <div className="h-3 w-2/3 animate-pulse rounded bg-gray-100" />
-                        </div>
-                      ))}
-                    </div>
+                  <div className="absolute inset-0 z-20 bg-white/80 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                    <LoadingSpinner size="lg" text="กำลังโหลดผลการเรียน..." />
                   </div>
                 )}
 
                 {/* แผงข้อมูลสถิติภาพรวม (สลับเป็น grid-cols-1 บนโมบายล์เพื่อไม่ให้บีบอัด) */}
                 <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="pb-3 sm:pb-0 border-b sm:border-b-0 border-gray-100">
-                    <p className="text-xs font-semibold text-gray-400">ผู้เรียนปัจจุบัน</p>
+                    <p className="text-sm font-medium text-gray-400">ผู้เรียนปัจจุบัน</p>
                     <h3 className="text-base sm:text-lg font-black text-gray-800 mt-1 truncate">
                       {selectedStudent.name}
                     </h3>
-                    <p className="text-xs text-gray-500 truncate">{selectedStudent.email}</p>
+                    <p className="text-sm text-gray-500 truncate">{selectedStudent.email}</p>
                   </div>
                   <div className="flex flex-col justify-center pb-3 sm:pb-0 border-b sm:border-b-0 sm:border-l sm:pl-4 border-gray-100">
-                    <p className="text-xs font-semibold text-gray-400 flex items-center gap-1">
-                      <Award className="w-3.5 h-3.5 text-amber-500" /> ระดับความสามารถ CAT ($\theta$)
+                    <p className="text-sm font-medium text-gray-400 flex items-center gap-1">
+                      <Award className="w-3.5 h-3.5 text-amber-500" /> ระดับความสามารถ CAT (θ)
                     </p>
                     <h3 className={`text-xl sm:text-2xl font-black mt-1 ${activeData.currentTheta >= 0 ? "text-green-600" : "text-rose-600"}`}>
                       {activeData.currentTheta > 0 ? `+${activeData.currentTheta}` : activeData.currentTheta}
                     </h3>
                   </div>
                   <div className="flex flex-col justify-center sm:border-l sm:pl-4 border-gray-100">
-                    <p className="text-xs font-semibold text-gray-400 flex items-center gap-1">
+                    <p className="text-sm font-medium text-gray-400 flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-indigo-500" /> ประวัติทดสอบรวม
                     </p>
                     <h3 className="text-xl sm:text-2xl font-black text-gray-800 mt-1">
-                      {activeData.totalExams} <span className="text-xs font-normal text-gray-500">ครั้ง</span>
+                      {activeData.totalExams} <span className="text-sm font-normal text-gray-500">ครั้ง</span>
                     </h3>
                   </div>
                 </div>
 
-                {/* ไทม์ไลน์พัฒนาการในรูปแบบกราฟเส้น */}
+                {/* แท็บสลับประเภทบาร์คะแนนสอบและไทม์ไลน์ */}
+                <div className="bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm flex flex-row gap-1">
+                  <button
+                    onClick={() => setActiveTab("CAT")}
+                    className={`flex-1 py-2.5 px-2 text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer
+                      ${activeTab === "CAT" ? "bg-green-600 text-white shadow-md shadow-green-600/10" : "text-gray-500 hover:bg-gray-50"}`}
+                  >
+                    <Layers className="w-4 h-4 shrink-0" />
+                    <span className="truncate">ประเมินความสามารถ (CAT)</span>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("NORMAL")}
+                    className={`flex-1 py-2.5 px-2 text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer
+                      ${activeTab === "NORMAL" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10" : "text-gray-500 hover:bg-gray-50"}`}
+                  >
+                    <CheckCircle className="w-4 h-4 shrink-0" />
+                    <span className="truncate">เก็บคะแนนปกติ (Classical)</span>
+                  </button>
+                </div>
+
+                {/* ไทม์ไลน์พัฒนาการในรูปแบบกราฟเส้น (แยกตามแท็บ CAT / Classical) */}
                 <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="p-1.5 bg-green-50 text-green-600 rounded-lg">
-                      <TrendingUp className="w-4 h-4" />
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-lg ${activeTab === "CAT" ? "bg-green-50 text-green-600" : "bg-indigo-50 text-indigo-600"}`}>
+                        {activeTab === "CAT" ? <Layers className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
+                      </div>
+                      <h3 className="text-sm font-medium text-gray-800">
+                        {activeTab === "CAT" ? "ไทม์ไลน์การเติบโตระดับความสามารถ CAT (θ)" : "ไทม์ไลน์พัฒนาการการสอบปกติ (Classical)"}
+                      </h3>
                     </div>
-                    <h3 className="text-xs sm:text-sm font-medium text-gray-800">ไทม์ไลน์การเติบโตระดับความเข้าใจ (IRT Theta)</h3>
+                    {tabChartData.length > 0 && (
+                      <span className="text-xs text-gray-400">ประวัติสอบ {tabChartData.length} ครั้ง</span>
+                    )}
                   </div>
+
                   <div className="h-56 sm:h-64 w-full">
-                    {activeData.chart.length > 0 ? (
+                    {tabChartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={activeData.chart} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                        <LineChart data={tabChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#f5f5f5" />
                           <XAxis
                             dataKey="date"
@@ -492,16 +515,27 @@ export default function StudentTrackingPage() {
                               if (active && payload && payload.length) {
                                 const data = payload[0].payload;
                                 return (
-                                  <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-lg">
-                                    <p className="text-xs font-medium text-gray-800 mb-1">{data.examName}</p>
-                                    <p className="text-xs text-gray-500 mb-1">{data.date}</p>
-                                    <p className="text-xs">
-                                      <span className={`font-medium ${data.type === "CAT" ? "text-blue-600" : "text-green-600"}`}>
-                                        {data.type}
-                                      </span>
-                                      {" • Theta: "}
-                                      <span className="font-medium">{data.theta.toFixed(2)}</span>
-                                    </p>
+                                  <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-lg text-sm">
+                                    <p className="font-medium text-gray-800 mb-1">{data.examName || data.name}</p>
+                                    <p className="text-xs text-gray-500 mb-1.5">{data.date}</p>
+                                    <div className="text-sm flex items-center gap-1.5">
+                                      <span className={`inline-block w-2 h-2 rounded-full ${activeTab === "CAT" ? "bg-green-600" : "bg-indigo-600"}`} />
+                                      {activeTab === "CAT" ? (
+                                        <>
+                                          <span className="text-gray-600">ระดับความสามารถ (θ):</span>
+                                          <span className="font-medium text-green-700">
+                                            {data.theta > 0 ? `+${data.theta.toFixed(2)}` : data.theta.toFixed(2)}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <span className="text-gray-600">คะแนน:</span>
+                                          <span className="font-medium text-indigo-700">
+                                            {data.score !== undefined && data.score !== null ? `${Number(data.score).toFixed(2)} คะแนน` : `ไม่มีคะแนนสอบ`}
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
                                   </div>
                                 );
                               }
@@ -512,72 +546,41 @@ export default function StudentTrackingPage() {
                           <Line
                             type="monotone"
                             dataKey="theta"
-                            stroke="#3B82F6"
+                            stroke={activeTab === "CAT" ? "#16a34a" : "#4f46e5"}
                             strokeWidth={2.5}
-                            dot={(props: any) => {
-                              const { cx, cy, payload, index } = props;
-                              const color = payload.type === "CAT" ? "#3B82F6" : "#10B981";
-                              return (
-                                <circle
-                                  key={`dot-${index}-${payload.date}`}
-                                  cx={cx}
-                                  cy={cy}
-                                  r={4}
-                                  fill={color}
-                                  stroke="#fff"
-                                  strokeWidth={2}
-                                />
-                              );
+                            dot={{
+                              r: 4,
+                              fill: activeTab === "CAT" ? "#16a34a" : "#4f46e5",
+                              stroke: "#fff",
+                              strokeWidth: 2,
                             }}
-                            name="Theta"
+                            name={activeTab === "CAT" ? "Theta (CAT)" : "Theta (Classical)"}
                           />
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-xs text-gray-400">
-                        ยังไม่มีประวัติ Theta จากการสอบ
+                      <div className="h-full flex items-center justify-center text-sm text-gray-400">
+                        {activeTab === "CAT" ? "ยังไม่มีประวัติการสอบ CAT ของผู้เรียนรายนี้" : "ยังไม่มีประวัติการสอบปกติของผู้เรียนรายนี้"}
                       </div>
                     )}
                   </div>
 
                   {/* Legend */}
-                  {activeData.chart.length > 0 && (
+                  {tabChartData.length > 0 && (
                     <div className="flex items-center justify-center gap-4 mt-4 pt-3 border-t border-gray-100">
                       <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-                        <span className="text-xs text-gray-600">CAT</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full bg-green-600"></div>
-                        <span className="text-xs text-gray-600">Classical</span>
+                        <div className={`w-3 h-3 rounded-full ${activeTab === "CAT" ? "bg-green-600" : "bg-indigo-600"}`}></div>
+                        <span className="text-sm text-gray-600">
+                          {activeTab === "CAT" ? "ระดับความสามารถ CAT (θ)" : "พัฒนาการคะแนนสอบปกติ (Classical)"}
+                        </span>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* แท็บสลับประเภทบาร์คะแนนสอบ */}
-                <div className="bg-white p-1.5 rounded-2xl border border-gray-100 shadow-sm flex flex-row gap-1">
-                  <button
-                    onClick={() => setActiveTab("CAT")}
-                    className={`flex-1 py-2.5 px-2 text-xs sm:text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-1.5
-                      ${activeTab === "CAT" ? "bg-green-600 text-white shadow-md shadow-green-600/10" : "text-gray-500 hover:bg-gray-50"}`}
-                  >
-                    <Layers className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">ประเมินความสามารถ (CAT)</span>
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("NORMAL")}
-                    className={`flex-1 py-2.5 px-2 text-xs sm:text-sm font-medium rounded-xl transition-all flex items-center justify-center gap-1.5
-                      ${activeTab === "NORMAL" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/10" : "text-gray-500 hover:bg-gray-50"}`}
-                  >
-                    <CheckCircle className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">เก็บคะแนนปกติ (Classical)</span>
-                  </button>
-                </div>
-
                 {/* ส่วนแสดงผล Score Bar ควบคุมความสูงพร้อมแถบเลื่อนแนวตั้ง */}
                 <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col max-h-[480px]">
-                  <h3 className="text-xs sm:text-sm font-medium text-gray-800 border-b border-gray-100 pb-3 mb-4 shrink-0">
+                  <h3 className="text-sm font-medium text-gray-800 border-b border-gray-100 pb-3 mb-4 shrink-0">
                     ดัชนีคะแนนสอบ {activeTab === "CAT" ? "แบบปรับเหมาะไออาร์ที (CAT)" : "แบบเกณฑ์คงที่ปกติ"}
                   </h3>
 
@@ -586,7 +589,7 @@ export default function StudentTrackingPage() {
                     {/* ─── เรนเดอร์ฝั่ง CAT Mode ─── */}
                     {activeTab === "CAT" && (
                       activeData.catExams.length === 0 ? (
-                        <p className="text-xs text-gray-400 text-center py-8">ไม่มีประวัติสอบ CAT ของผู้เรียนรายนี้</p>
+                        <p className="text-sm text-gray-400 text-center py-8">ไม่มีประวัติสอบ CAT ของผู้เรียนรายนี้</p>
                       ) : (
                         activeData.catExams.map((exam, index) => {
                           const isExpanded = expandedCatExam === exam.id;
@@ -600,7 +603,7 @@ export default function StudentTrackingPage() {
 
                               {/* Header with expand button */}
                               <div
-                                className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 text-xs cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2"
+                                className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1.5 text-sm cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2"
                                 onClick={() => setExpandedCatExam(isExpanded ? null : exam.id)}
                               >
                                 <span className="font-medium text-gray-800 break-words flex items-center gap-2">
@@ -610,71 +613,75 @@ export default function StudentTrackingPage() {
                                     className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                                   />
                                 </span>
-                                <span className={`font-black px-2 py-0.5 rounded-md text-xs self-start sm:self-auto whitespace-nowrap ${getStatusColor(exam.status)}`}>
+                                <span className={`font-medium px-2 py-0.5 rounded-md text-sm self-start sm:self-auto whitespace-nowrap mb-2 ${getStatusColor(exam.status)}`}>
                                   Theta: {exam.theta > 0 ? `+${exam.theta.toFixed(2)}` : exam.theta.toFixed(2)} ({exam.status})
                                 </span>
                               </div>
 
                               {/* Progress bar */}
-                              <div className="relative w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-                                <div className="absolute inset-0 flex">
-                                  <div className="w-1/3 h-full bg-red-400/10 border-r border-dashed border-gray-200" />
-                                  <div className="w-1/3 h-full bg-amber-400/10 border-r border-dashed border-gray-200" />
-                                  <div className="w-1/3 h-full bg-green-400/10" />
-                                </div>
+                              <div className="relative w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
                                 <div
-                                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-amber-500 to-green-500 rounded-full transition-all duration-500"
+                                  className="h-full bg-green-600 rounded-full transition-all duration-500"
                                   style={{ width: `${calculateThetaProgress(exam.theta)}%` }}
                                 />
-                                <div
-                                  className="absolute top-1/2 h-5 w-1.5 -translate-y-1/2 rounded-full bg-gray-900 shadow-sm transition-all duration-500"
-                                  style={{ left: `calc(${calculateThetaProgress(exam.theta)}% - 3px)` }}
-                                />
                               </div>
-                              <div className="flex justify-between text-xs text-gray-400 font-medium px-0.5">
+                              <div className="flex justify-between text-sm text-gray-400 font-medium">
                                 <span>ต้องปรับปรุง (&lt; -1.0)</span>
                                 <span>ปานกลาง</span>
                                 <span>ระดับสูง (&gt; 1.0)</span>
                               </div>
-                              <p className="text-xs text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
+                              <p className="text-sm text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
 
                               {/* Expanded responses */}
                               {isExpanded && exam.responses && exam.responses.length > 0 && (
                                 <div className="mt-3 bg-gray-50 rounded-xl p-3 border border-gray-200">
-                                  <h4 className="text-xs font-medium text-gray-700 mb-3 flex items-center gap-2">
-                                    <Target className="w-3.5 h-3.5" />
+                                  <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                                    <Target className="w-3.5 h-3.5 text-green-600" />
                                     การพัฒนา Theta แต่ละข้อ
                                   </h4>
                                   <div className="space-y-2 max-h-64 overflow-y-auto">
-                                    {exam.responses.map((resp, idx) => (
-                                      <div
-                                        key={idx}
-                                        className="flex items-center gap-2 bg-white rounded-lg p-2 border border-gray-100 text-xs"
-                                      >
-                                        <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 font-medium">
-                                          {resp.questionNumber}
-                                        </div>
+                                    {exam.responses.map((resp: any, idx: number) => {
+                                      const qNum = resp.questionNumber ?? resp.item_number ?? resp.question_number ?? (idx + 1);
+                                      const isCorr = resp.isCorrect ?? resp.is_correct ?? false;
+                                      const thetaVal = typeof resp.thetaAfter === 'number'
+                                        ? resp.thetaAfter
+                                        : typeof resp.theta_after === 'number'
+                                          ? resp.theta_after
+                                          : 0;
+                                      const timeVal = resp.timeSpent ?? (resp.responseTime ? Math.round(resp.responseTime / 1000) : resp.response_time_ms ? Math.round(resp.response_time_ms / 1000) : 0);
+
+                                      return (
                                         <div
-                                          className={`flex items-center justify-center w-6 h-6 rounded-full ${resp.isCorrect
-                                            ? "bg-green-100 text-green-600"
-                                            : "bg-red-100 text-red-600"
-                                            }`}
+                                          key={idx}
+                                          className="flex items-center gap-2 bg-white rounded-lg p-2 border border-gray-100 text-sm"
                                         >
-                                          {resp.isCorrect ? (
-                                            <CheckCircle className="w-3 h-3" />
-                                          ) : (
-                                            <XCircle className="w-3 h-3" />
+                                          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-gray-700 font-medium text-xs">
+                                            {qNum}
+                                          </div>
+                                          <div
+                                            className={`flex items-center justify-center w-6 h-6 rounded-full ${isCorr
+                                              ? "bg-green-100 text-green-600"
+                                              : "bg-red-100 text-red-600"
+                                              }`}
+                                          >
+                                            {isCorr ? (
+                                              <CheckCircle className="w-3.5 h-3.5" />
+                                            ) : (
+                                              <XCircle className="w-3.5 h-3.5" />
+                                            )}
+                                          </div>
+                                          <div className="flex-1">
+                                            <span className="font-medium text-gray-700">θ = {thetaVal.toFixed(2)}</span>
+                                          </div>
+                                          {timeVal > 0 && (
+                                            <div className="flex items-center gap-1 text-gray-500 text-xs">
+                                              <Clock className="w-3 h-3" />
+                                              {timeVal}s
+                                            </div>
                                           )}
                                         </div>
-                                        <div className="flex-1">
-                                          <span className="font-medium text-gray-700">θ = {resp.thetaAfter.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex items-center gap-1 text-gray-500">
-                                          <Clock className="w-3 h-3" />
-                                          {resp.timeSpent}s
-                                        </div>
-                                      </div>
-                                    ))}
+                                      );
+                                    })}
                                   </div>
                                 </div>
                               )}
@@ -687,12 +694,12 @@ export default function StudentTrackingPage() {
                     {/* ─── เรนเดอร์ฝั่ง Classical Mode (สอบปกติ) ─── */}
                     {activeTab === "NORMAL" && (
                       activeData.normalExams.length === 0 ? (
-                        <p className="text-xs text-gray-400 text-center py-8">ไม่มีประวัติสอบปกติของผู้เรียนรายนี้</p>
+                        <p className="text-sm text-gray-400 text-center py-8">ไม่มีประวัติสอบปกติของผู้เรียนรายนี้</p>
                       ) : (
                         activeData.normalExams.map((exam, index) => (
                           <div key={exam.id} className="space-y-2">
                             {index > 0 && <hr className="border-gray-100/70 my-2" />}
-                            <div className="flex justify-between items-start gap-2 text-xs">
+                            <div className="flex justify-between items-start gap-2 text-sm">
                               <span className="font-medium text-gray-800 break-words">
                                 {exam.name}{" "}
                                 {exam.totalQuestions > 0 && (
@@ -702,7 +709,7 @@ export default function StudentTrackingPage() {
                                 )}
                               </span>
                               <span className="font-black text-indigo-600 text-right whitespace-nowrap shrink-0">
-                                {exam.score} / {exam.total} คะแนน
+                                {Number(exam.score).toFixed(2)} / {exam.total} คะแนน
                               </span>
                             </div>
                             <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -711,7 +718,7 @@ export default function StudentTrackingPage() {
                                 style={{ width: `${(exam.score / exam.total) * 100}%` }}
                               />
                             </div>
-                            <p className="text-xs text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
+                            <p className="text-sm text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
                           </div>
                         ))
                       )
@@ -721,13 +728,9 @@ export default function StudentTrackingPage() {
 
               </div>
             ) : (
-              <div className="bg-white p-8 sm:p-12 text-center rounded-2xl border border-gray-100 text-gray-400 text-xs sm:text-sm">
+              <div className="bg-white p-8 sm:p-12 text-center rounded-2xl border border-gray-100 text-gray-400 text-sm sm:text-sm">
                 {isProgressLoading ? (
-                  <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                      <div key={i} className="h-8 w-full animate-pulse rounded-lg bg-gray-200" />
-                    ))}
-                  </div>
+                  <LoadingSpinner size="md" text="กำลังโหลดผลการเรียน..." />
                 ) : (
                   "กรุณาเลือกรายชื่อนักเรียนจากแถบด้านซ้ายเพื่อประมวลผล Score Bar"
                 )}

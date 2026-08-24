@@ -117,6 +117,7 @@ const CalenderPage = () => {
   const { requireLogin } = useRequireLogin();
   const [adminSchedules, setAdminSchedules] = useState<ExamSchedule[]>([]);
   const [userNotes, setUserNotes] = useState<UserNote[]>([]);
+  const [isNotesLoading, setIsNotesLoading] = useState(true);
   const [tagFilter, setTagFilter] = useState("");
   const [toast, setToast] = useState<{ type: "success" | "error" | "warning" | "info"; message: string } | null>(null);
 
@@ -187,24 +188,32 @@ const CalenderPage = () => {
 
   const fetchNotes = async () => {
     try {
+      setIsNotesLoading(true);
       const token = getToken();
-      if (!token) return;
+      if (!token) {
+        setIsNotesLoading(false);
+        return;
+      }
       const res = await fetch(`${API_URL}/notes`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await res.json();
-      const mapped: UserNote[] = data.map((n: any) => ({
-        id: String(n.note_id),
-        title: n.title,
-        content: n.content,
-        link_url: n.link_url || "",
-        tags: n.tags || [],
-        files: n.files || [],
-        createdAt: new Date(n.created_at).getTime(),
-      }));
-      setUserNotes(mapped);
+      if (res.ok) {
+        const data = await res.json();
+        const mapped: UserNote[] = data.map((n: any) => ({
+          id: String(n.note_id),
+          title: n.title,
+          content: n.content,
+          link_url: n.link_url || "",
+          tags: n.tags || [],
+          files: n.files || [],
+          createdAt: new Date(n.created_at).getTime(),
+        }));
+        setUserNotes(mapped);
+      }
     } catch (err) {
       console.error("fetchNotes error:", err);
+    } finally {
+      setIsNotesLoading(false);
     }
   };
 
@@ -281,7 +290,7 @@ const CalenderPage = () => {
           {/* วันที่ */}
           <div className="flex items-center justify-between">
             <span
-              className={`text-xs sm:text-sm font-semibold inline-flex items-center justify-center
+              className={`text-xs sm:text-sm font-medium inline-flex items-center justify-center
                 ${today
                   ? "w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-600 text-white shadow-xs text-[11px] sm:text-xs"
                   : isSunday
@@ -490,7 +499,7 @@ const CalenderPage = () => {
                   >
                     <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                   </button>
-                  <h2 className="text-base sm:text-xl font-semibold text-gray-800">
+                  <h2 className="text-base sm:text-xl font-medium text-gray-800">
                     {monthsNames[selectedMonth]}{" "}
                     <span className="text-green-600">
                       {selectedYear + 543}
@@ -510,7 +519,7 @@ const CalenderPage = () => {
                   {["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"].map((day, i) => (
                     <div
                       key={day}
-                      className={`py-2 sm:py-3 text-center text-[11px] sm:text-xs font-semibold bg-gray-50 border-b border-gray-200
+                      className={`py-2 sm:py-3 text-center text-[11px] sm:text-xs font-medium bg-gray-50 border-b border-gray-200
                         ${i === 0 ? "text-red-500" : "text-gray-600"}`}
                     >
                       {day}
@@ -560,11 +569,12 @@ const CalenderPage = () => {
             {isAuthenticated ? (
               <NoteList
                 notes={userNotes}
-                onSaveNote={createNote}
-                onUpdateNote={updateNote}
-                onDeleteNote={deleteNote}
+                isLoading={isNotesLoading}
+                onSaveNoteAction={createNote}
+                onUpdateNoteAction={updateNote}
+                onDeleteNoteAction={deleteNote}
                 tagFilter={tagFilter}
-                setTagFilter={setTagFilter}
+                setTagFilterAction={setTagFilter}
               />
             ) : (
               <div className="bg-white rounded-xl shadow-xl p-6 border border-slate-100 flex flex-col items-center justify-center text-center h-fit lg:sticky lg:top-24">
@@ -587,14 +597,14 @@ const CalenderPage = () => {
         </div>
       </div>
 
-      {/* ── Modal รายการกำหนดการประจำวัน (สำหรับมือถือเมื่อมีหลายรายการ) ──────── */}
+      {/* ── Modal รายการกำหนดการประจำวัน ──────── */}
       {dayEventsModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden animate-fade-in">
-            <div className="bg-green-600 px-5 py-3.5 flex justify-between items-center text-white">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-fade-in">
+            <div className="bg-green-600 px-6 py-4 flex justify-between items-center text-white">
               <div className="flex items-center gap-2">
-                <CalendarIcon className="w-4 h-4" />
-                <h3 className="font-medium text-sm">
+                <CalendarIcon className="w-5 h-5" />
+                <h3 className="font-medium">
                   กำหนดการวันที่ {dayEventsModal.date} {monthsNames[selectedMonth]} {selectedYear + 543}
                 </h3>
               </div>
@@ -602,11 +612,13 @@ const CalenderPage = () => {
                 onClick={() => setDayEventsModal(null)}
                 className="p-1 hover:bg-green-700 rounded-lg transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-4 space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
-              <p className="text-xs text-gray-500 mb-2">มีทั้งหมด {dayEventsModal.events.length} กำหนดการ (แตะเพื่อดูรายละเอียด):</p>
+            <div className="p-6 space-y-3 max-h-[65vh] overflow-y-auto custom-scrollbar">
+              <p className="text-sm text-gray-500 mb-2">
+                มีทั้งหมด <span className="font-medium text-gray-700">{dayEventsModal.events.length}</span> กำหนดการ (แตะเพื่อดูรายละเอียด):
+              </p>
               {dayEventsModal.events.map((schedule) => {
                 const primaryType = schedule.type_event[0];
                 const style = primaryType ? getTypeStyle(primaryType) : DEFAULT_STYLE;
@@ -618,18 +630,18 @@ const CalenderPage = () => {
                       setDayEventsModal(null);
                       setIsViewModalOpen(true);
                     }}
-                    className={`w-full text-left p-3 rounded-xl border-l-3 transition-all hover:opacity-90 flex flex-col gap-1 cursor-pointer shadow-xs ${style.bg} ${style.border}`}
+                    className={`w-full text-left p-3.5 sm:p-4 rounded-xl border-l-4 transition-all hover:opacity-90 flex flex-col gap-1.5 cursor-pointer shadow-xs ${style.bg} ${style.border}`}
                   >
-                    <span className={`text-xs font-semibold ${style.text}`}>{schedule.title}</span>
-                    <div className="flex flex-wrap items-center gap-1 mt-0.5">
+                    <span className={`text-sm font-medium leading-snug ${style.text}`}>{schedule.title}</span>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                       {schedule.type_event.map((t, idx) => (
-                        <span key={idx} className="text-[10px] bg-white/70 px-1.5 py-0.5 rounded text-gray-600 font-medium">
+                        <span key={idx} className="text-xs bg-white/80 px-2 py-0.5 rounded-md text-gray-700 font-medium border border-black/5">
                           {t}
                         </span>
                       ))}
                       {schedule.link_url && (
-                        <span className="inline-flex items-center gap-0.5 text-[9px] text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200 font-medium">
-                          <ExternalLink className="w-2.5 h-2.5" /> มีลิงก์แนบ
+                        <span className="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200 font-medium">
+                          <ExternalLink className="w-3 h-3" /> มีลิงก์แนบ
                         </span>
                       )}
                     </div>

@@ -189,7 +189,7 @@ export default function Navbar_admin({
                     className={`w-5 h-5 flex-shrink-0 ${isActive(item.href) ? "text-green-700" : "text-gray-400 group-hover:text-green-700"}`}
                   />
                   {!isCollapsed && (
-                    <span className="truncate">{item.title}</span>
+                    <span className="truncate whitespace-nowrap">{item.title}</span>
                   )}
                 </Link>
               );
@@ -214,7 +214,7 @@ export default function Navbar_admin({
                       className={`w-5 h-5 flex-shrink-0 ${isActive(item.href) ? "text-green-700" : "text-gray-400 group-hover:text-green-700"}`}
                     />
                     {!isCollapsed && (
-                      <span className="truncate">{item.title}</span>
+                      <span className="truncate whitespace-nowrap">{item.title}</span>
                     )}
                   </Link>
                 );
@@ -222,13 +222,14 @@ export default function Navbar_admin({
 
               <button
                 onClick={handleLogoutClick}
+                type="button"
                 className={`flex items-center gap-3 w-full px-3 py-2.5 transition-all duration-150 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 cursor-pointer ${isCollapsed ? "justify-center" : ""
                   }`}
                 title={isCollapsed ? "ออกจากระบบ" : ""}
               >
                 <LogOut className="w-5 h-5 flex-shrink-0 text-red-500" />
                 {!isCollapsed && (
-                  <span>ออกจากระบบ</span>
+                  <span className="truncate whitespace-nowrap">ออกจากระบบ</span>
                 )}
               </button>
             </div>
@@ -247,10 +248,10 @@ export default function Navbar_admin({
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
+                <p className="text-sm font-medium text-gray-900 truncate whitespace-nowrap">
                   {user?.first_name} {user?.last_name}
                 </p>
-                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                <p className="text-xs text-gray-500 truncate whitespace-nowrap">{user?.email}</p>
               </div>
             )}
           </Link>

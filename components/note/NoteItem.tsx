@@ -7,14 +7,14 @@ import type { UserNote } from "./NoteList";
 
 export default function NoteItem({
   note,
-  onEdit,
-  onDelete,
-  setTagFilter,
+  onEditAction,
+  onDeleteAction,
+  setTagFilterAction,
 }: {
   note: UserNote;
-  onEdit: (note: UserNote) => void;
-  onDelete: (id: string) => void;
-  setTagFilter: (tag: string) => void;
+    onEditAction: (note: UserNote) => void;
+    onDeleteAction: (id: string) => void;
+    setTagFilterAction: (tag: string) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -43,7 +43,7 @@ export default function NoteItem({
         <div class="text-center py-1">
           <p class="text-sm text-gray-600 mb-1">คุณต้องการลบบันทึกนี้ใช่หรือไม่?</p>
           <p class="text-base font-semibold text-gray-800 bg-gray-50 py-2 px-3 rounded-xl border border-gray-100 mb-2 truncate">"${note.title || 'ไม่มีหัวข้อ'}"</p>
-          <p class="text-xs text-red-500">⚠️ ข้อมูลและไฟล์แนบจะถูกลบถาวร ไม่สามารถกู้คืนได้</p>
+          <p class="text-sm text-red-500">⚠️ ข้อมูลและไฟล์แนบจะถูกลบถาวร ไม่สามารถกู้คืนได้</p>
         </div>
       `,
       icon: 'warning',
@@ -61,7 +61,7 @@ export default function NoteItem({
     });
 
     if (result.isConfirmed) {
-      onDelete(note.id);
+      onDeleteAction(note.id);
     }
   };
 
@@ -74,7 +74,7 @@ export default function NoteItem({
         </h3>
         <div className="flex gap-1 flex-shrink-0">
           <button
-            onClick={() => onEdit(note)}
+            onClick={() => onEditAction(note)}
             className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
             title="แก้ไขบันทึก"
           >
@@ -192,7 +192,7 @@ export default function NoteItem({
               <span
                 key={tagId}
                 className="flex items-center text-[10px] font-medium text-indigo-600 bg-indigo-50/50 px-2 py-0.5 rounded-full cursor-pointer hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
-                onClick={() => setTagFilter(tagName)}
+                onClick={() => setTagFilterAction(tagName)}
               >
                 <Tag className="w-2.5 h-2.5 mr-1" /> {tagName}
               </span>

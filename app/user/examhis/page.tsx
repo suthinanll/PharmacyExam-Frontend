@@ -159,7 +159,7 @@ function StatBar({ records }: { records: ExamRecord[] }) {
                         <div className={`text-2xl sm:text-3xl font-black tracking-tight ${s.valColor}`}>
                             {s.value}
                         </div>
-                        <div className="text-xs font-medium text-gray-400 mt-0.5">
+                        <div className="text-sm font-medium text-gray-400 mt-0.5">
                             {s.description}
                         </div>
                     </div>
@@ -399,7 +399,7 @@ export default function ExamHistoryPage() {
                                 <button
                                     key={t.key}
                                     onClick={() => { setActiveTab(t.key); clearFilters(); }}
-                                    className={`flex-1 py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap ${isSelected
+                                    className={`flex-1 py-2 sm:py-2.5 px-2.5 sm:px-4 rounded-xl text-sm sm:text-sm font-medium transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap ${isSelected
                                         ? t.key === "CAT"
                                             ? "bg-purple-600 text-white shadow-sm"
                                             : t.key === "NORMAL"
@@ -410,7 +410,7 @@ export default function ExamHistoryPage() {
                                 >
                                     {IconComp && <IconComp size={14} className="shrink-0" />}
                                     <span>{t.label}</span>
-                                    <span className={`text-xs sm:text-xs px-1.5 py-0.5 rounded-full font-medium shrink-0 ${isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
+                                    <span className={`text-sm sm:text-sm px-1.5 py-0.5 rounded-full font-medium shrink-0 ${isSelected ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"
                                         }`}>
                                         {t.count}
                                     </span>
@@ -450,7 +450,7 @@ export default function ExamHistoryPage() {
                                 <Filter size={16} />
                                 <span className="hidden sm:inline">ตัวกรอง</span>
                                 {hasFilter && (
-                                    <span className="bg-white/25 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
+                                    <span className="bg-white/25 text-white text-sm px-1.5 py-0.5 rounded-full font-medium">
                                         {(statusFilter !== "ALL" ? 1 : 0) + selectedCats.length + (isDateFiltered ? 1 : 0)}
                                     </span>
                                 )}
@@ -487,7 +487,7 @@ export default function ExamHistoryPage() {
                                                     }
                                                 }}
                                                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all cursor-pointer ${datePreset === d.key
-                                                    ? "bg-blue-600 text-white shadow-xs"
+                                                    ? "bg-blue-600 text-white shadow-sm"
                                                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                                                     }`}
                                             >
@@ -502,7 +502,7 @@ export default function ExamHistoryPage() {
                                             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                                                 {/* Single Date Picker */}
                                                 <div className="flex-1 w-full">
-                                                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                                                    <label className="block text-sm font-medium text-gray-600 mb-1">
                                                         เลือกวันที่เจาะจง
                                                     </label>
                                                     <input
@@ -517,13 +517,13 @@ export default function ExamHistoryPage() {
                                                     />
                                                 </div>
 
-                                                <div className="hidden sm:flex items-center text-xs text-gray-400  self-end pb-2.5">
+                                                <div className="hidden sm:flex items-center text-sm text-gray-400  self-end pb-2.5">
                                                     หรือ
                                                 </div>
 
                                                 {/* Range Date Picker */}
                                                 <div className="flex-1 w-full">
-                                                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                                                    <label className="block text-sm font-medium text-gray-600 mb-1">
                                                         เลือกเป็นช่วงเวลา (เริ่มต้น - สิ้นสุด)
                                                     </label>
                                                     <div className="flex items-center gap-2">
@@ -537,7 +537,7 @@ export default function ExamHistoryPage() {
                                                             className="w-full px-3 py-2 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                             placeholder="เริ่มต้น"
                                                         />
-                                                        <span className="text-gray-400 text-xs">-</span>
+                                                        <span className="text-gray-400 text-sm">-</span>
                                                         <input
                                                             type="date"
                                                             value={endDate}
@@ -587,7 +587,7 @@ export default function ExamHistoryPage() {
                                 {/* Category */}
                                 {categories.length > 0 && (activeTab === "NORMAL" || activeTab === "ALL") && (
                                     <div>
-                                        <p className="text-xs font-semibold text-gray-500  mb-2">หมวดวิชา</p>
+                                        <p className="text-sm font-medium text-gray-500  mb-2">หมวดวิชา</p>
                                         <div className="flex flex-wrap gap-2">
                                             {categories.map((c) => (
                                                 <button
@@ -621,7 +621,7 @@ export default function ExamHistoryPage() {
 
                     {/* Results count */}
                     <p className="text-sm text-gray-400 mb-3 px-1">
-                        แสดง <span className="font-semibold text-gray-700">{filtered.length}</span> รายการ
+                        แสดง <span className="font-medium text-gray-700">{filtered.length}</span> รายการ
                         {hasFilter && " (กรองแล้ว)"}
                     </p>
 
@@ -645,7 +645,7 @@ export default function ExamHistoryPage() {
                                     <p className="text-gray-600 font-medium mb-4">ยังไม่มีประวัติการสอบในหมวดหมู่นี้</p>
                                     <Link
                                         href="/user/examset"
-                                        className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium text-sm transition"
+                                        className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-medium text-sm transition cursor-pointer"
                                     >
                                         เริ่มทำข้อสอบ
                                     </Link>
@@ -695,14 +695,14 @@ export default function ExamHistoryPage() {
                                                                     <h3 className="font-medium text-gray-900 text-sm sm:text-base leading-snug">
                                                                         {title}
                                                                     </h3>
-                                                                    <span className={`text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full  shrink-0 ${isCAT
+                                                                    <span className={`text-[10px] sm:text-sm font-medium px-2 py-0.5 rounded-full  shrink-0 ${isCAT
                                                                         ? "bg-purple-100 text-purple-700"
                                                                         : "bg-blue-100 text-blue-700"
                                                                         }`}>
                                                                         {isCAT ? "CAT" : "NORMAL"}
                                                                     </span>
                                                                     {/* Pass/Fail indicator */}
-                                                                    <span className={`inline-flex items-center gap-1 text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full shrink-0 ${passed
+                                                                    <span className={`inline-flex items-center gap-1 text-[10px] sm:text-sm font-medium px-2 py-0.5 rounded-full shrink-0 ${passed
                                                                         ? "bg-green-50 text-green-700 border border-green-200/60"
                                                                         : "bg-rose-50 text-rose-600 border border-rose-200/60"
                                                                         }`}>
@@ -717,7 +717,7 @@ export default function ExamHistoryPage() {
                                                                 {!isCAT && exam.categories && exam.categories.length > 0 && (
                                                                     <div className="flex flex-wrap gap-1.5 mb-1.5 pt-0.5">
                                                                         {exam.categories.map((c) => (
-                                                                            <span key={c.category_id} className="text-[11px] sm:text-xs px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md font-medium border border-blue-100">
+                                                                            <span key={c.category_id} className="text-[11px] sm:text-sm px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md font-medium border border-blue-100">
                                                                                 {c.category_name}
                                                                             </span>
                                                                         ))}
@@ -725,7 +725,7 @@ export default function ExamHistoryPage() {
                                                                 )}
 
                                                                 {/* Meta */}
-                                                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-400">
+                                                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-400">
                                                                     <span className="flex items-center gap-1">
                                                                         <CalendarDays size={12} className="text-gray-400" />
                                                                         {formatDateThai(exam.start_time)} {formatTime(exam.start_time)}
@@ -754,7 +754,7 @@ export default function ExamHistoryPage() {
                                                         {/* Score + Action */}
                                                         <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 pt-2.5 sm:pt-0 border-t sm:border-t-0 border-gray-100 shrink-0">
                                                             <div className="flex items-baseline sm:block text-left sm:text-center gap-1.5">
-                                                                <span className="text-xs text-gray-400 sm:hidden">คะแนน:</span>
+                                                                <span className="text-sm text-gray-400 sm:hidden">คะแนน:</span>
                                                                 <ScoreBadge exam={exam} />
                                                             </div>
                                                             <Link
@@ -763,7 +763,7 @@ export default function ExamHistoryPage() {
                                                                         ? `/user/cat-exam/result/${exam.session_id}`
                                                                         : `/user/examset/take-exam/summarize-exam?session_id=${exam.session_id}`
                                                                 }
-                                                                className={`px-4 py-2 sm:py-2.5 text-white text-xs sm:text-sm font-semibold rounded-xl transition-all hover:shadow-md whitespace-nowrap text-center ${isCAT
+                                                                className={`px-4 py-2 sm:py-2.5 text-white text-sm sm:text-sm font-medium rounded-xl transition-all hover:shadow-md whitespace-nowrap text-center ${isCAT
                                                                     ? "bg-purple-600 hover:bg-purple-700"
                                                                     : "bg-blue-600 hover:bg-blue-700"
                                                                     }`}
@@ -786,7 +786,7 @@ export default function ExamHistoryPage() {
                                             perPage={perPage}
                                             onPageChange={setCurrentPage}
                                             itemLabel="รายการสอบ"
-                                            activeColor="bg-[#76B25A] text-white shadow-xs"
+                                            activeColor="bg-[#76B25A] text-white shadow-sm"
                                         />
                                     )}
                                 </>

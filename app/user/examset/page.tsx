@@ -183,7 +183,7 @@ const examset = () => {
       html: `คุณต้องการเริ่มทำข้อสอบ<br/><strong>${bankName}</strong><br/>ใช่หรือไม่?`,
       icon: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#16a34a',
+      confirmButtonColor: '#155DFC',
       cancelButtonColor: '#6b7280',
       confirmButtonText: 'เริ่มทำข้อสอบ',
       cancelButtonText: 'ยกเลิก',

@@ -5,6 +5,25 @@ body {
   --sidebar-width: 0px;
 }
 
+/* ─── Global Button & Interactive Cursors ─── */
+button,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+summary,
+select {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+input[type="button"]:disabled,
+input[type="submit"]:disabled,
+input[type="reset"]:disabled {
+  cursor: not-allowed;
+}
+
 @media (min-width: 1024px) {
   body {
     --sidebar-width: 256px;
