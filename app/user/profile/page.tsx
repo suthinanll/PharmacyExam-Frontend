@@ -31,9 +31,14 @@ const Profile = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [imgError, setImgError] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [universities, setUniversities] = useState<{ university_id: number, name: string }[]>([]);
     const [selectedUniversityId, setSelectedUniversityId] = useState<number | null>(null);
+
+    useEffect(() => {
+        setImgError(false);
+    }, [user?.profile_picture, previewImage]);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -307,10 +312,11 @@ const Profile = () => {
                                                 alt="Preview"
                                                 className="w-full h-full object-cover"
                                             />
-                                        ) : user.profile_picture ? (
+                                        ) : user.profile_picture && !imgError ? (
                                             <img
                                                 src={user.profile_picture}
                                                 alt="Profile"
+                                                onError={() => setImgError(true)}
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (

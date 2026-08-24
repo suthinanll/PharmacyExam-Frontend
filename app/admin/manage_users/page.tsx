@@ -57,6 +57,49 @@ interface UniversityItem {
   name: string;
 }
 
+function UserAvatar({
+  user,
+  isAdmin,
+}: {
+  user: UserItem;
+  isAdmin: boolean;
+}) {
+  const [hasError, setHasError] = useState(false);
+  const initial = (user.first_name?.[0] || user.email?.[0] || "U").toUpperCase();
+
+  let fullSrc: string | null = null;
+  if (user.profile_picture) {
+    if (user.profile_picture.startsWith("http") || user.profile_picture.startsWith("data:")) {
+      fullSrc = user.profile_picture;
+    } else {
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/+$/, "");
+      const cleanPath = user.profile_picture.startsWith("/") ? user.profile_picture : `/${user.profile_picture}`;
+      fullSrc = `${apiUrl}${cleanPath}`;
+    }
+  }
+
+  if (fullSrc && !hasError) {
+    return (
+      <img
+        src={fullSrc}
+        alt={user.first_name}
+        onError={() => setHasError(true)}
+        className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0"
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-white shrink-0 shadow-2xs ${
+        isAdmin ? "bg-purple-600" : "bg-emerald-600"
+      }`}
+    >
+      {initial}
+    </div>
+  );
+}
+
 const ITEMS_PER_PAGE = 10;
 
 export default function ManageUsersPage() {
@@ -216,7 +259,6 @@ export default function ManageUsersPage() {
       !formData.email.trim() ||
       !formData.tel.trim() ||
       !formData.bod ||
-      !formData.university_id ||
       !formData.password ||
       !formData.confirm_password
     ) {
@@ -289,7 +331,7 @@ export default function ManageUsersPage() {
           email: formData.email.trim().toLowerCase(),
           tel: cleanTel,
           bod: formData.bod,
-          university_id: Number(formData.university_id),
+          university_id: formData.university_id ? Number(formData.university_id) : null,
           password: formData.password,
           confirm_password: formData.confirm_password,
         }),
@@ -577,23 +619,7 @@ export default function ManageUsersPage() {
                         {/* 1. Name & Avatar */}
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-3">
-                            {item.profile_picture ? (
-                              <img
-                                src={item.profile_picture}
-                                alt={item.first_name}
-                                className="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0"
-                              />
-                            ) : (
-                              <div
-                                className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-white shrink-0 shadow-2xs ${
-                                  isAdmin
-                                    ? "bg-purple-600"
-                                    : "bg-emerald-600"
-                                }`}
-                              >
-                                {initial}
-                              </div>
-                            )}
+                            <UserAvatar user={item} isAdmin={isAdmin} />
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <span className="font-semibold text-gray-900 text-sm truncate">
@@ -637,8 +663,10 @@ export default function ManageUsersPage() {
                                 {item.university.name}
                               </span>
                             </div>
+                          ) : item.role_id === 2 ? (
+                            <span className="text-gray-400 text-xs italic">ส่วนกลาง / ระบบ</span>
                           ) : (
-                            <span className="text-gray-400 italic">- ไม่ได้ระบุ -</span>
+                            <span className="text-gray-400 italic text-xs">- ไม่ได้ระบุ -</span>
                           )}
                         </td>
 
@@ -873,7 +901,7 @@ export default function ManageUsersPage() {
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-gray-700">
-                      สังกัดมหาวิทยาลัย <span className="text-red-500">*</span>
+                      สังกัดมหาวิทยาลัย <span className="text-gray-400 font-normal">(ไม่บังคับ)</span>
                     </label>
                     <div className="relative">
                       <Building2 className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -882,10 +910,9 @@ export default function ManageUsersPage() {
                         onChange={(e) =>
                           setFormData({ ...formData, university_id: e.target.value })
                         }
-                        required
                         className="w-full pl-9 pr-3.5 py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-gray-700 cursor-pointer"
                       >
-                        <option value="">-- เลือกมหาวิทยาลัย --</option>
+                        <option value="">-- ไม่ระบุ / ส่วนกลาง --</option>
                         {universities.map((uni) => (
                           <option key={uni.university_id} value={uni.university_id}>
                             {uni.name}
