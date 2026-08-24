@@ -17,61 +17,57 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Upcoming Exam Card Component
+// Upcoming Exam Card Component (Notification style with full title)
 const UpcomingExamCard = ({ exam, index }: { exam: any; index: number }) => {
   const examDate = new Date(exam.targetStamp);
   const now = Date.now();
   const diffMs = exam.targetStamp - now;
   const daysLeft = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  // สีตามความเร่งด่วน: ใกล้ = แดง/ส้ม, ไกลออกไป = ฟ้า
   const urgency =
     daysLeft <= 1
-      ? { box: "bg-red-500", text: "text-red-600", bg: "bg-red-50" }
+      ? { badge: "bg-red-100 text-red-700 border-red-200" }
       : daysLeft <= 3
-        ? { box: "bg-amber-500", text: "text-amber-600", bg: "bg-amber-50" }
-        : { box: "bg-blue-500", text: "text-blue-600", bg: "bg-blue-50" };
+        ? { badge: "bg-amber-100 text-amber-700 border-amber-200" }
+        : { badge: "bg-blue-100 text-blue-700 border-blue-200" };
 
   return (
-    <div className="flex items-center gap-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-200 p-3">
-      {/* กล่องตัวเลขวันที่เหลือ - กระชับ ไม่กินพื้นที่แนวตั้ง */}
-      <div
-        className={`flex-shrink-0 flex flex-col items-center justify-center w-14 h-14 rounded-lg ${urgency.box} text-white`}
-      >
-        <span className="text-xl font-medium leading-none tabular-nums">
-          {daysLeft > 0 ? daysLeft : "0"}
-        </span>
-        <span className="text-[10px] font-medium leading-none mt-1">
-          {daysLeft > 0 ? "วัน" : "วันนี้"}
+    <div className="bg-white rounded-xl shadow-xs hover:shadow-md transition-all duration-200 border border-gray-200 p-3.5 flex flex-col gap-2">
+      {/* Top row: Date & urgency badge (Notification-like header) */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-800">
+          <Calendar size={13} className="text-blue-600 shrink-0" />
+          <span>
+            {examDate.toLocaleDateString("th-TH", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            })}
+          </span>
+        </div>
+
+        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${urgency.badge}`}>
+          {daysLeft > 0 ? `อีก ${daysLeft} วัน` : "วันนี้"}
         </span>
       </div>
 
-      {/* ข้อมูลรายการ */}
-      <div className="min-w-0 flex-1">
-        <h3 className="text-sm font-medium text-gray-800 line-clamp-1">
-          {exam.title}
-        </h3>
-        <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-          <Calendar size={12} />
-          {examDate.toLocaleDateString("th-TH", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })}
-        </p>
-        {exam.link_url && (
-          <a
-            href={exam.link_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-700 hover:underline mt-1 bg-blue-50/80 px-2 py-0.5 rounded border border-blue-100 font-medium w-fit"
-          >
-            <ExternalLink size={11} />
-            ลิงก์แนบ
-          </a>
-        )}
-      </div>
+      {/* Full title displayed cleanly */}
+      <h3 className="text-xs sm:text-sm font-medium text-gray-800 leading-snug break-words">
+        {exam.title}
+      </h3>
+
+      {exam.link_url && (
+        <a
+          href={exam.link_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-700 hover:underline mt-0.5 bg-blue-50/80 px-2 py-0.5 rounded border border-blue-100 font-medium w-fit"
+        >
+          <ExternalLink size={11} />
+          ลิงก์แนบ
+        </a>
+      )}
     </div>
   );
 };
@@ -152,33 +148,33 @@ const CountdownHero = ({
             {/* แสดงหลายกำหนดการในวันเดียวกัน */}
             {todayExams.length > 1 ? (
               <div>
-                <h1 className="text-3xl md:text-4xl font-medium mb-3 text-blue-900">
-                  กำหนดการวันนี้ ({todayExams.length} รายการ)
+                <h1 className="text-2xl md:text-3xl font-medium mb-1 text-blue-900">
+                  กำหนดการที่ใกล้จะถึง ({todayExams.length} รายการ)
                 </h1>
-                <p className="text-gray-600 text-base flex items-center gap-2 mb-4 font-medium">
-                  <Calendar size={18} className="text-blue-500" />
+                <p className="text-blue-700 text-lg sm:text-xl font-semibold flex items-center gap-2 mb-4">
+                  <Calendar size={22} className="text-blue-600 shrink-0" />
                   {targetDate
                     ? new Date(targetDate).toLocaleDateString("th-TH", {
                         dateStyle: "long",
                       })
                     : "-"}
                 </p>
-                <div className="mb-6 space-y-3">
+                <div className="mb-6 space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
                   {todayExams.map((exam: any, idx: number) => (
                     <div
                       key={exam.id}
-                      className="bg-white rounded-xl p-4 border border-blue-200 shadow-sm"
+                      className="bg-white rounded-xl p-3.5 border border-blue-100 shadow-2xs text-xs sm:text-sm"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-medium text-sm">
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-xs mt-0.5">
                           {idx + 1}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-medium text-gray-800 mb-1">
+                          <h3 className="font-medium text-gray-800 leading-snug break-words">
                             {exam.title}
                           </h3>
                           {exam.description && (
-                            <p className="text-sm text-gray-600">
+                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
                               {exam.description}
                             </p>
                           )}
@@ -187,9 +183,9 @@ const CountdownHero = ({
                               href={exam.link_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-medium border border-blue-200 transition-colors w-fit group"
+                              className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[11px] font-medium border border-blue-200 transition-colors w-fit group"
                             >
-                              <ExternalLink size={13} className="text-blue-600 group-hover:scale-110 transition-transform" />
+                              <ExternalLink size={12} className="text-blue-600 group-hover:scale-110 transition-transform" />
                               ดูข้อมูลเพิ่มเติม / ลิงก์แนบ
                             </a>
                           )}
@@ -201,13 +197,13 @@ const CountdownHero = ({
               </div>
             ) : (
               <div>
-                <h1 className="text-3xl md:text-4xl font-medium mb-3 text-blue-900">
+                <h1 className="text-2xl md:text-3xl font-medium mb-1 text-blue-900">
                   {targetTitle || "พร้อมรับมือทุกการสอบ"}
                 </h1>
                 {isOngoing && todayExams[0] ? (
                   <div className="mb-4">
-                    <p className="text-gray-600 text-base flex items-center gap-2 font-medium">
-                      <Calendar size={18} className="text-green-600" />
+                    <p className="text-blue-700 text-lg sm:text-xl font-semibold flex items-center gap-2">
+                      <Calendar size={22} className="text-green-600 shrink-0" />
                       {new Date(todayExams[0].targetStamp).toLocaleDateString(
                         "th-TH",
                         { dateStyle: "long" },
@@ -220,8 +216,8 @@ const CountdownHero = ({
                     </p>
                   </div>
                 ) : (
-                  <p className="text-gray-600 text-base flex items-center gap-2 mb-8 font-medium">
-                    <Calendar size={18} className="text-blue-500" />
+                  <p className="text-blue-700 text-lg sm:text-xl font-semibold flex items-center gap-2 mb-4">
+                    <Calendar size={22} className="text-blue-600 shrink-0" />
                     {targetDate
                       ? new Date(targetDate).toLocaleDateString("th-TH", {
                           dateStyle: "long",
@@ -410,7 +406,7 @@ const Page = () => {
   };
 
   const handleNewsClick = (articleId: number) => {
-    router.push(`/user/newsdetail/${articleId}`);
+    window.open(`/user/newsdetail/${articleId}`, "_blank");
   };
 
   const fetchData = useCallback(async () => {

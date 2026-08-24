@@ -19,16 +19,20 @@ export default function NewsCard({
   badge?: string;
   link: string;
   initialIsSaved?: boolean;
-  onBookmark?: (id: number) => void; // แก้ไข Type ให้รับแค่ id
+  onBookmark?: (id: number) => void;
 }) {
   const [isSaved, setIsSaved] = useState(initialIsSaved);
+  const [imgSrc, setImgSrc] = useState(img || "/img/news1.jpg");
 
   useEffect(() => {
     setIsSaved(initialIsSaved);
   }, [initialIsSaved]);
 
+  useEffect(() => {
+    setImgSrc(img || "/img/news1.jpg");
+  }, [img]);
+
   const handleBookmarkClick = (e: React.MouseEvent) => {
-    // ป้องกันไม่ให้การคลิกปุ่มไปโดน Event ของตัวแม่ (เช่น การคลิกทั้งการ์ด)
     e.preventDefault();
     e.stopPropagation();
 
@@ -44,18 +48,19 @@ export default function NewsCard({
       <div className="relative">
         <a href={link} target="_blank" rel="noopener noreferrer">
           <Image
-            src={img}
+            src={imgSrc || "/img/news1.jpg"}
             alt={title}
             width={500}
             height={300}
             unoptimized
-            className="w-full h-48 object-cover"
+            onError={() => setImgSrc("/img/news1.jpg")}
+            className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
           />
         </a>
       </div>
       <div className="p-4 sm:p-5 flex flex-col flex-1">
         <a href={link} target="_blank" rel="noopener noreferrer">
-          <h5 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2">
+          <h5 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
             {title}
           </h5>
         </a>
@@ -65,6 +70,7 @@ export default function NewsCard({
         <div className="flex flex-row items-center gap-3 mt-auto">
           <a
             href={link}
+            target="_blank"
             rel="noopener noreferrer"
             className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2.5 
                        rounded-xl text-xs sm:text-sm font-medium hover:from-blue-700 

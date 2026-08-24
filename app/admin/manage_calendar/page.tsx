@@ -37,6 +37,20 @@ const CATEGORY_DOT: Record<string, string> = {
   "PLE-PC2": "bg-emerald-400",
   "PLE-PHCP2": "bg-lime-400",
 };
+
+// Helper ตัดข้อความชื่อกิจกรรมให้กระชับสำหรับแสดงในช่องปฏิทิน
+const getShortEventTitle = (title: string, maxLen = 22) => {
+  if (!title) return "";
+  if (title.includes(" - ")) {
+    const parts = title.split(" - ");
+    const activity = parts.slice(1).join(" - ").trim();
+    if (activity) {
+      return activity.length > maxLen ? activity.slice(0, maxLen) + "..." : activity;
+    }
+  }
+  return title.length > maxLen ? title.slice(0, maxLen) + "..." : title;
+};
+
 interface CalendarEvent {
   id: number;
   title: string;
@@ -337,7 +351,9 @@ function Page() {
                     <div key={tIdx} className={`w-1.5 h-1.5 rounded-full ${CATEGORY_DOT[type] || "bg-gray-300"}`} />
                   ))}
                 </div>
-                {event.title}
+                <span className="truncate block" title={event.title}>
+                  {getShortEventTitle(event.title)}
+                </span>
               </div>
             ))}
           </div>

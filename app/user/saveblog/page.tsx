@@ -115,19 +115,22 @@ function SaveBlog() {
                     className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full group hover:shadow-2xl transition-all duration-300"
                   >
                     <div className="relative overflow-hidden">
-                      <Image
-                        src={
-                          item.news.cover_image_url
-                            ? item.news.cover_image_url.startsWith('http')
-                              ? item.news.cover_image_url
-                              : `${process.env.NEXT_PUBLIC_API_URL}${item.news.cover_image_url}`
-                            : '/img/placeholder.jpg'
-                        }
-                        alt={item.news.title || 'news image'}
-                        width={500}
-                        height={300}
-                        className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
+                      <a href={`/user/newsdetail/${item.news.article_id}`} target="_blank" rel="noopener noreferrer">
+                        <Image
+                          src={
+                            item.news.cover_image_url
+                              ? item.news.cover_image_url.startsWith('http')
+                                ? item.news.cover_image_url
+                                : `${process.env.NEXT_PUBLIC_API_URL}${item.news.cover_image_url}`
+                              : '/img/news1.jpg'
+                          }
+                          alt={item.news.title || 'news image'}
+                          width={500}
+                          height={300}
+                          unoptimized
+                          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      </a>
                     </div>
                     <div className="p-5 flex flex-col flex-1">
                       <div className="flex items-center justify-between mb-3">
@@ -138,14 +141,21 @@ function SaveBlog() {
                           {new Date(item.created_at).toLocaleDateString('th-TH')}
                         </span>
                       </div>
-                      <h5 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2">
-                        {item.news.title}
-                      </h5>
+                      <a href={`/user/newsdetail/${item.news.article_id}`} target="_blank" rel="noopener noreferrer">
+                        <h5 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
+                          {item.news.title}
+                        </h5>
+                      </a>
                       <p className="text-sm text-gray-600 leading-relaxed mb-4 flex-1 line-clamp-3">
                         {item.news.content?.replace(/<[^>]*>?/gm, '')}
                       </p>
                       <div className="flex gap-2 mt-auto">
-                        <a href={`/news/${item.news.article_id}`} className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium text-center shadow-lg hover:bg-blue-700 transition">
+                        <a
+                          href={`/user/newsdetail/${item.news.article_id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex-1 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-sm font-medium text-center shadow-lg hover:bg-blue-700 transition"
+                        >
                           อ่านเพิ่มเติม
                         </a>
                         <button

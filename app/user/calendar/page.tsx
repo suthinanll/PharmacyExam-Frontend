@@ -99,6 +99,19 @@ const DEFAULT_STYLE = {
 
 const getTypeStyle = (type: string) => TYPE_EVENT_STYLES[type] || DEFAULT_STYLE;
 
+// Helper ตัดข้อความชื่อกิจกรรมให้กระชับสำหรับแสดงในช่องปฏิทิน
+const getShortEventTitle = (title: string, maxLen = 22) => {
+  if (!title) return "";
+  if (title.includes(" - ")) {
+    const parts = title.split(" - ");
+    const activity = parts.slice(1).join(" - ").trim();
+    if (activity) {
+      return activity.length > maxLen ? activity.slice(0, maxLen) + "..." : activity;
+    }
+  }
+  return title.length > maxLen ? title.slice(0, maxLen) + "..." : title;
+};
+
 const CalenderPage = () => {
   const { getToken, isAuthenticated } = useAuth();
   const { requireLogin } = useRequireLogin();
@@ -336,7 +349,9 @@ const CalenderPage = () => {
                       ))}
                     </div>
                   )}
-                  <span className="truncate block">{schedule.title}</span>
+                  <span className="truncate block" title={schedule.title}>
+                    {getShortEventTitle(schedule.title)}
+                  </span>
                 </button>
               );
             })}
