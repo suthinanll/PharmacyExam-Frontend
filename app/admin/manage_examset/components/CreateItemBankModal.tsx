@@ -53,7 +53,9 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
     const fetchCategories = async () => {
         setLoadingCategories(true);
         try {
+            const token = getToken ? getToken() : '';
             const response = await fetch(`${API_URL}/categories`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
                 credentials: 'include'
             });
             if (response.ok) {
@@ -256,6 +258,9 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
         setLoading(true);
 
         try {
+            const token = getToken ? getToken() : '';
+            const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
             if (excelFile) {
                 const submitData = new FormData();
                 submitData.append('bank_name', formData.bank_name.trim());
@@ -267,6 +272,9 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
 
                 const response = await fetch(`${API_URL}/items-bank/with-excel`, {
                     method: 'POST',
+                    headers: {
+                        ...authHeaders,
+                    },
                     credentials: 'include',
                     body: submitData
                 });
@@ -293,7 +301,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                     } else {
                         await Swal.fire({
                             title: 'สำเร็จ',
-                            text: `สร้างชุดข้อสอบ "${data.item_bank.bank_name}" พร้อมนำเข้าข้อสอบ ${data.import_result?.imported_count || 0} ข้อเรียบร้อยแล้ว`,
+                            text: `สร้างชุดข้อสอบ "${data.item_bank?.bank_name || formData.bank_name}" พร้อมนำเข้าข้อสอบ ${data.import_result?.imported_count || 0} ข้อเรียบร้อยแล้ว`,
                             icon: 'success',
                             confirmButtonColor: '#16a34a'
                         });
@@ -309,7 +317,8 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                 const response = await fetch(`${API_URL}/items-bank`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        ...authHeaders,
                     },
                     credentials: 'include',
                     body: JSON.stringify(formData)
