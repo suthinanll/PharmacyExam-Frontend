@@ -82,7 +82,7 @@ export default function CATGuideModal({ isOpen, onClose }: CATGuideModalProps) {
                                     <p>• b = 0: ยากปานกลาง</p>
                                     <p>• b &gt; 1.5: ข้อสอบยากมาก</p>
                                     <p>• b &lt; -1.5: ข้อสอบง่ายมาก</p>
-                                    <p className="text-purple-700 font-medium">• ช่วงปกติ: -4.0 ถึง 4.0</p>
+                                    <p className="text-purple-700 font-medium">• ช่วงปกติ: -3.0 ถึง 3.0</p>
                                 </div>
                             </div>
 

@@ -394,10 +394,10 @@ function TakeExam() {
         });
     };
 
-    // Prevent accidental page close
+    // Prevent accidental page close & warn before leave
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (!submitting && questions.length > 0) {
+            if (!submitting && !submittedRef.current && questions.length > 0) {
                 e.preventDefault();
                 e.returnValue = "";
             }
@@ -406,6 +406,98 @@ function TakeExam() {
         window.addEventListener("beforeunload", handleBeforeUnload);
         return () => window.removeEventListener("beforeunload", handleBeforeUnload);
     }, [submitting, questions]);
+
+    // ดักจับการกดปุ่ม Back ของเบราว์เซอร์ (Popstate)
+    useEffect(() => {
+        if (loading || questions.length === 0) return;
+        window.history.pushState(null, "", window.location.href);
+
+        const handlePopState = (e: PopStateEvent) => {
+            if (submittedRef.current) return;
+            e.preventDefault();
+            window.history.pushState(null, "", window.location.href);
+
+            Swal.fire({
+                title: "ต้องการออกจากห้องสอบใช่หรือไม่?",
+                text: "หากคุณออกจากห้องสอบ การทำข้อสอบครั้งนี้จะถูกยกเลิกและข้อมูลจะไม่ถูกบันทึก",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#ef4444",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "ออกจากห้องสอบ",
+                cancelButtonText: "ทำข้อสอบต่อ",
+                reverseButtons: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    submittedRef.current = false;
+                    const token = getToken();
+                    if (token && sessionId) {
+                        fetch(`${API_URL}/items-bank/exam/${sessionId}/cancel`, {
+                            method: "DELETE",
+                            headers: { Authorization: `Bearer ${token}` },
+                            keepalive: true,
+                        }).finally(() => {
+                            router.push("/user/examset");
+                        });
+                    } else {
+                        router.push("/user/examset");
+                    }
+                }
+            });
+        };
+
+        window.addEventListener("popstate", handlePopState);
+        return () => window.removeEventListener("popstate", handlePopState);
+    }, [loading, questions, sessionId, getToken, router]);
+
+    // ดักจับการคลิกลิงก์เมนูต่าง ๆ (เช่น Navbar) ระหว่างทำข้อสอบ
+    useEffect(() => {
+        if (loading || questions.length === 0) return;
+
+        const handleDocClick = (e: MouseEvent) => {
+            if (submittedRef.current || submitting) return;
+            const target = (e.target as HTMLElement).closest("a");
+            if (target && target.href && !target.href.startsWith("javascript:") && !target.getAttribute("href")?.startsWith("#")) {
+                const targetUrl = target.href;
+                const currentUrl = window.location.href;
+                if (targetUrl !== currentUrl) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    Swal.fire({
+                        title: "ต้องการออกจากห้องสอบใช่หรือไม่?",
+                        text: "หากคุณออกจากห้องสอบ การทำข้อสอบครั้งนี้จะถูกยกเลิกและข้อมูลจะไม่ถูกบันทึก",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#ef4444",
+                        cancelButtonColor: "#6b7280",
+                        confirmButtonText: "ออกจากห้องสอบ",
+                        cancelButtonText: "ทำข้อสอบต่อ",
+                        reverseButtons: true,
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            submittedRef.current = false;
+                            const token = getToken();
+                            if (token && sessionId) {
+                                fetch(`${API_URL}/items-bank/exam/${sessionId}/cancel`, {
+                                    method: "DELETE",
+                                    headers: { Authorization: `Bearer ${token}` },
+                                    keepalive: true,
+                                }).finally(() => {
+                                    window.location.href = targetUrl;
+                                });
+                            } else {
+                                window.location.href = targetUrl;
+                            }
+                        }
+                    });
+                }
+            }
+        };
+
+        document.addEventListener("click", handleDocClick, true);
+        return () => document.removeEventListener("click", handleDocClick, true);
+    }, [loading, questions, sessionId, submitting, getToken]);
 
     if (loading) {
         return (

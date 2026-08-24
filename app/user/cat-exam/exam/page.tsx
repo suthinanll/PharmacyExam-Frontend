@@ -626,13 +626,115 @@ function CATExamPageContent() {
       }).catch(() => { });
     };
 
-    window.addEventListener('beforeunload', doCancel);
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isFinished && !submittedRef.current) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+      doCancel();
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       clearTimeout(allowTimer);
       doCancel();
-      window.removeEventListener('beforeunload', doCancel);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [sessionIdRef.current, getToken]);
+  }, [sessionIdRef.current, getToken, isFinished]);
+
+  // ดักจับการกดปุ่ม Back ของเบราว์เซอร์ (Popstate) ระหว่างสอบ CAT
+  useEffect(() => {
+    if (isFinished || loading) return;
+    window.history.pushState(null, "", window.location.href);
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (submittedRef.current || isFinished) return;
+      e.preventDefault();
+      window.history.pushState(null, "", window.location.href);
+
+      Swal.fire({
+        title: "ต้องการออกจากห้องสอบ CAT ใช่หรือไม่?",
+        text: "หากคุณออกจากห้องสอบ การทำข้อสอบครั้งนี้จะถูกยกเลิกและข้อมูลจะไม่ถูกบันทึก",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "ออกจากห้องสอบ",
+        cancelButtonText: "ทำข้อสอบต่อ",
+        reverseButtons: true,
+      }).then((result) => {
+        if (result.isConfirmed) {
+          submittedRef.current = false;
+          const sid = sessionIdRef.current;
+          const token = getToken();
+          if (sid && token) {
+            fetch(`${process.env.NEXT_PUBLIC_API_URL}/cat/session/${sid}/cancel`, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${token}` },
+              keepalive: true,
+            }).finally(() => {
+              router.push("/user/cat-exam");
+            });
+          } else {
+            router.push("/user/cat-exam");
+          }
+        }
+      });
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [isFinished, loading, getToken, router]);
+
+  // ดักจับการคลิกลิงก์เมนูต่าง ๆ (เช่น Navbar) ระหว่างสอบ CAT
+  useEffect(() => {
+    if (isFinished || loading) return;
+
+    const handleDocClick = (e: MouseEvent) => {
+      if (submittedRef.current || isFinished) return;
+      const target = (e.target as HTMLElement).closest("a");
+      if (target && target.href && !target.href.startsWith("javascript:") && !target.getAttribute("href")?.startsWith("#")) {
+        const targetUrl = target.href;
+        const currentUrl = window.location.href;
+        if (targetUrl !== currentUrl) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          Swal.fire({
+            title: "ต้องการออกจากห้องสอบ CAT ใช่หรือไม่?",
+            text: "หากคุณออกจากห้องสอบ การทำข้อสอบครั้งนี้จะถูกยกเลิกและข้อมูลจะไม่ถูกบันทึก",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef4444",
+            cancelButtonColor: "#6b7280",
+            confirmButtonText: "ออกจากห้องสอบ",
+            cancelButtonText: "ทำข้อสอบต่อ",
+            reverseButtons: true,
+          }).then((result) => {
+            if (result.isConfirmed) {
+              submittedRef.current = false;
+              const sid = sessionIdRef.current;
+              const token = getToken();
+              if (sid && token) {
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/cat/session/${sid}/cancel`, {
+                  method: "DELETE",
+                  headers: { Authorization: `Bearer ${token}` },
+                  keepalive: true,
+                }).finally(() => {
+                  window.location.href = targetUrl;
+                });
+              } else {
+                window.location.href = targetUrl;
+              }
+            }
+          });
+        }
+      }
+    };
+
+    document.addEventListener("click", handleDocClick, true);
+    return () => document.removeEventListener("click", handleDocClick, true);
+  }, [isFinished, loading, getToken]);
 
   // Start / Resume exam
   useEffect(() => {

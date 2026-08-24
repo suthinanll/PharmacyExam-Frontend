@@ -344,8 +344,8 @@ export default function IRTManagementPage() {
     async function handleSaveSingle() {
         if (!editItem) return;
         const { a, b, c } = editIRT;
-        if (a <= 0 || a > 3 || b < -4 || b > 4 || c <= 0 || c >= 1)
-            return Swal.fire('ค่าไม่ถูกต้อง', 'a: 0.1–3.0  |  b: -4.0 ถึง +4.0  |  c: 0.01–0.99', 'warning');
+        if (a <= 0 || a > 3 || b < -3 || b > 3 || c <= 0 || c >= 1)
+            return Swal.fire('ค่าไม่ถูกต้อง', 'a: 0.1–3.0  |  b: -3.0 ถึง +3.0  |  c: 0.01–0.99', 'warning');
         try {
             setIsSaving(true);
             const r = await fetch(`${API}/items-bank/cat/batch-update-irt`, {
@@ -1315,7 +1315,7 @@ export default function IRTManagementPage() {
                                 <p className="text-sm font-medium text-gray-800">ปรับค่าพารามิเตอร์</p>
                                 <SliderField
                                     label="ความยาก" sublabel="— b"
-                                    value={editIRT.b} min={-4} max={4} step={0.1}
+                                    value={editIRT.b} min={-3} max={3} step={0.1}
                                     color="#7c3aed"
                                     onChange={v => setEditIRT(p => ({ ...p, b: v }))}
                                     format={v => (v > 0 ? `+${v.toFixed(1)}` : v.toFixed(1))}
@@ -1424,7 +1424,7 @@ export default function IRTManagementPage() {
                             <div className="space-y-4">
                                 <SliderField
                                     label="ความยาก b" sublabel="กำหนดเอง"
-                                    value={bulkIRT.b} min={-4} max={4} step={0.1}
+                                    value={bulkIRT.b} min={-3} max={3} step={0.1}
                                     color="#7c3aed"
                                     onChange={v => setBulkIRT(p => ({ ...p, b: v }))}
                                     format={v => (v > 0 ? `+${v.toFixed(1)}` : v.toFixed(1))}

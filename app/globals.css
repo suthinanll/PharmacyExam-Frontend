@@ -101,4 +101,21 @@ input[type="reset"]:disabled {
   color: #4b5563 !important;
   margin-top: 0.5rem !important;
   margin-bottom: 0.5rem !important;
+}
+
+/* ─── Superscript & Subscript (สมการ/ยกกำลัง/ตัวห้อย) ─── */
+sup, .prose sup, .tiptap sup {
+  font-size: 75% !important;
+  line-height: 0 !important;
+  position: relative !important;
+  vertical-align: baseline !important;
+  top: -0.5em !important;
+}
+
+sub, .prose sub, .tiptap sub {
+  font-size: 75% !important;
+  line-height: 0 !important;
+  position: relative !important;
+  vertical-align: baseline !important;
+  bottom: -0.25em !important;
 }

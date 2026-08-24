@@ -26,6 +26,7 @@ import {
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from '@/contexts/AuthContext';
+import Swal from 'sweetalert2';
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -347,6 +348,41 @@ function AddBlogPage() {
         };
     }, [drafts]);
 
+    // เตือนเมื่อพยายามปิดแท็บหรือรีเฟรชหน้าขณะมีข้อมูลที่ยังไม่ได้เผยแพร่
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            const hasContent = drafts.some(d => d.title.trim() || d.content.trim() || d.imageUrl || d.imageFile);
+            if (hasContent) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [drafts]);
+
+    const handleBackWithConfirm = async () => {
+        const hasContent = drafts.some(d => d.title.trim() || d.content.trim() || d.imageUrl || d.imageFile);
+        if (hasContent) {
+            const result = await Swal.fire({
+                title: 'ต้องการออกจากหน้านี้ใช่หรือไม่?',
+                text: 'คุณมีข้อมูลข่าวสารที่ยังไม่ได้เผยแพร่ ข้อมูลอาจสูญหายหากออกจากหน้านี้',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'ใช่, ออกจากหน้านี้',
+                cancelButtonText: 'อยู่หน้านี้ต่อ',
+                reverseButtons: true
+            });
+            if (result.isConfirmed) {
+                router.push('/admin/mnblog');
+            }
+        } else {
+            router.push('/admin/mnblog');
+        }
+    };
+
     const addNewDraft = () => {
         setDrafts(prev => [
             ...prev,
@@ -543,7 +579,7 @@ function AddBlogPage() {
         <Navbar_admin>
             <div className="max-w-7xl mx-auto w-full space-y-6 pb-20">
                 <button
-                    onClick={() => router.back()}
+                    onClick={handleBackWithConfirm}
                     className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 mb-5 text-sm font-medium transition-colors"
                 >
                     <ChevronLeft className="w-4 h-4" /> กลับสู่หน้าจัดการ

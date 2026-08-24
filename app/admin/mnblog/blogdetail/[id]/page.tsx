@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
+import Swal from 'sweetalert2';
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
@@ -43,6 +44,7 @@ export default function EditBlogDetail() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState({ title: "", content: "", cover_image_url: "", source_url: "" });
+    const initialDataRef = useRef<{ title: string; content: string; cover_image_url: string; source_url: string } | null>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -68,6 +70,29 @@ export default function EditBlogDetail() {
         onUpdate: ({ editor }) => {
             setFormData(prev => ({ ...prev, content: editor.getHTML() }));
         },
+    });
+
+    const isDirty = () => {
+        if (!initialDataRef.current) return false;
+        return (
+            formData.title !== initialDataRef.current.title ||
+            formData.content !== initialDataRef.current.content ||
+            formData.cover_image_url !== initialDataRef.current.cover_image_url ||
+            formData.source_url !== initialDataRef.current.source_url ||
+            selectedFile !== null
+        );
+    };
+
+    // เตือนเมื่อพยายามปิดแท็บหรือรีเฟรชหน้าขณะมีข้อมูลที่ยังไม่ได้บันทึก
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty()) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     });
 
     // Auto-save ทุก 30 วินาที
@@ -115,12 +140,19 @@ export default function EditBlogDetail() {
                     const timeDiff = Date.now() - parsed.timestamp;
                     // ถ้าบันทึกไว้ไม่เกิน 1 ชั่วโมง ให้ใช้ข้อมูลที่บันทึกไว้
                     if (timeDiff < 3600000) {
-                        setFormData({
+                        const loadedData = {
                             title: parsed.title,
                             content: parsed.content,
                             cover_image_url: data.cover_image_url || "",
                             source_url: data.source_url || ""
-                        });
+                        };
+                        setFormData(loadedData);
+                        initialDataRef.current = {
+                            title: data.title || "",
+                            content: data.content || "",
+                            cover_image_url: data.cover_image_url || "",
+                            source_url: data.source_url || ""
+                        };
                         editor.commands.setContent(parsed.content);
                         setToast({ type: "info", message: "โหลดแบบร่างที่บันทึกไว้อัตโนมัติ" });
                         setIsLoading(false);
@@ -128,12 +160,14 @@ export default function EditBlogDetail() {
                     }
                 }
 
-                setFormData({
+                const initialLoaded = {
                     title: data.title || "",
                     content: data.content || "",
                     cover_image_url: data.cover_image_url || "",
                     source_url: data.source_url || ""
-                });
+                };
+                setFormData(initialLoaded);
+                initialDataRef.current = initialLoaded;
                 editor.commands.setContent(data.content || "");
             } catch (err) {
                 const error = err as Error;
@@ -256,6 +290,10 @@ export default function EditBlogDetail() {
             // ล้าง localStorage หลังบันทึกสำเร็จ
             localStorage.removeItem(`blog-edit-${blogId}`);
 
+            // รีเซ็ตสถานะ dirty
+            initialDataRef.current = { ...formData };
+            setSelectedFile(null);
+
             setToast({ type: "success", message: "อัปเดตข้อมูลเรียบร้อย!" });
             setTimeout(() => router.push('/admin/mnblog'), 1500);
         } catch (err) {
@@ -263,6 +301,27 @@ export default function EditBlogDetail() {
             setToast({ type: "error", message: error.message || "เกิดข้อผิดพลาดในการบันทึก" });
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleBackWithConfirm = async () => {
+        if (isDirty()) {
+            const result = await Swal.fire({
+                title: 'ต้องการออกจากหน้านี้ใช่หรือไม่?',
+                text: 'คุณมีการแก้ไขที่ยังไม่ได้บันทึก ข้อมูลอาจสูญหายหากออกจากหน้านี้',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: 'ใช่, ออกจากหน้านี้',
+                cancelButtonText: 'อยู่หน้านี้ต่อ',
+                reverseButtons: true
+            });
+            if (result.isConfirmed) {
+                router.push('/admin/mnblog');
+            }
+        } else {
+            router.push('/admin/mnblog');
         }
     };
 
@@ -278,9 +337,12 @@ export default function EditBlogDetail() {
     return (
         <Navbar_admin>
             <div className="max-w-7xl mx-auto w-full space-y-6 pb-20">
-                <Link href="/admin/mnblog" className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 mb-5 text-sm font-medium transition-colors">
+                <button
+                    onClick={handleBackWithConfirm}
+                    className="inline-flex items-center gap-1.5 text-green-600 hover:text-green-700 mb-5 text-sm font-medium transition-colors"
+                >
                     <ChevronLeft className="w-4 h-4" /> กลับสู่หน้าจัดการ
-                </Link>
+                </button>
 
                 {/* ── Header ──────────────────────────────────────────────── */}
                 <div className="mb-8">
