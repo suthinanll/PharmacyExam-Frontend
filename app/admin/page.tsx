@@ -46,6 +46,7 @@ interface StatCardProps {
   description: string;
   color: string;
   subValue?: string;
+  onClick?: () => void;
 }
 
 const StatCard: React.FC<StatCardProps> = ({
@@ -55,8 +56,14 @@ const StatCard: React.FC<StatCardProps> = ({
   description,
   color,
   subValue,
+  onClick,
 }) => (
-  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+  <div
+    onClick={onClick}
+    className={`bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
+      onClick ? "cursor-pointer hover:border-green-200" : ""
+    }`}
+  >
     <div className="flex justify-between items-start">
       <div className="space-y-2">
         <p className="text-xs font-semibold  text-gray-400">{title}</p>
@@ -95,6 +102,22 @@ function AdminDashboardPage() {
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
 
+  // ── Load cached AI Analysis from localStorage on mount ───────────────────
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const savedData = localStorage.getItem("ai_analysis_admin");
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        if (parsed && typeof parsed === "object") {
+          setAiAnalysis(parsed);
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to load cached admin AI analysis from localStorage:", e);
+    }
+  }, []);
+
   const handleRunAdminAIAnalysis = async () => {
     try {
       setAiLoading(true);
@@ -104,6 +127,13 @@ function AdminDashboardPage() {
         monthly_scores: monthlyData,
       });
       setAiAnalysis(result);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("ai_analysis_admin", JSON.stringify(result));
+        } catch (e) {
+          console.warn("Failed to save admin AI analysis to localStorage:", e);
+        }
+      }
     } catch (err: any) {
       console.error("n8n Admin AI Error:", err);
       setAiError(err?.message || "ไม่สามารถเชื่อมต่อกับระบบ AI วิเคราะห์แนวโน้มได้ กรุณาลองใหม่อีกครั้ง");
@@ -231,6 +261,8 @@ function AdminDashboardPage() {
             value={stats?.totalUsers?.toLocaleString() ?? "-"}
             description="คน"
             color="bg-indigo-600"
+            subValue="คลิกเพื่อดูรายชื่อทั้งหมด →"
+            onClick={() => router.push("/admin/manage_users")}
           />
           <StatCard
             icon={<BookOpen className="w-5 h-5" />}
@@ -455,33 +487,78 @@ function AdminDashboardPage() {
               )}
 
               {/* Strategic Recommendations */}
-              {(aiAnalysis.recommendations || aiAnalysis.action_plan) && (
-                <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-medium text-teal-800">
-                    <CheckCircle2 className="w-4 h-4 text-teal-600" />
-                    <span>ข้อเสนอแนะเชิงกลยุทธ์สำหรับผู้ดูแลระบบ</span>
-                  </div>
-                  <div className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed">
-                    {Array.isArray(aiAnalysis.recommendations) ? (
-                      <ul className="list-disc list-inside space-y-1.5">
-                        {aiAnalysis.recommendations.map((rec: any, idx: number) => (
-                          <li key={idx}>{typeof rec === "string" ? rec : JSON.stringify(rec)}</li>
+              {(aiAnalysis.recommendations || aiAnalysis.action_plan) && (() => {
+                const raw = aiAnalysis.recommendations || aiAnalysis.action_plan;
+
+                // Detect structured object with schedule + general_strategies
+                const isStructured =
+                  raw &&
+                  typeof raw === "object" &&
+                  !Array.isArray(raw) &&
+                  (raw.schedule || raw.general_strategies);
+
+                if (isStructured) {
+                  return (
+                    <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 space-y-4">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-teal-800">
+                        <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                        <span>ข้อเสนอแนะเชิงกลยุทธ์สำหรับผู้ดูแลระบบ</span>
+                      </div>
+
+                      {/* General Strategies only */}
+                      {Array.isArray(raw.general_strategies) && raw.general_strategies.length > 0 && (
+                        <ul className="space-y-2">
+                          {raw.general_strategies.map((s: string, idx: number) => (
+                            <li key={idx} className="flex items-start gap-2.5">
+                              <span className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold">
+                                {idx + 1}
+                              </span>
+                              <span className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed">{s}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  );
+                }
+
+                // Fallback: array of strings
+                if (Array.isArray(raw)) {
+                  return (
+                    <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-semibold text-teal-800">
+                        <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                        <span>ข้อเสนอแนะเชิงกลยุทธ์สำหรับผู้ดูแลระบบ</span>
+                      </div>
+                      <ul className="space-y-2">
+                        {raw.map((item: any, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2.5">
+                            <span className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-[10px] font-bold">
+                              {idx + 1}
+                            </span>
+                            <span className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed">
+                              {typeof item === "string" ? item : JSON.stringify(item)}
+                            </span>
+                          </li>
                         ))}
                       </ul>
-                    ) : Array.isArray(aiAnalysis.action_plan) ? (
-                      <ul className="list-disc list-inside space-y-1.5">
-                        {aiAnalysis.action_plan.map((plan: any, idx: number) => (
-                          <li key={idx}>{typeof plan === "string" ? plan : JSON.stringify(plan)}</li>
-                        ))}
-                      </ul>
-                    ) : typeof (aiAnalysis.recommendations || aiAnalysis.action_plan) === "string" ? (
-                      <p className="whitespace-pre-wrap">{aiAnalysis.recommendations || aiAnalysis.action_plan}</p>
-                    ) : (
-                      <p>{JSON.stringify(aiAnalysis.recommendations || aiAnalysis.action_plan, null, 2)}</p>
-                    )}
+                    </div>
+                  );
+                }
+
+                // Fallback: plain string
+                return (
+                  <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-teal-800">
+                      <CheckCircle2 className="w-4 h-4 text-teal-600" />
+                      <span>ข้อเสนอแนะเชิงกลยุทธ์สำหรับผู้ดูแลระบบ</span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
+                      {typeof raw === "string" ? raw : JSON.stringify(raw, null, 2)}
+                    </p>
                   </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Plain text / output fallback */}
               {!aiAnalysis.summary && !aiAnalysis.trend_summary && !aiAnalysis.key_insights && !aiAnalysis.analysis_points && aiAnalysis.output && (

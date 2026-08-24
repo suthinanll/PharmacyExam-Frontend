@@ -106,11 +106,36 @@ export default function RegisterPage() {
   // ส่ง OTP ไปยัง Email
   const handleSendOTP = async () => {
     // Validate ข้อมูลก่อนส่ง OTP
-    if (!firstName || !lastName || !email || !tel || !bod || !universityId) {
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !tel.trim() || !bod || !universityId) {
       Swal.fire({
         icon: "warning",
         title: "กรุณากรอกข้อมูลให้ครบถ้วน",
-        text: "กรุณากรอกข้อมูลทุกช่องก่อนขอรหัส OTP",
+        text: "กรุณากรอกข้อมูลทุกช่องให้ครบถ้วนก่อนขอรหัส OTP",
+        confirmButtonColor: "#16a34a",
+      });
+      return;
+    }
+
+    // เช็ครูปแบบอีเมล
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email.trim())) {
+      Swal.fire({
+        icon: "warning",
+        title: "รูปแบบอีเมลไม่ถูกต้อง",
+        text: "กรุณากรอกรูปแบบอีเมลให้ถูกต้อง (เช่น name@gmail.com)",
+        confirmButtonColor: "#16a34a",
+      });
+      return;
+    }
+
+    // เช็คเบอร์โทรศัพท์ไทย 10 หลัก
+    const cleanTel = tel.replace(/[-\s]/g, "");
+    if (!/^0[0-9]{9}$/.test(cleanTel)) {
+      Swal.fire({
+        icon: "warning",
+        title: "เบอร์โทรศัพท์ไม่ถูกต้อง",
+        text: "กรุณากรอกเบอร์โทรศัพท์มือถือให้ครบ 10 หลัก (เช่น 0812345678)",
+        confirmButtonColor: "#16a34a",
       });
       return;
     }
@@ -120,6 +145,7 @@ export default function RegisterPage() {
         icon: "warning",
         title: "กรุณาตั้งรหัสผ่าน",
         text: "กรุณากรอกรหัสผ่านและยืนยันรหัสผ่าน",
+        confirmButtonColor: "#16a34a",
       });
       return;
     }
@@ -129,6 +155,7 @@ export default function RegisterPage() {
         icon: "warning",
         title: "รหัสผ่านไม่ตรงกัน",
         text: "กรุณากรอกรหัสผ่านให้ตรงกันทั้งสองช่อง",
+        confirmButtonColor: "#16a34a",
       });
       return;
     }
@@ -142,7 +169,7 @@ export default function RegisterPage() {
         text: "รหัสผ่านของคุณยังไม่ผ่านเกณฑ์ความปลอดภัย ต้องการดำเนินการต่อหรือไม่?",
         showCancelButton: true,
         confirmButtonText: "ดำเนินการต่อ",
-        cancelButtonText: "ยกเลิก",
+        cancelButtonText: "แก้ไขรหัสผ่าน",
         confirmButtonColor: "#16a34a",
         cancelButtonColor: "#6b7280",
         reverseButtons: true,
@@ -158,7 +185,7 @@ export default function RegisterPage() {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email: email.trim() }),
         },
       );
 
@@ -168,17 +195,19 @@ export default function RegisterPage() {
         await Swal.fire({
           icon: "success",
           title: "ส่งรหัส OTP แล้ว!",
-          text: `กรุณาตรวจสอบอีเมล ${email}`,
-          timer: 2000,
+          text: `กรุณาตรวจสอบรหัส 6 หลักในอีเมล ${email.trim()}`,
+          timer: 2500,
           showConfirmButton: false,
         });
         setStep(2);
         setOtpCooldown(60); // Cooldown 60 วินาที
       } else {
+        const errorMsg = Array.isArray(data.message) ? data.message[0] : data.message;
         Swal.fire({
           icon: "error",
-          title: "ส่ง OTP ไม่สำเร็จ",
-          text: data.message || "กรุณาลองใหม่อีกครั้ง",
+          title: "ไม่สามารถส่ง OTP ได้",
+          text: errorMsg || "กรุณาลองใหม่อีกครั้ง",
+          confirmButtonColor: "#ef4444",
         });
       }
     } catch (error) {
@@ -186,34 +215,40 @@ export default function RegisterPage() {
       Swal.fire({
         icon: "error",
         title: "เกิดข้อผิดพลาด",
-        text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
+        text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบอินเทอร์เน็ต",
+        confirmButtonColor: "#ef4444",
       });
     } finally {
       setIsSendingOTP(false);
     }
   };
+
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!otp || otp.length !== 6) {
+    const cleanOtp = otp.trim();
+    if (!cleanOtp || cleanOtp.length !== 6) {
       Swal.fire({
         icon: "warning",
-        title: "กรุณากรอกรหัส OTP",
-        text: "รหัส OTP ต้องมี 6 หลัก",
+        title: "กรุณากรอกรหัส OTP ให้ครบถ้วน",
+        text: "รหัส OTP ต้องเป็นตัวเลข 6 หลัก",
+        confirmButtonColor: "#16a34a",
       });
       return;
     }
 
+    const cleanTel = tel.replace(/[-\s]/g, "");
+
     const newUser = {
-      first_name: firstName,
-      last_name: lastName,
-      email,
-      tel,
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      email: email.trim().toLowerCase(),
+      tel: cleanTel,
       password,
       confirm_password: confirmPassword,
       bod,
       university_id: Number(universityId),
-      otp, // ส่ง OTP ไปให้ backend ตรวจสอบ
+      otp: cleanOtp, // ส่ง OTP ไปให้ backend ตรวจสอบ
     };
 
     try {
@@ -238,10 +273,12 @@ export default function RegisterPage() {
         });
         router.push("/login");
       } else {
+        const errorMsg = Array.isArray(result.message) ? result.message[0] : result.message;
         Swal.fire({
           icon: "error",
-          title: "เกิดข้อผิดพลาด",
-          text: result.message || "สมัครสมาชิกไม่สำเร็จ กรุณาตรวจสอบรหัส OTP",
+          title: "สมัครสมาชิกไม่สำเร็จ",
+          text: errorMsg || "กรุณาตรวจสอบข้อมูลและรหัส OTP อีกครั้ง",
+          confirmButtonColor: "#ef4444",
         });
       }
     } catch (error) {
@@ -249,7 +286,8 @@ export default function RegisterPage() {
       Swal.fire({
         icon: "error",
         title: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้",
-        text: "กรุณาลองใหม่ภายหลัง",
+        text: "กรุณาลองใหม่อีกครั้งในภายหลัง",
+        confirmButtonColor: "#ef4444",
       });
     }
   };
