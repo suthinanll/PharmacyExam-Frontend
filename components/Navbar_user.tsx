@@ -139,7 +139,7 @@ const Navbar = () => {
   }, [isMobileMenuOpen]);
 
   return (
-    <nav className="shadow-xl bg-[rgba(118,178,90,1)] sticky top-0 z-50 backdrop-blur-sm">
+    <nav className="bg-[rgba(118,178,90,1)] sticky top-0 z-50 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-3 sm:px-5 md:px-6 lg:px-8">
         <div className="relative flex h-14 sm:h-15 md:h-17 items-center justify-between">
 

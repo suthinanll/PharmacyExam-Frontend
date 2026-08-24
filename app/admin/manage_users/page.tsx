@@ -399,7 +399,6 @@ export default function ManageUsersPage() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-200 pb-5">
           <div>
             <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 flex items-center gap-2.5">
-              <Users className="w-8 h-8 text-green-700" />
               <span>รายชื่อผู้ใช้งานในระบบ</span>
             </h1>
             <p className="text-sm text-gray-500 mt-1 font-medium">

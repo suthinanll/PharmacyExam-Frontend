@@ -689,7 +689,7 @@ export default function ChatbotPage() {
       )}
 
       {/* Full-width container to prevent left clipping and margin misalignment */}
-      <div className="w-full flex h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-3.75rem)] md:h-[calc(100vh-4.25rem)] overflow-hidden bg-white">
+      <div className="w-full flex h-[calc(100dvh-3.5rem)] sm:h-[calc(100dvh-3.75rem)] md:h-[calc(100dvh-4.25rem)] overflow-hidden bg-white">
 
         {/* Mobile Sidebar Overlay */}
         {sidebarOpen && (
@@ -804,7 +804,7 @@ export default function ChatbotPage() {
         <main className="flex-1 flex flex-col relative w-full bg-slate-50/40 overflow-hidden">
 
           {/* Mobile Header for Sidebar Toggle */}
-          <div className="lg:hidden h-12 border-b border-gray-200 bg-white/95 backdrop-blur-xs flex items-center px-3.5 justify-between shrink-0 z-20 shadow-2xs">
+          <div className="lg:hidden sticky top-0 h-12 border-b border-gray-200 bg-white flex items-center px-3.5 justify-between shrink-0 z-20">
             <button
               id="sidebar-toggle"
               onClick={() => setSidebarOpen(true)}
