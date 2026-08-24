@@ -88,13 +88,19 @@ function TakeExam() {
     const submittedRef = useRef(false);
 
     const toggleFlagQuestion = (itemId: number) => {
-        setFlaggedQuestions(prev => ({
-            ...prev,
-            [itemId]: !prev[itemId]
-        }));
+        setFlaggedQuestions(prev => {
+            const next = {
+                ...prev,
+                [itemId]: !prev[itemId]
+            };
+            if (sessionId) {
+                localStorage.setItem(`exam_flags_${sessionId}`, JSON.stringify(next));
+            }
+            return next;
+        });
     };
 
-    // Fetch exam data
+    // Fetch exam data & restore in-progress answers
     useEffect(() => {
         if (itemBankId && sessionId) {
             fetchExamData();
@@ -108,38 +114,6 @@ function TakeExam() {
     useEffect(() => {
         setQuestionStartTime(Date.now());
     }, [currentQuestionIndex]);
-
-    // Cancel session if user leaves without submitting (closes tab / navigates away)
-    useEffect(() => {
-        if (!sessionId) return;
-
-        // cancelAllowed starts false; we set it to true after a tick
-        // so that React 18 Strict Mode's simulated unmount (which runs immediately)
-        // does NOT trigger a real cancel request.
-        let cancelAllowed = false;
-        const allowTimer = setTimeout(() => { cancelAllowed = true; }, 300);
-
-        const doCancel = () => {
-            if (submittedRef.current) return;
-            if (!cancelAllowed) return; // StrictMode double-invoke guard
-            const token = getToken();
-            if (!token) return;
-            const url = `${API_URL}/items-bank/exam/${sessionId}/cancel`;
-            fetch(url, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` },
-                keepalive: true
-            }).catch(() => { });
-        };
-
-        window.addEventListener('beforeunload', doCancel);
-
-        return () => {
-            clearTimeout(allowTimer);
-            doCancel(); // only fires if cancelAllowed = true (real unmount)
-            window.removeEventListener('beforeunload', doCancel);
-        };
-    }, [sessionId]);
 
     const fetchExamData = async () => {
         setLoading(true);
@@ -190,8 +164,44 @@ function TakeExam() {
                 );
                 setQuestions(sortedQuestions);
 
-                // Set timer
-                setTimeLeft(data.duration || 3600);
+                // Restore saved answers from previous session if any (Resume support)
+                let loadedAnswers: { [key: number]: { option_index: number; start_time: number } } = {};
+                const savedAnswers = localStorage.getItem(`exam_answers_${sessionId}`);
+                if (savedAnswers) {
+                    try {
+                        loadedAnswers = JSON.parse(savedAnswers);
+                        setAnswers(loadedAnswers);
+                    } catch (e) {}
+                }
+
+                // Restore saved flags
+                const savedFlags = localStorage.getItem(`exam_flags_${sessionId}`);
+                if (savedFlags) {
+                    try {
+                        setFlaggedQuestions(JSON.parse(savedFlags));
+                    } catch (e) {}
+                }
+
+                // Calculate real-time countdown based on start time
+                const now = Date.now();
+                let realStartTime = now;
+                const savedStartTime = localStorage.getItem(`exam_start_time_${sessionId}`);
+                if (savedStartTime) {
+                    realStartTime = Number(savedStartTime);
+                } else {
+                    localStorage.setItem(`exam_start_time_${sessionId}`, String(now));
+                }
+
+                const totalDuration = data.duration || 3600;
+                const elapsedSec = Math.floor((now - realStartTime) / 1000);
+                const remaining = Math.max(1, totalDuration - elapsedSec);
+                setTimeLeft(remaining);
+
+                // Set selected answer for the first question
+                if (sortedQuestions.length > 0) {
+                    const firstQId = sortedQuestions[0].item_id;
+                    setSelectedAnswer(loadedAnswers[firstQId]?.option_index ?? null);
+                }
 
                 setLoading(false);
             } else {
@@ -222,11 +232,11 @@ function TakeExam() {
 
     const handleTimeUp = () => {
         Swal.fire({
-            title: "หมดเวลา!",
-            text: "เวลาในการทำข้อสอบหมดแล้ว ระบบจะส่งข้อสอบอัตโนมัติ",
+            title: "หมดเวลาสอบ!",
+            text: "ระบบจะทำการส่งข้อสอบของคุณโดยอัตโนมัติ",
             icon: "warning",
-            confirmButtonColor: "#22c55e",
-            confirmButtonText: "ตรวจสอบคำตอบ",
+            confirmButtonText: "ตกลง",
+            confirmButtonColor: "#16a34a",
             allowOutsideClick: false,
         }).then(() => {
             submitExam();
@@ -245,12 +255,18 @@ function TakeExam() {
         const currentQuestion = questions[currentQuestionIndex];
         const responseTime = Date.now() - questionStartTime;
 
-        setAnswers({
-            ...answers,
-            [currentQuestion.item_id]: {
-                option_index: optionIndex,
-                start_time: responseTime,
-            },
+        setAnswers(prev => {
+            const next = {
+                ...prev,
+                [currentQuestion.item_id]: {
+                    option_index: optionIndex,
+                    start_time: responseTime,
+                },
+            };
+            if (sessionId) {
+                localStorage.setItem(`exam_answers_${sessionId}`, JSON.stringify(next));
+            }
+            return next;
         });
     };
 
@@ -325,6 +341,11 @@ function TakeExam() {
 
                 submittedRef.current = true; // ✅ เซ็ตก่อนเลย ป้องกัน cancel
 
+                // ล้างแคชคำตอบของเซสชันที่ส่งแล้ว
+                localStorage.removeItem(`exam_answers_${sessionId}`);
+                localStorage.removeItem(`exam_flags_${sessionId}`);
+                localStorage.removeItem(`exam_start_time_${sessionId}`);
+
                 await Swal.fire({
                     title: "ส่งข้อสอบสำเร็จ!",
                     html: `คะแนนของคุณ: <strong>${result.correct_count}/${result.total_questions}</strong><br/>
@@ -393,19 +414,6 @@ function TakeExam() {
             }
         });
     };
-
-    // Prevent accidental page close & warn before leave
-    useEffect(() => {
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (!submitting && !submittedRef.current && questions.length > 0) {
-                e.preventDefault();
-                e.returnValue = "";
-            }
-        };
-
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-    }, [submitting, questions]);
 
     // ดักจับการกดปุ่ม Back ของเบราว์เซอร์ (Popstate)
     useEffect(() => {

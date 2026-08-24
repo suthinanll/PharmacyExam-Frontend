@@ -166,6 +166,56 @@ export default function CATSetupPage() {
             }
 
             const data = await response.json();
+
+            if (data.is_existing) {
+                const continueResult = await Swal.fire({
+                    title: 'พบการสอบ CAT ที่ยังไม่เสร็จ',
+                    html: `คุณมีการสอบ CAT ที่กำลังทำค้างอยู่ (ทำไปแล้ว ${data.num_items} ข้อ)<br/>ต้องการทำต่อหรือไม่?`,
+                    icon: 'info',
+                    showCancelButton: true,
+                    showDenyButton: true,
+                    confirmButtonColor: '#16a34a',
+                    denyButtonColor: '#ef4444',
+                    cancelButtonColor: '#6b7280',
+                    confirmButtonText: 'ทำต่อ',
+                    denyButtonText: 'เริ่มทำใหม่ตั้งแต่ต้น',
+                    cancelButtonText: 'ปิด',
+                    reverseButtons: true
+                });
+
+                if (continueResult.isConfirmed) {
+                    router.push(`/user/cat-exam/exam?session_id=${data.session_id}`);
+                    return;
+                } else if (continueResult.isDenied) {
+                    // ยกเลิก session เดิมแล้วสร้าง session ใหม่และเข้าหน้าสอบทันที
+                    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cat/session/${data.session_id}/cancel`, {
+                        method: 'DELETE',
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+
+                    const newRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cat/start`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify(body),
+                    });
+
+                    if (!newRes.ok) {
+                        const err = await newRes.json().catch(() => ({}));
+                        throw new Error(err.message || "ไม่สามารถเริ่มข้อสอบ CAT ใหม่ได้");
+                    }
+
+                    const newData = await newRes.json();
+                    router.push(`/user/cat-exam/exam?session_id=${newData.session_id}`);
+                    return;
+                } else {
+                    setStarting(false);
+                    return;
+                }
+            }
+
             router.push(`/user/cat-exam/exam?session_id=${data.session_id}`);
         } catch (error: any) {
             setStarting(false);

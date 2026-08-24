@@ -606,42 +606,6 @@ function CATExamPageContent() {
     prevThetaRef.current = cur;
   }, [session?.current_theta]);
 
-  // Cancel session if user leaves without finishing
-  useEffect(() => {
-    if (!sessionIdRef.current) return;
-    const sessionId = sessionIdRef.current;
-
-    let cancelAllowed = false;
-    const allowTimer = setTimeout(() => { cancelAllowed = true; }, 300);
-
-    const doCancel = () => {
-      if (submittedRef.current) return;
-      if (!cancelAllowed) return;
-      const token = getToken();
-      if (!token) return;
-      fetch(`${process.env.NEXT_PUBLIC_API_URL}/cat/session/${sessionId}/cancel`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-        keepalive: true,
-      }).catch(() => { });
-    };
-
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (!isFinished && !submittedRef.current) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-      doCancel();
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      clearTimeout(allowTimer);
-      doCancel();
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [sessionIdRef.current, getToken, isFinished]);
-
   // ดักจับการกดปุ่ม Back ของเบราว์เซอร์ (Popstate) ระหว่างสอบ CAT
   useEffect(() => {
     if (isFinished || loading) return;

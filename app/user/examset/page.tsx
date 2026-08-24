@@ -220,17 +220,52 @@ const examset = () => {
       if (data.is_existing) {
         const continueResult = await Swal.fire({
           title: 'พบข้อสอบที่ยังไม่เสร็จ',
-          text: 'คุณมีข้อสอบที่ยังทำไม่เสร็จ ต้องการทำต่อหรือไม่?',
+          text: 'คุณมีข้อสอบชุดนี้ที่กำลังทำค้างอยู่ ต้องการทำต่อหรือไม่?',
           icon: 'info',
           showCancelButton: true,
+          showDenyButton: true,
           confirmButtonColor: '#16a34a',
+          denyButtonColor: '#ef4444',
           cancelButtonColor: '#6b7280',
           confirmButtonText: 'ทำต่อ',
-          cancelButtonText: 'ยกเลิก',
+          denyButtonText: 'เริ่มทำใหม่ตั้งแต่ต้น',
+          cancelButtonText: 'ปิด',
           reverseButtons: true
         });
 
-        if (!continueResult.isConfirmed) {
+        if (continueResult.isConfirmed) {
+          router.push(`/user/examset/take-exam?session_id=${data.session_id}&id=${itemBankId}`);
+          return;
+        } else if (continueResult.isDenied) {
+          // ยกเลิก session เดิมแล้วสร้าง session ใหม่และเข้าหน้าสอบทันที
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/items-bank/exam/${data.session_id}/cancel`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          localStorage.removeItem(`exam_answers_${data.session_id}`);
+          localStorage.removeItem(`exam_flags_${data.session_id}`);
+          localStorage.removeItem(`exam_start_time_${data.session_id}`);
+
+          const newRes = await fetch(`${API_URL}/items-bank/exam/start`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              item_bank_id: itemBankId
+            })
+          });
+
+          if (!newRes.ok) {
+            const err = await newRes.json().catch(() => ({}));
+            throw new Error(err.message || 'ไม่สามารถเริ่มข้อสอบใหม่ได้');
+          }
+
+          const newData = await newRes.json();
+          router.push(`/user/examset/take-exam?session_id=${newData.session_id}&id=${itemBankId}`);
+          return;
+        } else {
           setStartingExam(null);
           return;
         }
