@@ -13,16 +13,21 @@ import {
   Calendar,
   Clock,
   RefreshCcw,
-  SlidersHorizontal,
+  Plus,
+  X,
+  Lock,
+  Eye,
+  EyeOff,
+  Building2,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
-  CheckCircle2,
   AlertCircle,
-  ExternalLink,
-  Lock,
+  CheckCircle2,
+  UserPlus,
+  Globe,
 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
+import Swal from "sweetalert2";
 
 interface UserItem {
   user_id: number;
@@ -47,10 +52,16 @@ interface UserItem {
   updated_at: string;
 }
 
+interface UniversityItem {
+  university_id: number;
+  name: string;
+}
+
 const ITEMS_PER_PAGE = 10;
 
 export default function ManageUsersPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
+  const [universities, setUniversities] = useState<UniversityItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +71,24 @@ export default function ManageUsersPage() {
   const [selectedProvider, setSelectedProvider] = useState<string>("all");
   const [selectedUniversity, setSelectedUniversity] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Create Admin Modal State
+  const [isAddAdminOpen, setIsAddAdminOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    tel: "",
+    bod: "",
+    university_id: "",
+    password: "",
+    confirm_password: "",
+  });
 
   const fetchUsers = async () => {
     try {
@@ -87,8 +116,21 @@ export default function ManageUsersPage() {
     }
   };
 
+  const fetchUniversities = async () => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/universities`);
+      if (res.ok) {
+        const data = await res.json();
+        setUniversities(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch universities:", err);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchUniversities();
   }, []);
 
   // Format Thai Date & Time
@@ -96,16 +138,18 @@ export default function ManageUsersPage() {
     if (!dateStr) return "ยังไม่มีประวัติ";
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return "ยังไม่มีประวัติ";
-    return new Intl.DateTimeFormat("th-TH", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(date) + " น.";
+    return (
+      new Intl.DateTimeFormat("th-TH", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(date) + " น."
+    );
   };
 
-  // Format Thai Phone: 0812345678 -> 081-234-5678
+  // Format Thai Phone
   const formatPhone = (phone?: string | null) => {
     if (!phone) return "-";
     const cleaned = phone.replace(/\D/g, "");
@@ -114,15 +158,6 @@ export default function ManageUsersPage() {
     }
     return phone;
   };
-
-  // Unique Universities for filter
-  const universityOptions = useMemo(() => {
-    const set = new Set<string>();
-    users.forEach((u) => {
-      if (u.university?.name) set.add(u.university.name);
-    });
-    return Array.from(set);
-  }, [users]);
 
   // Filtered Users
   const filteredUsers = useMemo(() => {
@@ -142,8 +177,8 @@ export default function ManageUsersPage() {
 
       const matchesRole =
         selectedRole === "all" ||
-        (selectedRole === "admin" && u.role_id === 2) ||
-        (selectedRole === "student" && u.role_id === 1);
+        (selectedRole === "2" && u.role_id === 2) ||
+        (selectedRole === "1" && u.role_id === 1);
 
       const matchesProvider =
         selectedProvider === "all" || u.provider === selectedProvider;
@@ -171,6 +206,139 @@ export default function ManageUsersPage() {
     return filteredUsers.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredUsers, currentPage]);
 
+  // Handle Create Admin Submit
+  const handleCreateAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (
+      !formData.first_name.trim() ||
+      !formData.last_name.trim() ||
+      !formData.email.trim() ||
+      !formData.tel.trim() ||
+      !formData.bod ||
+      !formData.university_id ||
+      !formData.password ||
+      !formData.confirm_password
+    ) {
+      Swal.fire({
+        icon: "warning",
+        title: "กรุณากรอกข้อมูลให้ครบถ้วน",
+        text: "กรุณากรอกข้อมูลทุกช่องที่มีเครื่องหมายดอกจัน (*)",
+        confirmButtonColor: "#16a34a",
+      });
+      return;
+    }
+
+    // Validate Email
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(formData.email.trim())) {
+      Swal.fire({
+        icon: "warning",
+        title: "รูปแบบอีเมลไม่ถูกต้อง",
+        text: "กรุณากรอกรูปแบบอีเมลให้ถูกต้อง (เช่น admin@example.com)",
+        confirmButtonColor: "#16a34a",
+      });
+      return;
+    }
+
+    // Validate Thai Phone
+    const cleanTel = formData.tel.replace(/[-\s]/g, "");
+    if (!/^0[0-9]{9}$/.test(cleanTel)) {
+      Swal.fire({
+        icon: "warning",
+        title: "เบอร์โทรศัพท์ไม่ถูกต้อง",
+        text: "กรุณากรอกเบอร์โทรศัพท์มือถือ 10 หลัก (เช่น 0812345678)",
+        confirmButtonColor: "#16a34a",
+      });
+      return;
+    }
+
+    // Validate Password
+    if (formData.password.length < 8) {
+      Swal.fire({
+        icon: "warning",
+        title: "รหัสผ่านสั้นเกินไป",
+        text: "รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร",
+        confirmButtonColor: "#16a34a",
+      });
+      return;
+    }
+
+    if (formData.password !== formData.confirm_password) {
+      Swal.fire({
+        icon: "warning",
+        title: "รหัสผ่านไม่ตรงกัน",
+        text: "กรุณากรอกรหัสผ่านและยืนยันรหัสผ่านให้ตรงกัน",
+        confirmButtonColor: "#16a34a",
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/admin`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          first_name: formData.first_name.trim(),
+          last_name: formData.last_name.trim(),
+          email: formData.email.trim().toLowerCase(),
+          tel: cleanTel,
+          bod: formData.bod,
+          university_id: Number(formData.university_id),
+          password: formData.password,
+          confirm_password: formData.confirm_password,
+        }),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        await Swal.fire({
+          icon: "success",
+          title: "สร้างบัญชีผู้ดูแลระบบสำเร็จ!",
+          text: `เพิ่มผู้ดูแลระบบ ${formData.first_name} ${formData.last_name} เรียบร้อยแล้ว`,
+          confirmButtonColor: "#16a34a",
+        });
+
+        setIsAddAdminOpen(false);
+        setFormData({
+          first_name: "",
+          last_name: "",
+          email: "",
+          tel: "",
+          bod: "",
+          university_id: "",
+          password: "",
+          confirm_password: "",
+        });
+        fetchUsers();
+      } else {
+        const errorMsg = Array.isArray(result.message) ? result.message[0] : result.message;
+        Swal.fire({
+          icon: "error",
+          title: "ไม่สามารถสร้างบัญชีได้",
+          text: errorMsg || "เกิดข้อผิดพลาดในการสร้างบัญชีผู้ดูแลระบบ",
+          confirmButtonColor: "#ef4444",
+        });
+      }
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "เกิดข้อผิดพลาด",
+        text: "ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาลองใหม่อีกครั้ง",
+        confirmButtonColor: "#ef4444",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Navbar_admin>
       <div className="max-w-7xl mx-auto w-full space-y-6 pb-12">
@@ -182,19 +350,31 @@ export default function ManageUsersPage() {
               <span>รายชื่อผู้ใช้งานในระบบ</span>
             </h1>
             <p className="text-sm text-gray-500 mt-1">
-              ตรวจสอบรายชื่อ, ข้อมูลการติดต่อ, สิทธิ์การใช้งาน และเวลาเข้าใช้งานระบบ
+              ตรวจสอบรายชื่อ ข้อมูลการติดต่อ สิทธิ์การใช้งาน และเวลาเข้าใช้งานระบบ
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={fetchUsers}
-            disabled={isLoading}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl font-medium text-xs sm:text-sm shadow-2xs transition-all cursor-pointer disabled:opacity-60"
-          >
-            <RefreshCcw className={`w-4 h-4 text-green-600 ${isLoading ? "animate-spin" : ""}`} />
-            <span>รีเฟรชข้อมูล</span>
-          </button>
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={fetchUsers}
+              disabled={isLoading}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl font-medium text-xs sm:text-sm shadow-2xs transition-all cursor-pointer disabled:opacity-60"
+              title="รีเฟรชข้อมูล"
+            >
+              <RefreshCcw className={`w-4 h-4 text-green-600 ${isLoading ? "animate-spin" : ""}`} />
+              <span className="hidden sm:inline">รีเฟรช</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsAddAdminOpen(true)}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium text-xs sm:text-sm shadow-sm transition-all hover:shadow-md cursor-pointer"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>เพิ่มผู้ดูแลระบบ</span>
+            </button>
+          </div>
         </div>
 
         {/* ── Stat Summary Cards ──────────────────────────────────────── */}
@@ -217,7 +397,7 @@ export default function ManageUsersPage() {
             <div>
               <p className="text-xs text-gray-500 font-medium">นักศึกษา / ผู้สอบ</p>
               <h3 className="text-2xl font-bold text-gray-900 mt-0.5">{stats.students}</h3>
-              <p className="text-[11px] text-emerald-600 font-medium">ผู้เรียนเตรียมสอบ</p>
+              <p className="text-[11px] text-emerald-600 font-medium">Role 1: ผู้สอบในระบบ</p>
             </div>
           </div>
 
@@ -228,7 +408,7 @@ export default function ManageUsersPage() {
             <div>
               <p className="text-xs text-gray-500 font-medium">ผู้ดูแลระบบ (Admin)</p>
               <h3 className="text-2xl font-bold text-gray-900 mt-0.5">{stats.admins}</h3>
-              <p className="text-[11px] text-purple-600 font-medium">สิทธิ์จัดการระบบ</p>
+              <p className="text-[11px] text-purple-600 font-medium">Role 2: สิทธิ์แอดมิน</p>
             </div>
           </div>
 
@@ -271,7 +451,7 @@ export default function ManageUsersPage() {
             </div>
 
             {/* Filter by Role */}
-            <div className="w-full md:w-48">
+            <div className="w-full md:w-52">
               <select
                 value={selectedRole}
                 onChange={(e) => {
@@ -281,13 +461,13 @@ export default function ManageUsersPage() {
                 className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all cursor-pointer"
               >
                 <option value="all">สิทธิ์: ทั้งหมด ({users.length})</option>
-                <option value="student">🎓 นักศึกษา / ผู้สอบ ({stats.students})</option>
-                <option value="admin">👑 ผู้ดูแลระบบ ({stats.admins})</option>
+                <option value="1">นักศึกษา / ผู้สอบ (Role 1)</option>
+                <option value="2">ผู้ดูแลระบบ (Role 2)</option>
               </select>
             </div>
 
             {/* Filter by Provider */}
-            <div className="w-full md:w-44">
+            <div className="w-full md:w-48">
               <select
                 value={selectedProvider}
                 onChange={(e) => {
@@ -303,7 +483,7 @@ export default function ManageUsersPage() {
             </div>
 
             {/* Filter by University */}
-            {universityOptions.length > 0 && (
+            {universities.length > 0 && (
               <div className="w-full md:w-56">
                 <select
                   value={selectedUniversity}
@@ -314,9 +494,9 @@ export default function ManageUsersPage() {
                   className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm text-gray-700 focus:bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all cursor-pointer"
                 >
                   <option value="all">มหาวิทยาลัย: ทั้งหมด</option>
-                  {universityOptions.map((uni) => (
-                    <option key={uni} value={uni}>
-                      {uni}
+                  {universities.map((uni) => (
+                    <option key={uni.university_id} value={uni.name}>
+                      {uni.name}
                     </option>
                   ))}
                 </select>
@@ -407,8 +587,8 @@ export default function ManageUsersPage() {
                               <div
                                 className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-white shrink-0 shadow-2xs ${
                                   isAdmin
-                                    ? "bg-gradient-to-tr from-purple-600 to-indigo-600"
-                                    : "bg-gradient-to-tr from-green-600 to-teal-600"
+                                    ? "bg-purple-600"
+                                    : "bg-emerald-600"
                                 }`}
                               >
                                 {initial}
@@ -462,17 +642,17 @@ export default function ManageUsersPage() {
                           )}
                         </td>
 
-                        {/* 4. Role & Permissions */}
+                        {/* 4. Role & Permissions (Role 1 vs Role 2) */}
                         <td className="py-3.5 px-4">
                           {isAdmin ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200/80">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200">
                               <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-                              <span>ผู้ดูแลระบบ</span>
+                              <span>ผู้ดูแลระบบ (Admin)</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                               <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>นักศึกษา / ผู้สอบ</span>
+                              <span>นักศึกษา / ผู้สอบ (User)</span>
                             </span>
                           )}
                         </td>
@@ -559,6 +739,264 @@ export default function ManageUsersPage() {
             </div>
           )}
         </div>
+
+        {/* ── Add Admin Account Modal ─────────────────────────────────── */}
+        {isAddAdminOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto border border-gray-100">
+              {/* Modal Header */}
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">
+                      เพิ่มบัญชีผู้ดูแลระบบ (Admin)
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      กำหนดสิทธิ์ Role 2 สำหรับจัดการระบบและคลังข้อสอบ
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => !isSubmitting && setIsAddAdminOpen(false)}
+                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Modal Form */}
+              <form onSubmit={handleCreateAdmin} className="p-6 space-y-4">
+                {/* First Name & Last Name */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-700">
+                      ชื่อจริง <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.first_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, first_name: e.target.value })
+                      }
+                      placeholder="เช่น สมชาย"
+                      required
+                      className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all placeholder:text-gray-300"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-700">
+                      นามสกุล <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.last_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, last_name: e.target.value })
+                      }
+                      placeholder="เช่น ใจดี"
+                      required
+                      className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all placeholder:text-gray-300"
+                    />
+                  </div>
+                </div>
+
+                {/* Email & Phone */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-700">
+                      อีเมล <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
+                        placeholder="admin@example.com"
+                        required
+                        className="w-full pl-9 pr-3.5 py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all placeholder:text-gray-300"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-700">
+                      เบอร์โทรศัพท์ (10 หลัก) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="tel"
+                        maxLength={10}
+                        value={formData.tel}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            tel: e.target.value.replace(/\D/g, ""),
+                          })
+                        }
+                        placeholder="0812345678"
+                        required
+                        className="w-full pl-9 pr-3.5 py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all placeholder:text-gray-300"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Birthday & University */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-700">
+                      วันเดือนปีเกิด <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="date"
+                        value={formData.bod}
+                        onChange={(e) =>
+                          setFormData({ ...formData, bod: e.target.value })
+                        }
+                        required
+                        className="w-full pl-9 pr-3.5 py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-gray-700 cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-700">
+                      สังกัดมหาวิทยาลัย <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Building2 className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <select
+                        value={formData.university_id}
+                        onChange={(e) =>
+                          setFormData({ ...formData, university_id: e.target.value })
+                        }
+                        required
+                        className="w-full pl-9 pr-3.5 py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all text-gray-700 cursor-pointer"
+                      >
+                        <option value="">-- เลือกมหาวิทยาลัย --</option>
+                        {universities.map((uni) => (
+                          <option key={uni.university_id} value={uni.university_id}>
+                            {uni.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Password & Confirm Password */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-700">
+                      รหัสผ่าน (อย่างน้อย 8 ตัวอักษร) <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={formData.password}
+                        onChange={(e) =>
+                          setFormData({ ...formData, password: e.target.value })
+                        }
+                        placeholder="••••••••"
+                        required
+                        minLength={8}
+                        className="w-full pl-9 pr-10 py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-700">
+                      ยืนยันรหัสผ่าน <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={formData.confirm_password}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            confirm_password: e.target.value,
+                          })
+                        }
+                        placeholder="••••••••"
+                        required
+                        minLength={8}
+                        className="w-full pl-9 pr-10 py-2.5 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                      >
+                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Role Note */}
+                <div className="p-3 bg-purple-50/70 border border-purple-100 rounded-xl flex items-start gap-2.5 text-xs text-purple-900">
+                  <ShieldCheck className="w-4 h-4 text-purple-700 shrink-0 mt-0.5" />
+                  <span>
+                    บัญชีนี้จะได้รับสิทธิ์ <strong>ผู้ดูแลระบบ (Role 2)</strong> โดยอัตโนมัติ สามารถเข้าถึงหน้าจัดการคลังข้อสอบและสถิติทั้งหมดได้
+                  </span>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={() => setIsAddAdminOpen(false)}
+                    className="px-4 py-2.5 text-xs sm:text-sm font-medium rounded-xl text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer disabled:opacity-60"
+                  >
+                    ยกเลิก
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-medium rounded-xl text-white bg-green-600 hover:bg-green-700 transition-all shadow-sm hover:shadow-md cursor-pointer disabled:opacity-60"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>กำลังสร้างบัญชี...</span>
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4" />
+                        <span>บันทึกบัญชีผู้ดูแลระบบ</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </Navbar_admin>
   );
