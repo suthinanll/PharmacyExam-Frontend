@@ -22,15 +22,19 @@ import Link from "next/link";
 import Swal from "sweetalert2";
 
 const CATEGORY_STYLES: Record<string, string> = {
+  "PLE-CC1": "bg-blue-50 text-blue-700 border-blue-200",
+  "PLE-CC2": "bg-indigo-50 text-indigo-700 border-indigo-200",
   "PLE-IP1, PC1, PHCP1": "bg-green-50 text-green-700 border-green-200",
   "PLE-IP2": "bg-teal-50 text-teal-700 border-teal-200",
-  "PLE-PC2": "bg-green-50 text-green-700 border-green-200",
+  "PLE-PC2": "bg-emerald-50 text-emerald-700 border-emerald-200",
   "PLE-PHCP2": "bg-lime-50 text-lime-700 border-lime-200",
 };
 const CATEGORY_DOT: Record<string, string> = {
+  "PLE-CC1": "bg-blue-400",
+  "PLE-CC2": "bg-indigo-400",
   "PLE-IP1, PC1, PHCP1": "bg-green-400",
   "PLE-IP2": "bg-teal-400",
-  "PLE-PC2": "bg-green-400",
+  "PLE-PC2": "bg-emerald-400",
   "PLE-PHCP2": "bg-lime-400",
 };
 interface CalendarEvent {

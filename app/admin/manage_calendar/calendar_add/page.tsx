@@ -8,9 +8,11 @@ import Swal from "sweetalert2";
 import { useAuth } from "@/contexts/AuthContext";
 
 const CATEGORY_OPTIONS = [
+  { label: "PLE-CC1", value: "PLE-CC1", color: "bg-blue-50 text-blue-700 border-blue-300" },
+  { label: "PLE-CC2", value: "PLE-CC2", color: "bg-indigo-50 text-indigo-700 border-indigo-300" },
   { label: "PLE-IP1, PC1, PHCP1", value: "PLE-IP1, PC1, PHCP1", color: "bg-green-50 text-green-700 border-green-300" },
   { label: "PLE-IP2", value: "PLE-IP2", color: "bg-teal-50 text-teal-700 border-teal-300" },
-  { label: "PLE-PC2", value: "PLE-PC2", color: "bg-green-50 text-green-700 border-green-300" },
+  { label: "PLE-PC2", value: "PLE-PC2", color: "bg-emerald-50 text-emerald-700 border-emerald-300" },
   { label: "PLE-PHCP2", value: "PLE-PHCP2", color: "bg-lime-50 text-lime-700 border-lime-300" },
 ];
 

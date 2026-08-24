@@ -52,6 +52,18 @@ const TYPE_EVENT_STYLES: Record<
   string,
   { bg: string; text: string; border: string; dot: string }
 > = {
+  "PLE-CC1": {
+    bg: "bg-blue-50",
+    text: "text-blue-700",
+    border: "border-blue-300",
+    dot: "bg-blue-400",
+  },
+  "PLE-CC2": {
+    bg: "bg-indigo-50",
+    text: "text-indigo-700",
+    border: "border-indigo-300",
+    dot: "bg-indigo-400",
+  },
   "PLE-IP1, PC1, PHCP1": {
     bg: "bg-green-50",
     text: "text-green-700",
@@ -65,10 +77,10 @@ const TYPE_EVENT_STYLES: Record<
     dot: "bg-teal-400",
   },
   "PLE-PC2": {
-    bg: "bg-green-50",
-    text: "text-green-700",
-    border: "border-green-300",
-    dot: "bg-green-400",
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    border: "border-emerald-300",
+    dot: "bg-emerald-400",
   },
   "PLE-PHCP2": {
     bg: "bg-lime-50",
