@@ -804,7 +804,7 @@ const PharmacistDashboard = () => {
                     ) : (
                       <>
                         <Sparkles
-                          className={`w-3.5 h-3.5 ${aiAnalysis ? "text-indigo-200" : "text-indigo-600"}`}
+                          className={`w-3.5 h-3.5 ${aiAnalysis ? "text-indigo-600" : "text-indigo-200"}`}
                         />
                         <span>
                           {aiAnalysis ? "ดูรายงาน AI & แผนอ่านหนังสือ" : "วิเคราะห์ด้วย AI"}
