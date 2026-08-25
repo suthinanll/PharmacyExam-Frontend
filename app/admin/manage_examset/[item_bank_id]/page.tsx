@@ -17,6 +17,7 @@ import DashboardView from './components/DashboardView';
 import SettingsModal from './components/SettingsModal';
 import { useAuth } from "@/contexts/AuthContext";
 import TiptapEditor from '@/components/TiptapEditor';
+import { formatScientificText } from '@/utils/formatText';
 
 // Types
 interface AnswerOption {
@@ -1674,7 +1675,7 @@ export default function ItemBankEditPage() {
                                                                                 >
                                                                                     <div
                                                                                         className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-1 prose-preview flex-1"
-                                                                                        dangerouslySetInnerHTML={{ __html: question.question_text || 'คำถามใหม่' }}
+                                                                                        dangerouslySetInnerHTML={{ __html: formatScientificText(question.question_text) || 'คำถามใหม่' }}
                                                                                     />
                                                                                 </div>
 
@@ -1836,28 +1837,36 @@ export default function ItemBankEditPage() {
                                                                                 {/* Answer Options */}
                                                                                 <div className="space-y-3">
                                                                                     <label className="text-base font-medium text-gray-800">ตัวเลือกคำตอบ </label>
-                                                                                    <div className="space-y-2 mt-2">
+                                                                                    <div className="space-y-2.5 mt-2">
                                                                                         {question.answer_options.map((option, optIdx) => (
-                                                                                            <div key={optIdx} className="flex gap-2 sm:gap-3 items-center">
-                                                                                                <div className="flex-none flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 text-sm font-medium text-gray-600">
-                                                                                                    {['ก', 'ข', 'ค', 'ง', 'จ'][optIdx] || String.fromCharCode(65 + optIdx)}
+                                                                                            <div key={optIdx} className="space-y-1">
+                                                                                                <div className="flex gap-2 sm:gap-3 items-center">
+                                                                                                    <div className="flex-none flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-100 text-sm font-medium text-gray-600">
+                                                                                                        {['ก', 'ข', 'ค', 'ง', 'จ'][optIdx] || String.fromCharCode(65 + optIdx)}
+                                                                                                    </div>
+                                                                                                    <input
+                                                                                                        type="text"
+                                                                                                        value={option.option_text}
+                                                                                                        onChange={(e) => updateAnswerOption(sitIdx, qIdx, optIdx, 'option_text', e.target.value)}
+                                                                                                        className="flex-1 px-3 sm:px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all text-base"
+                                                                                                        placeholder={`ตัวเลือกที่ ${optIdx + 1}`}
+                                                                                                        required
+                                                                                                    />
+                                                                                                    <input
+                                                                                                        type="radio"
+                                                                                                        name={`correct-${sitIdx}-${qIdx}`}
+                                                                                                        checked={option.is_correct}
+                                                                                                        onChange={() => updateAnswerOption(sitIdx, qIdx, optIdx, 'is_correct', true)}
+                                                                                                        className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 focus:ring-green-500 cursor-pointer flex-shrink-0"
+                                                                                                        required
+                                                                                                    />
                                                                                                 </div>
-                                                                                                <input
-                                                                                                    type="text"
-                                                                                                    value={option.option_text}
-                                                                                                    onChange={(e) => updateAnswerOption(sitIdx, qIdx, optIdx, 'option_text', e.target.value)}
-                                                                                                    className="flex-1 px-3 sm:px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all text-base"
-                                                                                                    placeholder={`ตัวเลือกที่ ${optIdx + 1}`}
-                                                                                                    required
-                                                                                                />
-                                                                                                <input
-                                                                                                    type="radio"
-                                                                                                    name={`correct-${sitIdx}-${qIdx}`}
-                                                                                                    checked={option.is_correct}
-                                                                                                    onChange={() => updateAnswerOption(sitIdx, qIdx, optIdx, 'is_correct', true)}
-                                                                                                    className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 focus:ring-green-500 cursor-pointer flex-shrink-0"
-                                                                                                    required
-                                                                                                />
+                                                                                                {option.option_text && (option.option_text.includes('<') || option.option_text.includes('^') || option.option_text.includes('_') || /[A-Z][a-z]?[0-9]/.test(option.option_text) || /[+-]/.test(option.option_text)) && (
+                                                                                                    <div className="pl-9 sm:pl-11 text-xs text-gray-500 flex items-center gap-1.5">
+                                                                                                        <span className="text-gray-400">แสดงผลจริง:</span>
+                                                                                                        <span className="font-medium text-gray-800 bg-white px-2 py-0.5 rounded border border-gray-200" dangerouslySetInnerHTML={{ __html: formatScientificText(option.option_text) }} />
+                                                                                                    </div>
+                                                                                                )}
                                                                                             </div>
                                                                                         ))}
                                                                                     </div>

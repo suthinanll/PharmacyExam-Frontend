@@ -14,6 +14,7 @@ import {
     EyeOff,
 } from 'lucide-react';
 import ImagePreviewModal from '@/components/ImagePreviewModal';
+import { formatScientificText } from '@/utils/formatText';
 
 interface AnswerOption {
     option_id?: number;
@@ -287,10 +288,10 @@ export default function SituationViewer({
                                                                     </span>
                                                                     <div className="flex-1">
                                                                         {option.option_text && option.option_text.trim() !== '' && (
-                                                                            <span className={`text-sm leading-relaxed break-words block ${revealCorrect ? 'text-green-800 font-medium' : 'text-gray-700'
-                                                                                }`}>
-                                                                                {option.option_text}
-                                                                            </span>
+                                                                            <span
+                                                                                className={`text-sm leading-relaxed break-words block ${revealCorrect ? 'text-green-800 font-medium' : 'text-gray-700'}`}
+                                                                                dangerouslySetInnerHTML={{ __html: formatScientificText(option.option_text) }}
+                                                                            />
                                                                         )}
                                                                     </div>
                                                                     {revealCorrect && (
@@ -481,10 +482,10 @@ export default function SituationViewer({
 
                                                                             <div className="flex-1">
                                                                                 {option.option_text && option.option_text.trim() !== '' && (
-                                                                                    <span className={`text-sm leading-relaxed break-words block ${revealCorrect ? 'text-green-800 font-medium' : 'text-gray-700'
-                                                                                        }`}>
-                                                                                        {option.option_text}
-                                                                                    </span>
+                                                                                    <span
+                                                                                        className={`text-sm leading-relaxed break-words block ${revealCorrect ? 'text-green-800 font-medium' : 'text-gray-700'}`}
+                                                                                        dangerouslySetInnerHTML={{ __html: formatScientificText(option.option_text) }}
+                                                                                    />
                                                                                 )}
                                                                             </div>
 

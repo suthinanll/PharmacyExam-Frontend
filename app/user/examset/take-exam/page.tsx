@@ -575,7 +575,7 @@ function TakeExam() {
                                             )}
                                             <p
                                                 className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base"
-                                                dangerouslySetInnerHTML={{ __html: currentQuestion.situation.situation_text }}
+                                                dangerouslySetInnerHTML={{ __html: formatScientificText(currentQuestion.situation.situation_text) }}
                                             />
                                             {currentQuestion.situation.situation_image_url && (
                                                 <img
@@ -619,7 +619,7 @@ function TakeExam() {
                                     <div className="mb-4">
                                         <p
                                             className="text-lg sm:text-xl font-medium text-gray-900 leading-relaxed whitespace-pre-wrap"
-                                            dangerouslySetInnerHTML={{ __html: currentQuestion.question_text }}
+                                            dangerouslySetInnerHTML={{ __html: formatScientificText(currentQuestion.question_text) }}
                                         />
                                         {currentQuestion.question_image_url && (
                                             <div className="mt-4 mb-2">

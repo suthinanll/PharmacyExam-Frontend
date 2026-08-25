@@ -1038,7 +1038,7 @@ function CATExamPageContent() {
                         )}
                         <p
                           className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base"
-                          dangerouslySetInnerHTML={{ __html: session.current_item.situation.situation_text }}
+                          dangerouslySetInnerHTML={{ __html: formatScientificText(session.current_item.situation.situation_text) }}
                         />
                         {session.current_item.situation.situation_image_url && (
                           <img
@@ -1086,7 +1086,7 @@ function CATExamPageContent() {
                       {/* Question text */}
                       <p
                         className="text-base lg:text-lg text-gray-800 leading-relaxed font-medium whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{ __html: session.current_item.question_text }}
+                        dangerouslySetInnerHTML={{ __html: formatScientificText(session.current_item.question_text) }}
                       />
                       {session.current_item.question_image_url && (
                         <div className="mt-4">

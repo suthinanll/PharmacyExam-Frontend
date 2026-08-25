@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import ImagePreviewModal from '@/components/ImagePreviewModal';
+import { formatScientificText } from '@/utils/formatText';
 import {
     CheckCircle,
     X,
@@ -188,9 +189,10 @@ function QuestionDetailModal({ row, situationSeqMap, onClose }: { row: FlatRow; 
                                         </span>
                                         <div className="flex-1">
                                             {opt.option_text && opt.option_text.trim() !== '' && (
-                                                <span className={`text-sm leading-relaxed block ${opt.is_correct ? 'text-green-800 font-medium' : 'text-gray-700'}`}>
-                                                    {opt.option_text}
-                                                </span>
+                                                <span
+                                                    className={`text-sm leading-relaxed block ${opt.is_correct ? 'text-green-800 font-medium' : 'text-gray-700'}`}
+                                                    dangerouslySetInnerHTML={{ __html: formatScientificText(opt.option_text) }}
+                                                />
                                             )}
                                             {opt.option_image_url && opt.option_image_url.trim() !== '' && (
                                                 <div className={opt.option_text && opt.option_text.trim() !== '' ? "mt-2" : ""}>

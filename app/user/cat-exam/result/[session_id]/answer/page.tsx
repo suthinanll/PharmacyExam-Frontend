@@ -135,7 +135,7 @@ function QuestionCard({
                 {/* Question text */}
                 <div
                     className="text-gray-900 text-md sm:text-base leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: question.question_text }}
+                    dangerouslySetInnerHTML={{ __html: formatScientificText(question.question_text) }}
                 />
                 {question.question_image_url && (
                     <img
@@ -500,7 +500,7 @@ export default function CatAnswerPage() {
                                                     {group.situation.situation_title && (
                                                         <p className="font-medium text-gray-900 mb-2 text-base" dangerouslySetInnerHTML={{ __html: group.situation.situation_title }} />
                                                     )}
-                                                    <p className="text-sm lg:text-[15px] text-gray-700 leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: group.situation.situation_text }} />
+                                                    <p className="text-sm lg:text-[15px] text-gray-700 leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: formatScientificText(group.situation.situation_text) }} />
                                                     {group.situation.situation_image_url && (
                                                         <img
                                                             src={group.situation.situation_image_url}
