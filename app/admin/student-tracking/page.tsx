@@ -414,6 +414,7 @@ export default function StudentTrackingPage() {
               onPageChange={setPage}
               itemLabel="คน"
               className="mt-2 pt-3 border-t border-gray-100"
+              compact
             />
           </div>
 

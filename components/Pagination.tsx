@@ -26,6 +26,8 @@ export interface PaginationProps {
     scrollToTop?: boolean;
     activeColor?: string;
     className?: string;
+    /** ใช้ตอนวางในพื้นที่แคบ (เช่น sidebar) — เรียงแนวตั้งเสมอ ไม่สลับเป็นแนวนอนตาม viewport breakpoint */
+    compact?: boolean;
 }
 
 export default function Pagination({
@@ -38,6 +40,7 @@ export default function Pagination({
     scrollToTop = true,
     activeColor = 'bg-green-600 text-white shadow-xs',
     className = '',
+    compact = false,
 }: PaginationProps) {
     if (totalPages <= 1 && totalItems <= perPage) return null;
 
@@ -58,14 +61,14 @@ export default function Pagination({
     const endIndex = Math.min(currentPage * perPage, totalItems);
 
     return (
-        <div className={`flex flex-col sm:flex-row justify-between items-center gap-4 mt-6 pt-4 border-t border-gray-100 ${className}`}>
-            <div className="text-xs text-gray-500">
+        <div className={`flex flex-col ${compact ? '' : 'sm:flex-row'} justify-between items-center gap-4 mt-6 pt-4 border-t border-gray-100 ${className}`}>
+            <div className={`text-xs text-gray-500 ${compact ? 'text-center' : ''}`}>
                 แสดง <span className="font-semibold text-gray-800">{totalItems > 0 ? startIndex : 0}</span> -{' '}
                 <span className="font-semibold text-gray-800">{endIndex}</span> จากทั้งหมด{' '}
                 <span className="font-semibold text-gray-800">{totalItems}</span> {itemLabel} (หน้า {currentPage}/{totalPages})
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className={`flex items-center gap-1.5 ${compact ? 'flex-wrap justify-center' : ''}`}>
                 <button
                     type="button"
                     disabled={currentPage <= 1}

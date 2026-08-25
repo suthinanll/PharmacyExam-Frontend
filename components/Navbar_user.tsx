@@ -13,7 +13,6 @@ import {
   Calendar,
   Clock,
   BookOpen,
-  AlertCircle,
   ChevronDown,
   Bookmark,
   CheckCheck,
@@ -164,7 +163,8 @@ const Navbar = () => {
           <div className="flex flex-1 items-center justify-center lg:items-stretch lg:justify-start">
             <div className="flex shrink-0 items-center">
               <Link href="/user" className="flex items-center space-x-2 group">
-                <span className="text-lg sm:text-xl md:text-2xl font-medium text-white group-hover:text-green-100 transition-colors duration-200">
+                {/* mobile: text-base (เดิม text-lg ใหญ่ไป), sm/md ขึ้นไปเหมือนเดิม */}
+                <span className="text-base sm:text-xl md:text-2xl font-medium text-white group-hover:text-green-100 transition-colors duration-200">
                   เภสัชพร้อมสอบ
                 </span>
               </Link>
@@ -451,16 +451,17 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — ทั้ง block นี้แสดงเฉพาะจอเล็กกว่า lg (lg:hidden) */}
       <div className={`lg:hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
         <div className="mobilenav space-y-2 px-3 pt-3 pb-4 backdrop-blur-sm">
           {navItems.slice(1).map((item) => (
             item.submenu ? (
               <div key={item.label} className="space-y-1">
+                {/* mobile: text-sm (เดิม text-base ใหญ่ไป), sm ขึ้นไปเหมือนเดิม */}
                 <button
                   type="button"
                   onClick={() => setMobileSubmenuOpen(!mobileSubmenuOpen)}
-                  className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-base sm:text-lg font-medium transition-colors duration-200 cursor-pointer ${
+                  className={`flex w-full items-center justify-between rounded-lg px-4 py-3 text-left text-sm sm:text-lg font-medium transition-colors duration-200 cursor-pointer ${
                     isActive(item.href, true)
                       ? "buttonact text-white shadow-lg"
                       : "text-white hover:bg-white/20 hover:text-white"
@@ -498,8 +499,9 @@ const Navbar = () => {
                 </div>
               </div>
             ) : (
+              // mobile: text-sm (เดิม text-base ใหญ่ไป), sm ขึ้นไปเหมือนเดิม
               <Link key={item.href} href={item.href}
-                className={`block rounded-lg px-4 py-3 text-base sm:text-lg font-medium transition-colors duration-200 ${isActive(item.href) ? "buttonact text-white shadow-lg" : "text-white hover:bg-white/20 hover:text-white"}`}
+                className={`block rounded-lg px-4 py-3 text-sm sm:text-lg font-medium transition-colors duration-200 ${isActive(item.href) ? "buttonact text-white shadow-lg" : "text-white hover:bg-white/20 hover:text-white"}`}
                 aria-current={isActive(item.href) ? 'page' : undefined}
                 onClick={() => setIsMobileMenuOpen(false)}>
                 {item.label}
