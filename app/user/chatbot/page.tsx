@@ -755,7 +755,7 @@ export default function ChatbotPage() {
             {/* New Chat Button */}
             <button
               onClick={handleNewChat}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 active:scale-98 transition-all shadow-xs text-base:text-lg cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 active:scale-98 transition-all shadow-xs font-semibold text-base cursor-pointer"
             >
               <Plus size={18} />
               แชตใหม่

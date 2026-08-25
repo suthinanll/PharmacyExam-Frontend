@@ -106,7 +106,7 @@ const CountdownHero = ({
     <div className="mb-12">
       <div className="bg-white rounded-3xl shadow-lg border border-blue-100 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-          <div className="lg:col-span-2 p-8 md:p-12 bg-">
+          <div className="lg:col-span-2 p-8 md:p-12 bg-gradient-to-br from-blue-50 to-white">
             <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
               <div
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm border
