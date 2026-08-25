@@ -196,6 +196,12 @@ export default function SituationViewer({
                     (situation.situation_text && situation.situation_text.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim() !== '') ||
                     (situation.situation_image_url && situation.situation_image_url.trim() !== '')
                 );
+                const situationSeqNumber = situations.slice(0, sitIdx + 1).filter(s => {
+                    return Boolean(
+                        (s.situation_text && s.situation_text.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim() !== '') ||
+                        (s.situation_image_url && s.situation_image_url.trim() !== '')
+                    );
+                }).length;
 
                 if (!hasSituationContent) {
                     // Render questions directly without situation wrapper card if situation is empty
@@ -330,11 +336,11 @@ export default function SituationViewer({
                         >
                             <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white font-medium text-sm shadow-sm">
-                                    {sitIdx + 1}
+                                    {situationSeqNumber}
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2">
-                                        <span className="font-medium text-gray-800">สถานการณ์ที่ {sitIdx + 1}</span>
+                                        <span className="font-medium text-gray-800">สถานการณ์ที่ {situationSeqNumber}</span>
                                         {situation.situation_id && (
                                             <span className="text-sm text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full font-medium">บันทึกแล้ว</span>
                                         )}

@@ -91,10 +91,14 @@ function difficultyLabel(b?: number): { label: string; color: string } {
 }
 
 // ─── Detail Modal ────────────────────────────────────────────
-function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => void }) {
+function QuestionDetailModal({ row, situationSeqMap, onClose }: { row: FlatRow; situationSeqMap?: { [idx: number]: number }; onClose: () => void }) {
     const { question, situation, globalNum, subTopicName, topicName } = row;
     const correctIndex = question.answer_options.findIndex(o => o.is_correct);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const isSituation = (situation as any).is_standalone !== true;
+    const situationTitle = isSituation
+        ? `สถานการณ์ที่ ${situationSeqMap?.[row.sitIdx] || row.sitIdx + 1}`
+        : 'คำถามเดี่ยว';
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -122,20 +126,22 @@ function QuestionDetailModal({ row, onClose }: { row: FlatRow; onClose: () => vo
 
                 <div className="p-6 space-y-5">
                     {/* Situation */}
-                    <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                        <div className="flex items-center gap-2 mb-2">
-                            <BookOpen className="w-4 h-4 text-slate-500" />
-                            <span className="text-xs font-medium text-slate-600 ">
-                                สถานการณ์ที่ {row.sitIdx + 1}
-                            </span>
+                    {isSituation && (
+                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                            <div className="flex items-center gap-2 mb-2">
+                                <BookOpen className="w-4 h-4 text-slate-500" />
+                                <span className="text-xs font-medium text-slate-600 ">
+                                    {situationTitle}
+                                </span>
+                            </div>
+                            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                                {situation.situation_text}
+                            </p>
+                            {situation.situation_image_url && (
+                                <img src={situation.situation_image_url} alt="situation" className="mt-3 max-h-48 rounded-lg border border-slate-200" />
+                            )}
                         </div>
-                        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                            {situation.situation_text}
-                        </p>
-                        {situation.situation_image_url && (
-                            <img src={situation.situation_image_url} alt="situation" className="mt-3 max-h-48 rounded-lg border border-slate-200" />
-                        )}
-                    </div>
+                    )}
 
                     {/* Question Text */}
                     <div>
@@ -268,6 +274,19 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
     const [sortKey, setSortKey] = useState<SortKey>('globalNum');
     const [sortDir, setSortDir] = useState<SortDir>('asc');
 
+    const situationSeqMap = useMemo(() => {
+        let sitCounter = 0;
+        const map: { [idx: number]: number } = {};
+        situations.forEach((sit, idx) => {
+            const isSituation = (sit as any).is_standalone !== true;
+            if (isSituation) {
+                sitCounter++;
+                map[idx] = sitCounter;
+            }
+        });
+        return map;
+    }, [situations]);
+
     // Build flat rows
     const allRows = useMemo<FlatRow[]>(() => {
         const rows: FlatRow[] = [];
@@ -391,9 +410,13 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                     className="text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
                 >
                     <option value="all">ทุกสถานการณ์</option>
-                    {situations.map((_, i) => (
-                        <option key={i} value={i}>สถานการณ์ที่ {i + 1}</option>
-                    ))}
+                    {situations.map((sit, i) => {
+                        const isSituation = (sit as any).is_standalone !== true;
+                        const label = isSituation ? `สถานการณ์ที่ ${situationSeqMap[i] || i + 1}` : 'คำถามเดี่ยว';
+                        return (
+                            <option key={i} value={i}>{label}</option>
+                        );
+                    })}
                 </select>
 
                 {/* Filter: SubTopic */}
@@ -471,9 +494,15 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
 
                                         {/* สถานการณ์ */}
                                         <td className="px-3 py-3">
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-slate-100 text-slate-600">
-                                                #{sitIdx + 1}
-                                            </span>
+                                            {(row.situation as any).is_standalone ? (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-600">
+                                                    เดี่ยว
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-green-50 text-green-700">
+                                                    #{situationSeqMap[sitIdx] || sitIdx + 1}
+                                                </span>
+                                            )}
                                         </td>
 
                                         {/* โจทย์ */}
@@ -554,7 +583,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
 
             {/* ── Detail Modal ─────────────────────────────────── */}
             {selectedRow && (
-                <QuestionDetailModal row={selectedRow} onClose={() => setSelectedRow(null)} />
+                <QuestionDetailModal row={selectedRow} situationSeqMap={situationSeqMap} onClose={() => setSelectedRow(null)} />
             )}
         </div>
     );

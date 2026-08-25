@@ -9,6 +9,7 @@ import { BookOpen, Loader2, Clock, Hash, Award, AlertTriangle, FlaskConical, X, 
 import Swal from "sweetalert2";
 import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { formatScientificText } from "@/utils/formatText";
 
 // ==================== TYPES ====================
 interface CATItem {
@@ -1143,7 +1144,7 @@ function CATExamPageContent() {
                                 {option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' && (
                                   <span
                                     className="text-gray-800 text-sm lg:text-base leading-relaxed block"
-                                    dangerouslySetInnerHTML={{ __html: option.option_text }}
+                                    dangerouslySetInnerHTML={{ __html: formatScientificText(option.option_text) }}
                                   />
                                 )}
                                 {option.option_image_url && option.option_image_url.trim() !== '' && (

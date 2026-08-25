@@ -54,7 +54,7 @@ interface UserItem {
   updated_at: string;
 }
 
-export const getUserRoleId = (u: UserItem): number => {
+const getUserRoleId = (u: UserItem): number => {
   if (typeof u.role_id === "number" && !isNaN(u.role_id)) return Number(u.role_id);
   if (u.role && typeof u.role.role_id === "number") return Number(u.role.role_id);
   const rName = (u.role?.role_name || u.role?.name || "").toLowerCase();

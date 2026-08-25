@@ -55,11 +55,8 @@ export default function TableOfContents({
     let sitCounter = 0;
     const situationIndexMap: { [idx: number]: number } = {};
     situations.forEach((sit, idx) => {
-        const hasContent = Boolean(
-            (sit.situation_text && sit.situation_text.replace(/<[^>]*>/g, '').trim() !== '') ||
-            (sit.situation_image_url && sit.situation_image_url.trim() !== '')
-        );
-        if (hasContent) {
+        const isSituation = (sit as any).is_standalone !== true;
+        if (isSituation) {
             sitCounter++;
             situationIndexMap[idx] = sitCounter;
         }

@@ -879,9 +879,16 @@ export default function ItemBankEditPage() {
         }
 
         // Validation
+        let sitCount = 0;
         for (let i = 0; i < situations.length; i++) {
             const sit = situations[i];
             const isSituation = sit.is_standalone !== true;
+            if (isSituation) {
+                sitCount++;
+            }
+            const sitNumber = isSituation ? sitCount : 0;
+            const questionStartIndex = situations.slice(0, i).reduce((acc, s) => acc + s.questions.length, 0);
+
             const hasSituationContent = Boolean(
                 (sit.situation_text && sit.situation_text.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, '').trim() !== '') ||
                 (sit.situation_image_url && sit.situation_image_url.trim() !== '')
@@ -891,7 +898,7 @@ export default function ItemBankEditPage() {
             if (isSituation && !hasSituationContent) {
                 Swal.fire({
                     title: 'กรุณากรอกรายละเอียดสถานการณ์',
-                    text: `กรุณากรอกรายละเอียดสถานการณ์ที่ ${i + 1} ก่อนทำการบันทึก`,
+                    text: `กรุณากรอกรายละเอียดสถานการณ์ที่ ${sitNumber} ก่อนทำการบันทึก`,
                     icon: 'warning',
                     confirmButtonColor: '#16a34a'
                 });
@@ -902,7 +909,7 @@ export default function ItemBankEditPage() {
                 Swal.fire({
                     title: 'กรุณาเพิ่มคำถาม',
                     text: isSituation
-                        ? `กรุณาเพิ่มคำถามในสถานการณ์ที่ ${i + 1} อย่างน้อย 1 ข้อ`
+                        ? `กรุณาเพิ่มคำถามในสถานการณ์ที่ ${sitNumber} อย่างน้อย 1 ข้อ`
                         : `กรุณาเพิ่มคำถามอย่างน้อย 1 ข้อ`,
                     icon: 'warning',
                     confirmButtonColor: '#16a34a'
@@ -919,8 +926,8 @@ export default function ItemBankEditPage() {
                     Swal.fire({
                         title: 'กรุณากรอกโจทย์คำถาม',
                         text: isSituation
-                            ? `กรุณากรอกโจทย์คำถามที่ ${j + 1} ในสถานการณ์ที่ ${i + 1}`
-                            : `กรุณากรอกโจทย์คำถามสำหรับข้อที่ ${i + 1}`,
+                            ? `กรุณากรอกโจทย์คำถามที่ ${questionStartIndex + j + 1} ในสถานการณ์ที่ ${sitNumber}`
+                            : `กรุณากรอกโจทย์คำถามสำหรับข้อที่ ${questionStartIndex + j + 1}`,
                         icon: 'warning',
                         confirmButtonColor: '#16a34a'
                     });
@@ -1509,6 +1516,7 @@ export default function ItemBankEditPage() {
                                     // Calculate the starting question number for this situation
                                     const questionStartIndex = situations.slice(0, sitIdx).reduce((acc, s) => acc + s.questions.length, 0);
                                     const isSituation = situation.is_standalone !== true;
+                                    const situationSeqNumber = situations.slice(0, sitIdx + 1).filter(s => s.is_standalone !== true).length;
 
                                     return (
                                         <div
@@ -1528,12 +1536,12 @@ export default function ItemBankEditPage() {
                                                             ? 'bg-gradient-to-br from-green-500 to-green-600'
                                                             : 'bg-gradient-to-br from-blue-500 to-blue-600'
                                                     }`}>
-                                                        {isSituation ? (sitIdx + 1) : (questionStartIndex + 1)}
+                                                        {isSituation ? situationSeqNumber : (questionStartIndex + 1)}
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-2">
                                                             <span className="font-medium text-gray-800">
-                                                                {isSituation ? `สถานการณ์ที่ ${sitIdx + 1}` : 'คำถามเดี่ยว'}
+                                                                {isSituation ? `สถานการณ์ที่ ${situationSeqNumber}` : 'คำถามเดี่ยว'}
                                                             </span>
                                                             {isSituation ? (
                                                                 situation.situation_id

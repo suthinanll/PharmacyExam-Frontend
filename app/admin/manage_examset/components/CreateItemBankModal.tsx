@@ -259,7 +259,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
 
         try {
             const token = getToken ? getToken() : '';
-            const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+            const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
 
             if (excelFile) {
                 const submitData = new FormData();

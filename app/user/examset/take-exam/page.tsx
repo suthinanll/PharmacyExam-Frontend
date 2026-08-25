@@ -9,7 +9,8 @@ import { Loader2, BookOpen, Clock, AlertCircle, ListCheck, X, Bookmark } from 'l
 import { useAuth } from '@/contexts/AuthContext';
 
 import ImagePreviewModal from '@/components/ImagePreviewModal';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import LoadingSpinner from "@/components/LoadingSpinner";
+import { formatScientificText } from "@/utils/formatText";
 
 // Types
 interface AnswerOption {
@@ -688,27 +689,10 @@ function TakeExam() {
                                                         {option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' && (
                                                             <span
                                                                 className="text-gray-800 text-sm lg:text-base leading-relaxed block"
-                                                                dangerouslySetInnerHTML={{ __html: option.option_text }}
+                                                                dangerouslySetInnerHTML={{ __html: formatScientificText(option.option_text) }}
                                                             />
                                                         )}
-                                                        {option.option_image_url && option.option_image_url.trim() !== '' && (
-                                                            <div className={option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' ? "mt-2" : ""}>
-                                                                <img
-                                                                    src={option.option_image_url.startsWith("http")
-                                                                        ? option.option_image_url
-                                                                        : `${process.env.NEXT_PUBLIC_API_URL}${option.option_image_url}`}
-                                                                    alt={`ตัวเลือก ${['ก', 'ข', 'ค', 'ง', 'จ'][index] || index + 1}`}
-                                                                    className="max-h-40 rounded-lg border border-gray-200 bg-white cursor-pointer hover:opacity-90 transition-opacity object-contain"
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation();
-                                                                        const url = option.option_image_url!.startsWith("http")
-                                                                            ? option.option_image_url!
-                                                                            : `${process.env.NEXT_PUBLIC_API_URL}${option.option_image_url}`;
-                                                                        setPreviewImage(url);
-                                                                    }}
-                                                                />
-                                                            </div>
-                                                        )}
+                                                        
                                                     </div>
                                                 </button>
                                             );
@@ -859,14 +843,14 @@ function TakeExam() {
                                     </button>
                                 </div>
 
-                                {process.env.NODE_ENV === 'development' && (
+                                {/* {process.env.NODE_ENV === 'development' && (
                                     <button
                                         onClick={handleDebugAutoFill}
                                         className="w-full py-2 mb-3 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs font-medium rounded-lg border border-dashed border-gray-300 transition-colors flex items-center justify-center gap-2"
                                     >
                                         [Debug] Auto-fill ทุกข้อ
                                     </button>
-                                )}
+                                )} */}
 
                                 <button
                                     onClick={handleSubmit}

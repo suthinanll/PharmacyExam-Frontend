@@ -13,6 +13,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ImagePreviewModal from "@/components/ImagePreviewModal";
+import { formatScientificText } from "@/utils/formatText";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface AnswerOption {
@@ -202,7 +203,7 @@ function QuestionCard({
                                 </span>
                                 <div className="flex-1 min-w-0">
                                     {opt.option_text?.replace(/<[^>]*>/g, "").trim() && (
-                                        <div className={`text-sm lg:text-[15px] leading-relaxed ${textClass}`} dangerouslySetInnerHTML={{ __html: opt.option_text }} />
+                                        <div className={`text-sm lg:text-[15px] leading-relaxed ${textClass}`} dangerouslySetInnerHTML={{ __html: formatScientificText(opt.option_text) }} />
                                     )}
                                     {opt.option_image_url?.trim() && (
                                         <img
