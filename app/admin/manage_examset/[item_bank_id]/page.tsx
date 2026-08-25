@@ -15,6 +15,7 @@ import QuestionTableView from './components/QuestionTableView';
 import CATGuideModal from '../../cat_management/components/CATGuideModal';
 import DashboardView from './components/DashboardView';
 import SettingsModal from './components/SettingsModal';
+import ImportExcelModal from './components/ImportExcelModal';
 import { useAuth } from "@/contexts/AuthContext";
 import TiptapEditor from '@/components/TiptapEditor';
 import { formatScientificText } from '@/utils/formatText';
@@ -117,6 +118,9 @@ export default function ItemBankEditPage() {
 
     // State for Settings Modal
     const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+    // State for Import Excel Modal
+    const [showImportExcelModal, setShowImportExcelModal] = useState(false);
 
     // Ref to track if data has been initially loaded to avoid autosaving initial fetch
     const isInitialLoad = useRef(true);
@@ -444,6 +448,18 @@ export default function ItemBankEditPage() {
         } catch (error) {
             console.error('Error fetching existing items:', error);
         }
+    };
+
+    const handleExcelImportSuccess = async () => {
+        setLoading(true);
+        const draftKey = `item_bank_draft_${itemBankId}`;
+        localStorage.removeItem(draftKey);
+        await Promise.all([
+            fetchItemBankInfo(),
+            fetchExistingItems(),
+            fetchSubTopics(),
+        ]);
+        setLoading(false);
     };
 
     const addSituation = () => {
@@ -1409,6 +1425,7 @@ export default function ItemBankEditPage() {
                     itemBankId={itemBankId}
                     onAddSituation={addSituation}
                     onAddStandaloneQuestion={addStandaloneQuestion}
+                    onImportExcel={() => setShowImportExcelModal(true)}
                     onSettingsClick={() => setShowSettingsModal(true)}
                     onCATGuideClick={() => setShowCATGuide(true)}
                     isEditing={isEditing}
@@ -2066,6 +2083,14 @@ export default function ItemBankEditPage() {
                     fetchItemBankInfo();
                     initData();
                 }}
+            />
+
+            <ImportExcelModal
+                isOpen={showImportExcelModal}
+                onClose={() => setShowImportExcelModal(false)}
+                itemBankId={itemBankId}
+                itemBankName={itemBankInfo?.bank_name}
+                onSuccess={handleExcelImportSuccess}
             />
         </Navbar_admin>
     );

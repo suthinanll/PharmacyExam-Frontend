@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Settings, Plus, FileText, Clock, CheckCircle, XCircle, Layers, Edit2, ChevronLeft, ChevronRight, X, HelpCircle, Save, Ban, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Settings, Plus, FileText, Clock, CheckCircle, XCircle, Layers, Edit2, ChevronLeft, ChevronRight, X, HelpCircle, Save, Ban, ChevronDown, FileSpreadsheet } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -26,6 +26,7 @@ interface ItemBankHeaderProps {
     itemBankId: string;
     onAddSituation: () => void;
     onAddStandaloneQuestion?: () => void;
+    onImportExcel?: () => void;
     onSettingsClick: () => void;
     onCATGuideClick: () => void;
     isEditing: boolean;
@@ -43,6 +44,7 @@ export default function ItemBankHeader({
     itemBankId,
     onAddSituation,
     onAddStandaloneQuestion,
+    onImportExcel,
     onSettingsClick,
     onCATGuideClick,
     isEditing,
@@ -175,6 +177,28 @@ export default function ItemBankHeader({
                                                     <div className="text-xs text-gray-400 font-normal">คำถามเดี่ยวแบบช้อยส์ทั่วไป</div>
                                                 </div>
                                             </button>
+                                        )}
+
+                                        {onImportExcel && (
+                                            <>
+                                                <div className="my-1 border-t border-gray-100" />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setShowCreateDropdown(false);
+                                                        onImportExcel();
+                                                    }}
+                                                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 flex items-center gap-3 transition-colors font-medium cursor-pointer"
+                                                >
+                                                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                                        <FileSpreadsheet className="w-4 h-4" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-medium">นำเข้าจากไฟล์ Excel</div>
+                                                        <div className="text-xs text-gray-400 font-normal">อัปโหลดไฟล์ .xlsx / .xls (ต่อท้าย/แทนที่)</div>
+                                                    </div>
+                                                </button>
+                                            </>
                                         )}
                                     </div>
                                 )}
