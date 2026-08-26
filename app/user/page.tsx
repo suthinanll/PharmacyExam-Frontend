@@ -11,7 +11,6 @@ import {
   Calendar,
   LayoutGrid,
   Bookmark,
-  Clock,
   CheckCircle2,
   ExternalLink,
 } from "lucide-react";
@@ -33,7 +32,6 @@ const UpcomingExamCard = ({ exam, index }: { exam: any; index: number }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-xs hover:shadow-md transition-all duration-200 border border-gray-200 p-3.5 flex flex-col gap-2">
-      {/* Top row: Date & urgency badge (Notification-like header) */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-800">
           <Calendar size={13} className="text-blue-600 shrink-0" />
@@ -108,9 +106,7 @@ const CountdownHero = ({
     <div className="mb-12">
       <div className="bg-white rounded-3xl shadow-lg border border-blue-100 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-          {/* Left: Countdown (2/3) */}
           <div className="lg:col-span-2 p-8 md:p-12 bg-gradient-to-br from-blue-50 to-white">
-            {/* แถวบน: badge สถานะ + ปุ่มดูปฏิทิน อยู่คนละฝั่ง ไม่กินพื้นที่แนวตั้งเพิ่ม */}
             <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
               <div
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm border
@@ -119,7 +115,7 @@ const CountdownHero = ({
                     ? "bg-green-50 text-green-700 border-green-200"
                     : isExamStarted
                       ? "bg-red-50 text-red-600 border-red-200"
-                      : "bg-blue-50 text-blue-700 border-blue-200"
+                      : "bg-amber-50 text-amber-700 border-amber-200"
                 }`}
               >
                 <AlarmClock size={16} />

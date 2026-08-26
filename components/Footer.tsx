@@ -6,29 +6,31 @@ import { global } from 'styled-jsx/css';
 
 const Footer = () => {
     return (
+        // ขนาด font ที่ไม่มี breakpoint กำกับ (เช่น text-lg เดี่ยวๆ) จะใช้ค่านั้นบนมือถือด้วย
+        // ด้านล่างปรับให้เล็กลงบนมือถือ (base/sm) แล้วขยายกลับเป็นขนาดเดิมที่ lg ขึ้นไป
         <footer className="w-full bg-[rgba(118,178,90,1)] text-white mt-auto">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                {/* Main Footer Content */}
                 <div className="py-6 sm:py-8 lg:py-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
 
                         {/* Left Column: Contact Info */}
                         <div className="space-y-3">
-                            <h3 className="text-lg sm:text-xl font-medium mb-4">เภสัชพร้อมสอบ</h3>
+                            {/* mobile: text-sm, sm: text-base, lg ขึ้นไป: text-lg (ขนาดเดิม) */}
+                            <h3 className="text-sm sm:text-base lg:text-lg font-medium mb-4">เภสัชพร้อมสอบ</h3>
 
-                            <div className="space-y-2 text-lg">
+                            <div className="space-y-2 text-sm sm:text-base lg:text-lg">
                                 <p className="font-medium text-white/90">ติดต่อเรา</p>
 
-                                <p className="text-lg leading-relaxed">
+                                <p className="leading-relaxed">
                                     วิทยาลัยการคอมพิวเตอร์<br />
                                     123 ถ.มิตรภาพ ต.ในเมือง อ.เมือง จ.ขอนแก่น 40002
                                 </p>
 
-                                <p className="text-lg">
+                                <p>
                                     โทรศัพท์ 043-009700 ต่อ 44456, 44457
                                 </p>
 
-                                <p className="text-lg">
+                                <p>
                                     Hot Line: 089-7102651, 089-7102646
                                 </p>
 
@@ -56,7 +58,8 @@ const Footer = () => {
                         <div className="grid grid-cols-2 gap-6 sm:gap-8">
                             {/* Links Column 1 */}
                             <div className="space-y-3">
-                                <ul className="space-y-2 text-lg">
+                                {/* mobile: text-sm, sm: text-base, lg ขึ้นไป: text-lg (ขนาดเดิม) */}
+                                <ul className="space-y-2 text-sm sm:text-base lg:text-lg">
                                     <li>
                                         <Link
                                             href="/user"
@@ -76,7 +79,7 @@ const Footer = () => {
                                             <li>
                                                 <Link
                                                     href="/user/cat-exam"
-                                                    className="text-lg text-white/80 hover:text-green-200 transition-colors duration-200 font-medium"
+                                                    className="text-sm sm:text-base lg:text-lg text-white/80 hover:text-green-200 transition-colors duration-200 font-medium"
                                                 >
                                                     • ข้อสอบแบบ CAT (Computerized Adaptive Testing)
                                                 </Link>
@@ -96,7 +99,8 @@ const Footer = () => {
 
                             {/* Links Column 2 */}
                             <div className="space-y-3">
-                                <ul className="space-y-2 text-lg">
+                                {/* mobile: text-sm, sm: text-base, lg ขึ้นไป: text-lg (ขนาดเดิม) */}
+                                <ul className="space-y-2 text-sm sm:text-base lg:text-lg">
                                     <li>
                                         <Link
                                             href="/user/chatbot"
@@ -120,7 +124,8 @@ const Footer = () => {
                 </div>
 
                 <div className="border-t border-white/20 py-4">
-                    <p className="text-lg text-center text-green-50">
+                    {/* mobile: text-sm, sm: text-base, lg ขึ้นไป: text-lg (ขนาดเดิม) */}
+                    <p className="text-sm sm:text-base lg:text-lg text-center text-green-50">
                         College of Computing Khon Kaen University
                     </p>
                 </div>

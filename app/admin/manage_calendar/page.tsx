@@ -293,9 +293,9 @@ function Page() {
         body: JSON.stringify({
           title: editFormData.title,
           description: editFormData.description,
-          link_url: editFormData.link_url || null,
-          start_time: editFormData.startDate,
-          end_time: editFormData.endDate,
+          link_url: editFormData.link_url || undefined,
+          startDate: editFormData.startDate,
+          endDate: editFormData.endDate,
           is_public: editFormData.is_published,
           type_event: editFormData.type_event,
         }),
@@ -335,13 +335,13 @@ function Page() {
 
       days.push(
         <div key={day} className="p-1.5 border border-gray-100 min-h-[90px] bg-white hover:bg-green-50/30 transition-colors flex flex-col">
-          <div className="text-xs font-semibold text-gray-400 text-right mb-1">{day}</div>
+          <div className="text-xs font-medium text-gray-400 text-right mb-1">{day}</div>
           <div className="flex flex-col gap-0.5 overflow-y-auto max-h-[68px]">
             {dayEvents.map((event, idx) => (
               <div
                 key={`${event.id}-${idx}`}
                 onClick={() => handleEditClick(event)}
-                className={`px-1.5 py-0.5 rounded text-xs font-semibold cursor-pointer truncate border
+                className={`px-1.5 py-0.5 rounded text-xs font-medium cursor-pointer truncate border
                   ${event.is_published
                     ? "bg-green-50 text-green-700 border-green-200"
                     : "bg-gray-50 text-gray-400 border-gray-200 italic"}`}
@@ -542,11 +542,14 @@ function Page() {
                         ? <CheckSquare className="w-5 h-5 text-green-600" />
                         : <Square className="w-5 h-5" />}
                     </button>
+
+
+                    
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <h3 className="text-base font-semibold text-gray-900 truncate ">{event.title}</h3>
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${event.is_published ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
+                        <h3 className="text-base font-medium text-gray-900 truncate ">{event.title}</h3>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${event.is_published ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
                           {event.is_published ? "เผยแพร่" : "แบบร่าง"}
                         </span>
                       </div>
@@ -575,6 +578,9 @@ function Page() {
                         )}
                       </div>
                     </div>
+
+
+
                     {/* Actions */}
                     <div className="flex items-center gap-2 shrink-0">
                       <button
@@ -586,7 +592,7 @@ function Page() {
                       </button>
                       <button
                         onClick={() => handleEditClick(event)}
-                        className="px-4 py-2 text-xs font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all"
+                        className="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all"
                       >
                         แก้ไข
                       </button>
@@ -627,7 +633,7 @@ function Page() {
               </div>
               <form onSubmit={handleEditSubmit} className="p-8 space-y-6 overflow-y-auto">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500 ">ชื่อกำหนดการ</label>
+                  <label className="text-xs font-medium text-gray-500 ">ชื่อกำหนดการ</label>
                   <input
                     type="text"
                     value={editFormData.title}
@@ -639,7 +645,7 @@ function Page() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500 ">รายละเอียดเพิ่มเติม</label>
+                  <label className="text-xs font-medium text-gray-500 ">รายละเอียดเพิ่มเติม</label>
                   <textarea
                     rows={2}
                     value={editFormData.description}
@@ -650,7 +656,7 @@ function Page() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-gray-500 flex items-center gap-1.5">
+                  <label className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
                     <LinkIcon className="w-3.5 h-3.5 text-green-600" />
                     แนบลิงก์ (URL) / เอกสารอ้างอิง <span className="text-gray-400 font-normal">(ไม่บังคับกรอก)</span>
                   </label>
@@ -663,14 +669,14 @@ function Page() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-gray-500 ">หมวดหมู่</label>
+                  <label className="text-xs font-medium text-gray-500 ">หมวดหมู่</label>
                   <div className="flex flex-wrap gap-2">
                     {Object.keys(CATEGORY_STYLES).map((tag) => (
                       <button
                         key={tag}
                         type="button"
                         onClick={() => toggleTag(tag)}
-                        className={`px-4 py-2 rounded-lg text-xs font-semibold border transition-all
+                        className={`px-4 py-2 rounded-lg text-xs font-medium border transition-all
                           ${editFormData.type_event.includes(tag)
                             ? CATEGORY_STYLES[tag] + " ring-2 ring-green-500/30"
                             : "bg-white text-gray-500 border-gray-200 hover:border-green-300"}`}
@@ -682,7 +688,7 @@ function Page() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-gray-500 ">วันเริ่มต้น</label>
+                    <label className="text-xs font-medium text-gray-500 ">วันเริ่มต้น</label>
                     <div className="relative">
                       <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
                       <input
@@ -695,7 +701,7 @@ function Page() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-gray-500 ">วันสิ้นสุด</label>
+                    <label className="text-xs font-medium text-gray-500 ">วันสิ้นสุด</label>
                     <div className="relative">
                       <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
                       <input
@@ -712,13 +718,13 @@ function Page() {
                   <button
                     type="button"
                     onClick={() => setIsEditModalOpen(false)}
-                    className="flex-1 py-3 rounded-xl font-semibold text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all text-sm"
+                    className="flex-1 py-3 rounded-xl font-medium text-gray-500 border border-gray-200 hover:bg-gray-50 transition-all text-sm"
                   >
                     ยกเลิก
                   </button>
                   <button
                     type="submit"
-                    className="flex-[2] py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-all text-sm shadow-md shadow-green-100"
+                    className="flex-[2] py-3 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-all text-sm shadow-md shadow-green-100"
                   >
                     บันทึกการแก้ไข
                   </button>

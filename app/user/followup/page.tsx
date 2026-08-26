@@ -55,6 +55,7 @@ interface DashboardData {
     improvement_rate: number;
     days_until_exam: number;
     study_minutes: number;
+    cat_exams_count: number;
   };
   ranking: {
     current_rank: number;
@@ -580,6 +581,20 @@ const PharmacistDashboard = () => {
                 loading={loading}
               />
             </div>
+          </div>
+
+          {/* ── CAT exams stat (แยกจากข้อสอบ Standard เพราะ CAT ไม่มี final_score แบบเดียวกัน) ── */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+            <StatRow
+              icon={<Target className="w-6 h-6" />}
+              accent="#0EA5E9"
+              accentSoft="#F0F9FF"
+              value={data?.stats.cat_exams_count ?? "—"}
+              unit="ชุด"
+              label="จำนวนข้อสอบ CAT ที่ทำไปแล้ว"
+              sublabel="ปรับระดับความยากอัตโนมัติ"
+              loading={loading}
+            />
           </div>
 
           {/* ── Analysis section ─────────────────────────────────────────────── */}

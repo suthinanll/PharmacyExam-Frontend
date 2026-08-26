@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   UserPlus,
   Globe,
+  FileText,
 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Swal from "sweetalert2";
@@ -52,6 +53,7 @@ interface UserItem {
   last_login_at?: string | null;
   created_at: string;
   updated_at: string;
+  exam_count?: number;
 }
 
 const getUserRoleId = (u: UserItem): number => {
@@ -610,6 +612,7 @@ export default function ManageUsersPage() {
                     <th className="py-3.5 px-4 font-medium">ผู้ใช้งาน</th>
                     <th className="py-3.5 px-4 font-medium">ข้อมูลติดต่อ</th>
                     <th className="py-3.5 px-4 font-medium">มหาวิทยาลัย</th>
+                    <th className="py-3.5 px-4 font-medium">จำนวนข้อสอบที่ทำ</th>
                     <th className="py-3.5 px-4 font-medium">สิทธิ์การใช้งาน</th>
                     <th className="py-3.5 px-4 font-medium">เข้าใช้งานล่าสุด</th>
                     <th className="py-3.5 px-4 font-medium">วันที่สมัคร</th>
@@ -678,6 +681,14 @@ export default function ManageUsersPage() {
                           ) : (
                             <span className="text-gray-400 italic text-xs font-medium">- ไม่ได้ระบุ -</span>
                           )}
+                        </td>
+
+                        {/* 3.5 Exam Count */}
+                        <td className="py-3.5 px-4">
+                          <div className="flex items-center gap-1.5 text-gray-700 font-medium">
+                            <FileText className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                            <span>{item.exam_count ?? 0} ชุด</span>
+                          </div>
                         </td>
 
                         {/* 4. Role & Permissions */}
