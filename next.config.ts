@@ -1,6 +1,23 @@
 /** @type {import('next').NextConfig} */
+const cspHeader = `
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' 'unsafe-eval';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: blob: https: http:;
+    font-src 'self' data:;
+    connect-src 'self' http://localhost:5000 https: ws: wss:;
+    worker-src 'self' blob:;
+    frame-ancestors 'self';
+    form-action 'self';
+    base-uri 'self';
+    object-src 'none';
+`.replace(/\s{2,}/g, ' ').trim();
+
 const nextConfig = {
-    // 1. ส่วนของ Rewrites เดิมของเฮีย
+    // ปิด X-Powered-By เพื่อไม่ให้เปิดเผยเทคโนโลยีฝั่งเซิร์ฟเวอร์
+    poweredByHeader: false,
+
+    // 1. ส่วนของ Rewrites เดิม
     async rewrites() {
         return [
             {
@@ -10,7 +27,7 @@ const nextConfig = {
         ];
     },
 
-    // 2. เพิ่มส่วนนี้เข้าไปเพื่อแก้เรื่องรูปภาพครับ
+    // 2. จัดการเรื่อง Remote Image Domains
     images: {
         remotePatterns: [
             {
@@ -32,7 +49,7 @@ const nextConfig = {
         ignoreDuringBuilds: true,
     },
 
-    // 4. เพิ่ม headers เพื่อแก้ CSP และป้องกันการแคช sw.js
+    // 4. ตั้งค่า Security Headers และ CSP ตามมาตรฐานความปลอดภัย (CSP-Check-SKILL)
     async headers() {
         return [
             {
@@ -53,7 +70,27 @@ const nextConfig = {
                 headers: [
                     {
                         key: 'Content-Security-Policy',
-                        value: "img-src 'self' data: blob: https: http:;",
+                        value: cspHeader,
+                    },
+                    {
+                        key: 'X-Frame-Options',
+                        value: 'SAMEORIGIN',
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff',
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin',
+                    },
+                    {
+                        key: 'Strict-Transport-Security',
+                        value: 'max-age=31536000; includeSubDomains',
+                    },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'camera=(), microphone=(), geolocation=()',
                     },
                 ],
             },
@@ -62,3 +99,4 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+
