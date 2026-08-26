@@ -1,18 +1,4 @@
 /** @type {import('next').NextConfig} */
-const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval';
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' data: blob: https: http:;
-    font-src 'self' data:;
-    connect-src 'self' http://localhost:5000 https: ws: wss:;
-    worker-src 'self' blob:;
-    frame-ancestors 'self';
-    form-action 'self';
-    base-uri 'self';
-    object-src 'none';
-`.replace(/\s{2,}/g, ' ').trim();
-
 const nextConfig = {
     // ปิด X-Powered-By เพื่อไม่ให้เปิดเผยเทคโนโลยีฝั่งเซิร์ฟเวอร์
     poweredByHeader: false,
@@ -49,7 +35,7 @@ const nextConfig = {
         ignoreDuringBuilds: true,
     },
 
-    // 4. ตั้งค่า Security Headers และ CSP ตามมาตรฐานความปลอดภัย (CSP-Check-SKILL)
+    // 4. ตั้งค่า Security Headers ตามมาตรฐานความปลอดภัย (CSP จัดการแบบ Dynamic Nonce ใน middleware.ts)
     async headers() {
         return [
             {
@@ -68,10 +54,6 @@ const nextConfig = {
             {
                 source: '/:path*',
                 headers: [
-                    {
-                        key: 'Content-Security-Policy',
-                        value: cspHeader,
-                    },
                     {
                         key: 'X-Frame-Options',
                         value: 'SAMEORIGIN',
@@ -99,4 +81,5 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+
 

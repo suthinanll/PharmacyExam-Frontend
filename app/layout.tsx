@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { headers } from 'next/headers';
 import './globals.css'
 import localFont from 'next/font/local';
 import { AuthProvider } from '@/contexts/AuthContext';
@@ -55,7 +56,10 @@ export const viewport = {
 
 
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const headersList = await headers();
+  const nonce = headersList.get('x-nonce') ?? undefined;
+
   return (
     <html lang="th" className={`${myFont.variable}`}>
       <head>
@@ -84,7 +88,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         </AuthProvider>
 
         {/* Service Worker Registration with Auto-Update */}
-        <Script id="register-sw" strategy="afterInteractive">
+        <Script id="register-sw" strategy="afterInteractive" nonce={nonce}>
           {`
             if ('serviceWorker' in navigator) {
               window.addEventListener('load', function() {
