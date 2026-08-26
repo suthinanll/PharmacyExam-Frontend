@@ -9,6 +9,7 @@ import {
     Edit2,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
 import { useAuth } from "@/contexts/AuthContext";
 import Pagination from "@/components/Pagination";
@@ -46,26 +47,36 @@ function formatDate(dateString: string) {
 }
 
 // ─── Linked Banks Inline (used in table row) ─────────
-function LinkedBanksInline({ banks }: { banks: LinkedBank[] }) {
+function LinkedBanksDropdown({ banks }: { banks: LinkedBank[] }) {
     const [open, setOpen] = useState(false);
-    if (!banks || banks.length === 0)
-        return <span className="text-gray-300 text-xs">—</span>;
+    const router = useRouter();
+    if (!banks || banks.length === 0) {
+        return <span className="text-xs text-gray-400">ไม่มีชุดข้อสอบ</span>;
+    }
     return (
-        <div>
+        <div className="relative">
             <button onClick={() => setOpen(o => !o)}
-                className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded-full hover:bg-green-100 transition-colors font-medium">
+                className="inline-flex items-center gap-1 text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded-full hover:bg-green-100 transition-colors font-medium cursor-pointer">
                 <BookOpen size={11} /> {banks.length} ชุดข้อสอบ
                 {open ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
             </button>
             {open && (
                 <div className="mt-1.5 space-y-1">
                     {banks.map(b => (
-                        <Link key={b.item_bank_id} href={`/admin/manage_examset/${b.item_bank_id}`}
-                            className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 hover:underline">
+                        <button
+                            key={b.item_bank_id}
+                            onClick={() => {
+                                if (typeof window !== 'undefined') {
+                                    sessionStorage.setItem('selected_item_bank_id', String(b.item_bank_id));
+                                }
+                                router.push('/admin/manage_examset/detail');
+                            }}
+                            className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left"
+                        >
                             <ExternalLink size={10} />
                             <span className="truncate max-w-[180px]">{b.bank_name}</span>
                             {!b.is_active && <span className="text-gray-400">(ปิด)</span>}
-                        </Link>
+                        </button>
                     ))}
                 </div>
             )}
@@ -87,6 +98,7 @@ function CategoryCard({
     category, idx,
     onEdit, onDelete,
 }: { category: Category; idx: number; onEdit: (c: Category) => void; onDelete: (id: number, name: string) => void; }) {
+    const router = useRouter();
     const [expanded, setExpanded] = useState(false);
     const banks = category.item_banks ?? [];
     const gradient = PALETTE[idx % PALETTE.length];
@@ -128,14 +140,22 @@ function CategoryCard({
                     {expanded && banks.length > 0 && (
                         <div className="mt-2 space-y-1.5">
                             {banks.map(b => (
-                                <Link key={b.item_bank_id} href={`/admin/manage_examset/${b.item_bank_id}`}
-                                    className="flex items-center gap-2 px-2 py-1.5 rounded-lg bg-gray-50 hover:bg-green-50 text-xs text-gray-700 hover:text-green-700 transition-colors group/bank">
+                                <button
+                                    key={b.item_bank_id}
+                                    onClick={() => {
+                                        if (typeof window !== 'undefined') {
+                                            sessionStorage.setItem('selected_item_bank_id', String(b.item_bank_id));
+                                        }
+                                        router.push('/admin/manage_examset/detail');
+                                    }}
+                                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg bg-gray-50 hover:bg-green-50 text-xs text-gray-700 hover:text-green-700 transition-colors group/bank cursor-pointer text-left"
+                                >
                                     <ExternalLink size={11} className="shrink-0 text-gray-400 group-hover/bank:text-green-500" />
                                     <span className="truncate font-medium">{b.bank_name}</span>
                                     {!b.is_active && (
                                         <span className="ml-auto shrink-0 text-gray-400 text-xs">ปิด</span>
                                     )}
-                                </Link>
+                                </button>
                             ))}
                         </div>
                     )}
@@ -421,7 +441,7 @@ export default function CategoriesManagement() {
                                                 <div className="text-sm text-gray-500 max-w-xs truncate">{cat.category_description || '—'}</div>
                                             </td>
                                             <td className="px-5 py-3.5">
-                                                <LinkedBanksInline banks={cat.item_banks ?? []} />
+                                                <LinkedBanksDropdown banks={cat.item_banks ?? []} />
                                             </td>
                                             <td className="px-5 py-3.5 text-xs text-gray-400 whitespace-nowrap">{formatDate(cat.created_at)}</td>
                                             <td className="px-5 py-3.5">

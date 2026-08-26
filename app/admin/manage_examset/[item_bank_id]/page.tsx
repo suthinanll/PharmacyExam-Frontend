@@ -81,7 +81,15 @@ export default function ItemBankEditPage() {
     const params = useParams();
     const router = useRouter();
     const { getToken } = useAuth();
-    const itemBankId = params.item_bank_id as string;
+    
+    // Resolve itemBankId from params or sessionStorage (เหมือนหน้า user/examset/take-exam)
+    const [itemBankId, setItemBankId] = useState<string | null>(() => {
+        if (params?.item_bank_id) return params.item_bank_id as string;
+        if (typeof window !== 'undefined') {
+            return sessionStorage.getItem('selected_item_bank_id');
+        }
+        return null;
+    });
 
     const [situations, setSituations] = useState<Situation[]>([]);
     const [topics, setTopics] = useState<Topic[]>([]);
@@ -106,8 +114,6 @@ export default function ItemBankEditPage() {
     const [editViewMode, setEditViewMode] = useState<'accordion' | 'card'>('accordion');
     const [expandedCardIndex, setExpandedCardIndex] = useState<number | null>(null);
 
-
-
     // States for TOC
     const [activeSituationIndex, setActiveSituationIndex] = useState<number>(0);
     const [showTOC, setShowTOC] = useState(true);
@@ -130,6 +136,24 @@ export default function ItemBankEditPage() {
 
     // AI PDF Upload State
     const [uploadingPdf, setUploadingPdf] = useState(false);
+
+    // Sync itemBankId from sessionStorage or params
+    useEffect(() => {
+        if (params?.item_bank_id) {
+            const pid = params.item_bank_id as string;
+            setItemBankId(pid);
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('selected_item_bank_id', pid);
+            }
+        } else if (typeof window !== 'undefined') {
+            const storedId = sessionStorage.getItem('selected_item_bank_id');
+            if (storedId) {
+                setItemBankId(storedId);
+            } else {
+                router.push('/admin/manage_examset');
+            }
+        }
+    }, [params, router]);
 
     useEffect(() => {
         if (itemBankId) {
@@ -1385,7 +1409,7 @@ export default function ItemBankEditPage() {
         }
     };
 
-    if (loading) {
+    if (loading || !itemBankId) {
         return (
             <Navbar_admin>
                 <div className="flex items-center justify-center min-h-screen bg-gray-50">

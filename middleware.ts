@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from 'next/server';
 export function middleware(request: NextRequest) {
     // สร้าง Nonce แบบสุ่มในระดับ Base64 ต่อทุกๆ Request (Cryptographically Secure)
     const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+    const isDev = process.env.NODE_ENV === 'development';
 
-    // Strict Content-Security-Policy (ผ่านเกณฑ์ Mozilla Observatory & OWASP ระดับสูงสุด)
+    // Strict Content-Security-Policy (ผ่านเกณฑ์ Mozilla Observatory & OWASP ระดับสูงสุดใน Production และรองรับ Fast Refresh ใน Dev)
     const cspHeader = `
         default-src 'self';
-        script-src 'self' 'nonce-${nonce}' 'strict-dynamic';
+        script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${isDev ? "'unsafe-eval'" : ''};
         style-src 'self' 'unsafe-inline';
         img-src 'self' data: blob: https: http:;
         font-src 'self' data:;

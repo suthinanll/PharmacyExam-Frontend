@@ -21,15 +21,19 @@ import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
 import { requestAdminAIAnalysis, AIAnalysisResult } from "@/utils/n8nService";
 
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import dynamic from "next/dynamic";
+
+const AdminPerformanceChart = dynamic(
+  () => import("./components/AdminPerformanceChart"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full w-full flex items-center justify-center">
+        <div className="w-full h-full bg-gray-50 rounded-xl animate-pulse" />
+      </div>
+    ),
+  }
+);
 
 interface DashboardStats {
   totalUsers: number;
@@ -60,9 +64,8 @@ const StatCard: React.FC<StatCardProps> = ({
 }) => (
   <div
     onClick={onClick}
-    className={`bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
-      onClick ? "cursor-pointer hover:border-green-200" : ""
-    }`}
+    className={`bg-white p-6 rounded-2xl shadow-sm border border-gray-100 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${onClick ? "cursor-pointer hover:border-green-200" : ""
+      }`}
   >
     <div className="flex justify-between items-start">
       <div className="space-y-2">
@@ -303,59 +306,7 @@ function AdminDashboardPage() {
           </div>
 
           <div className="h-80 w-full mt-2">
-            {monthlyData.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-gray-400 font-medium text-sm">
-                ยังไม่มีการบันทึกข้อมูลคะแนนสะสมในช่วงนี้
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={monthlyData}
-                  margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#10B981" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                  <XAxis
-                    dataKey="name"
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fill: '#9CA3AF', fontSize: 12, fontWeight: 500 }}
-                  />
-                  <YAxis
-                    tickFormatter={(value) => `${value}%`}
-                    domain={[0, 100]}
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fill: '#9CA3AF', fontSize: 12 }}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #f0f0f0',
-                      borderRadius: '12px',
-                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)'
-                    }}
-                    labelStyle={{ fontWeight: 'bold', color: '#1F2937' }}
-                    formatter={(value: number) => [`${value}%`, "คะแนนเฉลี่ยรวม"]}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#10B981"
-                    strokeWidth={3}
-                    fillOpacity={1}
-                    fill="url(#colorScore)"
-                    dot={{ fill: "#10B981", stroke: "#fff", strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, strokeWidth: 0 }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+            <AdminPerformanceChart monthlyData={monthlyData} />
           </div>
         </div>
 
@@ -451,8 +402,8 @@ function AdminDashboardPage() {
                       const descText = typeof (item?.description || item?.issue || item?.recommendation) === "string"
                         ? (item.description || item.issue || item.recommendation)
                         : (item?.description || item?.issue || item?.recommendation)
-                        ? JSON.stringify(item.description || item.issue || item.recommendation)
-                        : null;
+                          ? JSON.stringify(item.description || item.issue || item.recommendation)
+                          : null;
 
                       return (
                         <div key={i} className="p-3.5 bg-gray-50 rounded-xl border border-gray-100 space-y-1.5">
@@ -462,13 +413,12 @@ function AdminDashboardPage() {
                             </span>
                             {item?.severity && (
                               <span
-                                className={`text-[10px] px-2 py-0.5 rounded font-medium ${
-                                  item.severity === "high"
+                                className={`text-[10px] px-2 py-0.5 rounded font-medium ${item.severity === "high"
                                     ? "bg-red-50 text-red-700 border border-red-200"
                                     : item.severity === "medium"
-                                    ? "bg-amber-50 text-amber-700 border border-amber-200"
-                                    : "bg-teal-50 text-teal-700 border border-teal-200"
-                                }`}
+                                      ? "bg-amber-50 text-amber-700 border border-amber-200"
+                                      : "bg-teal-50 text-teal-700 border border-teal-200"
+                                  }`}
                               >
                                 ระดับ: {item.severity === "high" ? "สูง" : item.severity === "medium" ? "ปานกลาง" : "ปกติ"}
                               </span>

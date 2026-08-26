@@ -29,6 +29,7 @@ const myFont = localFont({
       style: 'normal',
     },
   ],
+  display: 'swap',
   variable: '--font-primary',
 });
 
@@ -60,9 +61,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const headersList = await headers();
   const nonce = headersList.get('x-nonce') ?? undefined;
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+
   return (
     <html lang="th" className={`${myFont.variable}`}>
       <head>
+        <link rel="preconnect" href={apiUrl} crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href={apiUrl} />
         <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
         <link rel="alternate icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />

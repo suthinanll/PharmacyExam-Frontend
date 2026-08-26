@@ -2,6 +2,12 @@
 const nextConfig = {
     // ปิด X-Powered-By เพื่อไม่ให้เปิดเผยเทคโนโลยีฝั่งเซิร์ฟเวอร์
     poweredByHeader: false,
+    compress: true,
+
+    // เพิ่มการ Optimize ขนาด Bundle ของไลบรารียอดนิยม
+    experimental: {
+        optimizePackageImports: ['lucide-react', 'recharts'],
+    },
 
     // 1. ส่วนของ Rewrites เดิม
     async rewrites() {
