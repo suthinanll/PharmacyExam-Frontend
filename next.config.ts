@@ -1,13 +1,11 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     // ปิด X-Powered-By เพื่อไม่ให้เปิดเผยเทคโนโลยีฝั่งเซิร์ฟเวอร์
     poweredByHeader: false,
     compress: true,
-
-    // เพิ่มการ Optimize ขนาด Bundle ของไลบรารียอดนิยม
-    experimental: {
-        optimizePackageImports: ['lucide-react', 'recharts'],
-    },
+    outputFileTracingRoot: path.join(__dirname),
 
     // 1. ส่วนของ Rewrites เดิม
     async rewrites() {
@@ -19,16 +17,32 @@ const nextConfig = {
         ];
     },
 
-    // 2. จัดการเรื่อง Remote Image Domains
+    // 2. จัดการเรื่อง Remote Image Domains เฉพาะ Domain ที่ใช้งานจริง
     images: {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: '**', // อนุญาตทุกเว็บ (รวมถึง kdmshospital.com)
+                hostname: 'lh3.googleusercontent.com',
+            },
+            {
+                protocol: 'https',
+                hostname: '*.googleusercontent.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'kdmshospital.com',
+            },
+            {
+                protocol: 'https',
+                hostname: '*.kdmshospital.com',
             },
             {
                 protocol: 'http',
-                hostname: '**',
+                hostname: 'localhost',
+            },
+            {
+                protocol: 'http',
+                hostname: '127.0.0.1',
             },
         ],
     },

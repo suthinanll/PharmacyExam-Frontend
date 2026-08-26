@@ -190,22 +190,6 @@ export default function PWAInstallPrompt() {
           </button>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-            transform: translateY(16px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.25s ease-out;
-        }
-      `}</style>
     </div>
   );
 }

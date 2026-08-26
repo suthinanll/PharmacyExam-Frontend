@@ -66,22 +66,6 @@ const Toast = ({ type, message, onClose, duration = 3000 }: ToastProps) => {
           <X className="w-4 h-4" />
         </button>
       </div>
-
-      <style jsx>{`
-        @keyframes slide-in {
-          from {
-            opacity: 0;
-            transform: translateX(100%);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-        .animate-slide-in {
-          animation: slide-in 0.3s ease-out;
-        }
-      `}</style>
     </div>
   );
 };

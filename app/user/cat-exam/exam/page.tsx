@@ -320,40 +320,6 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <style>{`
-            @keyframes slosh {
-              0% { transform: translateX(-15px); }
-              50% { transform: translateX(15px); }
-              100% { transform: translateX(-15px); }
-            }
-            .wave-slosh {
-              animation: slosh 4s ease-in-out infinite;
-            }
-            @keyframes rise-1 {
-              0% { transform: translateY(0) translateX(0); opacity: 0; }
-              10% { opacity: 0.5; }
-              50% { transform: translateY(-100px) translateX(4px); }
-              90% { opacity: 0.5; }
-              100% { transform: translateY(-240px) translateX(-2px); opacity: 0; }
-            }
-            @keyframes rise-2 {
-              0% { transform: translateY(0) translateX(0); opacity: 0; }
-              15% { opacity: 0.45; }
-              50% { transform: translateY(-110px) translateX(-3px); }
-              85% { opacity: 0.45; }
-              100% { transform: translateY(-250px) translateX(3px); opacity: 0; }
-            }
-            @keyframes rise-3 {
-              0% { transform: translateY(0) translateX(0); opacity: 0; }
-              10% { opacity: 0.6; }
-              60% { transform: translateY(-120px) translateX(2px); }
-              90% { opacity: 0.6; }
-              100% { transform: translateY(-230px) translateX(-4px); opacity: 0; }
-            }
-            .bubble-1 { animation: rise-1 3.5s infinite linear; transform-origin: center; }
-            .bubble-2 { animation: rise-2 2.8s infinite linear; transform-origin: center; }
-            .bubble-3 { animation: rise-3 4s infinite linear; transform-origin: center; }
-          `}</style>
         </defs>
 
         {/* Zero baseline guideline inside card */}
@@ -899,16 +865,6 @@ function CATExamPageContent() {
 
               {isFinished ? (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden transition-all duration-500">
-                  <style>{`
-                    @keyframes scaleUp {
-                      from { transform: scale(0.96); opacity: 0; }
-                      to { transform: scale(1); opacity: 1; }
-                    }
-                    .animate-scale-up {
-                      animation: scaleUp 0.4s ease-out forwards;
-                    }
-                  `}</style>
-
                   {/* Header/Title Banner */}
                   <div className="p-6 text-center border-b border-gray-100  ">
                     <h2 className="text-2xl font-medium text-gray-800">การประเมินผลการสอบเสร็จสิ้น</h2>
