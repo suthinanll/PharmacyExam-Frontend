@@ -102,18 +102,18 @@ function ItemDetailModal({
                         {[
                             {
                                 label: 'อำนาจจำแนก (a)',
-                                value: item.irt_a_discrimination != null ? Number(item.irt_a_discrimination).toFixed(2) : '—',
+                                value: Number(item.irt_a_discrimination).toFixed(2),
                                 color: 'bg-indigo-50 border-indigo-200 text-indigo-800'
                             },
                             {
                                 label: 'ความยาก (b)',
-                                value: item.irt_b_difficulty != null ? Number(item.irt_b_difficulty).toFixed(2) : '—',
-                                color: 'bg-blue-50 border-blue-200 text-blue-800'
+                                value: '—',
+                                color: 'bg-indigo-50 border-indigo-200 text-indigo-800'
                             },
                             {
                                 label: 'โอกาสการเดา (c)',
-                                value: item.irt_c_guessing != null ? Number(item.irt_c_guessing).toFixed(2) : '—',
-                                color: 'bg-purple-50 border-purple-200 text-purple-800'
+                                value: '-',
+                                color: 'bg-indigo-50 border-indigo-200 text-indigo-800'
                             }
                         ].map((s) => (
                             <div key={s.label} className={`rounded-xl border p-3 text-center ${s.color}`}>

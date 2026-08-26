@@ -751,20 +751,30 @@ const Page = () => {
       try {
         setLoadingLeaderboard(true);
         const token = getToken();
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
 
         const [lbRes, meRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/universities/leaderboard`),
+          fetch(`${apiUrl}/universities/leaderboard`, { headers }),
           token
-            ? fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/me`, {
-                headers: { Authorization: `Bearer ${token}` },
+            ? fetch(`${apiUrl}/auth/me`, {
+                headers,
                 credentials: 'include',
               })
             : Promise.resolve(null),
         ]);
 
-        if (lbRes.ok) {
+        if (lbRes && lbRes.ok) {
           const data = await lbRes.json();
           setLeaderboard(Array.isArray(data) ? data : []);
+        } else {
+          console.warn('Leaderboard response not ok:', lbRes?.status);
         }
         if (meRes && meRes.ok) {
           const me = await meRes.json();
