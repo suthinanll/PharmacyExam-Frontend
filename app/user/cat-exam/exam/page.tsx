@@ -703,17 +703,54 @@ function CATExamPageContent() {
 
   // Start / Resume exam
   useEffect(() => {
-    if (urlSessionId) {
-      resumeCATSession(parseInt(urlSessionId));
-    } else if (itemBankId) {
-      startCATExam();
-    } else {
-      Swal.fire({ title: "เกิดข้อผิดพลาด", text: "ชื่อเซสชันไม่ถูกต้อง กรุณาเลือกการสอบใหม่", icon: "error", confirmButtonColor: "#ef4444" }).then(() => {
-        router.push("/user/cat-exam");
-      });
+    async function initCATSession() {
+      let sId: number | null = null;
+
+      // 1. Try reading from sessionStorage
+      const cached = sessionStorage.getItem("active_cat_session");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed.session_id) sId = Number(parsed.session_id);
+        } catch (e) {}
+      }
+
+      // 2. Fallback to URL searchParams
+      if (!sId && urlSessionId) {
+        sId = parseInt(urlSessionId);
+      }
+
+      // 3. Fallback to Active Session API from server (e.g. on direct refresh)
+      if (!sId) {
+        try {
+          const token = getToken();
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cat/active-session`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const active = await res.json();
+            if (active && active.session_id) {
+              sId = Number(active.session_id);
+              sessionStorage.setItem("active_cat_session", JSON.stringify({ session_id: sId }));
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (sId) {
+        resumeCATSession(sId);
+      } else if (itemBankId) {
+        startCATExam();
+      } else {
+        Swal.fire({ title: "เกิดข้อผิดพลาด", text: "ไม่พบเซสชันการสอบ CAT ที่กำลังดำเนินการอยู่", icon: "error", confirmButtonColor: "#ef4444" }).then(() => {
+          router.push("/user/cat-exam");
+        });
+      }
     }
+
+    initCATSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemBankId, urlSessionId]);
+  }, []);
 
   async function resumeCATSession(sessionId: number) {
     try {
@@ -997,7 +1034,9 @@ function CATExamPageContent() {
                         onClick={() => {
                           if (finishedSessionId) {
                             setNavigating(true);
-                            router.push(`/user/cat-exam/result/${finishedSessionId}`);
+                            sessionStorage.removeItem("active_cat_session");
+                            sessionStorage.setItem("cat_result_session", JSON.stringify({ session_id: finishedSessionId }));
+                            router.push('/user/cat-exam/result');
                           }
                         }}
                         disabled={finalStatus === null || navigating}

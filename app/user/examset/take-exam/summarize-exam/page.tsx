@@ -47,22 +47,45 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 function Summarize() {
     const searchParams = useSearchParams();
     const { getToken } = useAuth();
-    const sessionId = searchParams.get('session_id');
+    const [sessionId, setSessionId] = useState<string | null>(null);
+    // const sessionId = searchParams.get('session_id');
 
     const [examResult, setExamResult] = useState<ExamResult | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (sessionId) fetchExamResult();
-        else { setError('ไม่พบรหัส session'); setLoading(false); }
-    }, [sessionId]);
+        let sId: string | null = null;
+        const cached = sessionStorage.getItem("summarize-exam_session");
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                if (parsed.session_id) sId = String(parsed.session_id);
+            } catch (e) {}
+        }
 
-    const fetchExamResult = async () => {
+        if (!sId) {
+            const urlSession = searchParams.get('session_id');
+            if (urlSession) sId = urlSession;
+        }
+        
+        if (sId) {
+            setSessionId(sId);
+            fetchExamResult(sId);
+        } else {
+            setError('ไม่พบรหัส session');
+            setLoading(false);
+        }
+
+        
+    },[]);
+
+
+    const fetchExamResult = async (targetSessionId: string) => {
         setLoading(true);
         try {
             const token = getToken();
-            const res = await fetch(`${API_URL}/items-bank/exam/${sessionId}/result`, {
+            const res = await fetch(`${API_URL}/items-bank/exam/${targetSessionId}/result`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) setExamResult(await res.json());
@@ -359,7 +382,7 @@ function Summarize() {
                     {/* ── Actions ── */}
                     <div className="flex flex-wrap gap-3">
                         <Link
-                            href={`/user/examset/take-exam/summarize-exam/answer?session_id=${sessionId}`}
+                            href={`/user/examset/take-exam/summarize-exam/answer`}
                             className="flex-1 sm:flex-none px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm text-center transition-colors shadow-sm"
                         >
                             ดูเฉลยคำตอบ

@@ -66,8 +66,8 @@ function TakeExam() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const { getToken } = useAuth();
-    const sessionId = searchParams.get("session_id");
-    const itemBankId = searchParams.get("id");
+    const [sessionId, setSessionId] = useState<string | null>(null);
+    const [itemBankId, setItemBankId] = useState<string | null>(null);
 
     const [itemBank, setItemBank] = useState<ItemBank | null>(null);
     const [questions, setQuestions] = useState<Question[]>([]);
@@ -101,27 +101,82 @@ function TakeExam() {
         });
     };
 
-    // Fetch exam data & restore in-progress answers
+    // Initialize session from sessionStorage, URL params fallback, or active-session API
     useEffect(() => {
-        if (itemBankId && sessionId) {
-            fetchExamData();
-        } else {
-            setError("ไม่พบรหัสข้อสอบหรือ session");
-            setLoading(false);
-        }
-    }, [itemBankId, sessionId]);
+        const initSession = async () => {
+            setLoading(true);
+            let sId: string | null = null;
+            let bId: string | null = null;
+
+            // 1. Try reading from sessionStorage
+            const cached = sessionStorage.getItem("active_exam_session");
+            if (cached) {
+                try {
+                    const parsed = JSON.parse(cached);
+                    if (parsed.session_id && parsed.item_bank_id) {
+                        sId = String(parsed.session_id);
+                        bId = String(parsed.item_bank_id);
+                    }
+                } catch (e) {}
+            }
+
+            // 2. Fallback to URL searchParams (backward compatibility)
+            if (!sId || !bId) {
+                const urlSession = searchParams.get("session_id");
+                const urlBankId = searchParams.get("id");
+                if (urlSession && urlBankId) {
+                    sId = urlSession;
+                    bId = urlBankId;
+                }
+            }
+
+            // 3. Fallback to Active Session API from server (e.g. on direct refresh)
+            if (!sId || !bId) {
+                try {
+                    const token = getToken();
+                    const res = await fetch(`${API_URL}/items-bank/exam/active-session`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                    });
+                    if (res.ok) {
+                        const active = await res.json();
+                        if (active && active.session_id && active.item_bank_id) {
+                            sId = String(active.session_id);
+                            bId = String(active.item_bank_id);
+                            sessionStorage.setItem("active_exam_session", JSON.stringify({
+                                session_id: active.session_id,
+                                item_bank_id: active.item_bank_id
+                            }));
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error fetching active session fallback:", err);
+                }
+            }
+
+            if (sId && bId) {
+                setSessionId(sId);
+                setItemBankId(bId);
+                await fetchExamData(bId, sId);
+            } else {
+                setError("ไม่พบการสอบที่กำลังดำเนินการอยู่");
+                setLoading(false);
+            }
+        };
+
+        initSession();
+    }, []);
 
     // Track question start time
     useEffect(() => {
         setQuestionStartTime(Date.now());
     }, [currentQuestionIndex]);
 
-    const fetchExamData = async () => {
+    const fetchExamData = async (targetBankId: string, targetSessionId: string) => {
         setLoading(true);
         try {
             const token = getToken();
             const response = await fetch(
-                `${API_URL}/items-bank/${itemBankId}/items`,
+                `${API_URL}/items-bank/${targetBankId}/items`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -134,32 +189,19 @@ function TakeExam() {
                 setItemBank(data);
 
                 // Sort questions by their actual display_order in item_bank_items
-                // For questions with a situation: use the situation's first item display_order
-                // For standalone questions: use the item's own display_order
-                // Both values are from item_bank_items table → same scale → correct ordering
                 const sortedQuestions = (data.items || []).sort(
                     (a: Question, b: Question) => {
-                        // Standalone items (no situation) sort purely by their own display_order
                         if (!a.situation && !b.situation) {
                             return Number(a.display_order || 0) - Number(b.display_order || 0);
                         }
-
-                        // If one has situation and one doesn't, sort by display_order directly
-                        // (both display_order values are from item_bank_items — same scale)
                         if (!a.situation || !b.situation) {
                             return Number(a.display_order || 0) - Number(b.display_order || 0);
                         }
-
-                        // Both have situations: group by situation first
                         const sitIdA = a.situation.situation_id;
                         const sitIdB = b.situation.situation_id;
-
                         if (sitIdA !== sitIdB) {
-                            // Sort situations by the item's display_order (first item in each group)
                             return Number(a.display_order || 0) - Number(b.display_order || 0);
                         }
-
-                        // Same situation: sort by question display_order within the group
                         return Number(a.display_order || 0) - Number(b.display_order || 0);
                     },
                 );
@@ -167,7 +209,7 @@ function TakeExam() {
 
                 // Restore saved answers from previous session if any (Resume support)
                 let loadedAnswers: { [key: number]: { option_index: number; start_time: number } } = {};
-                const savedAnswers = localStorage.getItem(`exam_answers_${sessionId}`);
+                const savedAnswers = localStorage.getItem(`exam_answers_${targetSessionId}`);
                 if (savedAnswers) {
                     try {
                         loadedAnswers = JSON.parse(savedAnswers);
@@ -176,7 +218,7 @@ function TakeExam() {
                 }
 
                 // Restore saved flags
-                const savedFlags = localStorage.getItem(`exam_flags_${sessionId}`);
+                const savedFlags = localStorage.getItem(`exam_flags_${targetSessionId}`);
                 if (savedFlags) {
                     try {
                         setFlaggedQuestions(JSON.parse(savedFlags));
@@ -186,11 +228,11 @@ function TakeExam() {
                 // Calculate real-time countdown based on start time
                 const now = Date.now();
                 let realStartTime = now;
-                const savedStartTime = localStorage.getItem(`exam_start_time_${sessionId}`);
+                const savedStartTime = localStorage.getItem(`exam_start_time_${targetSessionId}`);
                 if (savedStartTime) {
                     realStartTime = Number(savedStartTime);
                 } else {
-                    localStorage.setItem(`exam_start_time_${sessionId}`, String(now));
+                    localStorage.setItem(`exam_start_time_${targetSessionId}`, String(now));
                 }
 
                 const totalDuration = data.duration || 3600;
@@ -355,10 +397,15 @@ function TakeExam() {
                     confirmButtonColor: "#22c55e",
                     confirmButtonText: "ดูผลสอบ",
                 });
+                sessionStorage.removeItem('active_exam_session');
+                sessionStorage.setItem('summarize-exam_session', JSON.stringify({
+                    session_id: result.session_id,
+                }));
+                router.push('/user/examset/take-exam/summarize-exam');
 
-                router.push(
-                    `/user/examset/take-exam/summarize-exam?session_id=${sessionId}`,
-                );
+                // router.push(
+                //     `/user/examset/take-exam/summarize-exam?session_id=${sessionId}`,
+                // );
             } else {
                 // Try to parse error message
                 let errorMessage = "ไม่สามารถส่งข้อสอบได้";

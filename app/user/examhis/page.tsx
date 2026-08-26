@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Navbar from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
@@ -171,6 +172,7 @@ function StatBar({ records }: { records: ExamRecord[] }) {
 
 // ─────────────────── Main ───────────────────
 export default function ExamHistoryPage() {
+    const router = useRouter();
     const { getToken } = useAuth();
 
     const [normalRecords, setNormalRecords] = useState<ExamRecord[]>([]);
@@ -243,6 +245,16 @@ export default function ExamHistoryPage() {
             (a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
         );
     }, [normalRecords, catRecords]);
+
+    const handleViewResult = (exam: ExamRecord) => {
+        if (exam.examType === "CAT") {
+            sessionStorage.setItem("cat_result_session", JSON.stringify({ session_id: exam.session_id }));
+            router.push("/user/cat-exam/result");
+        } else {
+            sessionStorage.setItem("summarize-exam_session", JSON.stringify({ session_id: exam.session_id }));
+            router.push("/user/examset/take-exam/summarize-exam");
+        }
+    };
 
     const filtered = useMemo(() => {
         let src: ExamRecord[] =
@@ -757,19 +769,15 @@ export default function ExamHistoryPage() {
                                                                 <span className="text-sm text-gray-400 sm:hidden">คะแนน:</span>
                                                                 <ScoreBadge exam={exam} />
                                                             </div>
-                                                            <Link
-                                                                href={
-                                                                    isCAT
-                                                                        ? `/user/cat-exam/result/${exam.session_id}`
-                                                                        : `/user/examset/take-exam/summarize-exam?session_id=${exam.session_id}`
-                                                                }
-                                                                className={`px-4 py-2 sm:py-2.5 text-white text-sm sm:text-sm font-medium rounded-xl transition-all hover:shadow-md whitespace-nowrap text-center ${isCAT
+                                                            <button
+                                                                onClick={() => handleViewResult(exam)}
+                                                                className={`px-4 py-2 sm:py-2.5 text-white text-sm sm:text-sm font-medium rounded-xl transition-all hover:shadow-md whitespace-nowrap text-center cursor-pointer ${isCAT
                                                                     ? "bg-purple-600 hover:bg-purple-700"
                                                                     : "bg-blue-600 hover:bg-blue-700"
                                                                     }`}
                                                             >
                                                                 ดูผลสอบ
-                                                            </Link>
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>

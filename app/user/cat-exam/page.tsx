@@ -184,7 +184,8 @@ export default function CATSetupPage() {
                 });
 
                 if (continueResult.isConfirmed) {
-                    router.push(`/user/cat-exam/exam?session_id=${data.session_id}`);
+                    sessionStorage.setItem('active_cat_session', JSON.stringify({ session_id: data.session_id }));
+                    router.push('/user/cat-exam/exam');
                     return;
                 } else if (continueResult.isDenied) {
                     // ยกเลิก session เดิมแล้วสร้าง session ใหม่และเข้าหน้าสอบทันที
@@ -208,7 +209,8 @@ export default function CATSetupPage() {
                     }
 
                     const newData = await newRes.json();
-                    router.push(`/user/cat-exam/exam?session_id=${newData.session_id}`);
+                    sessionStorage.setItem('active_cat_session', JSON.stringify({ session_id: newData.session_id }));
+                    router.push('/user/cat-exam/exam');
                     return;
                 } else {
                     setStarting(false);
@@ -216,7 +218,8 @@ export default function CATSetupPage() {
                 }
             }
 
-            router.push(`/user/cat-exam/exam?session_id=${data.session_id}`);
+            sessionStorage.setItem('active_cat_session', JSON.stringify({ session_id: data.session_id }));
+            router.push('/user/cat-exam/exam');
         } catch (error: any) {
             setStarting(false);
             Swal.fire({

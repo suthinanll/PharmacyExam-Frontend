@@ -30,13 +30,30 @@ import {
     Home,
     ArrowLeft,
     Eye,
-    Download
+    Download,
+    AlertTriangle,
+    Timer,
+    Flame,
+    TrendingDown,
+    XCircle
 } from 'lucide-react';
 
 import ExamPreviewModal from './ExamPreviewModal';
 import Link from 'next/link';
 import SettingsModal from './SettingsModal';
 import Swal from 'sweetalert2';
+
+export interface ItemPerformanceStat {
+    item_id: number;
+    display_order: number;
+    question_text: string;
+    situation_text?: string | null;
+    total_attempts: number;
+    incorrect_count: number;
+    correct_count: number;
+    error_rate: number;
+    avg_time_seconds: number;
+}
 
 interface DashboardStats {
     item_bank: {
@@ -76,6 +93,10 @@ interface DashboardStats {
         score: number;
         status: string;
     }[];
+    item_analytics?: {
+        most_missed: ItemPerformanceStat[];
+        slowest: ItemPerformanceStat[];
+    };
 }
 
 interface DashboardViewProps {
@@ -457,6 +478,149 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                         </div>
                     </div>
 
+                    {/* Item Performance Analytics Section */}
+                    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-5">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-4">
+                            <div>
+                                <h3 className="text-lg font-medium text-gray-800 flex items-center gap-2">
+                                    <BarChart2 className="w-5 h-5 text-green-600" />
+                                    <span>การวิเคราะห์ข้อสอบเชิงลึก</span>
+                                </h3>
+                                <p className="text-xs text-gray-500 mt-0.5">
+                                    สถิติ 5 อันดับข้อสอบที่มีอัตราการตอบผิดสูงสุด และข้อที่ผู้เข้าสอบใช้เวลาทำนานที่สุด
+                                </p>
+                            </div>
+                        </div>
+
+                        {(!data.item_analytics?.most_missed?.length && !data.item_analytics?.slowest?.length) ? (
+                            <div className="py-8 text-center text-gray-400 text-sm bg-gray-50/60 rounded-xl border border-dashed border-gray-200">
+                                <p>ยังไม่มีข้อมูลสถิติรายข้อ</p>
+                                <p className="text-xs text-gray-400 mt-1">จะแสดงผลอัตโนมัติเมื่อมีผู้เข้าสอบส่งข้อสอบเรียบร้อยแล้ว</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                {/* Most Missed Questions Card */}
+                                <div className="bg-rose-50/40 rounded-xl p-4 border border-rose-100/80 space-y-3.5">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1.5 bg-rose-100 text-rose-600 rounded-lg">
+                                                <AlertTriangle className="w-4 h-4" />
+                                            </div>
+                                            <h4 className="text-sm font-semibold text-gray-800">
+                                                ตอบผิดบ่อยที่สุด (Top 5)
+                                            </h4>
+                                        </div>
+                                        <span className="text-[11px] font-medium text-rose-600 bg-rose-100/80 px-2 py-0.5 rounded-full">
+                                            อัตราตอบผิด
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-2.5">
+                                        {data.item_analytics?.most_missed?.map((item, idx) => (
+                                            <div
+                                                key={item.item_id}
+                                                className="bg-white p-3 rounded-lg border border-rose-100/70 shadow-2xs hover:shadow-xs transition-shadow space-y-2"
+                                            >
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                                        <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-100 text-rose-700 text-[11px] font-bold shrink-0">
+                                                            {idx + 1}
+                                                        </span>
+                                                        <span className="text-xs font-semibold text-gray-700 shrink-0">
+                                                            ข้อ {item.display_order || idx + 1}
+                                                        </span>
+                                                        <p className="text-xs text-gray-600 truncate font-normal" title={cleanQuestionText(item.question_text)}>
+                                                            {cleanQuestionText(item.question_text) || 'ไม่มีข้อความคำถาม'}
+                                                        </p>
+                                                    </div>
+                                                    <span className="text-xs font-bold text-rose-600 shrink-0">
+                                                        {item.error_rate}%
+                                                    </span>
+                                                </div>
+
+                                                {/* Progress Bar */}
+                                                <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                                    <div
+                                                        className="bg-gradient-to-r from-orange-500 to-rose-500 h-1.5 rounded-full transition-all duration-500"
+                                                        style={{ width: `${Math.min(item.error_rate, 100)}%` }}
+                                                    />
+                                                </div>
+
+                                                <div className="flex items-center justify-between text-[11px] text-gray-500 pt-0.5">
+                                                    <span>ตอบผิด {item.incorrect_count}/{item.total_attempts} ครั้ง</span>
+                                                    <span>เฉลี่ย {formatTimeSpent(item.avg_time_seconds)}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Slowest Questions Card */}
+                                <div className="bg-amber-50/40 rounded-xl p-4 border border-amber-100/80 space-y-3.5">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="p-1.5 bg-amber-100 text-amber-700 rounded-lg">
+                                                <Clock className="w-4 h-4" />
+                                            </div>
+                                            <h4 className="text-sm font-semibold text-gray-800">
+                                                ใช้เวลานานที่สุด (Top 5)
+                                            </h4>
+                                        </div>
+                                        <span className="text-[11px] font-medium text-amber-700 bg-amber-100/80 px-2 py-0.5 rounded-full">
+                                            เวลาเฉลี่ย/ข้อ
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-2.5">
+                                        {data.item_analytics?.slowest?.map((item, idx) => {
+                                            const maxSlowestTime = data.item_analytics?.slowest?.[0]?.avg_time_seconds || 1;
+                                            const relativePercent = Math.min(100, Math.max(15, (item.avg_time_seconds / maxSlowestTime) * 100));
+
+                                            return (
+                                                <div
+                                                    key={item.item_id}
+                                                    className="bg-white p-3 rounded-lg border border-amber-100/70 shadow-2xs hover:shadow-xs transition-shadow space-y-2"
+                                                >
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                                                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-bold shrink-0">
+                                                                {idx + 1}
+                                                            </span>
+                                                            <span className="text-xs font-semibold text-gray-700 shrink-0">
+                                                                ข้อ {item.display_order || idx + 1}
+                                                            </span>
+                                                            <p className="text-xs text-gray-600 truncate font-normal" title={cleanQuestionText(item.question_text)}>
+                                                                {cleanQuestionText(item.question_text) || 'ไม่มีข้อความคำถาม'}
+                                                            </p>
+                                                        </div>
+                                                        <span className="text-xs font-bold text-amber-700 shrink-0">
+                                                            {formatTimeSpent(item.avg_time_seconds)}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Progress Bar */}
+                                                    <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                                        <div
+                                                            className="bg-gradient-to-r from-amber-500 to-indigo-500 h-1.5 rounded-full transition-all duration-500"
+                                                            style={{ width: `${relativePercent}%` }}
+                                                        />
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between text-[11px] text-gray-500 pt-0.5">
+                                                        <span>ทำทั้งหมด {item.total_attempts} ครั้ง</span>
+                                                        <span className={`${item.error_rate >= 50 ? 'text-rose-600 font-medium' : 'text-gray-500'}`}>
+                                                            ตอบผิด {item.error_rate}%
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Recent Activity */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                         <h3 className="text-lg font-medium text-gray-800 mb-4">กิจกรรมล่าสุด</h3>
@@ -587,24 +751,6 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                             </div>
                         </div>
                     </div>
-
-                    {/* Quick Actions Card */}
-                    {/* <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-medium text-gray-800 mb-6">เมนูจัดการด่วน</h3>
-                        <div className="space-y-3">
-                            <button
-                                onClick={onManageExams}
-                                className="w-full flex items-center gap-3 text-left p-2 rounded-lg hover:bg-green-50 text-gray-700 hover:text-green-700 font-medium transition-colors group"
-                            >
-                                <PlusCircle className="w-5 h-5 text-green-600 group-hover:scale-110 transition-transform" />
-                                เพิ่มสถานการณ์
-                            </button>
-                            <button className="w-full flex items-center gap-3 text-left p-2 rounded-lg hover:bg-green-50 text-gray-700 hover:text-green-700 font-medium transition-colors group">
-                                <PlayCircle className="w-5 h-5 text-green-600 group-hover:scale-110 transition-transform" />
-                                ตัวอย่างข้อสอบ
-                            </button>
-                        </div>
-                    </div> */}
                 </div>
             </div>
 
@@ -622,6 +768,21 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
             />
         </div>
     );
+}
+
+function formatTimeSpent(seconds: number) {
+    if (!seconds || seconds <= 0) return '0 วิ';
+    const m = Math.floor(seconds / 60);
+    const s = Math.round(seconds % 60);
+    if (m > 0) {
+        return `${m} นาที ${s > 0 ? `${s} วิ` : ''}`;
+    }
+    return `${s} วิ`;
+}
+
+function cleanQuestionText(text: string) {
+    if (!text) return '';
+    return text.replace(/<[^>]*>?/gm, '').trim();
 }
 
 function StatsCard({ title, value, icon, subtext }: any) {
