@@ -37,6 +37,7 @@ import {
   Target,
   CreditCard,
   Loader2,
+  Eraser,
 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Swal from "sweetalert2";
@@ -68,6 +69,7 @@ interface UserItem {
   exam_count?: number;
   deleted_at?: string | null;
   manual_role_id?: number | null;
+  anonymized_at?: string | null;
 }
 
 /** ข้อมูลสรุปผู้ใช้หนึ่งคน จาก GET /users/:id (Super Admin เท่านั้น) */
@@ -384,6 +386,56 @@ export default function ManageUsersPage() {
       });
     } catch (err: any) {
       Swal.fire({ icon: "error", title: "ลบผู้ใช้ไม่สำเร็จ", text: err.message });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  /** ล้างข้อมูลส่วนตัวถาวร — ย้อนกลับไม่ได้ จึงยืนยันสองชั้นด้วยการพิมพ์อีเมล */
+  const handleAnonymize = async (target: UserItem) => {
+    const confirm = await Swal.fire({
+      icon: "warning",
+      title: "ล้างข้อมูลส่วนตัวถาวร?",
+      html: `<div style="text-align:left;font-size:13px;line-height:1.8">
+        จะลบ <b>ชื่อ อีเมล เบอร์โทร วันเกิด รหัสผ่าน และรูปโปรไฟล์</b> ของ<br/>
+        <b>${target.first_name} ${target.last_name ?? ""}</b> (${target.email}) ทิ้งถาวร<br/><br/>
+        <b>ประวัติการสอบ คะแนน และใบเสร็จยังอยู่ครบ</b> เพื่อไม่ให้สถิติและหลักฐานการเงินเสียหาย<br/><br/>
+        <span style="color:#e11d48"><b>ย้อนกลับไม่ได้ และกู้คืนบัญชีนี้ไม่ได้อีก</b></span><br/><br/>
+        พิมพ์อีเมลของผู้ใช้เพื่อยืนยัน:
+      </div>`,
+      input: "text",
+      inputPlaceholder: target.email,
+      showCancelButton: true,
+      confirmButtonText: "ล้างข้อมูลถาวร",
+      cancelButtonText: "ยกเลิก",
+      confirmButtonColor: "#e11d48",
+      reverseButtons: true,
+      inputValidator: (value) =>
+        value === target.email ? null : "อีเมลไม่ตรง กรุณาพิมพ์ให้ตรงกับของผู้ใช้รายนี้",
+    });
+    if (!confirm.isConfirmed) return;
+
+    setBusyId(target.user_id);
+    try {
+      const data = await callApi(
+        `/users/${target.user_id}/anonymize`,
+        { method: "DELETE" },
+        "ล้างข้อมูลไม่สำเร็จ",
+      );
+
+      await Promise.all([fetchUsers(), fetchDeletedUsers()]);
+      if (detail?.user_id === target.user_id) setDetail(null);
+      Swal.fire({
+        icon: "success",
+        title: data.message || "ล้างข้อมูลเรียบร้อย",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3200,
+        timerProgressBar: true,
+      });
+    } catch (err: any) {
+      Swal.fire({ icon: "error", title: "ล้างข้อมูลไม่สำเร็จ", text: err.message });
     } finally {
       setBusyId(null);
     }
@@ -998,6 +1050,15 @@ export default function ManageUsersPage() {
                               <span>ผู้ใช้งาน</span>
                             </span>
                           )}
+                          {item.anonymized_at && (
+                            <span
+                              title="ข้อมูลส่วนตัวถูกล้างถาวรแล้ว — ประวัติการสอบและใบเสร็จยังอยู่"
+                              className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200"
+                            >
+                              <Eraser className="w-3 h-3" />
+                              ล้างข้อมูลแล้ว
+                            </span>
+                          )}
                           {item.manual_role_id != null && (
                             <span
                               title="สิทธิ์ถูกกำหนดด้วยมือ ไม่เปลี่ยนอัตโนมัติตามการชำระเงิน"
@@ -1045,14 +1106,27 @@ export default function ManageUsersPage() {
                                   >
                                     <Eye className="w-4 h-4" />
                                   </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRestore(item)}
-                                    title="กู้คืนผู้ใช้"
-                                    className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 cursor-pointer transition-colors"
-                                  >
-                                    <RotateCcw className="w-4 h-4" />
-                                  </button>
+                                  {/* บัญชีที่ถูกล้างข้อมูลแล้วกู้คืนหรือล้างซ้ำไม่ได้ */}
+                                  {!item.anonymized_at && (
+                                    <>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleRestore(item)}
+                                        title="กู้คืนผู้ใช้"
+                                        className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 cursor-pointer transition-colors"
+                                      >
+                                        <RotateCcw className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleAnonymize(item)}
+                                        title="ล้างข้อมูลส่วนตัวถาวร (ประวัติสอบและใบเสร็จยังอยู่)"
+                                        className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer transition-colors"
+                                      >
+                                        <Eraser className="w-4 h-4" />
+                                      </button>
+                                    </>
+                                  )}
                                 </>
                               ) : isSuperAdminRow ? (
                                 // ไม่แสดงปุ่มจัดการกับ Super Admin — backend ก็ปฏิเสธอยู่แล้ว
@@ -1216,10 +1290,21 @@ export default function ManageUsersPage() {
                   <div className="p-6 space-y-5">
                     {detail.is_deleted && (
                       <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs">
-                        <Archive className="w-4 h-4 shrink-0" />
-                        <span>
-                          ผู้ใช้รายนี้ถูกลบเมื่อ {formatThaiDateTime(detail.deleted_at)} — เข้าสู่ระบบไม่ได้ แต่กู้คืนได้
-                        </span>
+                        {detail.anonymized_at ? (
+                          <>
+                            <Eraser className="w-4 h-4 shrink-0" />
+                            <span>
+                              ข้อมูลส่วนตัวถูกล้างถาวรเมื่อ {formatThaiDateTime(detail.anonymized_at)} — กู้คืนไม่ได้ แต่สถิติด้านล่างยังอยู่ครบ
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Archive className="w-4 h-4 shrink-0" />
+                            <span>
+                              ผู้ใช้รายนี้ถูกลบเมื่อ {formatThaiDateTime(detail.deleted_at)} — เข้าสู่ระบบไม่ได้ แต่กู้คืนได้
+                            </span>
+                          </>
+                        )}
                       </div>
                     )}
 
