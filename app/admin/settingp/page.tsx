@@ -210,7 +210,10 @@ function Page() {
               <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <ShieldCheck className="w-4 h-4 text-green-500" />
-                  สิทธิ์การใช้งาน: <span className="font-medium">{user.role_id === 2 ? "Admin" : "User"}</span>
+                  สิทธิ์การใช้งาน:{" "}
+                  <span className="font-medium">
+                    {user.role_id === 3 ? "Super Admin" : user.role_id === 2 ? "Admin" : "User"}
+                  </span>
                 </div>
               </div>
 

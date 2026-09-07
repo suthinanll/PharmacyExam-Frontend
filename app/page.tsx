@@ -389,11 +389,15 @@ const Page = () => {
   const [upcomingExams, setUpcomingExams] = useState<any[]>([]);
   const [todayExams, setTodayExams] = useState<any[]>([]);
 
-  // ถ้า login แล้วให้ไปหน้าของตัวเองตาม role อัตโนมัติ (admin → /admin, user → /user)
+  // ถ้า login แล้วให้ไปหน้าของตัวเองตาม role อัตโนมัติ (admin/super admin → /admin, user → /user)
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       router.replace(
-        user?.role_id === 2 ? "/admin" : user?.role_id === 1 ? "/user" : "/login",
+        user?.role_id === 2 || user?.role_id === 3
+          ? "/admin"
+          : user?.role_id === 1
+            ? "/user"
+            : "/login",
       );
     }
   }, [isLoading, isAuthenticated, user, router]);

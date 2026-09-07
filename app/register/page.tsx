@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getSafeRedirect, withRedirect } from "@/utils/redirect";
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
@@ -70,6 +71,13 @@ export default function RegisterPage() {
   });
 
   const router = useRouter();
+  const [loginHref, setLoginHref] = useState("/login");
+
+  // อ่าน ?redirect= หลัง mount (ไม่อ่านตอน render เพื่อเลี่ยง hydration mismatch)
+  useEffect(() => {
+    const redirectTo = getSafeRedirect();
+    if (redirectTo) setLoginHref(withRedirect("/login", redirectTo));
+  }, []);
 
   // ดึงข้อมูลมหาวิทยาลัย
   useEffect(() => {
@@ -287,6 +295,9 @@ export default function RegisterPage() {
       const result = await res.json();
 
       if (res.ok) {
+        // ถ้าสมัครมาจากหน้าที่ค้างไว้ (เช่น หน้าชำระเงิน) ส่งปลายทางต่อไปให้หน้า login
+        // เพื่อให้ล็อกอินเสร็จแล้วกลับไปทำต่อจากจุดเดิม ไม่หลุดไปหน้าอื่น
+        const redirectTo = getSafeRedirect();
         await Swal.fire({
           icon: "success",
           title: "สมัครสมาชิกสำเร็จ!",
@@ -294,7 +305,7 @@ export default function RegisterPage() {
           showConfirmButton: false,
           timer: 2000,
         });
-        router.push("/login");
+        router.push(redirectTo ? withRedirect("/login", redirectTo) : "/login");
       } else {
         const errorMsg = Array.isArray(result.message) ? result.message[0] : result.message;
         Swal.fire({
@@ -623,10 +634,11 @@ export default function RegisterPage() {
           </form>
         )}
 
+        {/* ส่งปลายทางที่ค้างไว้ต่อไปด้วย จะได้ไม่หลุดตอนเปลี่ยนใจไปล็อกอินแทน */}
         <div className="text-center mt-8 text-sm font-medium text-gray-500">
           มีบัญชีอยู่แล้ว?{" "}
           <a
-            href="/login"
+            href={loginHref}
             className="text-green-600 font-medium hover:underline underline-offset-4"
           >
             เข้าสู่ระบบ

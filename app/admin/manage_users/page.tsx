@@ -26,6 +26,7 @@ import {
   UserPlus,
   Globe,
   FileText,
+  Crown,
 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import Swal from "sweetalert2";
@@ -233,6 +234,7 @@ export default function ManageUsersPage() {
       const uRole = getUserRoleId(u);
       const matchesRole =
         selectedRole === "all" ||
+        (selectedRole === "3" && uRole === 3) ||
         (selectedRole === "2" && uRole === 2) ||
         (selectedRole === "1" && uRole === 1);
 
@@ -249,7 +251,8 @@ export default function ManageUsersPage() {
   // Statistics
   const stats = useMemo(() => {
     const total = users.length;
-    const admins = users.filter((u) => getUserRoleId(u) === 2).length;
+    // นับ Super Admin (3) รวมในกลุ่มผู้ดูแลระบบด้วย ไม่งั้นยอดรวมจะไม่ครบ
+    const admins = users.filter((u) => [2, 3].includes(getUserRoleId(u))).length;
     const students = users.filter((u) => getUserRoleId(u) === 1).length;
     const googleUsers = users.filter((u) => u.provider === "google").length;
     return { total, admins, students, googleUsers };
@@ -517,6 +520,7 @@ export default function ManageUsersPage() {
                 <option value="all">สิทธิ์: ทั้งหมด ({users.length})</option>
                 <option value="1">ผู้ใช้งาน</option>
                 <option value="2">ผู้ดูแลระบบ</option>
+                <option value="3">Super Admin</option>
               </select>
             </div>
 
@@ -620,7 +624,9 @@ export default function ManageUsersPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-xs">
                   {paginatedUsers.map((item) => {
-                    const isAdmin = getUserRoleId(item) === 2;
+                    const roleId = getUserRoleId(item);
+                    const isSuperAdmin = roleId === 3;
+                    const isAdmin = roleId === 2 || isSuperAdmin;
                     const isGoogle = item.provider === "google";
                     const initial = (item.first_name?.[0] || item.email?.[0] || "U").toUpperCase();
 
@@ -693,7 +699,12 @@ export default function ManageUsersPage() {
 
                         {/* 4. Role & Permissions */}
                         <td className="py-3.5 px-4">
-                          {isAdmin ? (
+                          {isSuperAdmin ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+                              <Crown className="w-3.5 h-3.5 text-amber-600" />
+                              <span>Super Admin</span>
+                            </span>
+                          ) : isAdmin ? (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
                               <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
                               <span>ผู้ดูแลระบบ</span>

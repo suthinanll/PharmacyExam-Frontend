@@ -204,7 +204,7 @@ const NavbarGuest = () => {
           <div className="hidden sm:flex items-center sm:ml-4 md:ml-6 space-x-2">
             {isAuthenticated ? (
               <Link
-                href={user?.role_id === 2 ? "/admin" : "/user"}
+                href={user?.role_id === 2 || user?.role_id === 3 ? "/admin" : "/user"}
                 className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 text-sm font-semibold text-green-700 bg-white rounded-xl shadow-md hover:shadow-lg hover:bg-green-50 transition-all duration-200"
               >
                 <LogIn size={16} />
@@ -313,7 +313,7 @@ const NavbarGuest = () => {
           <div className="flex flex-col gap-2 pt-2">
             {isAuthenticated ? (
               <Link
-                href={user?.role_id === 2 ? "/admin" : "/user"}
+                href={user?.role_id === 2 || user?.role_id === 3 ? "/admin" : "/user"}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-green-700 bg-white rounded-xl shadow-md"
               >

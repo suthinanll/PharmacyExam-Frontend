@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.removeItem('access_token');
             }
         } catch (error) {
-            console.error('Error fetching user:', error);
+            console.warn('Auth server unavailable while fetching user:', error);
             // If offline, keep cached user if available
         } finally {
             setIsLoading(false);
