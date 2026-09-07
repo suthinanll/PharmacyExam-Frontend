@@ -2,6 +2,7 @@
 
 import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Plus, Search, ChevronLeft, ChevronRight, ArrowUpDown,
   LayoutGrid, List, Clock, Tag, Calendar, CheckCircle, XCircle,
@@ -73,9 +74,17 @@ function BankCard({
   onRestore?: (id: number, name: string) => void;
   onHardDelete?: (id: number, name: string) => void;
 }) {
+  const router = useRouter();
   const cats = bank.categories?.length
     ? bank.categories.map(c => c.category_name).join(", ")
     : "ไม่มีประเภท";
+
+  const handleOpenDetail = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('selected_item_bank_id', String(bank.item_bank_id));
+    }
+    router.push('/admin/manage_examset/detail');
+  };
 
   return (
     <div className={`group bg-white border rounded-2xl overflow-hidden hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 flex flex-col ${isDeletedView ? "border-amber-200 bg-amber-50/20" : "border-gray-200"}`}>
@@ -146,12 +155,12 @@ function BankCard({
           </div>
         ) : (
           <div className="mt-4 flex items-center gap-2">
-            <Link
-              href={`/admin/manage_examset/${bank.item_bank_id}`}
-              className="flex-1 text-center bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 rounded-xl transition-colors"
+            <button
+              onClick={handleOpenDetail}
+              className="flex-1 text-center bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2.5 rounded-xl transition-colors cursor-pointer"
             >
               ดูรายละเอียด
-            </Link>
+            </button>
             <button
               onClick={() => onDelete?.(bank.item_bank_id, bank.bank_name)}
               title="ลบคลังข้อสอบ (ย้ายไปถังขยะ)"
@@ -168,6 +177,7 @@ function BankCard({
 
 // ─── Main Page ────────────────────────────────────────
 function Page() {
+  const router = useRouter();
   const { getToken } = useAuth();
   const [tab, setTab] = useState<"active" | "deleted">("active");
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
@@ -550,13 +560,18 @@ function Page() {
                             </div>
                           ) : (
                             <div className="flex items-center gap-2">
-                              <Link
-                                href={`/admin/manage_examset/${bank.item_bank_id}`}
+                              <button
+                                onClick={() => {
+                                  if (typeof window !== 'undefined') {
+                                    sessionStorage.setItem('selected_item_bank_id', String(bank.item_bank_id));
+                                  }
+                                  router.push('/admin/manage_examset/detail');
+                                }}
                                 title="ดูรายละเอียดคลังข้อสอบ"
                                 className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
                               >
                                 <Eye size={16} />
-                              </Link>
+                              </button>
                               <button
                                 onClick={() => handleDeleteBank(bank.item_bank_id, bank.bank_name)}
                                 title="ลบคลังข้อสอบ"

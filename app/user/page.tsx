@@ -13,8 +13,23 @@ import {
   Bookmark,
   CheckCircle2,
   ExternalLink,
+  Trophy,
+  Medal,
+  Users,
+  ClipboardList,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+
+// ─── Leaderboard Types ──────────────────────────────────
+interface LeaderboardEntry {
+  rank: number;
+  university_id: number;
+  university_name: string;
+  avg_score: number;
+  top_score: number;
+  total_students: number;
+  total_exams: number;
+}
 
 // Upcoming Exam Card Component (Notification style with full title)
 const UpcomingExamCard = ({ exam, index }: { exam: any; index: number }) => {
@@ -33,7 +48,7 @@ const UpcomingExamCard = ({ exam, index }: { exam: any; index: number }) => {
   return (
     <div className="bg-white rounded-xl shadow-xs hover:shadow-md transition-all duration-200 border border-gray-200 p-3.5 flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-blue-800">
+        <div className="flex items-center gap-1.5 text-sm font-medium text-blue-800">
           <Calendar size={13} className="text-blue-600 shrink-0" />
           <span>
             {examDate.toLocaleDateString("th-TH", {
@@ -44,13 +59,13 @@ const UpcomingExamCard = ({ exam, index }: { exam: any; index: number }) => {
           </span>
         </div>
 
-        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${urgency.badge}`}>
+        <span className={`text-sm font-medium px-2 py-0.5 rounded-full border ${urgency.badge}`}>
           {daysLeft > 0 ? `อีก ${daysLeft} วัน` : "วันนี้"}
         </span>
       </div>
 
       {/* Full title displayed cleanly */}
-      <h3 className="text-xs sm:text-sm font-medium text-gray-800 leading-snug break-words">
+      <h3 className="text-sm sm:text-sm font-medium text-gray-800 leading-snug break-words">
         {exam.title}
       </h3>
 
@@ -147,7 +162,7 @@ const CountdownHero = ({
                 <h1 className="text-2xl md:text-3xl font-medium mb-1 text-blue-900">
                   กำหนดการที่ใกล้จะถึง ({todayExams.length} รายการ)
                 </h1>
-                <p className="text-blue-700 text-lg sm:text-xl font-semibold flex items-center gap-2 mb-4">
+                <p className="text-blue-700 text-lg sm:text-xl font-medium flex items-center gap-2 mb-4">
                   <Calendar size={22} className="text-blue-600 shrink-0" />
                   {targetDate
                     ? new Date(targetDate).toLocaleDateString("th-TH", {
@@ -159,10 +174,10 @@ const CountdownHero = ({
                   {todayExams.map((exam: any, idx: number) => (
                     <div
                       key={exam.id}
-                      className="bg-white rounded-xl p-3.5 border border-blue-100 shadow-2xs text-xs sm:text-sm"
+                      className="bg-white rounded-xl p-3.5 border border-blue-100 shadow-2xs text-sm sm:text-sm"
                     >
                       <div className="flex items-start gap-2.5">
-                        <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-xs mt-0.5">
+                        <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center font-medium text-sm mt-0.5">
                           {idx + 1}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -170,7 +185,7 @@ const CountdownHero = ({
                             {exam.title}
                           </h3>
                           {exam.description && (
-                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                            <p className="text-sm text-gray-500 mt-1 leading-relaxed">
                               {exam.description}
                             </p>
                           )}
@@ -198,7 +213,7 @@ const CountdownHero = ({
                 </h1>
                 {isOngoing && todayExams[0] ? (
                   <div className="mb-4">
-                    <p className="text-blue-700 text-lg sm:text-xl font-semibold flex items-center gap-2">
+                    <p className="text-blue-700 text-lg sm:text-xl font-medium flex items-center gap-2">
                       <Calendar size={22} className="text-green-600 shrink-0" />
                       {new Date(todayExams[0].targetStamp).toLocaleDateString(
                         "th-TH",
@@ -212,7 +227,7 @@ const CountdownHero = ({
                     </p>
                   </div>
                 ) : (
-                  <p className="text-blue-700 text-lg sm:text-xl font-semibold flex items-center gap-2 mb-4">
+                  <p className="text-blue-700 text-lg sm:text-xl font-medium flex items-center gap-2 mb-4">
                     <Calendar size={22} className="text-blue-600 shrink-0" />
                     {targetDate
                       ? new Date(targetDate).toLocaleDateString("th-TH", {
@@ -240,7 +255,7 @@ const CountdownHero = ({
                       {String(item.val).padStart(2, "0")}
                     </span>
                   </div>
-                  <span className="text-[11px] sm:text-xs font-medium text-gray-500 mt-2 uppercase tracking-wide">
+                  <span className="text-[11px] sm:text-sm font-medium text-gray-500 mt-2 uppercase tracking-wide">
                     {item.label}
                   </span>
                 </div>
@@ -257,7 +272,7 @@ const CountdownHero = ({
                     href={targetLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-medium shadow-sm transition-all group w-fit"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm sm:text-sm font-medium shadow-sm transition-all group w-fit"
                   >
                     <ExternalLink size={15} className="group-hover:scale-110 transition-transform" />
                     ดูรายละเอียดเพิ่มเติม / ลิงก์แนบ
@@ -299,7 +314,170 @@ const CountdownHero = ({
   );
 };
 
+// ─── University Leaderboard Component ───────────────────
+const RANK_STYLES = [
+  {
+    bg: "bg-amber-50",
+    border: "border-l-amber-400",
+    badge: "bg-amber-100 text-amber-700",
+    bar: "from-amber-400 to-yellow-400",
+    score: "text-amber-600",
+    icon: "🥇",
+  },
+  {
+    bg: "bg-slate-50",
+    border: "border-l-slate-400",
+    badge: "bg-slate-100 text-slate-600",
+    bar: "from-slate-400 to-gray-400",
+    score: "text-slate-600",
+    icon: "🥈",
+  },
+  {
+    bg: "bg-orange-50",
+    border: "border-l-orange-400",
+    badge: "bg-orange-100 text-orange-600",
+    bar: "from-orange-400 to-amber-400",
+    score: "text-orange-600",
+    icon: "🥉",
+  },
+];
+
+const UniversityLeaderboard = ({
+  entries,
+  loading,
+  userUniversityId,
+}: {
+  entries: LeaderboardEntry[];
+  loading: boolean;
+  userUniversityId: number | null;
+}) => {
+  const maxScore = entries[0]?.avg_score ?? 100;
+
+  return (
+    <div className="mb-10">
+      {/* Section header — same style as "ข่าวสารและประกาศ" */}
+      <div className="flex items-center gap-2 mb-4">
+        <Trophy className="text-amber-500" size={26} />
+        <h2 className="text-2xl font-medium text-gray-800">จัดอันดับมหาวิทยาลัย</h2>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        {/* Column headers */}
+        <div className="hidden sm:grid grid-cols-[3rem_1fr_7rem_5.5rem] gap-4 px-5 py-2.5 bg-white border-b border-gray-100 text-sm font-medium text-gray-400">
+          <div className="text-center">อันดับ</div>
+          <div>มหาวิทยาลัย</div>
+          <div className="flex items-center gap-1"><Users size={11} /> นักศึกษา / ครั้ง</div>
+          <div className="text-right">คะแนนเฉลี่ย</div>
+        </div>
+
+        <div className="divide-y divide-gray-100">
+          {loading ? (
+            Array(5).fill(0).map((_, i) => (
+              <div key={i} className="px-5 py-4 flex items-center gap-4 animate-pulse">
+                <div className="w-9 h-9 rounded-xl bg-white shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3.5 w-52 bg-white rounded-full" />
+                  <div className="h-1.5 w-full bg-gray-100 rounded-full" />
+                </div>
+                <div className="h-6 w-14 bg-white rounded-lg" />
+              </div>
+            ))
+          ) : entries.length === 0 ? (
+            <div className="py-16 text-center text-gray-400">
+              <Trophy size={40} className="mx-auto mb-3 opacity-20" />
+              <p className="text-sm">ยังไม่มีข้อมูลคะแนน</p>
+            </div>
+          ) : (
+            entries.map((entry) => {
+              const isTop3 = entry.rank <= 3;
+              const style = isTop3 ? RANK_STYLES[entry.rank - 1] : null;
+              const isUserUni = userUniversityId === entry.university_id;
+              const barWidth = maxScore > 0 ? (entry.avg_score / maxScore) * 100 : 0;
+
+              return (
+                <div
+                  key={entry.university_id}
+                  className={`grid grid-cols-[3rem_1fr_auto] sm:grid-cols-[3rem_1fr_7rem_5.5rem] gap-x-4 items-center
+                    px-5 py-3.5 transition-colors duration-150 border-l-4
+                    ${isTop3 ? `${style!.bg} ${style!.border}` : "bg-white border-l-transparent hover:bg-gray-50"}                  
+                  `}
+                >
+                  {/* Rank */}
+                  <div className="flex justify-center">
+                    <span
+                      className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold
+                        ${isTop3 ? style!.badge : "bg-gray-100 text-gray-500"}
+                      `}
+                    >
+                      {isTop3 ? style!.icon : `${entry.rank}`}
+                    </span>
+                  </div>
+
+                  {/* Name + bar + tags */}
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-medium text-gray-800 truncate max-w-[200px] sm:max-w-sm">
+                        {entry.university_name}
+                      </span>
+                      {isUserUni && (
+                        <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
+                          มหาวิทยาลัยของคุณ
+                        </span>
+                      )}
+                    </div>
+                    {/* Progress bar */}
+                    <div className="mt-1.5 h-1.5 bg-gray-100 rounded-full overflow-hidden max-w-xs">
+                      <div
+                        className={`h-full rounded-full bg-gradient-to-r transition-all duration-700
+                          ${isTop3 ? style!.bar : "from-green-400 to-teal-400"}
+                        `}
+                        style={{ width: `${barWidth}%` }}
+                      />
+                    </div>
+                    {/* Mobile stats */}
+                    <div className="sm:hidden flex items-center gap-3 mt-1 text-[11px] text-gray-400">
+                      <span className="flex items-center gap-1"><Users size={10} />{entry.total_students} คน</span>
+                      <span className="flex items-center gap-1"><ClipboardList size={10} />{entry.total_exams} ครั้ง</span>
+                    </div>
+                  </div>
+
+                  {/* Desktop stats */}
+                  <div className="hidden sm:flex flex-col text-sm text-gray-400 gap-0.5">
+                    <span className="flex items-center gap-1"><Users size={11} />{entry.total_students} คน</span>
+                    <span className="flex items-center gap-1"><ClipboardList size={11} />{entry.total_exams} ครั้ง</span>
+                  </div>
+
+                  {/* Score */}
+                  <div className="text-right">
+                    <div className={`text-lg font-medium tabular-nums leading-tight
+                      ${isTop3 ? style!.score : "text-green-700"}
+                    `}>
+                      {entry.avg_score.toFixed(1)}
+                      <span className="text-sm font-medium text-gray-400 ml-0.5">%</span>
+                    </div>
+                    <div className="text-sm text-gray-400 hidden sm:block">คะแนนเฉลี่ย</div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Footer */}
+        {!loading && entries.length > 0 && (
+          <div className="px-5 py-2.5 bg-white border-t border-gray-100">
+            <p className="text-sm text-gray-400">
+              จัดอันดับจากคะแนนเฉลี่ย
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Countdown Hero Skeleton Component
+
 const CountdownHeroSkeleton = () => {
   return (
     <div className="mb-12">
@@ -309,16 +487,16 @@ const CountdownHeroSkeleton = () => {
           <div className="lg:col-span-2 p-8 md:p-12 bg-gradient-to-br from-blue-50/60 to-white">
             <div className="flex items-center justify-between gap-3 mb-6">
               <div className="h-8 w-44 bg-blue-200/60 rounded-full" />
-              <div className="h-8 w-28 bg-gray-200 rounded-lg" />
+              <div className="h-8 w-28 bg-white rounded-lg" />
             </div>
             <div className="h-9 w-3/4 bg-blue-200/60 rounded-xl mb-4" />
-            <div className="h-5 w-48 bg-gray-200 rounded-lg mb-8" />
+            <div className="h-5 w-48 bg-white rounded-lg mb-8" />
 
             <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-5 mb-8">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="flex flex-col items-center">
                   <div className="w-full sm:w-28 h-24 sm:h-28 rounded-2xl bg-blue-200/50" />
-                  <div className="h-3 w-10 bg-gray-200 rounded mt-2" />
+                  <div className="h-3 w-10 bg-white rounded mt-2" />
                 </div>
               ))}
             </div>
@@ -327,8 +505,8 @@ const CountdownHeroSkeleton = () => {
 
           {/* Right Skeleton */}
           <div className="lg:col-span-1 bg-gray-50 p-6 border-l border-gray-200 space-y-3">
-            <div className="h-6 w-36 bg-gray-200 rounded mb-2" />
-            <div className="h-4 w-28 bg-gray-200 rounded mb-4" />
+            <div className="h-6 w-36 bg-white rounded mb-2" />
+            <div className="h-4 w-28 bg-white rounded mb-4" />
             {[1, 2, 3].map((i) => (
               <div
                 key={i}
@@ -355,7 +533,7 @@ const calculateTimeLeft = (targetStamp: number | null) => {
 };
 
 const Page = () => {
-  const { getToken } = useAuth();
+  const { getToken, user } = useAuth();
   const router = useRouter();
   const [loadingSchedule, setLoadingSchedule] = useState(true);
   const [targetDate, setTargetDate] = useState<number | null>(null);
@@ -373,6 +551,10 @@ const Page = () => {
   const [bookmarkIds, setBookmarkIds] = useState<number[]>([]);
   const [upcomingExams, setUpcomingExams] = useState<any[]>([]);
   const [todayExams, setTodayExams] = useState<any[]>([]);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
+  const [myUniversityId, setMyUniversityId] = useState<number | null>(null);
+
 
   const handleBookmarkToggle = async (articleId: number) => {
     try {
@@ -563,6 +745,51 @@ const Page = () => {
     }
   }, [getToken]);
 
+  // ─── Fetch leaderboard + my university ─────────────────
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        setLoadingLeaderboard(true);
+        const token = getToken();
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const [lbRes, meRes] = await Promise.all([
+          fetch(`${apiUrl}/universities/leaderboard`, { headers }),
+          token
+            ? fetch(`${apiUrl}/auth/me`, {
+                headers,
+                credentials: 'include',
+              })
+            : Promise.resolve(null),
+        ]);
+
+        if (lbRes && lbRes.ok) {
+          const data = await lbRes.json();
+          setLeaderboard(Array.isArray(data) ? data : []);
+        } else {
+          console.warn('Leaderboard response not ok:', lbRes?.status);
+        }
+        if (meRes && meRes.ok) {
+          const me = await meRes.json();
+          setMyUniversityId(me?.university_id ? Number(me.university_id) : null);
+        }
+      } catch (e) {
+        console.error('Leaderboard fetch error:', e);
+      } finally {
+        setLoadingLeaderboard(false);
+      }
+    };
+    fetchLeaderboard();
+  }, [getToken]);
+
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -630,6 +857,14 @@ const Page = () => {
               todayExams={todayExams}
             />
           )}
+          {/* ── University Leaderboard ── */}
+          <UniversityLeaderboard
+            entries={leaderboard}
+            loading={loadingLeaderboard}
+            userUniversityId={myUniversityId}
+          />
+
+
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-2xl font-medium text-gray-800 flex items-center gap-2">
               <LayoutGrid className="text-blue-600" size={28} />

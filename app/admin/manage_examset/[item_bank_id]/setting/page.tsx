@@ -19,8 +19,15 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 export default function ItemBankSettingsPage() {
     const router = useRouter();
     const params = useParams();
-    // Use item_bank_id from the [item_bank_id] folder structure
-    const id = params.item_bank_id as string;
+    
+    // Resolve id from params or sessionStorage (เหมือนหน้า user/examset/take-exam)
+    const [id, setId] = useState<string | null>(() => {
+        if (params?.item_bank_id) return params.item_bank_id as string;
+        if (typeof window !== 'undefined') {
+            return sessionStorage.getItem('selected_item_bank_id');
+        }
+        return null;
+    });
 
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
@@ -34,6 +41,23 @@ export default function ItemBankSettingsPage() {
         is_active: true,
         category_ids: [] as number[]
     });
+
+    useEffect(() => {
+        if (params?.item_bank_id) {
+            const pid = params.item_bank_id as string;
+            setId(pid);
+            if (typeof window !== 'undefined') {
+                sessionStorage.setItem('selected_item_bank_id', pid);
+            }
+        } else if (typeof window !== 'undefined') {
+            const storedId = sessionStorage.getItem('selected_item_bank_id');
+            if (storedId) {
+                setId(storedId);
+            } else {
+                router.push('/admin/manage_examset');
+            }
+        }
+    }, [params, router]);
 
     useEffect(() => {
         if (id) {
@@ -181,8 +205,8 @@ export default function ItemBankSettingsPage() {
                     confirmButtonColor: '#22c55e'
                 });
 
-                // redirect กลับไปหน้าจัดการข้อสอบ
-                router.push(`/admin/manage_examset/${id}`);
+                // redirect กลับไปหน้าจัดการข้อสอบ (ไม่แสดง ID ใน URL)
+                router.push('/admin/manage_examset/detail');
                 router.refresh();
             } else {
                 const errorData = await response.json();

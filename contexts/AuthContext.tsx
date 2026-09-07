@@ -149,7 +149,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         sessionStorage.removeItem('token'); // Remove old/stale session key if exists
 
         setUser(null);
-        router.push('/'); // หลังออกจากระบบ → กลับไปหน้าแรก (guest homepage)
+        // ใช้ window.location.replace('/') เพื่อ redirect ไปหน้าแรกอย่างราบรื่น
+        // ป้องกัน race condition กับ UserLayout/AdminLayout ที่พยายาม push ไป /login ระหว่าง transition
+        window.location.replace('/');
     };
 
     const refreshUser = async () => {

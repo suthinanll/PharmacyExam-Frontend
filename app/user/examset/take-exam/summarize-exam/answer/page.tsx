@@ -230,7 +230,7 @@ function QuestionCard({
 function AnswerPageContent() {
     const searchParams = useSearchParams();
     const { getToken } = useAuth();
-    const sessionId = searchParams.get('session_id');
+    const [sessionId, setSessionId] = useState<string | null>(null);
 
     const [examResult, setExamResult] = useState<ExamResult | null>(null);
     const [loading, setLoading] = useState(true);
@@ -243,15 +243,34 @@ function AnswerPageContent() {
     const [loadingStats, setLoadingStats] = useState(false);
 
     useEffect(() => {
-        if (sessionId) fetchExamResult();
-        else { setError('ไม่พบรหัส session'); setLoading(false); }
-    }, [sessionId]);
+        let sId: string | null = null;
+        const cached = sessionStorage.getItem("summarize-exam_session") || sessionStorage.getItem("active_exam_session");
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                if (parsed.session_id) sId = String(parsed.session_id);
+            } catch (e) {}
+        }
 
-    const fetchExamResult = async () => {
+        if (!sId) {
+            const urlSession = searchParams.get('session_id');
+            if (urlSession) sId = urlSession;
+        }
+
+        if (sId) {
+            setSessionId(sId);
+            fetchExamResult(sId);
+        } else {
+            setError('ไม่พบรหัส session');
+            setLoading(false);
+        }
+    }, []);
+
+    const fetchExamResult = async (targetSessionId: string) => {
         setLoading(true);
         try {
             const token = getToken();
-            const res = await fetch(`${API_URL}/items-bank/exam/${sessionId}/result`, {
+            const res = await fetch(`${API_URL}/items-bank/exam/${targetSessionId}/result`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) setExamResult(await res.json());
@@ -341,7 +360,7 @@ function AnswerPageContent() {
                         <span className="mx-2">›</span>
                         <Link href="/user/examset" className="hover:text-green-600 cursor-pointer transition">คลังข้อสอบ</Link>
                         <span className="mx-2">›</span>
-                        <Link href={`/user/examset/take-exam/summarize-exam?session_id=${sessionId}`} className="hover:text-green-600 cursor-pointer transition">สรุปผลสอบ</Link>
+                        <Link href="/user/examset/take-exam/summarize-exam" className="hover:text-green-600 cursor-pointer transition">สรุปผลสอบ</Link>
                         <span className="mx-2">›</span>
                         <span className="text-gray-600 font-medium">เฉลยคำตอบ</span>
                     </div>
@@ -487,7 +506,7 @@ function AnswerPageContent() {
                     {/* Bottom actions */}
                     <div className="mt-8 flex items-center justify-center gap-3">
                         <Link
-                            href={`/user/examset/take-exam/summarize-exam?session_id=${sessionId}`}
+                            href="/user/examset/take-exam/summarize-exam"
                             className="inline-flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm transition-all shadow-xs"
                         >
                             <ArrowLeft className="w-4 h-4" /> กลับไปหน้าสรุปผล

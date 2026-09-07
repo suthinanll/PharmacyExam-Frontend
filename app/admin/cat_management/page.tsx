@@ -202,7 +202,7 @@ export default function CATManagementPage() {
                         </p>
                     </div>
                     <div className="flex items-start gap-2">
-                        
+
                         <button
                             onClick={handleRefreshAll}
                             className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-sm font-medium text-gray-700 rounded-xl shadow-xs transition cursor-pointer"
@@ -252,9 +252,8 @@ export default function CATManagementPage() {
                                     >
                                         <HelpCircle className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 transition-colors" />
                                     </button>
-                                    <div className={`absolute bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 w-64 max-w-[calc(100vw-2.5rem)] p-3 bg-white/98 backdrop-blur-md border border-slate-200 text-slate-700 text-sm rounded-xl shadow-xl z-50 transition-all ${
-                                        activeTooltip === 'theta' ? 'block' : 'hidden group-hover/tooltip:block pointer-events-none'
-                                    }`}>
+                                    <div className={`absolute bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 w-64 max-w-[calc(100vw-2.5rem)] p-3 bg-white/98 backdrop-blur-md border border-slate-200 text-slate-700 text-sm rounded-xl shadow-xl z-50 transition-all ${activeTooltip === 'theta' ? 'block' : 'hidden group-hover/tooltip:block pointer-events-none'
+                                        }`}>
                                         <p className="font-medium text-purple-700 mb-1">ค่าเฉลี่ยความสามารถ (θ - Theta)</p>
                                         <p className="text-slate-600">
                                             ระดับความสามารถเฉลี่ยของผู้สอบตามทฤษฎี IRT โดยค่ามาตรฐานอยู่ที่ 0.00 (ค่าบวก = เก่งกว่าค่าเฉลี่ย, ค่าลบ = ต่ำกว่าค่าเฉลี่ย)
@@ -284,9 +283,8 @@ export default function CATManagementPage() {
                                     >
                                         <HelpCircle className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 transition-colors" />
                                     </button>
-                                    <div className={`absolute bottom-full right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 mb-2 w-64 max-w-[calc(100vw-2.5rem)] p-3 bg-white/98 backdrop-blur-md border border-slate-200 text-slate-700 text-sm rounded-xl shadow-xl z-50 transition-all ${
-                                        activeTooltip === 'se' ? 'block' : 'hidden group-hover/tooltip:block pointer-events-none'
-                                    }`}>
+                                    <div className={`absolute bottom-full right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 mb-2 w-64 max-w-[calc(100vw-2.5rem)] p-3 bg-white/98 backdrop-blur-md border border-slate-200 text-slate-700 text-sm rounded-xl shadow-xl z-50 transition-all ${activeTooltip === 'se' ? 'block' : 'hidden group-hover/tooltip:block pointer-events-none'
+                                        }`}>
                                         <p className="font-medium text-blue-700 mb-1">ความคลาดเคลื่อนมาตรฐาน (SE)</p>
                                         <p className="text-slate-600">
                                             ค่าความคลาดเคลื่อนในการประเมินระดับความสามารถ ค่ายิ่งน้อยแปลว่าการประเมินยิ่งมีความแม่นยำสูง (เกณฑ์ CAT ทั่วไป SE ≤ 0.30 - 0.40)
@@ -438,9 +436,8 @@ export default function CATManagementPage() {
                                         >
                                             <HelpCircle className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 transition-colors" />
                                         </button>
-                                        <div className={`absolute bottom-full right-[-10px] sm:left-0 md:left-1/2 sm:right-auto md:-translate-x-1/2 mb-2 w-72 sm:w-80 max-w-[calc(100vw-2.5rem)] p-3.5 bg-white/98 backdrop-blur-md border border-slate-200 text-slate-700 text-sm rounded-xl shadow-xl z-50 transition-all ${
-                                            activeTooltip === 'stopping' ? 'block' : 'hidden group-hover/tooltip:block pointer-events-none'
-                                        }`}>
+                                        <div className={`absolute bottom-full right-[-10px] sm:left-0 md:left-1/2 sm:right-auto md:-translate-x-1/2 mb-2 w-72 sm:w-80 max-w-[calc(100vw-2.5rem)] p-3.5 bg-white/98 backdrop-blur-md border border-slate-200 text-slate-700 text-sm rounded-xl shadow-xl z-50 transition-all ${activeTooltip === 'stopping' ? 'block' : 'hidden group-hover/tooltip:block pointer-events-none'
+                                            }`}>
                                             <p className="font-medium text-emerald-700 mb-2 border-b border-slate-100 pb-1">
                                                 เกณฑ์การสิ้นสุดการสอบแบบปรับเหมาะ (CAT)
                                             </p>

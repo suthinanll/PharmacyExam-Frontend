@@ -1,6 +1,13 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    // 1. ส่วนของ Rewrites เดิมของเฮีย
+    // ปิด X-Powered-By เพื่อไม่ให้เปิดเผยเทคโนโลยีฝั่งเซิร์ฟเวอร์
+    poweredByHeader: false,
+    compress: true,
+    outputFileTracingRoot: path.join(__dirname),
+
+    // 1. ส่วนของ Rewrites เดิม
     async rewrites() {
         return [
             {
@@ -10,16 +17,32 @@ const nextConfig = {
         ];
     },
 
-    // 2. เพิ่มส่วนนี้เข้าไปเพื่อแก้เรื่องรูปภาพครับ
+    // 2. จัดการเรื่อง Remote Image Domains เฉพาะ Domain ที่ใช้งานจริง
     images: {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: '**', // อนุญาตทุกเว็บ (รวมถึง kdmshospital.com)
+                hostname: 'lh3.googleusercontent.com',
+            },
+            {
+                protocol: 'https',
+                hostname: '*.googleusercontent.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'kdmshospital.com',
+            },
+            {
+                protocol: 'https',
+                hostname: '*.kdmshospital.com',
             },
             {
                 protocol: 'http',
-                hostname: '**',
+                hostname: 'localhost',
+            },
+            {
+                protocol: 'http',
+                hostname: '127.0.0.1',
             },
         ],
     },
@@ -32,7 +55,7 @@ const nextConfig = {
         ignoreDuringBuilds: true,
     },
 
-    // 4. เพิ่ม headers เพื่อแก้ CSP และป้องกันการแคช sw.js
+    // 4. ตั้งค่า Security Headers ตามมาตรฐานความปลอดภัย (CSP จัดการแบบ Dynamic Nonce ใน middleware.ts)
     async headers() {
         return [
             {
@@ -52,8 +75,24 @@ const nextConfig = {
                 source: '/:path*',
                 headers: [
                     {
-                        key: 'Content-Security-Policy',
-                        value: "img-src 'self' data: blob: https: http:;",
+                        key: 'X-Frame-Options',
+                        value: 'SAMEORIGIN',
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff',
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin',
+                    },
+                    {
+                        key: 'Strict-Transport-Security',
+                        value: 'max-age=31536000; includeSubDomains',
+                    },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'camera=(), microphone=(), geolocation=()',
                     },
                 ],
             },
@@ -62,3 +101,5 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+
+
