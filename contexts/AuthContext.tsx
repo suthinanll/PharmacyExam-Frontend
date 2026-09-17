@@ -11,6 +11,23 @@ interface User {
     tel?: string;
     role_id: number;
     profile_picture?: string;
+    provider?: 'local' | 'google';
+    university_id?: number | null;
+    /** มาจาก /auth/me — บัญชีที่สมัครผ่าน Google จะเป็น false จนกว่าจะตั้งรหัสผ่าน */
+    has_password?: boolean;
+}
+
+/**
+ * ข้อมูลที่บัญชี Google ยังต้องกรอกเพิ่ม (สมัครแบบปกติจะกรอกครบตั้งแต่ตอนลงทะเบียน)
+ * คืนค่าเป็น array ว่างเมื่อข้อมูลครบแล้ว หรือไม่ใช่บัญชี Google
+ */
+export function getMissingProfileFields(user: User | null): ('tel' | 'university' | 'password')[] {
+    if (!user || user.provider !== 'google') return [];
+    const missing: ('tel' | 'university' | 'password')[] = [];
+    if (!user.tel) missing.push('tel');
+    if (!user.university_id) missing.push('university');
+    if (user.has_password === false) missing.push('password');
+    return missing;
 }
 
 interface AuthContextType {
