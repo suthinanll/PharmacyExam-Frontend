@@ -3,15 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar_user";
+import { CountdownHero, CountdownHeroSkeleton, type CountdownExam } from "@/components/home/CountdownHero";
 import Footer from "@/components/Footer";
 import NewsCard from "@/components/News";
 import {
-  ChevronRight,
-  AlarmClock,
   Calendar,
+  ChevronDown,
   LayoutGrid,
   Bookmark,
-  CheckCircle2,
   ExternalLink,
   Trophy,
   Medal,
@@ -31,284 +30,78 @@ interface LeaderboardEntry {
   total_exams: number;
 }
 
-// Upcoming Exam Card Component (Notification style with full title)
-const UpcomingExamCard = ({ exam, index }: { exam: any; index: number }) => {
+// การ์ดกำหนดการถัดไป — กล่องจำนวนวันชิดซ้าย สีตามความเร่งด่วน
+// ชื่อเรื่องและรายละเอียดย่อไว้ก่อน กด "ดูเพิ่มเติม" เพื่ออ่านข้อความเต็ม
+const UpcomingExamCard = ({ exam }: { exam: CountdownExam }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
   const examDate = new Date(exam.targetStamp);
-  const now = Date.now();
-  const diffMs = exam.targetStamp - now;
-  const daysLeft = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const daysLeft = Math.floor((exam.targetStamp - Date.now()) / (1000 * 60 * 60 * 24));
 
-  const urgency =
-    daysLeft <= 1
-      ? { badge: "bg-red-100 text-red-700 border-red-200" }
-      : daysLeft <= 3
-        ? { badge: "bg-amber-100 text-amber-700 border-amber-200" }
-        : { badge: "bg-blue-100 text-blue-700 border-blue-200" };
+  // ใกล้ถึงกำหนด = แดง, ใกล้ ๆ = ส้ม, ยังอีกไกล = ฟ้า
+  const dayBoxColor =
+    daysLeft <= 1 ? "bg-red-500" : daysLeft <= 3 ? "bg-amber-500" : "bg-blue-500";
+
+  // ข้อความยาวพอที่จะถูกตัด จึงค่อยมีปุ่มให้กางอ่าน
+  const hasMore = Boolean(exam.description) || exam.title.length > 40;
 
   return (
-    <div className="bg-white rounded-xl shadow-xs hover:shadow-md transition-all duration-200 border border-gray-200 p-3.5 flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 text-sm font-medium text-blue-800">
-          <Calendar size={13} className="text-blue-600 shrink-0" />
-          <span>
-            {examDate.toLocaleDateString("th-TH", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
-          </span>
-        </div>
-
-        <span className={`text-sm font-medium px-2 py-0.5 rounded-full border ${urgency.badge}`}>
-          {daysLeft > 0 ? `อีก ${daysLeft} วัน` : "วันนี้"}
+    <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-shadow duration-200 hover:shadow-md">
+      <div
+        className={`flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-lg text-white ${dayBoxColor}`}
+      >
+        <span className="text-xl font-medium leading-none tabular-nums">
+          {daysLeft > 0 ? daysLeft : "0"}
+        </span>
+        <span className="mt-1 text-[10px] font-medium leading-none">
+          {daysLeft > 0 ? "วัน" : "วันนี้"}
         </span>
       </div>
 
-      {/* Full title displayed cleanly */}
-      <h3 className="text-sm sm:text-sm font-medium text-gray-800 leading-snug break-words">
-        {exam.title}
-      </h3>
-
-      {exam.link_url && (
-        <a
-          href={exam.link_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-700 hover:underline mt-0.5 bg-blue-50/80 px-2 py-0.5 rounded border border-blue-100 font-medium w-fit"
+      <div className="min-w-0 flex-1">
+        <h3
+          className={`text-sm font-medium text-gray-800 break-words ${isExpanded ? "" : "line-clamp-2"}`}
+          title={exam.title}
         >
-          <ExternalLink size={11} />
-          ลิงก์แนบ
-        </a>
-      )}
-    </div>
-  );
-};
-
-// Simple Countdown Hero
-const CountdownHero = ({
-  targetDate,
-  targetTitle,
-  targetDesc,
-  targetLink,
-  timeLeft,
-  isExamStarted,
-  upcomingExams,
-  todayExams,
-}: {
-  targetDate: number | null;
-  targetTitle: string;
-  targetDesc: string;
-  targetLink?: string;
-  timeLeft: { days: number; hours: number; minutes: number; seconds: number };
-  isExamStarted: boolean | number | null;
-  upcomingExams: any[];
-  todayExams: any[];
-}) => {
-  const units = [
-    { label: "วัน", val: timeLeft.days },
-    { label: "ชั่วโมง", val: timeLeft.hours },
-    { label: "นาที", val: timeLeft.minutes },
-    { label: "วินาที", val: timeLeft.seconds },
-  ];
-
-  const isOngoing =
-    todayExams.length === 1 &&
-    todayExams[0].endStamp &&
-    targetDate === todayExams[0].endStamp;
-
-  return (
-    <div className="mb-12">
-      <div className="bg-white rounded-3xl shadow-lg border border-blue-100 overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-          <div className="lg:col-span-2 p-8 md:p-12 bg-gradient-to-br from-blue-50 to-white">
-            <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
-              <div
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-medium text-sm border
-                ${
-                  isOngoing
-                    ? "bg-green-50 text-green-700 border-green-200"
-                    : isExamStarted
-                      ? "bg-red-50 text-red-600 border-red-200"
-                      : "bg-amber-50 text-amber-700 border-amber-200"
-                }`}
-              >
-                <AlarmClock size={16} />
-                {isOngoing
-                  ? "กำลังดำเนินการอยู่"
-                  : isExamStarted
-                    ? "กำลังดำเนินการสอบขณะนี้"
-                    : "เป้าหมายที่กำลังจะมาถึง"}
-              </div>
-
-              <a
-                href="/user/calendar"
-                className="group inline-flex items-center justify-center px-4 py-2
-                bg-white text-blue-600 hover:bg-blue-50
-                border border-blue-200 rounded-lg font-medium text-sm gap-1.5
-                shadow-sm hover:shadow transition-all duration-200"
-              >
-                ดูปฏิทิน
-                <ChevronRight
-                  size={16}
-                  className="transition-transform duration-200 group-hover:translate-x-0.5"
-                />
-              </a>
-            </div>
-
-            {/* แสดงหลายกำหนดการในวันเดียวกัน */}
-            {todayExams.length > 1 ? (
-              <div>
-                <h1 className="text-2xl md:text-3xl font-medium mb-1 text-blue-900">
-                  กำหนดการที่ใกล้จะถึง ({todayExams.length} รายการ)
-                </h1>
-                <p className="text-blue-700 text-lg sm:text-xl font-medium flex items-center gap-2 mb-4">
-                  <Calendar size={22} className="text-blue-600 shrink-0" />
-                  {targetDate
-                    ? new Date(targetDate).toLocaleDateString("th-TH", {
-                        dateStyle: "long",
-                      })
-                    : "-"}
-                </p>
-                <div className="mb-6 space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
-                  {todayExams.map((exam: any, idx: number) => (
-                    <div
-                      key={exam.id}
-                      className="bg-white rounded-xl p-3.5 border border-blue-100 shadow-2xs text-sm sm:text-sm"
-                    >
-                      <div className="flex items-start gap-2.5">
-                        <div className="flex-shrink-0 w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center font-medium text-sm mt-0.5">
-                          {idx + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-800 leading-snug break-words">
-                            {exam.title}
-                          </h3>
-                          {exam.description && (
-                            <p className="text-sm text-gray-500 mt-1 leading-relaxed">
-                              {exam.description}
-                            </p>
-                          )}
-                          {exam.link_url && (
-                            <a
-                              href={exam.link_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[11px] font-medium border border-blue-200 transition-colors w-fit group"
-                            >
-                              <ExternalLink size={12} className="text-blue-600 group-hover:scale-110 transition-transform" />
-                              ดูข้อมูลเพิ่มเติม / ลิงก์แนบ
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div>
-                <h1 className="text-2xl md:text-3xl font-medium mb-1 text-blue-900">
-                  {targetTitle || "พร้อมรับมือทุกการสอบ"}
-                </h1>
-                {isOngoing && todayExams[0] ? (
-                  <div className="mb-4">
-                    <p className="text-blue-700 text-lg sm:text-xl font-medium flex items-center gap-2">
-                      <Calendar size={22} className="text-green-600 shrink-0" />
-                      {new Date(todayExams[0].targetStamp).toLocaleDateString(
-                        "th-TH",
-                        { dateStyle: "long" },
-                      )}
-                      {" - "}
-                      {new Date(todayExams[0].endStamp).toLocaleDateString(
-                        "th-TH",
-                        { dateStyle: "long" },
-                      )}
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-blue-700 text-lg sm:text-xl font-medium flex items-center gap-2 mb-4">
-                    <Calendar size={22} className="text-blue-600 shrink-0" />
-                    {targetDate
-                      ? new Date(targetDate).toLocaleDateString("th-TH", {
-                          dateStyle: "long",
-                        })
-                      : "-"}
-                  </p>
-                )}
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-5 mb-8">
-              {units.map((item, idx) => (
-                <div key={idx} className="flex flex-col items-center">
-                  <div
-                    className="relative flex flex-col items-center justify-center
-        w-full sm:w-28 h-24 sm:h-28 rounded-2xl
-        bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-700
-        shadow-lg shadow-blue-200/60
-        ring-1 ring-white/10 overflow-hidden"
-                  >
-                    {/* highlight เงาบนเพื่อให้ดูมีมิติแบบกระจก */}
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-white/10 rounded-t-2xl" />
-                    <span className="relative text-4xl sm:text-5xl font-medium tabular-nums text-white drop-shadow-sm">
-                      {String(item.val).padStart(2, "0")}
-                    </span>
-                  </div>
-                  <span className="text-[11px] sm:text-sm font-medium text-gray-500 mt-2 uppercase tracking-wide">
-                    {item.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            <div className="max-w-xl p-4 rounded-xl flex flex-col gap-2 bg-blue-50 border border-blue-100">
-              <p className="text-sm font-medium leading-relaxed text-gray-700">
-                {targetDesc}
-              </p>
-              {targetLink && (
-                <div className="pt-2 border-t border-blue-200/60">
-                  <a
-                    href={targetLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm sm:text-sm font-medium shadow-sm transition-all group w-fit"
-                  >
-                    <ExternalLink size={15} className="group-hover:scale-110 transition-transform" />
-                    ดูรายละเอียดเพิ่มเติม / ลิงก์แนบ
-                  </a>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="lg:col-span-1 bg-gray-50 p-6 border-l border-gray-200">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar className="text-blue-600" size={20} />
-              <h2 className="text-lg font-medium text-gray-800">
-                กำหนดการถัดไป
-              </h2>
-            </div>
-            <p className="text-sm text-gray-500 mb-4">
-              {upcomingExams.length} รายการที่กำลังจะมาถึง
-            </p>
-
-            <div className="space-y-3 max-h-[500px] overflow-y-auto">
-              {upcomingExams.length > 0 ? (
-                upcomingExams
-                  .slice(0, 4)
-                  .map((exam, index) => (
-                    <UpcomingExamCard key={exam.id} exam={exam} index={index} />
-                  ))
-              ) : (
-                <div className="text-center py-8 text-gray-400">
-                  <CheckCircle2 className="mx-auto mb-2" size={32} />
-                  <p className="text-sm">ไม่มีกำหนดการถัดไป</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+          {exam.title}
+        </h3>
+        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500">
+          <Calendar size={12} />
+          {examDate.toLocaleDateString("th-TH", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })}
+        </p>
+        {exam.description && isExpanded && (
+          <p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-gray-600">
+            {exam.description}
+          </p>
+        )}
+        {hasMore && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            className="mt-1 inline-flex items-center gap-0.5 text-[11px] font-medium text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+          >
+            {isExpanded ? "ย่อข้อความ" : "ดูเพิ่มเติม"}
+            <ChevronDown
+              size={12}
+              className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
+            />
+          </button>
+        )}
+        {exam.link_url && (
+          <a
+            href={exam.link_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="mt-1 inline-flex w-fit items-center gap-1 rounded border border-blue-100 bg-blue-50/80 px-2 py-0.5 text-[11px] font-medium text-blue-600 hover:text-blue-700 hover:underline"
+          >
+            <ExternalLink size={11} />
+            ลิงก์แนบ
+          </a>
+        )}
       </div>
     </div>
   );
@@ -477,48 +270,6 @@ const UniversityLeaderboard = ({
 };
 
 // Countdown Hero Skeleton Component
-
-const CountdownHeroSkeleton = () => {
-  return (
-    <div className="mb-12">
-      <div className="bg-white rounded-3xl shadow-lg border border-blue-100 overflow-hidden animate-pulse">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0">
-          {/* Left Skeleton */}
-          <div className="lg:col-span-2 p-8 md:p-12 bg-gradient-to-br from-blue-50/60 to-white">
-            <div className="flex items-center justify-between gap-3 mb-6">
-              <div className="h-8 w-44 bg-blue-200/60 rounded-full" />
-              <div className="h-8 w-28 bg-white rounded-lg" />
-            </div>
-            <div className="h-9 w-3/4 bg-blue-200/60 rounded-xl mb-4" />
-            <div className="h-5 w-48 bg-white rounded-lg mb-8" />
-
-            <div className="grid grid-cols-2 sm:flex sm:items-center gap-3 sm:gap-5 mb-8">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex flex-col items-center">
-                  <div className="w-full sm:w-28 h-24 sm:h-28 rounded-2xl bg-blue-200/50" />
-                  <div className="h-3 w-10 bg-white rounded mt-2" />
-                </div>
-              ))}
-            </div>
-            <div className="h-14 w-full max-w-xl bg-blue-100/50 rounded-xl" />
-          </div>
-
-          {/* Right Skeleton */}
-          <div className="lg:col-span-1 bg-gray-50 p-6 border-l border-gray-200 space-y-3">
-            <div className="h-6 w-36 bg-white rounded mb-2" />
-            <div className="h-4 w-28 bg-white rounded mb-4" />
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-16 bg-white rounded-xl border border-gray-200"
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const calculateTimeLeft = (targetStamp: number | null) => {
   if (!targetStamp) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
@@ -855,6 +606,9 @@ const Page = () => {
               isExamStarted={isExamStarted}
               upcomingExams={upcomingExams}
               todayExams={todayExams}
+              renderUpcomingExam={(exam) => (
+                <UpcomingExamCard key={exam.id} exam={exam} />
+              )}
             />
           )}
           {/* ── University Leaderboard ── */}

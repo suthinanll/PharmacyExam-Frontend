@@ -287,4 +287,43 @@ sub, .prose sub, .tiptap sub {
 @keyframes maintenance-grow {
   from { width: 0; }
   to   { width: 75%; }
-}
+}
+/* ── Race track (followup) — ตัวละครขยับเบาๆ + ลู่วิ่งไหล ───────────────── */
+@keyframes race-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.race-bob {
+  animation: race-bob 1.6s ease-in-out infinite;
+}
+
+@keyframes race-lane {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 32px 0;
+  }
+}
+
+.race-lane {
+  background-image: repeating-linear-gradient(
+    -60deg,
+    rgba(99, 102, 241, 0.12) 0 8px,
+    transparent 8px 16px
+  );
+  animation: race-lane 1.2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .race-bob,
+  .race-lane {
+    animation: none;
+  }
+}

@@ -2,6 +2,14 @@ const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    // แยกโฟลเดอร์ build ของ production ออกจาก .next ที่ dev server ใช้อยู่
+    // ถ้าใช้โฟลเดอร์เดียวกัน การรัน `next build` ขณะที่ `next dev` เปิดค้างไว้
+    // จะไปทับ manifest ของ dev server ทำให้ asset ตอบ 404 เป็น text/plain ทั้งหน้า
+    // (npm ตั้ง npm_lifecycle_event ให้เป็นชื่อ script ที่กำลังรัน)
+    distDir: ['build', 'start'].includes(process.env.npm_lifecycle_event ?? '')
+        ? '.next-build'
+        : '.next',
+
     // ปิด X-Powered-By เพื่อไม่ให้เปิดเผยเทคโนโลยีฝั่งเซิร์ฟเวอร์
     poweredByHeader: false,
     compress: true,

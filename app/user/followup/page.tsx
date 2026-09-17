@@ -44,6 +44,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { requestUserAIAnalysis, AIAnalysisResult } from "@/utils/n8nService";
+import ProgressSection, { type UserProgress } from "@/components/followup/ProgressSection";
 
 interface DashboardData {
   stats: {
@@ -62,6 +63,11 @@ interface DashboardData {
     total_users: number;
     percentile: number;
     rank_change: number;
+    is_ranked?: boolean;
+    next_rank_score?: number | null;
+    prev_rank_score?: number | null;
+    gap_to_next?: number | null;
+    lead_over_prev?: number | null;
     score_range: {
       top: number;
       user_score: number;
@@ -73,6 +79,8 @@ interface DashboardData {
     score: number;
     full_mark: number;
   }[];
+  progress?: UserProgress;
+
   weak_topics: {
     subject: string;
     topic: string;
@@ -531,6 +539,7 @@ const PharmacistDashboard = () => {
                 )}
               </div>
             </div>
+
           </div>
 
           {/* ── Stats list ───────────────────────────────────────────────────── */}
@@ -596,6 +605,26 @@ const PharmacistDashboard = () => {
               loading={loading}
             />
           </div>
+
+          {/* ── Progress section — พัฒนาการ ระดับ สตรีค และแบดจ์ ──────────────── */}
+          {!loading && data?.progress && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-2xs">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-medium text-gray-800">
+                    พัฒนาการของคุณ
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    ผลการทำข้อสอบแต่ละครั้ง ระดับ และความสำเร็จที่ปลดล็อกได้
+                  </p>
+                </div>
+              </div>
+              <ProgressSection progress={data.progress} />
+            </div>
+          )}
 
           {/* ── Analysis section ─────────────────────────────────────────────── */}
           <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-sm">
@@ -1125,10 +1154,10 @@ const PharmacistDashboard = () => {
                 </div>
                 <div>
                   <h3 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
-                    รายงานผลการวิเคราะห์ & แผนเตรียมตัว AI
+                    รายงานผลการวิเคราะห์ และ แผนการเตรียมตัวจาก AI
                   </h3>
                   <p className="text-xs text-gray-500 font-medium">
-                    วิเคราะห์เฉพาะบุคคลตามประวัติผลคะแนนและจุดอ่อนของคุณ
+                    วิเคราะห์ตามประวัติผลคะแนนและจุดอ่อนของคุณ
                   </p>
                 </div>
               </div>
@@ -1213,9 +1242,9 @@ const PharmacistDashboard = () => {
                   {/* 1. สรุปภาพรวม AI */}
                   {(aiAnalysis.summary || aiAnalysis.analysis_summary || aiAnalysis.overall_feedback) && (
                     <div className="p-4 sm:p-5 bg-indigo-50/60 rounded-2xl border border-indigo-100/90 space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-indigo-900">
+                      <div className="flex items-center gap-2 text-md font-bold text-indigo-900">
                         <Brain className="w-4 h-4 text-indigo-600" />
-                        <span>สรุปผลการประเมินภาพรวม (Overview Assessment):</span>
+                        <span>สรุปผลการประเมินภาพรวม</span>
                       </div>
                       {(() => {
                         const summaryData = aiAnalysis.summary || aiAnalysis.analysis_summary || aiAnalysis.overall_feedback;
@@ -1250,13 +1279,11 @@ const PharmacistDashboard = () => {
                       })()}
                     </div>
                   )}
-
-                  {/* 2. สูตรลับและเทคนิคช่วยจำพิเศษ (Memory Techniques) */}
                   {Array.isArray(aiAnalysis.memory_techniques) && aiAnalysis.memory_techniques.length > 0 && (
                     <div className="p-4 sm:p-5 bg-amber-50/60 rounded-2xl border border-amber-200/80 space-y-2.5">
-                      <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                      <div className="flex items-center gap-2 text-md font-bold text-amber-900">
                         <Lightbulb className="w-4 h-4 text-amber-600" />
-                        <span>สูตรลับและเทคนิคช่วยจำพิเศษ (Memory Techniques & Mnemonics):</span>
+                        <span>สูตรลับและเทคนิคช่วยจำพิเศษ</span>
                       </div>
                       <div className="space-y-2">
                         {aiAnalysis.memory_techniques.map((item, idx) => (
@@ -1280,10 +1307,9 @@ const PharmacistDashboard = () => {
                     </div>
                   )}
 
-                  {/* 3. แผนการอ่านหนังสือรายวัน (Action Plan) */}
                   {aiAnalysis.action_plan && (
                     <div className="p-4 sm:p-5 bg-teal-50/60 rounded-2xl border border-teal-100/90 space-y-3">
-                      <div className="flex items-center gap-2 text-xs font-bold text-teal-900">
+                      <div className="flex items-center gap-2 text-md font-bold text-teal-900">
                         <Calendar className="w-4 h-4 text-teal-600" />
                         <span>แผนการอ่านหนังสือและการเตรียมตัวรายบุคคล (Action Plan):</span>
                       </div>
@@ -1340,15 +1366,11 @@ const PharmacistDashboard = () => {
                           if (strVals.length > 0) return strVals.join(" | ");
                           return JSON.stringify(s);
                         };
-
                         const plan = unwrap(aiAnalysis.action_plan);
-
-                        // If Array of steps
                         if (Array.isArray(plan)) {
                           const hasScheduleShape = plan.length > 0 &&
                             typeof plan[0] === "object" &&
                             ("day" in plan[0] || "focus_area" in plan[0] || "study_hours" in plan[0]);
-
                           if (hasScheduleShape) {
                             return (
                               <div className="space-y-2.5">
@@ -1404,8 +1426,6 @@ const PharmacistDashboard = () => {
                             </div>
                           );
                         }
-
-                        // If object with schedule / strategies
                         if (typeof plan === "object" && plan !== null) {
                           const schedule = Array.isArray(plan.schedule) ? plan.schedule : [];
                           const strategies = Array.isArray(plan.general_strategies)
@@ -1444,7 +1464,6 @@ const PharmacistDashboard = () => {
                                   </div>
                                 </div>
                               )}
-
                               {strategies.length > 0 && (
                                 <div className="space-y-2">
                                   <span className="text-xs font-semibold text-indigo-900 block">กลยุทธ์สำคัญ:</span>
@@ -1480,7 +1499,7 @@ const PharmacistDashboard = () => {
 
             {/* Modal Footer */}
             <div className="pt-4 mt-3 border-t border-gray-100 flex items-center justify-between">
-              <span className="text-xs text-gray-400 font-medium hidden sm:inline">
+              <span className="text-md text-gray-400 font-medium hidden sm:inline">
                 ผลการประเมินนี้บันทึกอัตโนมัติในเบราว์เซอร์ของคุณ
               </span>
               <button

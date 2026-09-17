@@ -21,8 +21,11 @@ export function middleware(request: NextRequest) {
     }
 
     // กำหนด Sources สำหรับ img-src และ connect-src ตามสภาพแวดล้อม (ไม่มี Wildcard Scheme ใน Production)
-    const devImgSources = isDev ? 'http://localhost:5000 http://localhost:3000' : '';
-    const devConnectSources = isDev ? 'http://localhost:5000 http://localhost:3000 ws://localhost:3000 ws://localhost:5000' : '';
+    // ไม่ต้องระบุพอร์ต backend ตรงนี้ — apiOrigin/apiWsOrigin ข้างบนคำนวณจาก NEXT_PUBLIC_API_URL
+    // ให้แล้ว การ hardcode ไว้จะค้างเป็นพอร์ตเก่าทันทีที่ backend ย้ายพอร์ต
+    // เหลือแค่ origin ของ dev server ตัวเอง (พอร์ต 3000) ที่ใช้กับ HMR websocket
+    const devImgSources = isDev ? 'http://localhost:3000' : '';
+    const devConnectSources = isDev ? 'http://localhost:3000 ws://localhost:3000' : '';
 
     const allowedImgHosts = [
         apiOrigin,
@@ -45,8 +48,8 @@ export function middleware(request: NextRequest) {
     const cspHeader = `
         default-src 'self';
         script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${isDev ? "'unsafe-eval'" : ''};
-        style-src 'self' 'nonce-${nonce}' ${isDev ? "'unsafe-inline'" : ''};
-        style-src-elem 'self' 'nonce-${nonce}' ${isDev ? "'unsafe-inline'" : ''};
+        style-src 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`};
+        style-src-elem 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`};
         style-src-attr 'unsafe-inline';
         img-src 'self' data: blob: ${allowedImgHosts};
         font-src 'self' data:;
