@@ -441,6 +441,62 @@ export default function ManageUsersPage() {
     }
   };
 
+  /** ลบถาวรพร้อมข้อมูลทั้งหมด — หนักกว่าการล้างข้อมูล จึงยืนยันด้วยการพิมพ์อีเมลเช่นกัน */
+  const handleHardDelete = async (target: UserItem) => {
+    const confirm = await Swal.fire({
+      icon: "warning",
+      title: "ลบผู้ใช้และข้อมูลทั้งหมดถาวร?",
+      html: `<div style="text-align:left;font-size:13px;line-height:1.8">
+        จะลบ <b>${target.first_name} ${target.last_name ?? ""}</b> (${target.email})
+        ออกจากระบบทั้งหมด ได้แก่<br/>
+        <b>ประวัติการสอบ คะแนน ใบเสร็จ โน้ต ไฟล์แนบ การแจ้งเตือน ตารางเรียน
+        บุ๊กมาร์ก และรูปโปรไฟล์</b><br/><br/>
+        <span style="color:#e11d48"><b>ย้อนกลับไม่ได้ และไม่มีข้อมูลเหลือให้กู้คืน</b></span><br/>
+        ถ้าต้องการเก็บประวัติการสอบและใบเสร็จไว้ ให้ใช้ "ล้างข้อมูลส่วนตัว" แทน<br/><br/>
+        พิมพ์อีเมลของผู้ใช้เพื่อยืนยัน:
+      </div>`,
+      input: "text",
+      inputPlaceholder: target.email,
+      showCancelButton: true,
+      confirmButtonText: "ลบถาวร",
+      cancelButtonText: "ยกเลิก",
+      confirmButtonColor: "#e11d48",
+      reverseButtons: true,
+      inputValidator: (value) =>
+        value === target.email ? null : "อีเมลไม่ตรง กรุณาพิมพ์ให้ตรงกับของผู้ใช้รายนี้",
+    });
+    if (!confirm.isConfirmed) return;
+
+    setBusyId(target.user_id);
+    try {
+      const data = await callApi(
+        `/users/${target.user_id}/purge`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ confirm_email: target.email }),
+        },
+        "ลบถาวรไม่สำเร็จ",
+      );
+
+      await Promise.all([fetchUsers(), fetchDeletedUsers()]);
+      if (detail?.user_id === target.user_id) setDetail(null);
+      Swal.fire({
+        icon: "success",
+        title: data.message || "ลบถาวรเรียบร้อย",
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3200,
+        timerProgressBar: true,
+      });
+    } catch (err: any) {
+      Swal.fire({ icon: "error", title: "ลบถาวรไม่สำเร็จ", text: err.message });
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   const handleRestore = async (target: UserItem) => {
     setBusyId(target.user_id);
     try {
@@ -1127,6 +1183,15 @@ export default function ManageUsersPage() {
                                       </button>
                                     </>
                                   )}
+                                  {/* ลบถาวรได้แม้บัญชีถูกล้างข้อมูลไปแล้ว — เป็นทางเดียวที่เหลือให้เอาแถวออกจริง */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleHardDelete(item)}
+                                    title="ลบถาวรพร้อมข้อมูลทั้งหมด (ประวัติสอบและใบเสร็จหายด้วย)"
+                                    className="p-1.5 rounded-lg text-red-700 hover:bg-red-50 cursor-pointer transition-colors"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
                                 </>
                               ) : isSuperAdminRow ? (
                                 // ไม่แสดงปุ่มจัดการกับ Super Admin — backend ก็ปฏิเสธอยู่แล้ว
