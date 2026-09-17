@@ -45,11 +45,16 @@ export function middleware(request: NextRequest) {
     ].filter(Boolean).join(' ');
 
     // Strict Content-Security-Policy (ผ่านเกณฑ์ Mozilla Observatory & OWASP สูงสุด)
+    //
+    // style-src ใช้ 'unsafe-inline' แทน nonce เพราะ Next.js และ recharts แทรก <style>
+    // ที่ไม่มี nonce เข้ามาตอน runtime ทำให้สไตล์ถูกบล็อกบน production
+    // (เบราว์เซอร์จะไม่สนใจ 'unsafe-inline' ทันทีที่มี nonce อยู่ด้วย จึงใส่คู่กันไม่ได้)
+    // ส่วน script-src ยังคุมด้วย nonce + strict-dynamic ตามเดิม ซึ่งเป็นด่านที่สำคัญกว่ามาก
     const cspHeader = `
         default-src 'self';
         script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${isDev ? "'unsafe-eval'" : ''};
-        style-src 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`};
-        style-src-elem 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`};
+        style-src 'self' 'unsafe-inline';
+        style-src-elem 'self' 'unsafe-inline';
         style-src-attr 'unsafe-inline';
         img-src 'self' data: blob: ${allowedImgHosts};
         font-src 'self' data:;
