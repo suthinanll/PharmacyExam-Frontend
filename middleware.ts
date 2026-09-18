@@ -46,15 +46,15 @@ export function middleware(request: NextRequest) {
 
     // Strict Content-Security-Policy (ผ่านเกณฑ์ Mozilla Observatory & OWASP สูงสุด)
     //
-    // style-src ใช้ 'unsafe-inline' แทน nonce เพราะ Next.js และ recharts แทรก <style>
-    // ที่ไม่มี nonce เข้ามาตอน runtime ทำให้สไตล์ถูกบล็อกบน production
-    // (เบราว์เซอร์จะไม่สนใจ 'unsafe-inline' ทันทีที่มี nonce อยู่ด้วย จึงใส่คู่กันไม่ได้)
-    // ส่วน script-src ยังคุมด้วย nonce + strict-dynamic ตามเดิม ซึ่งเป็นด่านที่สำคัญกว่ามาก
+    // style-src ใช้ nonce ได้เพราะ SweetAlert2 ถูกเปลี่ยนไปใช้บิลด์ที่ไม่ inject CSS แล้ว
+    // (ดู utils/swal.ts) ส่วนสไตล์ของ Next.js เองจะได้ nonce อัตโนมัติจาก header ที่ส่งเข้า
+    // request ด้านล่าง — หมายเหตุ: ถ้าใส่ nonce เบราว์เซอร์จะไม่สนใจ 'unsafe-inline' อีกต่อไป
+    // style-src-attr ยังต้องผ่อนไว้ เพราะ recharts เขียน style ลงบน attribute ของ element
     const cspHeader = `
         default-src 'self';
         script-src 'self' 'nonce-${nonce}' 'strict-dynamic' ${isDev ? "'unsafe-eval'" : ''};
-        style-src 'self' 'unsafe-inline';
-        style-src-elem 'self' 'unsafe-inline';
+        style-src 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`};
+        style-src-elem 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`};
         style-src-attr 'unsafe-inline';
         img-src 'self' data: blob: ${allowedImgHosts};
         font-src 'self' data:;
@@ -92,6 +92,16 @@ export function middleware(request: NextRequest) {
     );
     // สำรองของ frame-ancestors สำหรับเบราว์เซอร์เก่าที่ยังไม่รองรับ CSP เต็มรูปแบบ
     response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+
+    // หน้าที่ต้องล็อกอินมีข้อมูลส่วนตัว ห้ามให้เบราว์เซอร์หรือ proxy เก็บ cache ไว้
+    // กันไม่ให้กดปุ่มย้อนกลับหลัง logout แล้วยังเห็นข้อมูลของคนก่อนหน้า
+    const isPrivatePath = ['/user', '/admin'].some((prefix) =>
+        request.nextUrl.pathname.startsWith(prefix),
+    );
+    if (isPrivatePath) {
+        response.headers.set('Cache-Control', 'no-store, must-revalidate');
+        response.headers.set('Pragma', 'no-cache');
+    }
 
     // HSTS — บังคับ HTTPS 1 ปี ใส่เฉพาะ production เพราะ dev รันบน http
     if (!isDev) {

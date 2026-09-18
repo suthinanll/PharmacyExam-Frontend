@@ -40,7 +40,7 @@ import {
   Eraser,
 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface UserItem {

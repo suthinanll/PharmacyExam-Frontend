@@ -6,10 +6,11 @@ import Footer from "@/components/Footer";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { BookOpen, Loader2, Clock, Hash, Award, AlertTriangle, FlaskConical, X, Activity, Sparkles } from "lucide-react";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { formatScientificText } from "@/utils/formatText";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // ==================== TYPES ====================
 interface CATItem {
@@ -1028,12 +1029,12 @@ function CATExamPageContent() {
                         {session.current_item.situation.situation_title && (
                           <p
                             className="font-medium text-gray-800 mb-2"
-                            dangerouslySetInnerHTML={{ __html: session.current_item.situation.situation_title }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(session.current_item.situation.situation_title) }}
                           />
                         )}
                         <p
                           className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base"
-                          dangerouslySetInnerHTML={{ __html: formatScientificText(session.current_item.situation.situation_text) }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(session.current_item.situation.situation_text)) }}
                         />
                         {session.current_item.situation.situation_image_url && (
                           <img
@@ -1081,7 +1082,7 @@ function CATExamPageContent() {
                       {/* Question text */}
                       <p
                         className="text-base lg:text-lg text-gray-800 leading-relaxed font-medium whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{ __html: formatScientificText(session.current_item.question_text) }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(session.current_item.question_text)) }}
                       />
                       {session.current_item.question_image_url && (
                         <div className="mt-4">
@@ -1139,7 +1140,7 @@ function CATExamPageContent() {
                                 {option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' && (
                                   <span
                                     className="text-gray-800 text-sm lg:text-base leading-relaxed block"
-                                    dangerouslySetInnerHTML={{ __html: formatScientificText(option.option_text) }}
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(option.option_text)) }}
                                   />
                                 )}
                                 {option.option_image_url && option.option_image_url.trim() !== '' && (

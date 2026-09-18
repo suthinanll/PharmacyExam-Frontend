@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { ChevronDown, KeyRound, Loader2, LogOut, Phone, School, UserCheck } from "lucide-react";
 import { getMissingProfileFields, useAuth } from "@/contexts/AuthContext";
 

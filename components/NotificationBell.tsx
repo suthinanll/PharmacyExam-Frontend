@@ -5,7 +5,7 @@ import { Bell, X, Check, CheckCheck, Trash2, ExternalLink, Calendar, Newspaper, 
 import { useNotifications, AppNotification } from '../contexts/NotificationContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 
 const NOTIFICATION_TYPE_ICONS: Record<number, React.ReactNode> = {
     1: <Calendar className="w-4 h-4 text-blue-500" />,      // ปฏิทิน

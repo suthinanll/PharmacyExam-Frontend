@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { sanitizeHtml } from "@/utils/sanitize";
 
 interface NewsDetail {
     article_id: number;
@@ -119,7 +120,7 @@ const NewsDetailPage = () => {
 
                             <div
                                 className="prose prose-blue max-w-none text-gray-700 leading-relaxed [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_s]:line-through [&_a]:text-blue-600 [&_a]:underline [&_img]:rounded-lg [&_img]:my-4"
-                                dangerouslySetInnerHTML={{ __html: news.content }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(news.content) }}
                             />
                             
                             {news.source_url && (

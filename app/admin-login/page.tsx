@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import {
   ArrowLeft,
   ArrowRight,

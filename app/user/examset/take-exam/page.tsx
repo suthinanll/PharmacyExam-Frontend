@@ -4,13 +4,14 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { Loader2, BookOpen, Clock, AlertCircle, ListCheck, X, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 import ImagePreviewModal from '@/components/ImagePreviewModal';
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { formatScientificText } from "@/utils/formatText";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // Types
 interface AnswerOption {
@@ -650,12 +651,12 @@ function TakeExam() {
                                             {currentQuestion.situation.situation_title && (
                                                 <p
                                                     className="font-medium text-gray-800 mb-2"
-                                                    dangerouslySetInnerHTML={{ __html: currentQuestion.situation.situation_title }}
+                                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(currentQuestion.situation.situation_title) }}
                                                 />
                                             )}
                                             <p
                                                 className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base"
-                                                dangerouslySetInnerHTML={{ __html: formatScientificText(currentQuestion.situation.situation_text) }}
+                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(currentQuestion.situation.situation_text)) }}
                                             />
                                             {currentQuestion.situation.situation_image_url && (
                                                 <img
@@ -699,7 +700,7 @@ function TakeExam() {
                                     <div className="mb-4">
                                         <p
                                             className="text-lg sm:text-xl font-medium text-gray-900 leading-relaxed whitespace-pre-wrap"
-                                            dangerouslySetInnerHTML={{ __html: formatScientificText(currentQuestion.question_text) }}
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(currentQuestion.question_text)) }}
                                         />
                                         {currentQuestion.question_image_url && (
                                             <div className="mt-4 mb-2">
@@ -769,7 +770,7 @@ function TakeExam() {
                                                         {option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' && (
                                                             <span
                                                                 className="text-gray-800 text-sm lg:text-base leading-relaxed block"
-                                                                dangerouslySetInnerHTML={{ __html: formatScientificText(option.option_text) }}
+                                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(option.option_text)) }}
                                                             />
                                                         )}
                                                         

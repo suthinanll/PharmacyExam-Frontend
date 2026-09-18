@@ -3,7 +3,7 @@
 import { getMissingProfileFields, useAuth } from '@/contexts/AuthContext';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 // หน้าให้ guest เข้าดูได้ (ดูข้อมูลได้ แต่ทำข้อสอบ/เพิ่มโน้ตต้อง login ก่อน)

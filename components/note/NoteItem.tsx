@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Edit2, Trash2, Tag, Link as LinkIcon, ChevronDown, ChevronUp, FileText, ExternalLink } from "lucide-react";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { SWAL_COLORS } from "@/utils/swal";
 import type { UserNote } from "./NoteList";
 

@@ -21,7 +21,7 @@ import {
   Newspaper,
   Zap,
 } from 'lucide-react';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { useNotifications, AppNotification } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
 

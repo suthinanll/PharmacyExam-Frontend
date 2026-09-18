@@ -10,7 +10,7 @@ import {
     Eye, Download, FileSpreadsheet, FileCode, ExternalLink
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 
 interface ChatbotDocument {
     id: number;

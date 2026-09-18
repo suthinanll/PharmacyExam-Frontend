@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X, User, Users, LogOut, ChevronLeft, ChevronRight, FileText, Zap, List, ListCollapse, Calendar, Newspaper, MessageSquare, Settings, LayoutDashboard, SlidersHorizontal, Receipt, Settings2, CalendarClock } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface LogoutModalProps {

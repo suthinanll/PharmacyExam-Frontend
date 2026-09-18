@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { FcGoogle } from "react-icons/fc";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Eye, EyeOff, ShieldCheck } from "lucide-react";

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import Swal from "sweetalert2"; // นำเข้า SweetAlert2
+import Swal from "@/utils/sweetalert"; // นำเข้า SweetAlert2
 
 export default function Page() {
     const [email, setEmail] = useState("");

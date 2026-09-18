@@ -20,7 +20,7 @@ import {
     CheckCircle2,
 } from "lucide-react";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import Link from "next/link";
 
 // ==================== TYPES ====================

@@ -4,7 +4,7 @@ import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect } from "react";
 import React from "react";
 import { User, Mail, Phone, ShieldCheck, Loader2, Edit3, Save, X } from "lucide-react";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { useAuth } from '@/contexts/AuthContext';
 
 function Page() {

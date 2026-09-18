@@ -3,7 +3,7 @@ import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import { User, Mail, Phone, Loader2, Edit3, Save, X, School, AlertCircle, Camera, ChevronDown, Trash2, KeyRound } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from "@/components/LoadingSpinner";

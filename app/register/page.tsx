@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect } from "react";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import {
   Eye,
   EyeOff,

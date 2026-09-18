@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from 'react';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { Loader2, Save, X, FileSpreadsheet, Upload, CheckCircle2, HelpCircle, Layers, Clock, Tag, Plus, Check } from 'lucide-react';
 import { useAuth } from "@/contexts/AuthContext";
 

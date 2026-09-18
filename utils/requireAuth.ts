@@ -1,6 +1,6 @@
 "use client";
 
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { useRouter } from "next/navigation";
 import { withRedirect } from "./redirect";
 

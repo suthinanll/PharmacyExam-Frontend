@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';

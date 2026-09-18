@@ -4,7 +4,7 @@ import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useRef } from "react";
 import { ChevronLeft, Plus, X, Calendar, CheckCircle2, Save, Send, Link as LinkIcon } from "lucide-react";
 import Link from "next/link";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { useAuth } from "@/contexts/AuthContext";
 
 const CATEGORY_OPTIONS = [

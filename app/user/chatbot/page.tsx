@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, User, Bot, AlertCircle, Trash2, Pencil, Shield, Clock, Zap, Square, StopCircle, History } from "lucide-react";
 import Navbar from "@/components/Navbar_user";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // Utility for typing effect
 const useTypewriter = (text: string, speed: number = 20) => {
@@ -54,10 +55,9 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
           <div
             className="prose prose-sm max-w-none text-gray-700"
             dangerouslySetInnerHTML={{
-              __html: displayContent
+              __html: sanitizeHtml(displayContent
                 .replace(/\n/g, '<br>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            }}
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')) }}
           />
         </div>
         <button

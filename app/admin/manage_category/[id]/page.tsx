@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Navbar_admin from "@/components/Navbar_admin";
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { Loader2, Save, X, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 

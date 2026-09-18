@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

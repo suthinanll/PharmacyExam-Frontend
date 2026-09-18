@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 function AuthCallbackContent() {

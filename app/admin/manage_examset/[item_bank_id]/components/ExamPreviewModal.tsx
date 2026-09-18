@@ -15,7 +15,8 @@ import {
     Clock,
 } from 'lucide-react';
 import ImagePreviewModal from '@/components/ImagePreviewModal';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // ─── Types ──────────────────────────────────────────────────
 interface AnswerOption {
@@ -282,13 +283,13 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                         {currentQuestion.situation.situation_title && (
                                             <p
                                                 className="font-medium text-gray-800 mb-2 text-sm lg:text-base"
-                                                dangerouslySetInnerHTML={{ __html: currentQuestion.situation.situation_title }}
+                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(currentQuestion.situation.situation_title) }}
                                             />
                                         )}
                                         {currentQuestion.situation.situation_text && (
                                             <p
                                                 className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base"
-                                                dangerouslySetInnerHTML={{ __html: currentQuestion.situation.situation_text }}
+                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(currentQuestion.situation.situation_text) }}
                                             />
                                         )}
                                         {currentQuestion.situation.situation_image_url && (
@@ -337,7 +338,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                 <div className="mb-4">
                                     <p
                                         className="text-lg sm:text-xl font-medium text-gray-900 leading-relaxed whitespace-pre-wrap"
-                                        dangerouslySetInnerHTML={{ __html: currentQuestion.question_text }}
+                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(currentQuestion.question_text) }}
                                     />
                                     {currentQuestion.question_image_url && (
                                         <div className="mt-4 mb-2">
@@ -409,7 +410,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                                     {option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' && (
                                                         <span
                                                             className="text-gray-800 text-sm lg:text-base leading-relaxed block"
-                                                            dangerouslySetInnerHTML={{ __html: option.option_text }}
+                                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(option.option_text) }}
                                                         />
                                                     )}
                                                     {option.option_image_url && option.option_image_url.trim() !== '' && (
