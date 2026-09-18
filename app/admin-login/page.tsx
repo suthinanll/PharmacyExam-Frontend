@@ -157,8 +157,8 @@ export default function AdminPlanLoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((value) => !value)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 transition hover:text-green-600"
                   aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
+                  className="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 transition hover:text-green-600"
                 >
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>

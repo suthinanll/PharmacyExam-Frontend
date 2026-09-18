@@ -301,7 +301,7 @@ const CountdownHero = ({
                     <UpcomingExamCard key={exam.id} exam={exam} index={index} />
                   ))
               ) : (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-gray-500">
                   <CheckCircle2 className="mx-auto mb-2" size={32} />
                   <p className="text-sm">ไม่มีกำหนดการถัดไป</p>
                 </div>
@@ -727,7 +727,7 @@ const Page = () => {
               <div className="col-span-full text-center py-12 text-gray-500 bg-white rounded-2xl border border-gray-100 p-8 shadow-sm">
                 <Bookmark className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                 <p className="font-medium text-gray-700 text-lg">ไม่มีข่าวสารและประกาศในขณะนี้</p>
-                <p className="text-sm text-gray-400 mt-1">กรุณากลับมาตรวจสอบใหม่อีกครั้งในภายหลัง</p>
+                <p className="text-sm text-gray-500 mt-1">กรุณากลับมาตรวจสอบใหม่อีกครั้งในภายหลัง</p>
               </div>
             )}
           </div>

@@ -38,6 +38,7 @@ const Footer = () => {
                                 <div className="flex space-x-3 pt-3">
                                     <a
                                         href="https://www.facebook.com/computing.kku"
+                                        aria-label="เฟซบุ๊กของวิทยาลัยการคอมพิวเตอร์ มหาวิทยาลัยขอนแก่น"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors duration-200"
@@ -46,6 +47,7 @@ const Footer = () => {
                                     </a>
                                     <a
                                         href="mailto:computing.kku@kku.ac.th"
+                                        aria-label="ส่งอีเมลถึง computing.kku@kku.ac.th"
                                         className="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors duration-200"
                                     >
                                         <Mail className="w-5 h-5" />
@@ -63,6 +65,7 @@ const Footer = () => {
                                     <li>
                                         <Link
                                             href="/user"
+                                            aria-label="หน้าหลักของผู้ใช้งาน"
                                             className="hover:text-green-200 transition-colors duration-200 font-medium"
                                         >
                                             หน้าหลัก

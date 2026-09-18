@@ -264,7 +264,7 @@ export const CountdownHero = ({
               {upcomingExams.length > 0 ? (
                 upcomingExams.slice(0, 4).map((exam, index) => renderUpcomingExam(exam, index))
               ) : (
-                <div className="py-8 text-center text-gray-400">
+                <div className="py-8 text-center text-gray-500">
                   <CheckCircle2 className="mx-auto mb-2" size={32} />
                   <p className="text-sm">ไม่มีกำหนดการถัดไป</p>
                 </div>

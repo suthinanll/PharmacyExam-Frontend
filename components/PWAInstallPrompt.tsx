@@ -126,7 +126,7 @@ export default function PWAInstallPrompt() {
           <button
             onClick={handleDismiss}
             aria-label="ปิด"
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors"
+            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition-colors"
           >
             <X className="w-4 h-4" strokeWidth={2.5} />
           </button>
@@ -184,7 +184,7 @@ export default function PWAInstallPrompt() {
           {/* Dismiss */}
           <button
             onClick={handleDismiss}
-            className="w-full text-slate-400 text-sm hover:text-slate-600 transition-colors"
+            className="w-full text-slate-500 text-sm hover:text-slate-700 transition-colors"
           >
             ไว้ทีหลัง
           </button>

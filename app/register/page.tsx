@@ -479,6 +479,7 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
                       className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
