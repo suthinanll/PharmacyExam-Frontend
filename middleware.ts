@@ -81,6 +81,26 @@ export function middleware(request: NextRequest) {
     response.headers.set('Content-Security-Policy', cspHeader);
     response.headers.set('x-nonce', nonce);
 
+    // กันเบราว์เซอร์เดาชนิดไฟล์เอง (MIME sniffing) — ปิดช่องทางอัปโหลดไฟล์ปลอมชนิด
+    response.headers.set('X-Content-Type-Options', 'nosniff');
+    // ไม่ส่ง path/query ของหน้าเราไปให้เว็บอื่นเวลาผู้ใช้กดลิงก์ออก
+    response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+    // ปิดสิทธิ์อุปกรณ์ที่เว็บนี้ไม่ได้ใช้
+    response.headers.set(
+        'Permissions-Policy',
+        'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+    );
+    // สำรองของ frame-ancestors สำหรับเบราว์เซอร์เก่าที่ยังไม่รองรับ CSP เต็มรูปแบบ
+    response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+
+    // HSTS — บังคับ HTTPS 1 ปี ใส่เฉพาะ production เพราะ dev รันบน http
+    if (!isDev) {
+        response.headers.set(
+            'Strict-Transport-Security',
+            'max-age=31536000; includeSubDomains; preload',
+        );
+    }
+
     return response;
 }
 
