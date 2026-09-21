@@ -8,6 +8,7 @@ import localFont from 'next/font/local';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import ScrollToTopButton from '@/components/ScrollToTopButton';
 import Script from 'next/script';
 
 
@@ -89,6 +90,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
             {/* PWA Install Prompt */}
             <PWAInstallPrompt />
+
+            {/* ปุ่มลอยเลื่อนกลับขึ้นด้านบน — แสดงเมื่อเลื่อนลงมาไกลพอ */}
+            <ScrollToTopButton />
           </NotificationProvider>
         </AuthProvider>
 
