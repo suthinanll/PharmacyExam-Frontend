@@ -148,12 +148,14 @@ export default function PWAInstallPrompt() {
               <button
                 onClick={handleInstall}
                 disabled={!canInstallNow}
+                type="button"
+                aria-label="ติดตั้งแอปพลิเคชันลงบนเครื่อง"
                 className={`mt-4 px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors ${canInstallNow
                     ? "bg-green-600 text-white hover:bg-green-700"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-gray-200 text-gray-700 cursor-not-allowed"
                   }`}
               >
-                <Download className="w-4 h-4" strokeWidth={2.5} />
+                <Download className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
                 ติดตั้งตอนนี้
               </button>
             )}
@@ -167,14 +169,14 @@ export default function PWAInstallPrompt() {
               return (
                 <li key={i} className="flex items-start gap-3">
                   <div className="flex flex-col items-center">
-                    <span className="w-8 h-8 rounded-full bg-slate-900 text-white text-xs font-medium flex items-center justify-center shrink-0">
+                    <span className="w-8 h-8 rounded-full bg-slate-900 text-white text-xs font-semibold flex items-center justify-center shrink-0">
                       {i + 1}
                     </span>
                     {!isLast && <span className="w-px flex-1 bg-slate-200 my-1" />}
                   </div>
                   <div className="flex items-center gap-2.5 pt-1 pb-2">
-                    <Icon className="w-4 h-4 text-green-600 shrink-0" strokeWidth={2} />
-                    <span className="text-sm text-slate-700 leading-snug">{step.text}</span>
+                    <Icon className="w-4 h-4 text-green-700 shrink-0" strokeWidth={2} aria-hidden="true" />
+                    <span className="text-sm font-medium text-slate-800 leading-snug">{step.text}</span>
                   </div>
                 </li>
               );
@@ -183,8 +185,10 @@ export default function PWAInstallPrompt() {
 
           {/* Dismiss */}
           <button
+            type="button"
             onClick={handleDismiss}
-            className="w-full text-slate-400 text-sm hover:text-slate-600 transition-colors"
+            aria-label="ปิดกล่องแนะนำการติดตั้งแอป"
+            className="w-full text-slate-600 font-medium text-sm hover:text-slate-900 transition-colors cursor-pointer py-1"
           >
             ไว้ทีหลัง
           </button>

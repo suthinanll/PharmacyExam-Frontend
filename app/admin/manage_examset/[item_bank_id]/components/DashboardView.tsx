@@ -107,13 +107,13 @@ function ItemDetailModal({
                             },
                             {
                                 label: 'ความยาก (b)',
-                                value: '—',
-                                color: 'bg-indigo-50 border-indigo-200 text-indigo-800'
+                                value: Number(item.irt_b_difficulty).toFixed(2),
+                                color: 'bg-blue-50 border-blue-200 text-blue-800'
                             },
                             {
                                 label: 'โอกาสการเดา (c)',
-                                value: '-',
-                                color: 'bg-indigo-50 border-indigo-200 text-indigo-800'
+                                value: Number(item.irt_c_guessing).toFixed(2),
+                                color: 'bg-purple-50 border-purple-200 text-purple-800'
                             }
                         ].map((s) => (
                             <div key={s.label} className={`rounded-xl border p-3 text-center ${s.color}`}>

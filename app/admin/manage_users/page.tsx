@@ -413,19 +413,21 @@ export default function ManageUsersPage() {
               type="button"
               onClick={fetchUsers}
               disabled={isLoading}
+              aria-label="รีเฟรชข้อมูลผู้ใช้งาน"
               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 rounded-xl font-medium text-xs sm:text-sm shadow-2xs transition-all cursor-pointer disabled:opacity-60"
               title="รีเฟรชข้อมูล"
             >
-              <RefreshCcw className={`w-4 h-4 text-green-600 ${isLoading ? "animate-spin" : ""}`} />
+              <RefreshCcw className={`w-4 h-4 text-green-600 ${isLoading ? "animate-spin" : ""}`} aria-hidden="true" />
               <span className="hidden sm:inline">รีเฟรช</span>
             </button>
 
             <button
               type="button"
               onClick={() => setIsAddAdminOpen(true)}
+              aria-label="เพิ่มบัญชีผู้ดูแลระบบ"
               className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium text-xs sm:text-sm shadow-sm transition-all hover:shadow-md cursor-pointer"
             >
-              <UserPlus className="w-4 h-4" />
+              <UserPlus className="w-4 h-4" aria-hidden="true" />
               <span>เพิ่มผู้ดูแลระบบ</span>
             </button>
           </div>
@@ -434,46 +436,46 @@ export default function ManageUsersPage() {
         {/* ── Stat Summary Cards ──────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-2xs flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0" aria-hidden="true">
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">ผู้ใช้งานทั้งหมด</p>
-              <h3 className="text-2xl font-medium text-gray-900 mt-0.5">{stats.total}</h3>
-              <p className="text-[11px] text-indigo-600 font-medium">บัญชีทั้งหมดในระบบ</p>
+              <p className="text-xs text-gray-600 font-semibold">ผู้ใช้งานทั้งหมด</p>
+              <h3 className="text-2xl font-bold text-gray-900 mt-0.5">{stats.total}</h3>
+              <p className="text-[11px] text-indigo-700 font-semibold">บัญชีทั้งหมดในระบบ</p>
             </div>
           </div>
 
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-2xs flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0" aria-hidden="true">
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">ผู้ใช้งาน</p>
-              <h3 className="text-2xl font-medium text-gray-900 mt-0.5">{stats.students}</h3>
-              <p className="text-[11px] text-emerald-600 font-medium">บัญชีผู้ใช้งานทั่วไป</p>
+              <p className="text-xs text-gray-600 font-semibold">ผู้ใช้งาน</p>
+              <h3 className="text-2xl font-bold text-gray-900 mt-0.5">{stats.students}</h3>
+              <p className="text-[11px] text-emerald-700 font-semibold">บัญชีผู้ใช้งานทั่วไป</p>
             </div>
           </div>
 
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-2xs flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0" aria-hidden="true">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">ผู้ดูแลระบบ</p>
-              <h3 className="text-2xl font-medium text-gray-900 mt-0.5">{stats.admins}</h3>
-              <p className="text-[11px] text-purple-600 font-medium">บัญชีผู้ดูแลระบบ</p>
+              <p className="text-xs text-gray-600 font-semibold">ผู้ดูแลระบบ</p>
+              <h3 className="text-2xl font-bold text-gray-900 mt-0.5">{stats.admins}</h3>
+              <p className="text-[11px] text-purple-700 font-semibold">บัญชีผู้ดูแลระบบ</p>
             </div>
           </div>
 
           <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-2xs flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0" aria-hidden="true">
               <FcGoogle className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-500 font-medium">ล็อกอินด้วย Google</p>
-              <h3 className="text-2xl font-medium text-gray-900 mt-0.5">{stats.googleUsers}</h3>
-              <p className="text-[11px] text-amber-600 font-medium">Google OAuth Users</p>
+              <p className="text-xs text-gray-600 font-semibold">ล็อกอินด้วย Google</p>
+              <h3 className="text-2xl font-bold text-gray-900 mt-0.5">{stats.googleUsers}</h3>
+              <p className="text-[11px] text-amber-700 font-semibold">Google OAuth Users</p>
             </div>
           </div>
         </div>
@@ -483,21 +485,25 @@ export default function ManageUsersPage() {
           <div className="flex flex-col md:flex-row gap-3">
             {/* Search Input */}
             <div className="relative flex-1">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden="true" />
               <input
-                type="text"
+                id="user-search-query"
+                type="search"
+                aria-label="ค้นหาชื่อ นามสกุล อีเมล เบอร์โทร หรือมหาวิทยาลัย"
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
                 placeholder="ค้นหาชื่อ, นามสกุล, อีเมล, เบอร์โทร หรือมหาวิทยาลัย..."
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all placeholder:text-gray-400"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all placeholder:text-gray-500"
               />
               {searchQuery && (
                 <button
+                  type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600 cursor-pointer font-medium"
+                  aria-label="ล้างข้อความค้นหา"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 hover:text-gray-800 cursor-pointer font-medium"
                 >
                   ล้าง
                 </button>
@@ -507,6 +513,7 @@ export default function ManageUsersPage() {
             {/* Filter by Role */}
             <div className="w-full md:w-52">
               <select
+                aria-label="กรองตามสิทธิ์การใช้งาน"
                 value={selectedRole}
                 onChange={(e) => {
                   setSelectedRole(e.target.value);
@@ -523,6 +530,7 @@ export default function ManageUsersPage() {
             {/* Filter by Provider */}
             <div className="w-full md:w-48">
               <select
+                aria-label="กรองตามช่องทางการเข้าสู่ระบบ"
                 value={selectedProvider}
                 onChange={(e) => {
                   setSelectedProvider(e.target.value);
@@ -540,6 +548,7 @@ export default function ManageUsersPage() {
             {universities.length > 0 && (
               <div className="w-full md:w-56">
                 <select
+                  aria-label="กรองตามสถาบันมหาวิทยาลัย"
                   value={selectedUniversity}
                   onChange={(e) => {
                     setSelectedUniversity(e.target.value);
@@ -606,16 +615,17 @@ export default function ManageUsersPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full text-left border-collapse" aria-label="ตารางรายชื่อผู้ใช้งานระบบเภสัชพร้อมสอบ">
+                <caption className="sr-only">ตารางข้อมูลผู้ใช้งานในระบบทั้งหมด</caption>
                 <thead>
-                  <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    <th className="py-3.5 px-4 font-medium">ผู้ใช้งาน</th>
-                    <th className="py-3.5 px-4 font-medium">ข้อมูลติดต่อ</th>
-                    <th className="py-3.5 px-4 font-medium">มหาวิทยาลัย</th>
-                    <th className="py-3.5 px-4 font-medium">จำนวนข้อสอบที่ทำ</th>
-                    <th className="py-3.5 px-4 font-medium">สิทธิ์การใช้งาน</th>
-                    <th className="py-3.5 px-4 font-medium">เข้าใช้งานล่าสุด</th>
-                    <th className="py-3.5 px-4 font-medium">วันที่สมัคร</th>
+                  <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">ผู้ใช้งาน</th>
+                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">ข้อมูลติดต่อ</th>
+                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">มหาวิทยาลัย</th>
+                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">จำนวนข้อสอบที่ทำ</th>
+                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">สิทธิ์การใช้งาน</th>
+                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">เข้าใช้งานล่าสุด</th>
+                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">วันที่สมัคร</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-xs">
@@ -745,10 +755,11 @@ export default function ManageUsersPage() {
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                   disabled={currentPage === 1}
+                  aria-label="ไปหน้าก่อนหน้า"
                   className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                   title="หน้าก่อนหน้า"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4" aria-hidden="true" />
                 </button>
 
                 {Array.from({ length: totalPages }, (_, i) => i + 1)
@@ -763,6 +774,8 @@ export default function ManageUsersPage() {
                         <button
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
+                          aria-label={`ไปยังหน้าที่ ${pageNum}`}
+                          aria-current={currentPage === pageNum ? "page" : undefined}
                           className={`w-8 h-8 rounded-lg font-medium transition-colors cursor-pointer ${
                             currentPage === pageNum
                               ? "bg-green-600 text-white shadow-2xs"
@@ -779,10 +792,11 @@ export default function ManageUsersPage() {
                   type="button"
                   onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                   disabled={currentPage === totalPages}
+                  aria-label="ไปหน้าถัดไป"
                   className="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
                   title="หน้าถัดไป"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
             </div>
@@ -791,19 +805,24 @@ export default function ManageUsersPage() {
 
         {/* ── Add Admin Account Modal ─────────────────────────────────── */}
         {isAddAdminOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-admin-dialog-title"
+          >
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-xl max-h-[90vh] overflow-y-auto border border-gray-100">
               {/* Modal Header */}
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center" aria-hidden="true">
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-medium text-gray-900">
+                    <h2 id="add-admin-dialog-title" className="text-base font-semibold text-gray-900">
                       เพิ่มบัญชีผู้ดูแลระบบ
-                    </h3>
-                    <p className="text-xs text-gray-500 font-medium">
+                    </h2>
+                    <p className="text-xs text-gray-600 font-medium">
                       สำหรับจัดการระบบและคลังข้อสอบ
                     </p>
                   </div>
@@ -812,9 +831,10 @@ export default function ManageUsersPage() {
                 <button
                   type="button"
                   onClick={() => !isSubmitting && setIsAddAdminOpen(false)}
-                  className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                  aria-label="ปิดหน้าต่างเพิ่มผู้ดูแลระบบ"
+                  className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5" aria-hidden="true" />
                 </button>
               </div>
 
