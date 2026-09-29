@@ -44,6 +44,23 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: '*.kdmshospital.com',
             },
+            // แหล่งรูปข่าวเภสัชกรรม — ให้ Next.js ย่อรูปและแปลงเป็น WebP ก่อนส่งให้ผู้ใช้
+            {
+                protocol: 'https',
+                hostname: 'www.hfocus.org',
+            },
+            {
+                protocol: 'https',
+                hostname: 'hfocus.org',
+            },
+            {
+                protocol: 'https',
+                hostname: 'www.pharmacycouncil.org',
+            },
+            {
+                protocol: 'https',
+                hostname: 'pharmacycouncil.org',
+            },
             {
                 protocol: 'http',
                 hostname: 'localhost',
