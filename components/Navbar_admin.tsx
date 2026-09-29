@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   Menu,
@@ -20,10 +20,13 @@ import {
   Settings,
   LayoutDashboard,
   SlidersHorizontal,
+  Receipt,
+  Settings2,
+  CalendarClock,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface LogoutModalProps {
@@ -63,14 +66,14 @@ const LogoutConfirmationModal = ({
           <button
             onClick={onClose}
             type="button"
-            className="px-4 py-2 text-sm font-medium rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+            className="px-4 py-2 text-sm font-medium rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors cursor-pointer"
           >
             ยกเลิก
           </button>
           <button
             onClick={onConfirm}
             type="button"
-            className="px-4 py-2 text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors shadow-md"
+            className="px-4 py-2 text-sm font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 transition-colors shadow-md cursor-pointer"
             disabled={loading}
           >
             {loading ? "กำลังออก..." : "ออกจากระบบ"}
@@ -102,6 +105,36 @@ export default function Navbar_admin({
     localStorage.setItem("admin_sidebar_collapsed", String(newState));
   };
 
+  // ดึงข้อมูลผู้ใช้จาก AuthContext (ต้องอยู่ก่อน sidebarItems เพราะเมนู Super Admin ขึ้นกับ role)
+  const { user, logout, getToken } = useAuth();
+  const isSuperAdmin = user?.role_id === 3;
+
+  // สถานะสิทธิ์รายปีของ admin ที่ซื้อไว้ — โชว์วันคงเหลือท้าย sidebar (Super Admin ไม่ต้องเช็ค ไม่มีวันหมดอายุ)
+  const [subscription, setSubscription] = useState<{
+    hasActiveSubscription: boolean;
+    daysRemaining?: number;
+    expiresAt?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (user?.role_id !== 2) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/payment/my-subscription`,
+          { headers: { Authorization: `Bearer ${getToken()}` } },
+        );
+        if (res.ok && !cancelled) setSubscription(await res.json());
+      } catch {
+        // เงียบไว้ — เป็นข้อมูลเสริม ไม่ควรทำให้ navbar พัง
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.role_id, getToken]);
+
   const sidebarItems = [
     { title: "แดชบอร์ด", href: "/admin", icon: LayoutDashboard },
     { title: "รายชื่อผู้ใช้งาน", href: "/admin/manage_users", icon: Users },
@@ -112,6 +145,13 @@ export default function Navbar_admin({
     { title: "จัดการหัวข้อ", href: "/admin/manage_topics", icon: ListCollapse },
     { title: "ปฏิทินกำหนดการ", href: "/admin/manage_calendar", icon: Calendar },
     { title: "บล็อกข่าวสาร", href: "/admin/mnblog", icon: Newspaper },
+    // เฉพาะ Super Admin (role_id=3) — admin ที่ซื้อสิทธิ์รายปีมองไม่เห็นเมนูสองอันนี้
+    ...(isSuperAdmin
+      ? [
+          { title: "ประวัติการชำระเงิน", href: "/admin/super/subscriptions", icon: Receipt },
+          { title: "ตั้งค่าการชำระเงิน", href: "/admin/super/payment-settings", icon: Settings2 },
+        ]
+      : []),
   ];
 
   const settingsItems = [
@@ -131,8 +171,6 @@ export default function Navbar_admin({
     setIsLogoutModalOpen(true);
     if (isMobileMenuOpen) setIsMobileMenuOpen(false);
   };
-
-  const { user, logout } = useAuth();
 
   const handleConfirmLogout = async () => {
     setLoadingLogout(true);
@@ -282,7 +320,47 @@ export default function Navbar_admin({
           </div>
         </nav>
 
-        <div className="p-3 border-t border-gray-200 bg-white shrink-0">
+        <div className="p-3 border-t border-gray-200 bg-white shrink-0 space-y-2">
+          {/* สิทธิ์รายปีเหลืออีกกี่วัน — เฉพาะ admin ที่ซื้อสิทธิ์ (role 2), Super Admin ไม่มีวันหมดอายุ */}
+          {subscription?.hasActiveSubscription && (
+            <Link
+              href="/upgrade-admin"
+              className={`flex items-center gap-2 p-2 rounded-xl border transition-colors ${
+                subscription.daysRemaining! <= 30
+                  ? "bg-red-50 border-red-200 hover:bg-red-100"
+                  : "bg-green-50 border-green-200 hover:bg-green-100"
+              } ${isCollapsed ? "justify-center" : ""}`}
+              title={`สิทธิ์เหลืออีก ${subscription.daysRemaining} วัน — กดเพื่อดูรายละเอียด/ต่ออายุ`}
+            >
+              <CalendarClock
+                className={`w-5 h-5 flex-shrink-0 ${
+                  subscription.daysRemaining! <= 30 ? "text-red-600" : "text-green-700"
+                }`}
+                aria-hidden="true"
+              />
+              {!isCollapsed && (
+                <div className="min-w-0">
+                  <p
+                    className={`text-xs font-semibold truncate ${
+                      subscription.daysRemaining! <= 30 ? "text-red-700" : "text-green-800"
+                    }`}
+                  >
+                    สิทธิ์เหลืออีก {subscription.daysRemaining} วัน
+                  </p>
+                  <p className="text-[11px] text-gray-600 truncate">
+                    หมดอายุ{" "}
+                    {subscription.expiresAt &&
+                      new Date(subscription.expiresAt).toLocaleDateString("th-TH", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                  </p>
+                </div>
+              )}
+            </Link>
+          )}
+
           <Link
             href="/admin/settingp"
             className={`flex items-center gap-3 p-2 rounded-xl transition-all duration-150 ${
@@ -296,7 +374,7 @@ export default function Navbar_admin({
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate whitespace-nowrap">
+                <p className="text-sm font-semibold text-gray-900 truncate whitespace-nowrap">
                   {user?.first_name} {user?.last_name}
                 </p>
                 <p className="text-xs text-gray-600 truncate whitespace-nowrap">{user?.email}</p>

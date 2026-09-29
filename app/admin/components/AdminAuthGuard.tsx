@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import Swal from 'sweetalert2';
+import Swal from '@/utils/sweetalert';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 
 export default function AdminAuthGuard({ children }: { children: React.ReactNode }) {
@@ -14,18 +14,18 @@ export default function AdminAuthGuard({ children }: { children: React.ReactNode
     if (!isLoading) {
       if (!isAuthenticated) {
         router.push('/login');
-      } else if (user?.role_id !== 2) {
+      } else if (user?.role_id !== 2 && user?.role_id !== 3) {
         Swal.fire({
-          icon: 'error',
-          title: 'ไม่มีสิทธิ์เข้าถึง',
-          text: 'คุณไม่มีสิทธิ์เข้าถึงหน้า Admin',
+          icon: 'info',
+          title: 'ยังไม่มีสิทธิ์ผู้ดูแลระบบ',
+          text: 'ดูตัวอย่างฟีเจอร์และสมัครเป็นผู้ดูแลระบบได้เลย',
           toast: true,
           position: 'top-end',
           showConfirmButton: false,
           timer: 3000,
           timerProgressBar: true,
         });
-        router.push('/user');
+        router.push('/upgrade-admin');
       }
     }
   }, [isLoading, isAuthenticated, user, router]);
@@ -39,7 +39,7 @@ export default function AdminAuthGuard({ children }: { children: React.ReactNode
     );
   }
 
-  if (!isAuthenticated || user?.role_id !== 2) {
+  if (!isAuthenticated || (user?.role_id !== 2 && user?.role_id !== 3)) {
     return null;
   }
 

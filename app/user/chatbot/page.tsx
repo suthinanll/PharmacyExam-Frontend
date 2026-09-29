@@ -3,9 +3,10 @@
 import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { Sparkles, SendHorizonal, Clipboard, Check, MessageSquare, Plus, Menu, X, User, Bot, AlertCircle, Trash2, Pencil, Shield, Clock, Zap, Square, StopCircle, History } from "lucide-react";
 import Navbar from "@/components/Navbar_user";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // Utility for typing effect
 const useTypewriter = (text: string, speed: number = 20) => {
@@ -54,10 +55,9 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
           <div
             className="prose prose-sm max-w-none text-gray-700"
             dangerouslySetInnerHTML={{
-              __html: displayContent
+              __html: sanitizeHtml(displayContent
                 .replace(/\n/g, '<br>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            }}
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')) }}
           />
         </div>
         <button
@@ -691,10 +691,12 @@ export default function ChatbotPage() {
       {/* Full-width container to prevent left clipping and margin misalignment */}
       <div className="w-full flex h-[calc(100dvh-3.5rem)] sm:h-[calc(100dvh-3.75rem)] md:h-[calc(100dvh-4.25rem)] overflow-hidden bg-white">
 
-        {/* Mobile Sidebar Overlay */}
+        {/* Mobile Sidebar Overlay
+            เริ่มใต้ navbar (สูง 3.5/3.75/4.25rem ตามเบรกพอยต์ เท่ากับที่ใช้ใน h-calc ด้านบน)
+            และอยู่ต่ำกว่า navbar (z-50) เพื่อไม่ให้บังแถบเมนูตอนเลื่อนหน้าจอ */}
         {sidebarOpen && (
           <div
-            className="fixed inset-0 bg-black/30 z-40 lg:hidden backdrop-blur-xs"
+            className="fixed inset-x-0 bottom-0 top-14 sm:top-15 md:top-17 bg-black/30 z-30 lg:hidden backdrop-blur-xs"
             onClick={() => setSidebarOpen(false)}
           />
         )}
@@ -702,7 +704,7 @@ export default function ChatbotPage() {
         {/* ── Left Sidebar ── */}
         <aside
           id="chat-sidebar"
-          className={`fixed lg:static inset-y-0 left-0 z-50 w-80 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          className={`fixed lg:static left-0 bottom-0 top-14 sm:top-15 md:top-17 lg:inset-y-auto lg:top-auto lg:bottom-auto z-40 w-80 bg-white border-r border-gray-200 flex flex-col transition-transform duration-300 ease-in-out shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
             }`}
         >
           {/* Sidebar Top: New Chat + Capacity % Card */}
@@ -712,7 +714,7 @@ export default function ChatbotPage() {
                 <Bot size={18} className="text-green-600" />
                 <h2 className="text-md text-gray-800">เมนูแชตบอต</h2>
               </div>
-              <button onClick={() => setSidebarOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500">
+              <button onClick={() => setSidebarOpen(false)} aria-label="ปิดเมนูแชตบอต" className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500">
                 <X size={18} />
               </button>
             </div>

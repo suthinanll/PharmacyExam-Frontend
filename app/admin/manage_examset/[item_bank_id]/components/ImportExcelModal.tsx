@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useRef } from 'react';
 import { X, Upload, FileSpreadsheet, CheckCircle2, HelpCircle, AlertTriangle, Layers, PlusCircle, RefreshCw, Loader2 } from 'lucide-react';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ImportExcelModalProps {

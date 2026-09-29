@@ -20,8 +20,10 @@ import {
   Info,
   Newspaper,
   Zap,
+  Smartphone,
 } from 'lucide-react';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
+import { isRunningStandalone, openInstallGuide } from '@/utils/pwaInstall';
 import { useNotifications, AppNotification } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -56,6 +58,8 @@ function timeAgo(date: Date | string): string {
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
+  const [isInstalledApp, setIsInstalledApp] = useState(false);
+  useEffect(() => setIsInstalledApp(isRunningStandalone()), []);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [isExamSetDropdownOpen, setIsExamSetDropdownOpen] = useState(false);
   const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState(false);
@@ -143,7 +147,7 @@ const Navbar = () => {
         <div className="relative flex h-14 sm:h-15 md:h-17 items-center justify-between">
 
           {/* Mobile hamburger */}
-          <div className="absolute inset-y-0 left-0 flex items-center lg:hidden">
+          <div className="absolute inset-y-0 left-0 flex items-center xl:hidden">
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -160,7 +164,7 @@ const Navbar = () => {
           </div>
 
           {/* Logo + Desktop nav */}
-          <div className="flex flex-1 items-center justify-center lg:items-stretch lg:justify-start">
+          <div className="flex flex-1 items-center justify-center xl:items-stretch xl:justify-start">
             <div className="flex shrink-0 items-center">
               <Link href="/user" className="flex items-center space-x-2 group">
                 {/* mobile: text-base (เดิม text-lg ใหญ่ไป), sm/md ขึ้นไปเหมือนเดิม */}
@@ -170,7 +174,7 @@ const Navbar = () => {
               </Link>
             </div>
 
-            <div className="hidden lg:ml-6 xl:ml-8 lg:block">
+            <div className="hidden xl:ml-8 xl:block">
               <div className="flex space-x-1.5 xl:space-x-2">
                 {navItems.slice(1).map((item) => (
                   item.submenu ? (
@@ -437,6 +441,19 @@ const Navbar = () => {
                     <Link href="/user/examhis" className="flex items-center px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200" onClick={() => setIsProfileDropdownOpen(false)}>
                       <History className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />ประวัติการทำข้อสอบ
                     </Link>
+                    {/* เปิดอยู่ในแอปที่ติดตั้งแล้ว ไม่ต้องชวนติดตั้งซ้ำ */}
+                    {!isInstalledApp && (
+                      <button
+                        type="button"
+                        className="flex items-center w-full px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200 cursor-pointer"
+                        onClick={() => {
+                          setIsProfileDropdownOpen(false);
+                          openInstallGuide();
+                        }}
+                      >
+                        <Smartphone className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />วิธีติดตั้งแอป
+                      </button>
+                    )}
                   </div>
                   <div className="border-t border-gray-100">
                     <button className="flex items-center w-full px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-red-600 hover:bg-red-50 transition-colors duration-200 cursor-pointer font-medium" onClick={handleLogout}>
@@ -451,8 +468,8 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu — ทั้ง block นี้แสดงเฉพาะจอเล็กกว่า lg (lg:hidden) */}
-      <div className={`lg:hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
+      {/* Mobile menu — ทั้ง block นี้แสดงเฉพาะจอเล็กกว่า lg (xl:hidden) */}
+      <div className={`xl:hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
         <div className="mobilenav space-y-2 px-3 pt-3 pb-4 backdrop-blur-sm">
           {navItems.slice(1).map((item) => (
             item.submenu ? (

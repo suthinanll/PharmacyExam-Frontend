@@ -1,17 +1,25 @@
 "use client";
-import React, { useState } from "react";
-import Swal from "sweetalert2";
+import React, { useState, useEffect } from "react";
+import Swal from "@/utils/sweetalert";
 import { FcGoogle } from "react-icons/fc";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { getSafeRedirect, withRedirect } from "@/utils/redirect";
 
 export default function Page() {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [registerHref, setRegisterHref] = useState("/register");
   const router = useRouter();
+
+  // อ่าน ?redirect= หลัง mount (ไม่อ่านตอน render เพื่อเลี่ยง hydration mismatch)
+  useEffect(() => {
+    const redirectTo = getSafeRedirect();
+    if (redirectTo) setRegisterHref(withRedirect("/register", redirectTo));
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,9 +44,16 @@ export default function Page() {
           confirmButtonColor: "#10b981",
         });
 
+        // ถ้ามาจากหน้าที่ค้างไว้ (เช่น กดจ่ายเงินที่ /upgrade-admin) ให้กลับไปที่นั่นต่อ
+        const redirectTo = getSafeRedirect();
+        if (redirectTo) {
+          router.push(redirectTo);
+          return;
+        }
+
         const roleId = data.user.role_id;
         if (roleId === 1) router.push("/user");
-        else if (roleId === 2) router.push("/admin");
+        else if (roleId === 2 || roleId === 3) router.push("/admin"); // 3 = Super Admin เข้าแผงแอดมินเหมือนกัน
         else router.push("/");
       } else {
         Swal.fire({
@@ -69,11 +84,10 @@ export default function Page() {
 
       <div className="bg-white shadow-2xs rounded-2xl p-10 w-full max-w-md border border-white/60 backdrop-blur-sm relative">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold text-green-600 mb-2 tracking-tight">
+          <h1 className="text-4xl font-extrabold text-green-700 mb-2 tracking-tight">
             เภสัชพร้อมสอบ
           </h1>
-          <p className="text-gray-500 font-medium">กรอกข้อมูลเพื่อเข้าสู่ระบบ</p>
-
+          <p className="text-gray-600 font-medium">กรอกข้อมูลเพื่อเข้าสู่ระบบ</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
@@ -122,11 +136,22 @@ export default function Page() {
             </div>
           </div>
 
-          <button type="submit"
+          <button
+            type="submit"
             aria-label="เข้าสู่ระบบ"
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer">
+            className="w-full bg-green-700 hover:bg-green-800 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer"
+          >
             เข้าสู่ระบบ
           </button>
+
+          <a
+            href="/upgrade-admin"
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 py-3 text-sm font-medium text-green-700 transition-all duration-300 hover:bg-green-100"
+          >
+            <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+            <span>ดูข้อเสนอแผน Admin</span>
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </a>
         </form>
 
         <div className="flex items-center my-8">
@@ -147,14 +172,14 @@ export default function Page() {
           </button>
         </div>
 
-        {/* สมัครสมาชิก */}
+        {/* สมัครสมาชิก — ส่งปลายทางที่ค้างไว้ต่อไปด้วย จะได้ไม่หลุดตอนเปลี่ยนใจไปสมัครแทน */}
         <div className="text-center mt-10 text-sm font-medium text-gray-700">
           ยังไม่มีบัญชีผู้ใช้งาน?{" "}
-          <a href="/register" className="text-green-700 font-bold hover:underline underline-offset-4">
+          <a href={registerHref} className="text-green-700 font-bold hover:underline underline-offset-4">
             สมัครสมาชิก
           </a>
         </div>
       </div>
     </div>
   );
-}
+}

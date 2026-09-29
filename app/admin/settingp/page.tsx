@@ -4,7 +4,7 @@ import Navbar_admin from "@/components/Navbar_admin";
 import { useState, useEffect } from "react";
 import React from "react";
 import { User, Mail, Phone, ShieldCheck, Loader2, Edit3, Save, X } from "lucide-react";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { useAuth } from '@/contexts/AuthContext';
 
 function Page() {
@@ -222,7 +222,12 @@ function Page() {
               <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-gray-700">
                   <ShieldCheck className="w-4 h-4 text-green-600" aria-hidden="true" />
-                  <span>สิทธิ์การใช้งาน: <strong className="font-semibold text-gray-900">{user.role_id === 2 ? "Admin" : "User"}</strong></span>
+                  <span>
+                    สิทธิ์การใช้งาน:{" "}
+                    <strong className="font-semibold text-gray-900">
+                      {user.role_id === 3 ? "Super Admin" : user.role_id === 2 ? "Admin" : "User"}
+                    </strong>
+                  </span>
                 </div>
               </div>
 

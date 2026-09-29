@@ -13,7 +13,7 @@ import {
     Target, ArrowRight, HelpCircle,
 } from 'lucide-react';
 import Link from 'next/link';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { useAuth } from "@/contexts/AuthContext";
 import Pagination from "@/components/Pagination";
 

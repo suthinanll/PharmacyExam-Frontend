@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect } from "react";
-import { requestAdminAIAnalysis, AIAnalysisResult } from "@/utils/n8nService";
+import { requestAdminAIAnalysis, hasRenderableContent, AIAnalysisResult } from "@/utils/n8nService";
 
 import dynamic from "next/dynamic";
 
@@ -122,8 +122,11 @@ function AdminDashboardPage() {
       const savedData = localStorage.getItem("ai_analysis_admin");
       if (savedData) {
         const parsed = JSON.parse(savedData);
-        if (parsed && typeof parsed === "object") {
+        // ผลเก่าที่ n8n เคยตอบว่างอาจค้างอยู่ใน localStorage ถ้าโหลดมาแสดงจะได้กล่องเปล่า
+        if (parsed && typeof parsed === "object" && hasRenderableContent(parsed)) {
           setAiAnalysis(parsed);
+        } else {
+          localStorage.removeItem("ai_analysis_admin");
         }
       }
     } catch (e) {

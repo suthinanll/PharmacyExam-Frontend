@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Navbar_admin from "@/components/Navbar_admin";
 import { useParams, useRouter } from 'next/navigation';
 import { Plus, Trash2, Save, FileText, AlertCircle, ChevronLeft, ChevronRight, Loader2, ChevronDown, ChevronUp, ArrowUp, ArrowDown, ArrowLeft, Settings, Clock, Calendar, CheckCircle, XCircle, Tag, Layers, X, List, HelpCircle, LayoutList, TableProperties } from 'lucide-react';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import Link from 'next/link';
 import { div } from 'framer-motion/client';
 import TableOfContents from './components/TableOfContents';
@@ -19,6 +19,7 @@ import ImportExcelModal from './components/ImportExcelModal';
 import { useAuth } from "@/contexts/AuthContext";
 import TiptapEditor from '@/components/TiptapEditor';
 import { formatScientificText } from '@/utils/formatText';
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // Types
 interface AnswerOption {
@@ -1716,7 +1717,7 @@ export default function ItemBankEditPage() {
                                                                                 >
                                                                                     <div
                                                                                         className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-1 prose-preview flex-1"
-                                                                                        dangerouslySetInnerHTML={{ __html: formatScientificText(question.question_text) || 'คำถามใหม่' }}
+                                                                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(question.question_text) || 'คำถามใหม่') }}
                                                                                     />
                                                                                 </div>
 
@@ -1905,7 +1906,7 @@ export default function ItemBankEditPage() {
                                                                                                 {option.option_text && (option.option_text.includes('<') || option.option_text.includes('^') || option.option_text.includes('_') || /[A-Z][a-z]?[0-9]/.test(option.option_text) || /[+-]/.test(option.option_text)) && (
                                                                                                     <div className="pl-9 sm:pl-11 text-xs text-gray-500 flex items-center gap-1.5">
                                                                                                         <span className="text-gray-400">แสดงผลจริง:</span>
-                                                                                                        <span className="font-medium text-gray-800 bg-white px-2 py-0.5 rounded border border-gray-200" dangerouslySetInnerHTML={{ __html: formatScientificText(option.option_text) }} />
+                                                                                                        <span className="font-medium text-gray-800 bg-white px-2 py-0.5 rounded border border-gray-200" dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(option.option_text)) }} />
                                                                                                     </div>
                                                                                                 )}
                                                                                             </div>

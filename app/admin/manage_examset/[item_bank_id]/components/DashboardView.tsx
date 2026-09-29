@@ -42,7 +42,7 @@ import {
 import ExamPreviewModal from './ExamPreviewModal';
 import Link from 'next/link';
 import SettingsModal from './SettingsModal';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 
 // ─── Item Detail Modal ─────────────────────────────────
 function ItemDetailModal({

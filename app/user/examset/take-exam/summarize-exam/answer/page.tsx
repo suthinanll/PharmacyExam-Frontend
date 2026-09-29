@@ -12,6 +12,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { formatScientificText } from '@/utils/formatText';
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface AnswerOption {
@@ -118,7 +119,7 @@ function QuestionCard({
                 {/* Question text */}
                 <div
                     className="text-gray-900 text-md sm:text-base leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: formatScientificText(question.question_text) }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(question.question_text)) }}
                 />
                 {question.question_image_url && (
                     <img
@@ -186,7 +187,7 @@ function QuestionCard({
                                 </span>
                                 <div className="flex-1 min-w-0">
                                     {opt.option_text?.replace(/<[^>]*>/g, '').trim() && (
-                                        <div className={`text-sm lg:text-[15px] leading-relaxed ${textClass}`} dangerouslySetInnerHTML={{ __html: formatScientificText(opt.option_text) }} />
+                                        <div className={`text-sm lg:text-[15px] leading-relaxed ${textClass}`} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(opt.option_text)) }} />
                                     )}
                                     {opt.option_image_url?.trim() && (
                                         <img
@@ -217,7 +218,7 @@ function QuestionCard({
                         </p>
                         <div
                             className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap"
-                            dangerouslySetInnerHTML={{ __html: question.explanation }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(question.explanation) }}
                         />
                     </div>
                 )}
@@ -319,7 +320,7 @@ function AnswerPageContent() {
     if (loading) return (
         <>
             <Navbar_user />
-            <div className="min-h-[60vh] flex items-center justify-center">
+            <div className="min-h-screen flex items-start justify-center pt-24">
                 <LoadingSpinner size="lg" text="กำลังโหลดเฉลยข้อสอบ..." />
             </div>
             <Footer />
@@ -470,9 +471,9 @@ function AnswerPageContent() {
                                                         <span className="text-sm font-medium text-blue-800">สถานการณ์</span>
                                                     </div>
                                                     {group.situation.situation_title && (
-                                                        <p className="font-medium text-gray-900 mb-2 text-base" dangerouslySetInnerHTML={{ __html: group.situation.situation_title }} />
+                                                        <p className="font-medium text-gray-900 mb-2 text-base" dangerouslySetInnerHTML={{ __html: sanitizeHtml(group.situation.situation_title) }} />
                                                     )}
-                                                    <p className="text-sm lg:text-[15px] text-gray-700 leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: formatScientificText(group.situation.situation_text) }} />
+                                                    <p className="text-sm lg:text-[15px] text-gray-700 leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(group.situation.situation_text)) }} />
                                                     {group.situation.situation_image_url && (
                                                         <img
                                                             src={group.situation.situation_image_url}

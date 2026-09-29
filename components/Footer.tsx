@@ -16,7 +16,8 @@ const Footer = () => {
                         {/* Left Column: Contact Info */}
                         <div className="space-y-3">
                             {/* mobile: text-sm, sm: text-base, lg ขึ้นไป: text-lg (ขนาดเดิม) */}
-                            <h3 className="text-sm sm:text-base lg:text-lg font-medium mb-4">เภสัชพร้อมสอบ</h3>
+                            {/* h2 ไม่ใช่ h3 — บางหน้ามีแค่ h1 ก่อนถึง footer การใช้ h3 จะข้ามลำดับหัวข้อ */}
+                            <h2 className="text-sm sm:text-base lg:text-lg font-medium mb-4">เภสัชพร้อมสอบ</h2>
 
                             <div className="space-y-2 text-sm sm:text-base lg:text-lg">
                                 <p className="font-medium text-white/90">ติดต่อเรา</p>
@@ -38,6 +39,7 @@ const Footer = () => {
                                 <div className="flex space-x-3 pt-3">
                                     <a
                                         href="https://www.facebook.com/computing.kku"
+                                        aria-label="เฟซบุ๊กของวิทยาลัยการคอมพิวเตอร์ มหาวิทยาลัยขอนแก่น"
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors duration-200"
@@ -46,6 +48,7 @@ const Footer = () => {
                                     </a>
                                     <a
                                         href="mailto:computing.kku@kku.ac.th"
+                                        aria-label="ส่งอีเมลถึง computing.kku@kku.ac.th"
                                         className="w-9 h-9 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors duration-200"
                                     >
                                         <Mail className="w-5 h-5" />
@@ -63,6 +66,7 @@ const Footer = () => {
                                     <li>
                                         <Link
                                             href="/user"
+                                            aria-label="หน้าหลักของผู้ใช้งาน"
                                             className="hover:text-green-200 transition-colors duration-200 font-medium"
                                         >
                                             หน้าหลัก
@@ -79,7 +83,7 @@ const Footer = () => {
                                             <li>
                                                 <Link
                                                     href="/user/cat-exam"
-                                                    className="text-sm sm:text-base lg:text-lg text-white/80 hover:text-green-200 transition-colors duration-200 font-medium"
+                                                    className="text-sm sm:text-base lg:text-lg text-white/90 hover:text-green-200 transition-colors duration-200 font-medium"
                                                 >
                                                     • ข้อสอบแบบ CAT (Computerized Adaptive Testing)
                                                 </Link>

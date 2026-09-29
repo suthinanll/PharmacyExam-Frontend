@@ -43,7 +43,8 @@ import {
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { requestUserAIAnalysis, AIAnalysisResult } from "@/utils/n8nService";
+import { requestUserAIAnalysis, hasRenderableContent, AIAnalysisResult } from "@/utils/n8nService";
+import ProgressSection, { type UserProgress } from "@/components/followup/ProgressSection";
 
 interface DashboardData {
   stats: {
@@ -62,6 +63,11 @@ interface DashboardData {
     total_users: number;
     percentile: number;
     rank_change: number;
+    is_ranked?: boolean;
+    next_rank_score?: number | null;
+    prev_rank_score?: number | null;
+    gap_to_next?: number | null;
+    lead_over_prev?: number | null;
     score_range: {
       top: number;
       user_score: number;
@@ -73,6 +79,8 @@ interface DashboardData {
     score: number;
     full_mark: number;
   }[];
+  progress?: UserProgress;
+
   weak_topics: {
     subject: string;
     topic: string;
@@ -231,8 +239,11 @@ const PharmacistDashboard = () => {
       const savedData = localStorage.getItem(savedKey);
       if (savedData) {
         const parsed = JSON.parse(savedData);
-        if (parsed && typeof parsed === "object") {
+        // ผลเก่าที่ n8n เคยตอบว่างอาจค้างอยู่ใน localStorage ถ้าโหลดมาแสดงจะได้กล่องเปล่า
+        if (parsed && typeof parsed === "object" && hasRenderableContent(parsed)) {
           setAiAnalysis(parsed);
+        } else {
+          localStorage.removeItem(savedKey);
         }
       }
     } catch (e) {
@@ -531,6 +542,7 @@ const PharmacistDashboard = () => {
                 )}
               </div>
             </div>
+
           </div>
 
           {/* ── Stats list ───────────────────────────────────────────────────── */}
@@ -596,6 +608,26 @@ const PharmacistDashboard = () => {
               loading={loading}
             />
           </div>
+
+          {/* ── Progress section — พัฒนาการ ระดับ สตรีค และแบดจ์ ──────────────── */}
+          {!loading && data?.progress && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-2xs">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-medium text-gray-800">
+                    พัฒนาการของคุณ
+                  </h2>
+                  <p className="text-xs text-gray-500">
+                    ผลการทำข้อสอบแต่ละครั้ง ระดับ และความสำเร็จที่ปลดล็อกได้
+                  </p>
+                </div>
+              </div>
+              <ProgressSection progress={data.progress} />
+            </div>
+          )}
 
           {/* ── Analysis section ─────────────────────────────────────────────── */}
           <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-sm">
@@ -938,9 +970,9 @@ const PharmacistDashboard = () => {
 
                             {/* Topic Name (2 lines max) & Subject */}
                             <div className="min-w-0 flex-1 space-y-0.5">
-                              <h4 className="font-semibold text-gray-800 text-xs sm:text-sm leading-snug line-clamp-2">
+                              <h3 className="font-semibold text-gray-800 text-xs sm:text-sm leading-snug line-clamp-2">
                                 {topic.topic}
-                              </h4>
+                              </h3>
                               <p className="text-[11px] text-gray-400 font-medium">
                                 {topic.subject}
                               </p>
@@ -1125,10 +1157,10 @@ const PharmacistDashboard = () => {
                 </div>
                 <div>
                   <h3 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
-                    รายงานผลการวิเคราะห์ & แผนเตรียมตัว AI
+                    รายงานผลการวิเคราะห์ และ แผนการเตรียมตัวจาก AI
                   </h3>
-                  <p className="text-xs text-gray-500 font-medium">
-                    วิเคราะห์เฉพาะบุคคลตามประวัติผลคะแนนและจุดอ่อนของคุณ
+                  <p className="text-sm text-gray-500 font-medium">
+                    วิเคราะห์ตามประวัติผลคะแนนและจุดอ่อนของคุณ
                   </p>
                 </div>
               </div>
@@ -1138,7 +1170,7 @@ const PharmacistDashboard = () => {
                   <button
                     type="button"
                     onClick={() => handleRunAIAnalysis()}
-                    className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 hover:border-indigo-200 text-xs font-medium text-gray-600 hover:text-indigo-600 bg-white hover:bg-indigo-50 transition cursor-pointer"
+                    className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 hover:border-indigo-200 text-sm font-medium text-gray-600 hover:text-indigo-600 bg-white hover:bg-indigo-50 transition cursor-pointer"
                   >
                     <RefreshCcw className="w-3.5 h-3.5 text-indigo-500" />
                     <span>วิเคราะห์ใหม่</span>
@@ -1166,21 +1198,21 @@ const PharmacistDashboard = () => {
                     <h4 className="text-base font-semibold text-gray-800">
                       ระบบ AI กำลังประมวลผลข้อมูลและจัดทำแผนส่วนบุคคล...
                     </h4>
-                    <p className="text-xs text-gray-500 leading-relaxed">
+                    <p className="text-sm text-gray-500 leading-relaxed">
                       กำลังวิเคราะห์ข้อสอบที่ตอบผิด จุดที่มักสับสน และสร้างกลยุทธ์การจำแบบเจาะจง
                     </p>
                   </div>
                   <div className="max-w-xs mx-auto space-y-2 text-left bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                    <div className="flex items-center gap-2 text-xs text-indigo-700 font-medium">
+                    <div className="flex items-center gap-2 text-sm text-indigo-700 font-medium">
                       <Check className="w-4 h-4 text-teal-600" />
                       <span>รวบรวมประวัติคะแนนสอบ 6 ครั้งล่าสุด</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-indigo-700 font-medium">
+                    <div className="flex items-center gap-2 text-sm text-indigo-700 font-medium">
                       <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
                       <span>วิเคราะห์สาเหตุข้อผิดพลาด & แนวทางรักษา</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-400 font-medium">
-                      <span className="w-4 h-4 rounded-full border border-gray-300 inline-block text-center text-[10px] leading-3.5">3</span>
+                    <div className="flex items-center gap-2 text-sm text-gray-400 font-medium">
+                      <span className="w-4 h-4 rounded-full border border-gray-300 inline-block text-center text-sm leading-3.5">3</span>
                       <span>จัดตารางอ่านหนังสือและสูตรช่วยจำ</span>
                     </div>
                   </div>
@@ -1195,12 +1227,12 @@ const PharmacistDashboard = () => {
                   </div>
                   <div className="space-y-1">
                     <h4 className="text-sm font-semibold text-gray-800">เกิดข้อผิดพลาดในการวิเคราะห์</h4>
-                    <p className="text-xs text-rose-600 max-w-md mx-auto font-medium">{aiError}</p>
+                    <p className="text-sm text-rose-600 max-w-md mx-auto font-medium">{aiError}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleRunAIAnalysis()}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-medium transition cursor-pointer shadow-sm"
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition cursor-pointer shadow-sm"
                   >
                     ลองใหม่อีกครั้ง
                   </button>
@@ -1213,9 +1245,9 @@ const PharmacistDashboard = () => {
                   {/* 1. สรุปภาพรวม AI */}
                   {(aiAnalysis.summary || aiAnalysis.analysis_summary || aiAnalysis.overall_feedback) && (
                     <div className="p-4 sm:p-5 bg-indigo-50/60 rounded-2xl border border-indigo-100/90 space-y-2">
-                      <div className="flex items-center gap-2 text-xs font-bold text-indigo-900">
+                      <div className="flex items-center gap-2 text-base font-bold text-indigo-900">
                         <Brain className="w-4 h-4 text-indigo-600" />
-                        <span>สรุปผลการประเมินภาพรวม (Overview Assessment):</span>
+                        <span>สรุปผลการประเมินภาพรวม</span>
                       </div>
                       {(() => {
                         const summaryData = aiAnalysis.summary || aiAnalysis.analysis_summary || aiAnalysis.overall_feedback;
@@ -1230,7 +1262,7 @@ const PharmacistDashboard = () => {
                           return (
                             <div className="space-y-2 mt-1.5">
                               {Object.entries(content).map(([k, v], i) => (
-                                <div key={i} className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-white p-3 rounded-xl border border-indigo-100 shadow-2xs">
+                                <div key={i} className="text-sm text-gray-700 leading-relaxed bg-white p-3 rounded-xl border border-indigo-100 shadow-2xs">
                                   <span className="font-semibold text-indigo-950 block mb-0.5">
                                     {k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}:
                                   </span>
@@ -1242,7 +1274,7 @@ const PharmacistDashboard = () => {
                         }
                         return (
                           <div className="bg-white p-3.5 rounded-xl border border-indigo-100/80 shadow-2xs">
-                            <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
+                            <p className="text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
                               {String(content)}
                             </p>
                           </div>
@@ -1250,28 +1282,26 @@ const PharmacistDashboard = () => {
                       })()}
                     </div>
                   )}
-
-                  {/* 2. สูตรลับและเทคนิคช่วยจำพิเศษ (Memory Techniques) */}
                   {Array.isArray(aiAnalysis.memory_techniques) && aiAnalysis.memory_techniques.length > 0 && (
                     <div className="p-4 sm:p-5 bg-amber-50/60 rounded-2xl border border-amber-200/80 space-y-2.5">
-                      <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
+                      <div className="flex items-center gap-2 text-base font-bold text-amber-900">
                         <Lightbulb className="w-4 h-4 text-amber-600" />
-                        <span>สูตรลับและเทคนิคช่วยจำพิเศษ (Memory Techniques & Mnemonics):</span>
+                        <span>สูตรลับและเทคนิคช่วยจำพิเศษ</span>
                       </div>
                       <div className="space-y-2">
                         {aiAnalysis.memory_techniques.map((item, idx) => (
                           <div key={idx} className="bg-white p-3.5 rounded-xl border border-amber-100 shadow-2xs space-y-1.5">
                             <div className="flex items-center justify-between gap-2 flex-wrap">
-                              <span className="font-bold text-xs sm:text-sm text-amber-900">
+                              <span className="font-bold text-sm text-amber-900">
                                 {item.mnemonic_name || item.topic || `เทคนิคที่ ${idx + 1}`}
                               </span>
                               {item.topic && (
-                                <span className="text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-medium">
+                                <span className="text-sm bg-amber-100 text-amber-800 px-2 py-0.5 rounded-md font-medium">
                                   {item.topic}
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs sm:text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
+                            <p className="text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
                               {item.mnemonic_detail || JSON.stringify(item)}
                             </p>
                           </div>
@@ -1280,10 +1310,9 @@ const PharmacistDashboard = () => {
                     </div>
                   )}
 
-                  {/* 3. แผนการอ่านหนังสือรายวัน (Action Plan) */}
                   {aiAnalysis.action_plan && (
                     <div className="p-4 sm:p-5 bg-teal-50/60 rounded-2xl border border-teal-100/90 space-y-3">
-                      <div className="flex items-center gap-2 text-xs font-bold text-teal-900">
+                      <div className="flex items-center gap-2 text-base font-bold text-teal-900">
                         <Calendar className="w-4 h-4 text-teal-600" />
                         <span>แผนการอ่านหนังสือและการเตรียมตัวรายบุคคล (Action Plan):</span>
                       </div>
@@ -1340,15 +1369,11 @@ const PharmacistDashboard = () => {
                           if (strVals.length > 0) return strVals.join(" | ");
                           return JSON.stringify(s);
                         };
-
                         const plan = unwrap(aiAnalysis.action_plan);
-
-                        // If Array of steps
                         if (Array.isArray(plan)) {
                           const hasScheduleShape = plan.length > 0 &&
                             typeof plan[0] === "object" &&
                             ("day" in plan[0] || "focus_area" in plan[0] || "study_hours" in plan[0]);
-
                           if (hasScheduleShape) {
                             return (
                               <div className="space-y-2.5">
@@ -1359,20 +1384,20 @@ const PharmacistDashboard = () => {
                                   >
                                     <div className="flex items-center justify-between gap-2 flex-wrap">
                                       <div className="flex items-center gap-2">
-                                        <span className="w-6 h-6 rounded-lg bg-teal-600 text-white text-xs font-semibold flex items-center justify-center shrink-0">
+                                        <span className="w-6 h-6 rounded-lg bg-teal-600 text-white text-sm font-semibold flex items-center justify-center shrink-0">
                                           {item.day ?? idx + 1}
                                         </span>
-                                        <span className="font-semibold text-xs sm:text-sm text-gray-800">
+                                        <span className="font-semibold text-sm text-gray-800">
                                           {item.focus_area || "ทบทวนเนื้อหา"}
                                         </span>
                                       </div>
                                       {item.study_hours && (
-                                        <span className="text-xs font-medium text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-100">
+                                        <span className="text-sm font-medium text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-md border border-teal-100">
                                           เป้าหมาย: {item.study_hours} ชั่วโมง
                                         </span>
                                       )}
                                     </div>
-                                    <div className="text-xs text-gray-700 leading-relaxed bg-gray-50/70 p-2.5 rounded-lg border border-gray-100 font-medium">
+                                    <div className="text-sm text-gray-700 leading-relaxed bg-gray-50/70 p-2.5 rounded-lg border border-gray-100 font-medium">
                                       {typeof item.activities === "string"
                                         ? item.activities
                                         : Array.isArray(item.activities)
@@ -1392,9 +1417,9 @@ const PharmacistDashboard = () => {
                                 return (
                                   <div
                                     key={sIdx}
-                                    className="flex items-start gap-3 p-3 bg-white rounded-xl border border-teal-100/90 text-xs sm:text-sm text-gray-700 font-medium shadow-2xs"
+                                    className="flex items-start gap-3 p-3 bg-white rounded-xl border border-teal-100/90 text-sm text-gray-700 font-medium shadow-2xs"
                                   >
-                                    <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-800 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                    <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-800 text-sm font-bold flex items-center justify-center shrink-0 mt-0.5">
                                       {sIdx + 1}
                                     </span>
                                     <p className="leading-relaxed flex-1">{stepText}</p>
@@ -1404,8 +1429,6 @@ const PharmacistDashboard = () => {
                             </div>
                           );
                         }
-
-                        // If object with schedule / strategies
                         if (typeof plan === "object" && plan !== null) {
                           const schedule = Array.isArray(plan.schedule) ? plan.schedule : [];
                           const strategies = Array.isArray(plan.general_strategies)
@@ -1418,21 +1441,21 @@ const PharmacistDashboard = () => {
                             <div className="space-y-4">
                               {schedule.length > 0 && (
                                 <div className="space-y-2">
-                                  <span className="text-xs font-semibold text-teal-800 block">ตารางอ่านหนังสือรายวัน:</span>
+                                  <span className="text-sm font-semibold text-teal-800 block">ตารางอ่านหนังสือรายวัน:</span>
                                   <div className="space-y-2">
                                     {schedule.map((item: any, idx: number) => (
                                       <div key={idx} className="bg-white p-3.5 rounded-xl border border-teal-100 shadow-2xs space-y-1.5">
                                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                                          <span className="font-semibold text-xs text-teal-900">
+                                          <span className="font-semibold text-sm text-teal-900">
                                             วันที่ {item.day ?? idx + 1}: {item.focus_area || "ทบทวนเนื้อหา"}
                                           </span>
                                           {item.study_hours && (
-                                            <span className="text-[11px] font-medium text-teal-600 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">
+                                            <span className="text-sm font-medium text-teal-600 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">
                                               {item.study_hours} ชม.
                                             </span>
                                           )}
                                         </div>
-                                        <p className="text-xs text-gray-600 leading-relaxed">
+                                        <p className="text-sm text-gray-600 leading-relaxed">
                                           {typeof item.activities === "string"
                                             ? item.activities
                                             : Array.isArray(item.activities)
@@ -1444,13 +1467,12 @@ const PharmacistDashboard = () => {
                                   </div>
                                 </div>
                               )}
-
                               {strategies.length > 0 && (
                                 <div className="space-y-2">
-                                  <span className="text-xs font-semibold text-indigo-900 block">กลยุทธ์สำคัญ:</span>
+                                  <span className="text-sm font-semibold text-indigo-900 block">กลยุทธ์สำคัญ:</span>
                                   <div className="space-y-1.5">
                                     {strategies.map((strat: any, sIdx: number) => (
-                                      <div key={sIdx} className="flex items-start gap-2.5 p-2.5 bg-white rounded-xl border border-teal-100 text-xs text-gray-700 shadow-2xs font-medium">
+                                      <div key={sIdx} className="flex items-start gap-2.5 p-2.5 bg-white rounded-xl border border-teal-100 text-sm text-gray-700 shadow-2xs font-medium">
                                         <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0 mt-1.5" />
                                         <p className="flex-1 leading-relaxed">
                                           {typeof strat === "string" ? strat : strat.action || strat.text || JSON.stringify(strat)}
@@ -1466,7 +1488,7 @@ const PharmacistDashboard = () => {
 
                         return (
                           <div className="bg-white p-3.5 rounded-xl border border-teal-100 shadow-2xs">
-                            <p className="text-xs sm:text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">
+                            <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">
                               {String(plan)}
                             </p>
                           </div>
@@ -1480,7 +1502,7 @@ const PharmacistDashboard = () => {
 
             {/* Modal Footer */}
             <div className="pt-4 mt-3 border-t border-gray-100 flex items-center justify-between">
-              <span className="text-xs text-gray-400 font-medium hidden sm:inline">
+              <span className="text-base text-gray-400 font-medium hidden sm:inline">
                 ผลการประเมินนี้บันทึกอัตโนมัติในเบราว์เซอร์ของคุณ
               </span>
               <button

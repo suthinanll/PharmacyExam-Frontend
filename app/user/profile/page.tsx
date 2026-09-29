@@ -1,12 +1,13 @@
 "use client"
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
-import { User, Mail, Phone, Loader2, Edit3, Save, X, School, AlertCircle, Camera, Upload, ChevronDown } from "lucide-react";
+import { User, Mail, Phone, Loader2, Edit3, Save, X, School, AlertCircle, Camera, ChevronDown, Trash2, KeyRound } from "lucide-react";
 import { useState, useEffect, useRef } from 'react';
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from "@/components/LoadingSpinner";
+import ImageCropModal from "@/components/ImageCropModal";
 
 const Profile = () => {
     const { getToken, refreshUser } = useAuth();
@@ -15,9 +16,12 @@ const Profile = () => {
         last_name: string,
         email: string,
         tel: string,
-        university?: { id: number, name: string },
+        university_id?: number | null,
+        university?: { university_id: number, name: string } | null,
         role?: { id: number, name: string },
-        profile_picture?: string
+        profile_picture?: string | null,
+        provider?: 'local' | 'google',
+        has_password?: boolean
     } | null>(null);
 
     const [formData, setFormData] = useState({
@@ -30,7 +34,11 @@ const Profile = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const [isRemovingImage, setIsRemovingImage] = useState(false);
+    const [cropSource, setCropSource] = useState<string | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [passwordForm, setPasswordForm] = useState({ password: '', confirm_password: '' });
+    const [isSavingPassword, setIsSavingPassword] = useState(false);
     const [imgError, setImgError] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [universities, setUniversities] = useState<{ university_id: number, name: string }[]>([]);
@@ -55,7 +63,7 @@ const Profile = () => {
                         data.profile_picture = `${process.env.NEXT_PUBLIC_API_URL}${data.profile_picture}`;
                     }
                     setUser(data);
-                    setSelectedUniversityId(data.university?.id || null);
+                    setSelectedUniversityId(data.university?.university_id ?? data.university_id ?? null);
                 } else if (res.status === 401) {
                     // ถ้า Token หมดอายุให้เตะออกไปหน้า Login
                     localStorage.removeItem("access_token");
@@ -155,8 +163,9 @@ const Profile = () => {
                 setUser(prev => prev ? {
                     ...prev,
                     ...updateData,
-                    university: selectedUniversity ? { id: selectedUniversity.university_id, name: selectedUniversity.name } : prev.university
+                    university: selectedUniversity ? { university_id: selectedUniversity.university_id, name: selectedUniversity.name } : prev.university
                 } : null);
+                await refreshUser();
             } else {
                 const errorData = await res.json();
                 throw new Error(errorData.message || "ล้มเหลว");
@@ -172,12 +181,13 @@ const Profile = () => {
         }
     };
 
-    // จัดการอัปโหลดรูปโปรไฟล์
-    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // เลือกรูป → เปิดหน้าต่างครอปก่อน แล้วค่อยอัปโหลดรูปที่ครอปแล้ว
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
+        // ล้างค่า input เพื่อให้เลือกไฟล์เดิมซ้ำได้
+        e.target.value = '';
         if (!file) return;
 
-        // ตรวจสอบประเภทไฟล์
         const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         if (!validTypes.includes(file.type)) {
             Swal.fire({
@@ -188,71 +198,155 @@ const Profile = () => {
             return;
         }
 
-        // ตรวจสอบขนาดไฟล์ (สูงสุด 5MB)
-        if (file.size > 5 * 1024 * 1024) {
+        // รูปต้นฉบับใหญ่ได้ถึง 10MB เพราะหลังครอปจะถูกย่อเหลือ 512×512 ก่อนอัปโหลด
+        if (file.size > 10 * 1024 * 1024) {
             Swal.fire({
                 icon: "error",
                 title: "ไฟล์ใหญ่เกินไป",
-                text: "กรุณาเลือกรูปที่มีขนาดไม่เกิน 5MB",
+                text: "กรุณาเลือกรูปที่มีขนาดไม่เกิน 10MB",
             });
             return;
         }
 
-        // แสดง preview
         const reader = new FileReader();
-        reader.onloadend = () => {
-            setPreviewImage(reader.result as string);
-        };
+        reader.onloadend = () => setCropSource(reader.result as string);
         reader.readAsDataURL(file);
+    };
 
-        // อัปโหลดไปยัง backend
+    const handleCropConfirm = async (blob: Blob) => {
         setIsUploadingImage(true);
+        const localPreview = URL.createObjectURL(blob);
+        setPreviewImage(localPreview);
         try {
-            const formData = new FormData();
-            formData.append('profile_picture', file);
+            const body = new FormData();
+            body.append('profile_picture', new File([blob], 'profile.jpg', { type: 'image/jpeg' }));
 
             const token = getToken();
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile/picture`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: formData,
+                headers: { 'Authorization': `Bearer ${token}` },
+                body,
             });
-
             const data = await res.json();
 
-            if (res.ok) {
-                await Swal.fire({
-                    icon: "success",
-                    title: "อัปโหลดสำเร็จ!",
-                    text: "รูปโปรไฟล์ของคุณถูกอัปเดตแล้ว",
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-
-                // อัปเดตรูปใน state
-                const fullPicUrl = data.profile_picture && !data.profile_picture.startsWith('http')
-                    ? `${process.env.NEXT_PUBLIC_API_URL}${data.profile_picture}`
-                    : data.profile_picture;
-                setUser(prev => prev ? { ...prev, profile_picture: fullPicUrl } : null);
-                setPreviewImage(null);
-
-                // Refresh user data ใน AuthContext
-                await refreshUser();
-            } else {
+            if (!res.ok) {
                 throw new Error(data.message || "อัปโหลดไม่สำเร็จ");
             }
-        } catch (err: any) {
+
+            setCropSource(null);
+            const fullPicUrl = data.profile_picture && !data.profile_picture.startsWith('http')
+                ? `${process.env.NEXT_PUBLIC_API_URL}${data.profile_picture}`
+                : data.profile_picture;
+            setUser(prev => prev ? { ...prev, profile_picture: fullPicUrl } : null);
+
+            await Swal.fire({
+                icon: "success",
+                title: "อัปโหลดสำเร็จ!",
+                text: "รูปโปรไฟล์ของคุณถูกอัปเดตแล้ว",
+                timer: 1500,
+                showConfirmButton: false
+            });
+            await refreshUser();
+        } catch (err) {
             console.error("Upload error:", err);
             Swal.fire({
                 icon: "error",
                 title: "เกิดข้อผิดพลาด",
-                text: err.message || "ไม่สามารถอัปโหลดรูปได้ กรุณาลองใหม่อีกครั้ง"
+                text: err instanceof Error ? err.message : "ไม่สามารถอัปโหลดรูปได้ กรุณาลองใหม่อีกครั้ง"
             });
-            setPreviewImage(null);
         } finally {
+            setPreviewImage(null);
+            URL.revokeObjectURL(localPreview);
             setIsUploadingImage(false);
+        }
+    };
+
+    const handleRemovePicture = async () => {
+        const confirm = await Swal.fire({
+            title: "ลบรูปโปรไฟล์?",
+            text: "รูปโปรไฟล์จะถูกลบและแสดงเป็นไอคอนเริ่มต้นแทน",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#dc2626",
+            cancelButtonColor: "#6b7280",
+            confirmButtonText: "ลบรูป",
+            cancelButtonText: "ยกเลิก",
+            reverseButtons: true
+        });
+        if (!confirm.isConfirmed) return;
+
+        setIsRemovingImage(true);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile/picture`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${getToken()}` },
+            });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.message || "ลบรูปไม่สำเร็จ");
+            }
+
+            setUser(prev => prev ? { ...prev, profile_picture: null } : null);
+            await Swal.fire({
+                icon: "success",
+                title: "ลบรูปโปรไฟล์แล้ว",
+                timer: 1500,
+                showConfirmButton: false
+            });
+            await refreshUser();
+        } catch (err) {
+            Swal.fire({
+                icon: "error",
+                title: "เกิดข้อผิดพลาด",
+                text: err instanceof Error ? err.message : "ไม่สามารถลบรูปได้ กรุณาลองใหม่อีกครั้ง"
+            });
+        } finally {
+            setIsRemovingImage(false);
+        }
+    };
+
+    // ตั้งรหัสผ่านครั้งแรก (บัญชีที่เข้าสู่ระบบด้วย Google)
+    const handleSetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (passwordForm.password.length < 8) {
+            Swal.fire({ icon: "error", title: "รหัสผ่านสั้นเกินไป", text: "รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร" });
+            return;
+        }
+        if (passwordForm.password !== passwordForm.confirm_password) {
+            Swal.fire({ icon: "error", title: "รหัสผ่านไม่ตรงกัน", text: "กรุณากรอกยืนยันรหัสผ่านให้ตรงกัน" });
+            return;
+        }
+
+        setIsSavingPassword(true);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile/password`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getToken()}`,
+                },
+                body: JSON.stringify(passwordForm),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                const message = Array.isArray(data.message) ? data.message.join(', ') : data.message;
+                throw new Error(message || "ตั้งรหัสผ่านไม่สำเร็จ");
+            }
+
+            setPasswordForm({ password: '', confirm_password: '' });
+            setUser(prev => prev ? { ...prev, has_password: true } : null);
+            await Swal.fire({
+                icon: "success",
+                title: "ตั้งรหัสผ่านเรียบร้อย",
+                text: "ต่อไปคุณสามารถเข้าสู่ระบบด้วยอีเมลและรหัสผ่านนี้ได้ด้วย",
+                timer: 2000,
+                showConfirmButton: false
+            });
+            await refreshUser();
+        } catch (err) {
+            Swal.fire({ icon: "error", title: "เกิดข้อผิดพลาด", text: err instanceof Error ? err.message : "ตั้งรหัสผ่านไม่สำเร็จ" });
+        } finally {
+            setIsSavingPassword(false);
         }
     };
 
@@ -268,6 +362,7 @@ const Profile = () => {
     if (!user.last_name) missingFields.push('นามสกุล');
     if (!user.tel) missingFields.push('เบอร์โทรศัพท์');
     if (!user.university) missingFields.push('มหาวิทยาลัย');
+    if (user.has_password === false) missingFields.push('รหัสผ่าน');
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -331,6 +426,7 @@ const Profile = () => {
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={isUploadingImage}
+                                        aria-label="เปลี่ยนรูปโปรไฟล์"
                                         className="absolute bottom-0 right-0 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {isUploadingImage ? (
@@ -339,6 +435,24 @@ const Profile = () => {
                                             <Camera className="w-4 h-4" />
                                         )}
                                     </button>
+
+                                    {/* ปุ่มลบรูป — แสดงเมื่อมีรูปโปรไฟล์อยู่ */}
+                                    {user.profile_picture && (
+                                        <button
+                                            type="button"
+                                            onClick={handleRemovePicture}
+                                            disabled={isRemovingImage || isUploadingImage}
+                                            title="ลบรูปโปรไฟล์"
+                                            aria-label="ลบรูปโปรไฟล์"
+                                            className="absolute bottom-0 left-0 bg-white hover:bg-red-50 text-red-600 border border-red-200 p-2 rounded-full shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                                        >
+                                            {isRemovingImage ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <Trash2 className="w-4 h-4" />
+                                            )}
+                                        </button>
+                                    )}
 
                                     {/* Hidden file input */}
                                     <input
@@ -406,8 +520,9 @@ const Profile = () => {
                         <div className="p-5 md:p-8">
                             <form className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6" onSubmit={(e) => e.preventDefault()}>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">ชื่อจริง</label>
+                                    <label htmlFor="profile-first-name" className="text-xs md:text-sm font-medium text-gray-500">ชื่อจริง</label>
                                     <input
+                                        id="profile-first-name"
                                         name="first_name"
                                         type="text"
                                         value={formData.first_name}
@@ -425,8 +540,9 @@ const Profile = () => {
                                     )}
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">นามสกุล</label>
+                                    <label htmlFor="profile-last-name" className="text-xs md:text-sm font-medium text-gray-500">นามสกุล</label>
                                     <input
+                                        id="profile-last-name"
                                         name="last_name"
                                         type="text"
                                         value={formData.last_name}
@@ -444,10 +560,11 @@ const Profile = () => {
                                     )}
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">อีเมล (ไม่สามารถแก้ไขได้)</label>
+                                    <label htmlFor="profile-email" className="text-xs md:text-sm font-medium text-gray-500">อีเมล (ไม่สามารถแก้ไขได้)</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
+                                            id="profile-email"
                                             type="email"
                                             value={formData.email}
                                             readOnly
@@ -456,10 +573,11 @@ const Profile = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">เบอร์โทรศัพท์</label>
+                                    <label htmlFor="profile-tel" className="text-xs md:text-sm font-medium text-gray-500">เบอร์โทรศัพท์</label>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
+                                            id="profile-tel"
                                             name="tel"
                                             type="tel"
                                             value={formData.tel}
@@ -480,11 +598,12 @@ const Profile = () => {
 
                                 <div className="md:col-span-2 pt-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] md:text-xs font-medium text-gray-400 ">มหาวิทยาลัย</label>
+                                        <label htmlFor="profile-university" className="text-xs md:text-sm font-medium text-gray-500">มหาวิทยาลัย</label>
                                         {isEditing ? (
                                             <div className="relative">
                                                 <School className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
                                                 <select
+                                                    id="profile-university"
                                                     value={selectedUniversityId || ''}
                                                     onChange={(e) => setSelectedUniversityId(Number(e.target.value))}
                                                     className="w-full pl-11 pr-10 py-3 md:py-2.5 rounded-xl border border-blue-500 ring-4 ring-blue-50 bg-white text-sm transition-all outline-none appearance-none cursor-pointer"
@@ -515,10 +634,68 @@ const Profile = () => {
                                     </div>
                                 </div>
                             </form>
+
+                            {/* ตั้งรหัสผ่าน — เฉพาะบัญชีที่ยังไม่มีรหัสผ่าน (เข้าสู่ระบบด้วย Google) */}
+                            {user.has_password === false && (
+                                <form onSubmit={handleSetPassword} className="mt-8 border-t border-gray-100 pt-6">
+                                    <div className="flex items-start gap-3 mb-4">
+                                        <KeyRound className="w-5 h-5 text-indigo-500 mt-0.5" />
+                                        <div>
+                                            <h2 className="text-sm font-medium text-gray-900">ตั้งรหัสผ่าน</h2>
+                                            <p className="text-xs text-gray-500">
+                                                บัญชีนี้เข้าสู่ระบบด้วย Google ตั้งรหัสผ่านไว้เพื่อให้เข้าสู่ระบบด้วยอีเมลได้ด้วย
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                                        <div className="space-y-1.5">
+                                            <label htmlFor="new-password" className="text-[10px] md:text-xs font-medium text-gray-400">รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)</label>
+                                            <input
+                                                id="new-password"
+                                                type="password"
+                                                autoComplete="new-password"
+                                                value={passwordForm.password}
+                                                onChange={(e) => setPasswordForm(prev => ({ ...prev, password: e.target.value }))}
+                                                className="w-full px-4 py-3 md:py-2.5 rounded-xl border border-gray-300 bg-white text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
+                                            />
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            <label htmlFor="confirm-password" className="text-[10px] md:text-xs font-medium text-gray-400">ยืนยันรหัสผ่าน</label>
+                                            <input
+                                                id="confirm-password"
+                                                type="password"
+                                                autoComplete="new-password"
+                                                value={passwordForm.confirm_password}
+                                                onChange={(e) => setPasswordForm(prev => ({ ...prev, confirm_password: e.target.value }))}
+                                                className="w-full px-4 py-3 md:py-2.5 rounded-xl border border-gray-300 bg-white text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 flex justify-end">
+                                        <button
+                                            type="submit"
+                                            disabled={isSavingPassword || !passwordForm.password || !passwordForm.confirm_password}
+                                            className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition shadow-sm disabled:opacity-50 cursor-pointer"
+                                        >
+                                            {isSavingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                            บันทึกรหัสผ่าน
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
                         </div>
                     </div>
                 </div>
             </main>
+
+            {cropSource && (
+                <ImageCropModal
+                    imageSrc={cropSource}
+                    isSaving={isUploadingImage}
+                    onCancel={() => setCropSource(null)}
+                    onConfirm={handleCropConfirm}
+                />
+            )}
 
             <Footer />
         </div>

@@ -7,6 +7,7 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { sanitizeHtml } from "@/utils/sanitize";
 
 interface NewsDetail {
     article_id: number;
@@ -119,7 +120,7 @@ const NewsDetailPage = () => {
 
                             <div
                                 className="prose prose-blue max-w-none text-gray-700 leading-relaxed [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_s]:line-through [&_a]:text-blue-600 [&_a]:underline [&_img]:rounded-lg [&_img]:my-4"
-                                dangerouslySetInnerHTML={{ __html: news.content }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(news.content) }}
                             />
                             
                             {news.source_url && (
@@ -144,9 +145,10 @@ const NewsDetailPage = () => {
                             <div className="mt-12 pt-8 border-t border-gray-100">
                                 <button
                                     onClick={() => router.back()}
+                                    aria-label="ย้อนกลับไปหน้าก่อนหน้า"
                                     className="flex items-center text-blue-600 font-medium hover:underline"
                                 >
-                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg className="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                     </svg>
                                 </button>

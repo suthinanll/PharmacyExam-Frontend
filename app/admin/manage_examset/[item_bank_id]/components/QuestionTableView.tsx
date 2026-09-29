@@ -17,6 +17,7 @@ import {
     BarChart2,
     FileText,
 } from 'lucide-react';
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // ─── Types ──────────────────────────────────────────────────
 interface AnswerOption {
@@ -149,7 +150,7 @@ function QuestionDetailModal({ row, situationSeqMap, onClose }: { row: FlatRow; 
                         <p className="text-xs font-medium text-gray-500  mb-2">โจทย์คำถาม</p>
                         <div
                             className="prose prose-sm max-w-none text-gray-800 font-medium leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-200"
-                            dangerouslySetInnerHTML={{ __html: question.question_text }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(question.question_text) }}
                         />
                         {question.question_image_url && question.question_image_url.trim() !== '' && question.question_image_url !== '-' && (
                             <div className="mt-3">
@@ -191,7 +192,7 @@ function QuestionDetailModal({ row, situationSeqMap, onClose }: { row: FlatRow; 
                                             {opt.option_text && opt.option_text.trim() !== '' && (
                                                 <span
                                                     className={`text-sm leading-relaxed block ${opt.is_correct ? 'text-green-800 font-medium' : 'text-gray-700'}`}
-                                                    dangerouslySetInnerHTML={{ __html: formatScientificText(opt.option_text) }}
+                                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(opt.option_text)) }}
                                                 />
                                             )}
                                             {opt.option_image_url && opt.option_image_url.trim() !== '' && (
@@ -512,7 +513,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                                             {question.question_text ? (
                                                 <div
                                                     className="text-gray-800 line-clamp-2 text-sm leading-relaxed"
-                                                    dangerouslySetInnerHTML={{ __html: question.question_text }}
+                                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(question.question_text) }}
                                                 />
                                             ) : (
                                                 <span className="text-gray-400 italic">ไม่มีโจทย์</span>

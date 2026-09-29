@@ -4,13 +4,14 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { Loader2, BookOpen, Clock, AlertCircle, ListCheck, X, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 import ImagePreviewModal from '@/components/ImagePreviewModal';
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { formatScientificText } from "@/utils/formatText";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // Types
 interface AnswerOption {
@@ -87,6 +88,9 @@ function TakeExam() {
     const [flaggedQuestions, setFlaggedQuestions] = useState<{ [key: number]: boolean }>({});
     // Track whether exam was properly submitted (don't cancel on submit)
     const submittedRef = useRef(false);
+    // กันส่งซ้ำแบบทันที — state `submitting` ถูก capture ไว้ใน closure เก่า
+    // (เช่น callback ของ Swal ตอนหมดเวลา) เลยกันไม่ทันถ้าสองทางยิงพร้อมกัน
+    const submittingRef = useRef(false);
 
     const toggleFlagQuestion = (itemId: number) => {
         setFlaggedQuestions(prev => {
@@ -343,9 +347,18 @@ function TakeExam() {
         });
     };
 
-    const submitExam = async () => {
-        if (submitting) return;
+    // ล้างแคชคำตอบ/เวลาของเซสชันที่จบไปแล้ว
+    const clearExamCache = () => {
+        localStorage.removeItem(`exam_answers_${sessionId}`);
+        localStorage.removeItem(`exam_flags_${sessionId}`);
+        localStorage.removeItem(`exam_start_time_${sessionId}`);
+        sessionStorage.removeItem("active_exam_session");
+    };
 
+    const submitExam = async () => {
+        if (submittingRef.current || submittedRef.current) return;
+
+        submittingRef.current = true;
         setSubmitting(true);
 
         try {
@@ -385,9 +398,7 @@ function TakeExam() {
                 submittedRef.current = true; // ✅ เซ็ตก่อนเลย ป้องกัน cancel
 
                 // ล้างแคชคำตอบของเซสชันที่ส่งแล้ว
-                localStorage.removeItem(`exam_answers_${sessionId}`);
-                localStorage.removeItem(`exam_flags_${sessionId}`);
-                localStorage.removeItem(`exam_start_time_${sessionId}`);
+                clearExamCache();
 
                 await Swal.fire({
                     title: "ส่งข้อสอบสำเร็จ!",
@@ -397,7 +408,6 @@ function TakeExam() {
                     confirmButtonColor: "#22c55e",
                     confirmButtonText: "ดูผลสอบ",
                 });
-                sessionStorage.removeItem('active_exam_session');
                 sessionStorage.setItem('summarize-exam_session', JSON.stringify({
                     session_id: result.session_id,
                 }));
@@ -416,6 +426,29 @@ function TakeExam() {
                     // If response is not JSON, use status text
                     errorMessage = `Server Error: ${response.status} ${response.statusText}`;
                 }
+
+                // เซสชันนี้ถูกส่งไปแล้ว (กดส่งซ้ำ / auto-submit ชนกัน / เปิดเซสชันเก่าค้างไว้)
+                // ไม่ใช่ error ที่ผู้ใช้ต้องแก้ — พาไปดูผลสอบของชุดนี้แทน
+                if (response.status === 400 && errorMessage.includes("ถูกส่งไปแล้ว")) {
+                    submittedRef.current = true;
+                    clearExamCache();
+
+                    await Swal.fire({
+                        title: "ข้อสอบชุดนี้ส่งไปแล้ว",
+                        text: "ระบบจะพาคุณไปดูผลสอบของชุดนี้",
+                        icon: "info",
+                        confirmButtonColor: "#16a34a",
+                        confirmButtonText: "ดูผลสอบ",
+                    });
+
+                    sessionStorage.setItem(
+                        "summarize-exam_session",
+                        JSON.stringify({ session_id: Number(sessionId) }),
+                    );
+                    router.push("/user/examset/take-exam/summarize-exam");
+                    return;
+                }
+
                 throw new Error(errorMessage);
             }
         } catch (error: any) {
@@ -426,6 +459,7 @@ function TakeExam() {
                 icon: "error",
                 confirmButtonColor: "#ef4444",
             });
+            submittingRef.current = false;
             setSubmitting(false);
         }
     };
@@ -559,7 +593,7 @@ function TakeExam() {
         return (
             <>
                 <Navbar_user />
-                <div className="min-h-[60vh] flex items-center justify-center">
+                <div className="min-h-screen flex items-start justify-center pt-24">
                     <LoadingSpinner size="lg" text="กำลังโหลดข้อสอบ..." />
                 </div>
                 <Footer />
@@ -617,12 +651,12 @@ function TakeExam() {
                                             {currentQuestion.situation.situation_title && (
                                                 <p
                                                     className="font-medium text-gray-800 mb-2"
-                                                    dangerouslySetInnerHTML={{ __html: currentQuestion.situation.situation_title }}
+                                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(currentQuestion.situation.situation_title) }}
                                                 />
                                             )}
                                             <p
                                                 className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base"
-                                                dangerouslySetInnerHTML={{ __html: formatScientificText(currentQuestion.situation.situation_text) }}
+                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(currentQuestion.situation.situation_text)) }}
                                             />
                                             {currentQuestion.situation.situation_image_url && (
                                                 <img
@@ -666,7 +700,7 @@ function TakeExam() {
                                     <div className="mb-4">
                                         <p
                                             className="text-lg sm:text-xl font-medium text-gray-900 leading-relaxed whitespace-pre-wrap"
-                                            dangerouslySetInnerHTML={{ __html: formatScientificText(currentQuestion.question_text) }}
+                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(currentQuestion.question_text)) }}
                                         />
                                         {currentQuestion.question_image_url && (
                                             <div className="mt-4 mb-2">
@@ -736,7 +770,7 @@ function TakeExam() {
                                                         {option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' && (
                                                             <span
                                                                 className="text-gray-800 text-sm lg:text-base leading-relaxed block"
-                                                                dangerouslySetInnerHTML={{ __html: formatScientificText(option.option_text) }}
+                                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(option.option_text)) }}
                                                             />
                                                         )}
                                                         

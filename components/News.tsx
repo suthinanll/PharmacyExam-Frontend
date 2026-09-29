@@ -47,12 +47,14 @@ export default function NewsCard({
     <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full hover:shadow-xl transition-shadow duration-300">
       <div className="relative">
         <a href={link} target="_blank" rel="noopener noreferrer">
+          {/* ไม่ใส่ unoptimized เพื่อให้ Next.js ย่อรูปตามขนาดที่แสดงจริงและแปลงเป็น WebP
+              รูปต้นทางบางไฟล์ใหญ่ถึง 500KB ทั้งที่การ์ดกว้างไม่เกิน 400px */}
           <Image
             src={imgSrc || "/img/news1.jpg"}
             alt={title}
             width={500}
             height={300}
-            unoptimized
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
             onError={() => setImgSrc("/img/news1.jpg")}
             className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
           />
@@ -60,9 +62,10 @@ export default function NewsCard({
       </div>
       <div className="p-4 sm:p-5 flex flex-col flex-1">
         <a href={link} target="_blank" rel="noopener noreferrer">
-          <h5 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
+          {/* h3 ต่อจากหัวข้อ "ข่าวสารและประกาศ" ที่เป็น h2 — ใช้ h5 จะข้ามลำดับหัวข้อ */}
+          <h3 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
             {title}
-          </h5>
+          </h3>
         </a>
         <p className="text-sm text-gray-600 leading-relaxed mb-4 flex-1 line-clamp-3">
           {desc}
@@ -81,6 +84,8 @@ export default function NewsCard({
           <button
             onClick={handleBookmarkClick}
             type="button"
+            aria-label={isSaved ? `เอาข่าว ${title} ออกจากรายการที่บันทึก` : `บันทึกข่าว ${title}`}
+            aria-pressed={isSaved}
             className={`w-10 h-10 flex items-center justify-center rounded-xl border-2 transition-all duration-300 
               ${
                 isSaved

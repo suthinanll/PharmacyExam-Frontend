@@ -138,7 +138,7 @@ function Summarize() {
         return (
             <>
                 <Navbar_user />
-                <div className="min-h-[60vh] flex items-center justify-center">
+                <div className="min-h-screen flex items-start justify-center pt-24">
                     <LoadingSpinner size="lg" text="กำลังโหลดผลการสอบ..." />
                 </div>
                 <Footer />

@@ -346,7 +346,7 @@ export default function ExamHistoryPage() {
     if (loading) return (
         <>
             <Navbar />
-            <div className="min-h-[60vh] flex items-center justify-center">
+            <div className="min-h-screen flex items-start justify-center pt-24">
                 <LoadingSpinner size="lg" text="กำลังโหลดประวัติการสอบ..." />
             </div>
             <Footer />
@@ -454,6 +454,8 @@ export default function ExamHistoryPage() {
                             </div>
                             <button
                                 onClick={() => setShowFilter(!showFilter)}
+                                aria-label="ตัวกรอง"
+                                aria-expanded={showFilter}
                                 className={`px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-all cursor-pointer ${showFilter || hasFilter
                                     ? "bg-blue-600 text-white"
                                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -704,9 +706,9 @@ export default function ExamHistoryPage() {
                                                             {/* Main info */}
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
-                                                                    <h3 className="font-medium text-gray-900 text-sm sm:text-base leading-snug">
+                                                                    <h2 className="font-medium text-gray-900 text-sm sm:text-base leading-snug">
                                                                         {title}
-                                                                    </h3>
+                                                                    </h2>
                                                                     <span className={`text-[10px] sm:text-sm font-medium px-2 py-0.5 rounded-full  shrink-0 ${isCAT
                                                                         ? "bg-purple-100 text-purple-700"
                                                                         : "bg-blue-100 text-blue-700"

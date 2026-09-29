@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar_admin from "@/components/Navbar_admin";
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { Loader2, Save, X } from 'lucide-react';
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/categories`;

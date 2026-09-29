@@ -19,7 +19,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 
 const CATEGORY_STYLES: Record<string, string> = {
   "PLE-CC1": "bg-blue-50 text-blue-700 border-blue-200",

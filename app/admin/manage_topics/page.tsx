@@ -8,7 +8,7 @@ import {
     LayoutGrid, Search, ArrowUpDown, Filter, BarChart3,
     Layers, Maximize2, Minimize2, FolderTree, Tag
 } from "lucide-react";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import { useAuth } from "@/contexts/AuthContext";
 import { SWAL_COLORS } from "@/utils/swal";
 import Pagination from "@/components/Pagination";

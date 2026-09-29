@@ -9,7 +9,7 @@ import {
   Trash2, RotateCcw, Layers, Eye
 } from "lucide-react";
 import Link from "next/link";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import CreateItemBankModal from "./components/CreateItemBankModal";
 import { useAuth } from "@/contexts/AuthContext";
 import Pagination from "@/components/Pagination";

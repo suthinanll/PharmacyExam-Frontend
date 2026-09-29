@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useLayoutEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface User {
@@ -11,6 +11,23 @@ interface User {
     tel?: string;
     role_id: number;
     profile_picture?: string;
+    provider?: 'local' | 'google';
+    university_id?: number | null;
+    /** มาจาก /auth/me — บัญชีที่สมัครผ่าน Google จะเป็น false จนกว่าจะตั้งรหัสผ่าน */
+    has_password?: boolean;
+}
+
+/**
+ * ข้อมูลที่บัญชี Google ยังต้องกรอกเพิ่ม (สมัครแบบปกติจะกรอกครบตั้งแต่ตอนลงทะเบียน)
+ * คืนค่าเป็น array ว่างเมื่อข้อมูลครบแล้ว หรือไม่ใช่บัญชี Google
+ */
+export function getMissingProfileFields(user: User | null): ('tel' | 'university' | 'password')[] {
+    if (!user || user.provider !== 'google') return [];
+    const missing: ('tel' | 'university' | 'password')[] = [];
+    if (!user.tel) missing.push('tel');
+    if (!user.university_id) missing.push('university');
+    if (user.has_password === false) missing.push('password');
+    return missing;
 }
 
 interface AuthContextType {
@@ -106,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.removeItem('access_token');
             }
         } catch (error) {
-            console.error('Error fetching user:', error);
+            console.warn('Auth server unavailable while fetching user:', error);
             // If offline, keep cached user if available
         } finally {
             setIsLoading(false);
@@ -158,6 +175,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(true);
         await fetchUser();
     };
+
+    // ถ้ามี token + ข้อมูลผู้ใช้ที่แคชไว้ ให้เปิดหน้าใช้งานได้ทันทีหลัง hydrate
+    // แล้วค่อยยืนยันกับ /auth/me เบื้องหลัง (stale-while-revalidate)
+    // เดิมทุกหน้าที่ต้องล็อกอินต้องรอ /auth/me ตอบก่อนถึงจะวาดเนื้อหา ทำให้ LCP ช้า
+    // ใช้ useLayoutEffect แทน initial state เพื่อไม่ให้ HTML ฝั่งเซิร์ฟเวอร์กับไคลเอนต์ต่างกัน
+    useLayoutEffect(() => {
+        try {
+            if (localStorage.getItem('access_token') && localStorage.getItem('cached_user')) {
+                setIsLoading(false);
+            }
+        } catch { }
+    }, []);
 
     useEffect(() => {
         fetchUser();

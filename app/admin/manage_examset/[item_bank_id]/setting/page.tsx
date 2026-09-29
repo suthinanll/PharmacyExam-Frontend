@@ -4,7 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar_admin from "@/components/Navbar_admin";
 import Footer from "@/components/Footer";
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { Loader2, Save, ChevronRight, Trash2, ArrowLeft } from 'lucide-react';
 
 // Types

@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 function AuthCallbackContent() {
@@ -72,11 +72,11 @@ function AuthCallbackContent() {
           timer: 2000,
         });
 
-        // Redirect ตาม role
+        // Redirect ตาม role (3 = Super Admin เข้าแผงแอดมินเหมือน role 2)
         const roleId = userData.role_id;
         if (roleId === 1) {
           router.push("/user");
-        } else if (roleId === 2) {
+        } else if (roleId === 2 || roleId === 3) {
           router.push("/admin");
         } else {
           router.push("/");

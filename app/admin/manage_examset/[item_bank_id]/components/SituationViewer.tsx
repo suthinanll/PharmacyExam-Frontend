@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import ImagePreviewModal from '@/components/ImagePreviewModal';
 import { formatScientificText } from '@/utils/formatText';
+import { sanitizeHtml } from "@/utils/sanitize";
 
 interface AnswerOption {
     option_id?: number;
@@ -229,7 +230,7 @@ export default function SituationViewer({
                                             <div className="flex-1 min-w-0">
                                                 <div
                                                     className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-2 pr-2 prose prose-sm max-w-none"
-                                                    dangerouslySetInnerHTML={{ __html: question.question_text || 'คำถามใหม่' }}
+                                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(question.question_text || 'คำถามใหม่') }}
                                                 />
                                                 {!isQCollapsed && showAnswers && correctIndex >= 0 && (
                                                     <div className="mt-1.5 flex items-center gap-1.5 text-sm text-green-600">
@@ -290,7 +291,7 @@ export default function SituationViewer({
                                                                         {option.option_text && option.option_text.trim() !== '' && (
                                                                             <span
                                                                                 className={`text-sm leading-relaxed break-words block ${revealCorrect ? 'text-green-800 font-medium' : 'text-gray-700'}`}
-                                                                                dangerouslySetInnerHTML={{ __html: formatScientificText(option.option_text) }}
+                                                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(option.option_text)) }}
                                                                             />
                                                                         )}
                                                                     </div>
@@ -310,7 +311,7 @@ export default function SituationViewer({
                                                             <p className="text-sm font-medium text-amber-700 mb-1 ">คำอธิบายเฉลย</p>
                                                             <div
                                                                 className="prose prose-sm max-w-none text-amber-800 leading-relaxed"
-                                                                dangerouslySetInnerHTML={{ __html: question.explanation }}
+                                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(question.explanation) }}
                                                             />
                                                         </div>
                                                     </div>
@@ -372,7 +373,7 @@ export default function SituationViewer({
                                             <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-green-400 to-green-600 shrink-0" />
                                             <div
                                                 className="prose prose-sm max-w-none text-gray-700 leading-relaxed text-[15px]"
-                                                dangerouslySetInnerHTML={{ __html: situation.situation_text }}
+                                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(situation.situation_text) }}
                                             />
                                         </div>
                                     )}
@@ -419,7 +420,7 @@ export default function SituationViewer({
                                                     <div className="flex-1 min-w-0">
                                                         <div
                                                             className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-2 pr-2 prose prose-sm max-w-none"
-                                                            dangerouslySetInnerHTML={{ __html: question.question_text || 'คำถามใหม่' }}
+                                                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(question.question_text || 'คำถามใหม่') }}
                                                         />
                                                         {!isQCollapsed && showAnswers && correctIndex >= 0 && (
                                                             <div className="mt-1.5 flex items-center gap-1.5 text-sm text-green-600">
@@ -484,7 +485,7 @@ export default function SituationViewer({
                                                                                 {option.option_text && option.option_text.trim() !== '' && (
                                                                                     <span
                                                                                         className={`text-sm leading-relaxed break-words block ${revealCorrect ? 'text-green-800 font-medium' : 'text-gray-700'}`}
-                                                                                        dangerouslySetInnerHTML={{ __html: formatScientificText(option.option_text) }}
+                                                                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(option.option_text)) }}
                                                                                     />
                                                                                 )}
                                                                             </div>
@@ -506,7 +507,7 @@ export default function SituationViewer({
                                                                     <p className="text-sm font-medium text-amber-700 mb-1 ">คำอธิบายเฉลย</p>
                                                                     <div
                                                                         className="prose prose-sm max-w-none text-amber-800 leading-relaxed"
-                                                                        dangerouslySetInnerHTML={{ __html: question.explanation }}
+                                                                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(question.explanation) }}
                                                                     />
                                                                 </div>
                                                             </div>

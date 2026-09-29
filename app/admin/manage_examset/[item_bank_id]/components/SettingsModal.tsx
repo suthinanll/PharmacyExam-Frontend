@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { Loader2, Save, X, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from "@/contexts/AuthContext";

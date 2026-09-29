@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import React, { useState, useEffect } from "react";
-import Swal from "sweetalert2";
+import Swal from "@/utils/sweetalert";
 import {
   Eye,
   EyeOff,
@@ -13,6 +13,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { getSafeRedirect, withRedirect } from "@/utils/redirect";
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
@@ -70,6 +71,13 @@ export default function RegisterPage() {
   });
 
   const router = useRouter();
+  const [loginHref, setLoginHref] = useState("/login");
+
+  // อ่าน ?redirect= หลัง mount (ไม่อ่านตอน render เพื่อเลี่ยง hydration mismatch)
+  useEffect(() => {
+    const redirectTo = getSafeRedirect();
+    if (redirectTo) setLoginHref(withRedirect("/login", redirectTo));
+  }, []);
 
   // ดึงข้อมูลมหาวิทยาลัย
   useEffect(() => {
@@ -287,6 +295,9 @@ export default function RegisterPage() {
       const result = await res.json();
 
       if (res.ok) {
+        // ถ้าสมัครมาจากหน้าที่ค้างไว้ (เช่น หน้าชำระเงิน) ส่งปลายทางต่อไปให้หน้า login
+        // เพื่อให้ล็อกอินเสร็จแล้วกลับไปทำต่อจากจุดเดิม ไม่หลุดไปหน้าอื่น
+        const redirectTo = getSafeRedirect();
         await Swal.fire({
           icon: "success",
           title: "สมัครสมาชิกสำเร็จ!",
@@ -294,7 +305,7 @@ export default function RegisterPage() {
           showConfirmButton: false,
           timer: 2000,
         });
-        router.push("/login");
+        router.push(redirectTo ? withRedirect("/login", redirectTo) : "/login");
       } else {
         const errorMsg = Array.isArray(result.message) ? result.message[0] : result.message;
         Swal.fire({
@@ -371,7 +382,7 @@ export default function RegisterPage() {
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-gray-700 flex items-center justify-between">
                     <span>เบอร์โทรศัพท์ (10 หลัก)</span>
-                    <span className="text-xs text-gray-400 font-normal">{tel.length}/10</span>
+                    <span className="text-xs text-gray-500 font-normal">{tel.length}/10</span>
                   </label>
                   <input
                     type="tel"
@@ -394,10 +405,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <label htmlFor="register-bod" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                     วันเดือนปีเกิด
                   </label>
                   <input
+                    id="register-bod"
                     type="date"
                     className="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm text-gray-600"
                     value={bod}
@@ -407,11 +419,12 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <label htmlFor="register-university" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                     มหาวิทยาลัย
                   </label>
                   <div className="relative">
                     <select
+                      id="register-university"
                       className="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm bg-white text-gray-600 appearance-none cursor-pointer"
                       value={universityId}
                       onChange={(e) => setUniversityId(e.target.value)}
@@ -468,6 +481,7 @@ export default function RegisterPage() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
                       className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400"
                     >
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -549,7 +563,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isSendingOTP}
-                className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-green-700 hover:bg-green-800 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSendingOTP ? (
                   <>
@@ -596,7 +610,7 @@ export default function RegisterPage() {
             <div className="flex flex-col gap-3">
               <button
                 type="submit"
-                className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer"
+                className="w-full bg-green-700 hover:bg-green-800 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer"
               >
                 ยืนยันและลงทะเบียน
               </button>
@@ -623,11 +637,12 @@ export default function RegisterPage() {
           </form>
         )}
 
+        {/* ส่งปลายทางที่ค้างไว้ต่อไปด้วย จะได้ไม่หลุดตอนเปลี่ยนใจไปล็อกอินแทน */}
         <div className="text-center mt-8 text-sm font-medium text-gray-500">
           มีบัญชีอยู่แล้ว?{" "}
           <a
-            href="/login"
-            className="text-green-600 font-medium hover:underline underline-offset-4"
+            href={loginHref}
+            className="text-green-700 font-medium underline underline-offset-4"
           >
             เข้าสู่ระบบ
           </a>

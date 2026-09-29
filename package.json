@@ -6,7 +6,9 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "lh:mobile": "node scripts/lighthouse-mobile.mjs",
+    "lh:desktop": "node scripts/lighthouse-mobile.mjs --desktop"
   },
   "dependencies": {
     "@tiptap/extension-image": "^3.30.2",
@@ -18,6 +20,7 @@
     "@tiptap/react": "^3.30.2",
     "@tiptap/starter-kit": "^3.30.2",
     "axios": "^1.13.2",
+    "dompurify": "^3.4.15",
     "framer-motion": "^12.23.22",
     "lucide-react": "^0.546.0",
     "next": "15.5.9",
@@ -34,8 +37,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "chrome-launcher": "^1.2.1",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
+    "lighthouse": "^12.8.2",
+    "puppeteer-core": "^25.12.0",
     "tailwindcss": "^4",
     "typescript": "5.9.3"
   }

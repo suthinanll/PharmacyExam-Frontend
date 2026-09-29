@@ -2,40 +2,31 @@
 
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
-import { headers } from 'next/headers';
 import './globals.css'
-import localFont from 'next/font/local';
+import { Kanit } from 'next/font/google';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
-import Script from 'next/script';
+import ScrollToTopButton from '@/components/ScrollToTopButton';
+import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
 
 
-const myFont = localFont({
-  src: [
-    {
-      path: './fonts/Kanit-Regular.ttf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: './fonts/Kanit-Medium.ttf',
-      weight: '500',
-      style: 'normal',
-    },
-    {
-      path: './fonts/Kanit-Bold.ttf',
-      weight: '700',
-      style: 'normal',
-    },
-  ],
+// ใช้ Kanit ผ่าน next/font/google — Next ดาวน์โหลดมาเก็บไว้ในโปรเจกต์ตอน build
+// จึงยังเสิร์ฟจากโดเมนเราเอง (ไม่ขัด CSP) แต่ได้ไฟล์ woff2 ที่ย่อเฉพาะอักษรไทย+ละติน
+// เล็กกว่าไฟล์ .ttf เดิมที่หนักไฟล์ละ 67KB ทำให้ตัวหนังสือขึ้นเร็วขึ้นและ LCP ดีขึ้น
+const myFont = Kanit({
+  subsets: ['thai', 'latin'],
+  weight: ['400', '500', '700'],
   display: 'swap',
   variable: '--font-primary',
 });
 
+/** ใช้ซ้ำทั้งใน <head> ที่เขียนเองและใน metadata ของ Open Graph */
+const SITE_DESCRIPTION =
+  'แพลตฟอร์มฝึกสอบออนไลน์สำหรับผู้ที่เตรียมสอบใบประกอบวิชาชีพเภสัชกรรม';
+
 export const metadata: Metadata = {
   title: 'เภสัชพร้อมสอบ',
-  description: 'แพลตฟอร์มฝึกสอบออนไลน์สำหรับผู้ที่เตรียมสอบใบประกอบวิชาชีพเภสัชกรรม',
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -52,26 +43,28 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
+  // เฉดเดียวกับแถบเมนูและ footer (ปรับให้เข้มขึ้นเพื่อให้ตัวหนังสือขาวผ่านเกณฑ์ contrast)
   themeColor: '#76B25A',
 };
 
 
 
-export default async function RootLayout({ children }: { children: ReactNode }) {
-  const headersList = await headers();
-  const nonce = headersList.get('x-nonce') ?? undefined;
-
+export default function RootLayout({ children }: { children: ReactNode }) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   return (
+    // ห้ามเขียน <head> เองใน App Router — Next จะย้าย meta ที่สร้างจาก metadata
+    // (รวมถึง description) ไปไว้ใน body ทำให้ Lighthouse มองว่าไม่มี meta description
+    // ส่วน <link> ด้านล่าง React จะยกขึ้นไปไว้ใน head ให้เอง ไอคอนและ theme-color
+    // ประกาศไว้ใน metadata/viewport ด้านบนแล้ว
     <html lang="th" className={`${myFont.variable}`}>
       <head>
+        {/* Next สตรีม meta ที่สร้างจาก metadata ไปไว้ท้าย body เพราะทุกหน้าเป็น dynamic
+            (middleware ออก nonce ใหม่ทุก request) เครื่องมือตรวจ SEO จึงมองไม่เห็น
+            จึงประกาศ description ตรงนี้เองเพื่อให้อยู่ใน head แน่นอน */}
+        <meta name="description" content={SITE_DESCRIPTION} />
         <link rel="preconnect" href={apiUrl} crossOrigin="anonymous" />
         <link rel="dns-prefetch" href={apiUrl} />
-        <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
-        <link rel="alternate icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-        <meta name="theme-color" content="#76B25A" />
       </head>
       <body>
         <AuthProvider>
@@ -89,48 +82,14 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
             {/* PWA Install Prompt */}
             <PWAInstallPrompt />
+
+            {/* ปุ่มลอยเลื่อนกลับขึ้นด้านบน — แสดงเมื่อเลื่อนลงมาไกลพอ */}
+            <ScrollToTopButton />
           </NotificationProvider>
         </AuthProvider>
 
-        {/* Service Worker Registration with Auto-Update */}
-        <Script id="register-sw" strategy="afterInteractive" nonce={nonce}>
-          {`
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(
-                  function(registration) {
-                    // Check for updates on every page load
-                    registration.update();
-
-                    // Detect new service worker installation
-                    registration.onupdatefound = function() {
-                      var installingWorker = registration.installing;
-                      if (!installingWorker) return;
-                      installingWorker.onstatechange = function() {
-                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                          // New version available -> tell it to skip waiting immediately
-                          installingWorker.postMessage({ type: 'SKIP_WAITING' });
-                        }
-                      };
-                    };
-                  },
-                  function(err) {
-                    console.log('Service Worker registration failed:', err);
-                  }
-                );
-
-                // Auto reload when the new Service Worker takes over
-                var refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', function() {
-                  if (!refreshing) {
-                    refreshing = true;
-                    window.location.reload();
-                  }
-                });
-              });
-            }
-          `}
-        </Script>
+        {/* ลงทะเบียน Service Worker — แยกเป็นคอมโพเนนต์เพราะต้องอ่าน nonce จาก header */}
+        <ServiceWorkerRegister />
       </body>
     </html>
   );

@@ -74,7 +74,7 @@ const NavbarGuest = () => {
         <div className="relative flex h-14 sm:h-16 items-center justify-between">
 
           {/* Mobile hamburger */}
-          <div className="absolute inset-y-0 left-0 flex items-center lg:hidden">
+          <div className="absolute inset-y-0 left-0 flex items-center xl:hidden">
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -91,7 +91,7 @@ const NavbarGuest = () => {
           </div>
 
           {/* Logo + Desktop nav */}
-          <div className="flex flex-1 items-center justify-center lg:items-stretch lg:justify-start">
+          <div className="flex flex-1 items-center justify-center xl:items-stretch xl:justify-start">
             <div className="flex shrink-0 items-center">
               <Link href="/" className="flex items-center space-x-2 group">
                 <span className="text-base sm:text-lg md:text-xl font-medium text-white group-hover:text-green-100 transition-colors">
@@ -100,7 +100,7 @@ const NavbarGuest = () => {
               </Link>
             </div>
 
-            <div className="hidden lg:ml-6 xl:ml-8 lg:block">
+            <div className="hidden xl:ml-8 xl:block">
               <div className="flex space-x-1.5 xl:space-x-2">
                 {navItems.map((item) => (
                   item.submenu ? (
@@ -204,8 +204,8 @@ const NavbarGuest = () => {
           <div className="hidden sm:flex items-center sm:ml-4 md:ml-6 space-x-2">
             {isAuthenticated ? (
               <Link
-                href={user?.role_id === 2 ? "/admin" : "/user"}
-                className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 text-sm font-semibold text-green-700 bg-white rounded-xl shadow-md hover:shadow-lg hover:bg-green-50 transition-all duration-200"
+                href={user?.role_id === 2 || user?.role_id === 3 ? "/admin" : "/user"}
+                className="inline-flex items-center gap-1.5 whitespace-nowrap px-4 sm:px-5 py-2 text-sm font-semibold text-green-700 bg-white rounded-xl shadow-md hover:shadow-lg hover:bg-green-50 transition-all duration-200"
               >
                 <LogIn size={16} />
                 ไปยังหน้าผู้ใช้
@@ -214,14 +214,14 @@ const NavbarGuest = () => {
               <>
                 <Link
                   href="/login"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white border border-white/40 rounded-xl hover:bg-white/10 transition-all duration-200"
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap px-4 py-2 text-sm font-medium text-white border border-white/40 rounded-xl hover:bg-white/10 transition-all duration-200"
                 >
                   <LogIn size={16} />
                   เข้าสู่ระบบ
                 </Link>
                 <Link
                   href="/register"
-                  className="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 text-sm font-medium text-green-700 bg-white rounded-xl shadow-md hover:shadow-lg hover:bg-green-50 transition-all duration-200"
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap px-4 sm:px-5 py-2 text-sm font-medium text-green-700 bg-white rounded-xl shadow-md hover:shadow-lg hover:bg-green-50 transition-all duration-200"
                 >
                   <UserPlus size={16} />
                   สมัครสมาชิก
@@ -234,7 +234,7 @@ const NavbarGuest = () => {
       </div>
 
       {/* Mobile menu */}
-      <div className={`lg:hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
+      <div className={`xl:hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
         <div className="mobilenav space-y-1 px-2 pt-2 pb-3 backdrop-blur-sm">
           {navItems.map((item) => (
             item.submenu ? (
@@ -313,7 +313,7 @@ const NavbarGuest = () => {
           <div className="flex flex-col gap-2 pt-2">
             {isAuthenticated ? (
               <Link
-                href={user?.role_id === 2 ? "/admin" : "/user"}
+                href={user?.role_id === 2 || user?.role_id === 3 ? "/admin" : "/user"}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-green-700 bg-white rounded-xl shadow-md"
               >

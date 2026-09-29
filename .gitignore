@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/.next-build/
 /out/
 
 # production
@@ -39,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# production build (แยกจาก .next ของ dev server)
+/.next-build
+
+# Lighthouse
+.lighthouse/
+scripts/.lighthouse-auth.json

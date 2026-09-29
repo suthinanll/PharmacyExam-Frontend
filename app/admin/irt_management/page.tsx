@@ -15,9 +15,10 @@ import {
     RotateCcw,
 } from 'lucide-react';
 import Link from 'next/link';
-import Swal from 'sweetalert2';
+import Swal from "@/utils/sweetalert";
 import { useAuth } from "@/contexts/AuthContext";
 import Pagination from "@/components/Pagination";
+import { sanitizeHtml } from "@/utils/sanitize";
 
 // ======================== TYPES ========================
 interface AnswerOption { option_id: number; option_text: string; is_correct: boolean; }
@@ -1279,7 +1280,7 @@ export default function IRTManagementPage() {
                             <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
                                 <p className="text-sm font-medium text-gray-400  mb-2">คำถาม</p>
                                 <div className="text-sm text-gray-700 leading-relaxed line-clamp-4"
-                                    dangerouslySetInnerHTML={{ __html: editItem.question_text }} />
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(editItem.question_text) }} />
                             </div>
 
                             {/* Difficulty presets */}
