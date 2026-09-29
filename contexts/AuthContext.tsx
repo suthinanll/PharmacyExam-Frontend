@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useLayoutEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface User {
@@ -175,6 +175,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setIsLoading(true);
         await fetchUser();
     };
+
+    // ถ้ามี token + ข้อมูลผู้ใช้ที่แคชไว้ ให้เปิดหน้าใช้งานได้ทันทีหลัง hydrate
+    // แล้วค่อยยืนยันกับ /auth/me เบื้องหลัง (stale-while-revalidate)
+    // เดิมทุกหน้าที่ต้องล็อกอินต้องรอ /auth/me ตอบก่อนถึงจะวาดเนื้อหา ทำให้ LCP ช้า
+    // ใช้ useLayoutEffect แทน initial state เพื่อไม่ให้ HTML ฝั่งเซิร์ฟเวอร์กับไคลเอนต์ต่างกัน
+    useLayoutEffect(() => {
+        try {
+            if (localStorage.getItem('access_token') && localStorage.getItem('cached_user')) {
+                setIsLoading(false);
+            }
+        } catch { }
+    }, []);
 
     useEffect(() => {
         fetchUser();

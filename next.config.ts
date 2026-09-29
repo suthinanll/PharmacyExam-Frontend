@@ -61,6 +61,20 @@ const nextConfig = {
                 protocol: 'https',
                 hostname: 'pharmacycouncil.org',
             },
+            // รูปที่ผู้ใช้อัปโหลด (โปรไฟล์ / รูปข่าว) เสิร์ฟจาก backend บน Railway
+            // ถ้าไม่ประกาศไว้ /_next/image จะตอบ 400 ทำให้รูปพัง และมี error ค้างใน console
+            {
+                protocol: 'https',
+                hostname: '*.up.railway.app',
+            },
+            {
+                protocol: 'https',
+                hostname: 'pharmacyexamth.com',
+            },
+            {
+                protocol: 'https',
+                hostname: '*.pharmacyexamth.com',
+            },
             {
                 protocol: 'http',
                 hostname: 'localhost',
