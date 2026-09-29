@@ -1,0 +1,18 @@
+{
+  "baseUrl": "https://pharmacyexamth.com",
+  "paths": [
+    "/",
+    "/login",
+    "/register",
+    "/user",
+    "/user/examset",
+    "/user/examhis",
+    "/user/calendar",
+    "/user/chatbot",
+    "/user/followup",
+    "/user/profile",
+    "/user/saveblog",
+    "/user/cat-exam",
+    "/user/cat-exam/info"
+  ]
+}

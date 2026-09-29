@@ -43,3 +43,7 @@ next-env.d.ts
 
 # production build (แยกจาก .next ของ dev server)
 /.next-build
+
+# Lighthouse
+.lighthouse/
+scripts/.lighthouse-auth.json
