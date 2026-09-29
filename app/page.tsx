@@ -34,10 +34,10 @@ const UpcomingExamCard = ({ exam, index }: { exam: any; index: number }) => {
   // สีตามความเร่งด่วน: ใกล้ = แดง/ส้ม, ไกลออกไป = ฟ้า
   const urgency =
     daysLeft <= 1
-      ? { box: "bg-red-500", text: "text-red-600", bg: "bg-red-50" }
+      ? { box: "bg-red-600", text: "text-red-600", bg: "bg-red-50" }
       : daysLeft <= 3
-        ? { box: "bg-amber-500", text: "text-amber-600", bg: "bg-amber-50" }
-        : { box: "bg-blue-500", text: "text-blue-600", bg: "bg-blue-50" };
+        ? { box: "bg-amber-700", text: "text-amber-600", bg: "bg-amber-50" }
+        : { box: "bg-blue-600", text: "text-blue-600", bg: "bg-blue-50" };
 
   return (
     <div className="flex items-center gap-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 border border-gray-200 p-3">

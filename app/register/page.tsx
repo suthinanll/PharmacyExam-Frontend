@@ -382,7 +382,7 @@ export default function RegisterPage() {
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-gray-700 flex items-center justify-between">
                     <span>เบอร์โทรศัพท์ (10 หลัก)</span>
-                    <span className="text-xs text-gray-400 font-normal">{tel.length}/10</span>
+                    <span className="text-xs text-gray-500 font-normal">{tel.length}/10</span>
                   </label>
                   <input
                     type="tel"
@@ -405,10 +405,11 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <label htmlFor="register-bod" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                     วันเดือนปีเกิด
                   </label>
                   <input
+                    id="register-bod"
                     type="date"
                     className="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm text-gray-600"
                     value={bod}
@@ -418,11 +419,12 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                  <label htmlFor="register-university" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                     มหาวิทยาลัย
                   </label>
                   <div className="relative">
                     <select
+                      id="register-university"
                       className="w-full border border-gray-200 rounded-2xl px-4 py-3 focus:ring-4 focus:ring-green-100 focus:border-green-500 outline-none transition-all shadow-sm bg-white text-gray-600 appearance-none cursor-pointer"
                       value={universityId}
                       onChange={(e) => setUniversityId(e.target.value)}
@@ -561,7 +563,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={isSendingOTP}
-                className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full bg-green-700 hover:bg-green-800 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSendingOTP ? (
                   <>
@@ -608,7 +610,7 @@ export default function RegisterPage() {
             <div className="flex flex-col gap-3">
               <button
                 type="submit"
-                className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer"
+                className="w-full bg-green-700 hover:bg-green-800 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer"
               >
                 ยืนยันและลงทะเบียน
               </button>
@@ -640,7 +642,7 @@ export default function RegisterPage() {
           มีบัญชีอยู่แล้ว?{" "}
           <a
             href={loginHref}
-            className="text-green-600 font-medium hover:underline underline-offset-4"
+            className="text-green-700 font-medium underline underline-offset-4"
           >
             เข้าสู่ระบบ
           </a>

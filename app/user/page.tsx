@@ -39,7 +39,7 @@ const UpcomingExamCard = ({ exam }: { exam: CountdownExam }) => {
 
   // ใกล้ถึงกำหนด = แดง, ใกล้ ๆ = ส้ม, ยังอีกไกล = ฟ้า
   const dayBoxColor =
-    daysLeft <= 1 ? "bg-red-500" : daysLeft <= 3 ? "bg-amber-500" : "bg-blue-500";
+    daysLeft <= 1 ? "bg-red-600" : daysLeft <= 3 ? "bg-amber-700" : "bg-blue-600";
 
   // ข้อความยาวพอที่จะถูกตัด จึงค่อยมีปุ่มให้กางอ่าน
   const hasMore = Boolean(exam.description) || exam.title.length > 40;

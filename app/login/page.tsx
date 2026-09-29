@@ -111,7 +111,7 @@ export default function Page() {
               <label className="text-sm font-medium text-gray-800 flex items-center gap-2">
                 รหัสผ่าน
               </label>
-              <a href="/resetpassword" className="text-xs font-medium text-gray-400 hover:text-green-600 transition-colors">
+              <a href="/resetpassword" className="text-xs font-medium text-gray-500 hover:text-green-700 transition-colors">
                 ลืมรหัสผ่าน?
               </a>
             </div>
@@ -136,7 +136,7 @@ export default function Page() {
           </div>
 
           <button type="submit"
-            className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer">
+            className="w-full bg-green-700 hover:bg-green-800 text-white font-medium py-3 rounded-xl shadow-lg shadow-green-100 transition-all duration-300 cursor-pointer">
             เข้าสู่ระบบ
           </button>
 
@@ -152,7 +152,7 @@ export default function Page() {
 
         <div className="flex items-center my-8">
           <div className="flex-grow border-t border-gray-300"></div>
-          <span className="mx-4 text-gray-400 text-xs font-medium ">หรือ</span>
+          <span className="mx-4 text-gray-500 text-xs font-medium ">หรือ</span>
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
@@ -169,7 +169,7 @@ export default function Page() {
         {/* สมัครสมาชิก — ส่งปลายทางที่ค้างไว้ต่อไปด้วย จะได้ไม่หลุดตอนเปลี่ยนใจไปสมัครแทน */}
         <div className="text-center mt-10 text-sm font-medium text-gray-500">
           ยังไม่มีบัญชีผู้ใช้งาน?{" "}
-          <a href={registerHref} className="text-green-600 font-medium hover:underline underline-offset-4">
+          <a href={registerHref} className="text-green-700 font-medium underline underline-offset-4">
             สมัครสมาชิก
           </a>
         </div>

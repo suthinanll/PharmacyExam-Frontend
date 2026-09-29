@@ -29,7 +29,8 @@ interface Step {
 const DISMISSED_KEY = "pwa-dismissed";
 /** เด้งไปแล้วในรอบการใช้งานนี้ — กันไม่ให้เด้งซ้ำทุกครั้งที่รีเฟรชหรือเปิดหน้าใหม่ */
 const SHOWN_THIS_SESSION_KEY = "pwa-prompt-shown";
-const SHOW_DELAY_MS = 3000;
+/** หน่วงหลังผู้ใช้เริ่มใช้งานหน้า ไม่ใช่หน่วงจากตอนโหลดเสร็จ */
+const SHOW_DELAY_MS = 1200;
 
 /** หน้าที่ป๊อปอัปจะรบกวนการใช้งาน เช่น ระหว่างทำข้อสอบ */
 const EXCLUDED_PATH_PREFIXES = [
@@ -89,16 +90,25 @@ export default function PWAInstallPrompt() {
       setShowPrompt(true);
     };
 
-    // เบราว์เซอร์พร้อมให้ติดตั้ง → เด้งได้เลยไม่ต้องรอครบเวลา
-    const unsubscribe = subscribeInstallState(() => {
-      if (canPromptInstall()) reveal();
-    });
-    // iOS และเบราว์เซอร์ที่ไม่มีปุ่มติดตั้ง — แสดงขั้นตอนติดตั้งเองหลังหน่วงเวลา
-    const timer = setTimeout(reveal, SHOW_DELAY_MS);
+    // รอให้ผู้ใช้เริ่มใช้งานหน้าก่อน (แตะ เลื่อน หรือกดคีย์) แล้วค่อยเด้งป๊อปอัป
+    //
+    // เดิมตั้งเวลาเด้งหลังโหลด 3 วินาที ทำให้กล่องป๊อปอัปกลายเป็นชิ้นส่วนที่ใหญ่ที่สุด
+    // ที่เพิ่งวาดเสร็จ คะแนน Largest Contentful Paint จึงถูกนับที่ 3 วินาทีกว่าทั้งที่
+    // เนื้อหาจริงขึ้นตั้งแต่ 2 วินาที และการเด้งใส่ทันทีที่เปิดหน้าก็รบกวนผู้ใช้ด้วย
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const events: (keyof WindowEventMap)[] = ["pointerdown", "keydown", "scroll", "touchstart"];
+
+    const onFirstInteraction = () => {
+      events.forEach((name) => window.removeEventListener(name, onFirstInteraction));
+      timer = setTimeout(reveal, SHOW_DELAY_MS);
+    };
+    events.forEach((name) =>
+      window.addEventListener(name, onFirstInteraction, { once: true, passive: true }),
+    );
 
     return () => {
-      unsubscribe();
-      clearTimeout(timer);
+      events.forEach((name) => window.removeEventListener(name, onFirstInteraction));
+      if (timer) clearTimeout(timer);
     };
   }, []);
 
@@ -206,7 +216,7 @@ export default function PWAInstallPrompt() {
             {canInstallNow && (
               <button
                 onClick={handleInstall}
-                className="mt-4 px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 bg-green-600 text-white hover:bg-green-700 transition-colors cursor-pointer"
+                className="mt-4 px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 bg-green-700 text-white hover:bg-green-800 transition-colors cursor-pointer"
               >
                 <Download className="w-4 h-4" strokeWidth={2.5} />
                 ติดตั้งตอนนี้

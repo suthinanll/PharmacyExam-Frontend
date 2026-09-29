@@ -8,7 +8,7 @@ const Footer = () => {
     return (
         // ขนาด font ที่ไม่มี breakpoint กำกับ (เช่น text-lg เดี่ยวๆ) จะใช้ค่านั้นบนมือถือด้วย
         // ด้านล่างปรับให้เล็กลงบนมือถือ (base/sm) แล้วขยายกลับเป็นขนาดเดิมที่ lg ขึ้นไป
-        <footer className="w-full bg-[rgba(118,178,90,1)] text-white mt-auto">
+        <footer className="w-full bg-[#47762F] text-white mt-auto">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="py-6 sm:py-8 lg:py-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
@@ -16,7 +16,8 @@ const Footer = () => {
                         {/* Left Column: Contact Info */}
                         <div className="space-y-3">
                             {/* mobile: text-sm, sm: text-base, lg ขึ้นไป: text-lg (ขนาดเดิม) */}
-                            <h3 className="text-sm sm:text-base lg:text-lg font-medium mb-4">เภสัชพร้อมสอบ</h3>
+                            {/* h2 ไม่ใช่ h3 — บางหน้ามีแค่ h1 ก่อนถึง footer การใช้ h3 จะข้ามลำดับหัวข้อ */}
+                            <h2 className="text-sm sm:text-base lg:text-lg font-medium mb-4">เภสัชพร้อมสอบ</h2>
 
                             <div className="space-y-2 text-sm sm:text-base lg:text-lg">
                                 <p className="font-medium text-white/90">ติดต่อเรา</p>
@@ -82,7 +83,7 @@ const Footer = () => {
                                             <li>
                                                 <Link
                                                     href="/user/cat-exam"
-                                                    className="text-sm sm:text-base lg:text-lg text-white/80 hover:text-green-200 transition-colors duration-200 font-medium"
+                                                    className="text-sm sm:text-base lg:text-lg text-white/90 hover:text-green-200 transition-colors duration-200 font-medium"
                                                 >
                                                     • ข้อสอบแบบ CAT (Computerized Adaptive Testing)
                                                 </Link>
