@@ -142,12 +142,12 @@ const Navbar = () => {
   }, [isMobileMenuOpen]);
 
   return (
-    <nav className="bg-[#47762F] sticky top-0 z-50 backdrop-blur-sm">
+    <nav className="bg-[rgba(118,178,90,1)] sticky top-0 z-50 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-3 sm:px-5 md:px-6 lg:px-8">
         <div className="relative flex h-14 sm:h-15 md:h-17 items-center justify-between">
 
           {/* Mobile hamburger */}
-          <div className="absolute inset-y-0 left-0 flex items-center lg:hidden">
+          <div className="absolute inset-y-0 left-0 flex items-center xl:hidden">
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -164,7 +164,7 @@ const Navbar = () => {
           </div>
 
           {/* Logo + Desktop nav */}
-          <div className="flex flex-1 items-center justify-center lg:items-stretch lg:justify-start">
+          <div className="flex flex-1 items-center justify-center xl:items-stretch xl:justify-start">
             <div className="flex shrink-0 items-center">
               <Link href="/user" className="flex items-center space-x-2 group">
                 {/* mobile: text-base (เดิม text-lg ใหญ่ไป), sm/md ขึ้นไปเหมือนเดิม */}
@@ -174,7 +174,7 @@ const Navbar = () => {
               </Link>
             </div>
 
-            <div className="hidden lg:ml-6 xl:ml-8 lg:block">
+            <div className="hidden xl:ml-8 xl:block">
               <div className="flex space-x-1.5 xl:space-x-2">
                 {navItems.slice(1).map((item) => (
                   item.submenu ? (
@@ -468,8 +468,8 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile menu — ทั้ง block นี้แสดงเฉพาะจอเล็กกว่า lg (lg:hidden) */}
-      <div className={`lg:hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
+      {/* Mobile menu — ทั้ง block นี้แสดงเฉพาะจอเล็กกว่า lg (xl:hidden) */}
+      <div className={`xl:hidden transition-all duration-300 ease-in-out ${isMobileMenuOpen ? 'block' : 'hidden'}`}>
         <div className="mobilenav space-y-2 px-3 pt-3 pb-4 backdrop-blur-sm">
           {navItems.slice(1).map((item) => (
             item.submenu ? (

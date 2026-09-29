@@ -44,7 +44,7 @@ export const metadata: Metadata = {
 
 export const viewport = {
   // เฉดเดียวกับแถบเมนูและ footer (ปรับให้เข้มขึ้นเพื่อให้ตัวหนังสือขาวผ่านเกณฑ์ contrast)
-  themeColor: '#47762F',
+  themeColor: '#76B25A',
 };
 
 
