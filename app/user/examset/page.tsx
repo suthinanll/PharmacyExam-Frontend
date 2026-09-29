@@ -347,6 +347,7 @@ const examset = () => {
               <div className="relative min-w-[170px]">
                 <select
                   value={sortBy}
+                  aria-label="เรียงลำดับคลังข้อสอบ"
                   onChange={e => setSortBy(e.target.value as any)}
                   className="w-full appearance-none bg-white border border-gray-300 rounded-xl px-3.5 py-2 pr-8 text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-xs cursor-pointer"
                 >
@@ -430,9 +431,9 @@ const examset = () => {
                                 <BookOpen className="w-6 h-6 text-blue-600" />
                               </div>
                               <div className="flex-1">
-                                <h3 className="text-xl font-medium text-gray-800 mb-2">
+                                <h2 className="text-xl font-medium text-gray-800 mb-2">
                                   {bank.bank_name}
-                                </h3>
+                                </h2>
                                 <p className="text-gray-600 text-sm mb-3">
                                   {bank.description}
                                 </p>
@@ -511,9 +512,9 @@ const examset = () => {
                 <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <BookOpen className="w-12 h-12 text-gray-400" />
                 </div>
-                <h3 className="text-xl font-medium text-gray-700 mb-2">
+                <h2 className="text-xl font-medium text-gray-700 mb-2">
                   {searchQuery ? 'ไม่พบข้อสอบที่ค้นหา' : 'ไม่มีข้อสอบในหมวดนี้'}
-                </h3>
+                </h2>
                 <p className="text-gray-500">
                   {searchQuery
                     ? 'ลองค้นหาด้วยคำอื่น หรือเลือกประเภทข้อสอบอื่น'

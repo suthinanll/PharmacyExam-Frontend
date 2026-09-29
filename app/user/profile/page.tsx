@@ -426,6 +426,7 @@ const Profile = () => {
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={isUploadingImage}
+                                        aria-label="เปลี่ยนรูปโปรไฟล์"
                                         className="absolute bottom-0 right-0 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {isUploadingImage ? (
@@ -519,8 +520,9 @@ const Profile = () => {
                         <div className="p-5 md:p-8">
                             <form className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6" onSubmit={(e) => e.preventDefault()}>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">ชื่อจริง</label>
+                                    <label htmlFor="profile-first-name" className="text-xs md:text-sm font-medium text-gray-500">ชื่อจริง</label>
                                     <input
+                                        id="profile-first-name"
                                         name="first_name"
                                         type="text"
                                         value={formData.first_name}
@@ -538,8 +540,9 @@ const Profile = () => {
                                     )}
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">นามสกุล</label>
+                                    <label htmlFor="profile-last-name" className="text-xs md:text-sm font-medium text-gray-500">นามสกุล</label>
                                     <input
+                                        id="profile-last-name"
                                         name="last_name"
                                         type="text"
                                         value={formData.last_name}
@@ -557,10 +560,11 @@ const Profile = () => {
                                     )}
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">อีเมล (ไม่สามารถแก้ไขได้)</label>
+                                    <label htmlFor="profile-email" className="text-xs md:text-sm font-medium text-gray-500">อีเมล (ไม่สามารถแก้ไขได้)</label>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
+                                            id="profile-email"
                                             type="email"
                                             value={formData.email}
                                             readOnly
@@ -569,10 +573,11 @@ const Profile = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
-                                    <label className="text-[10px] md:text-xs font-medium text-gray-400 ">เบอร์โทรศัพท์</label>
+                                    <label htmlFor="profile-tel" className="text-xs md:text-sm font-medium text-gray-500">เบอร์โทรศัพท์</label>
                                     <div className="relative">
                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                         <input
+                                            id="profile-tel"
                                             name="tel"
                                             type="tel"
                                             value={formData.tel}
@@ -593,11 +598,12 @@ const Profile = () => {
 
                                 <div className="md:col-span-2 pt-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-[10px] md:text-xs font-medium text-gray-400 ">มหาวิทยาลัย</label>
+                                        <label htmlFor="profile-university" className="text-xs md:text-sm font-medium text-gray-500">มหาวิทยาลัย</label>
                                         {isEditing ? (
                                             <div className="relative">
                                                 <School className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
                                                 <select
+                                                    id="profile-university"
                                                     value={selectedUniversityId || ''}
                                                     onChange={(e) => setSelectedUniversityId(Number(e.target.value))}
                                                     className="w-full pl-11 pr-10 py-3 md:py-2.5 rounded-xl border border-blue-500 ring-4 ring-blue-50 bg-white text-sm transition-all outline-none appearance-none cursor-pointer"

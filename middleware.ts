@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { cspImageSources } from './config/image-hosts';
 
 export function middleware(request: NextRequest) {
     // สร้าง Nonce แบบสุ่มในระดับ Base64 ต่อทุกๆ Request (Cryptographically Secure)
@@ -27,12 +28,11 @@ export function middleware(request: NextRequest) {
     const devImgSources = isDev ? 'http://localhost:3000' : '';
     const devConnectSources = isDev ? 'http://localhost:3000 ws://localhost:3000' : '';
 
+    // รายชื่อโฮสต์รูปใช้ร่วมกับ images.remotePatterns ใน next.config.ts (config/image-hosts.js)
+    // เดิมสองที่นี้เขียนแยกกัน ทำให้รูปข่าวจาก hfocus / สภาเภสัชฯ / Facebook ถูก CSP บล็อก
     const allowedImgHosts = [
         apiOrigin,
-        'https://*.googleusercontent.com',
-        'https://lh3.googleusercontent.com',
-        'https://*.kdmshospital.com',
-        'https://kdmshospital.com',
+        ...cspImageSources(),
         devImgSources,
     ].filter(Boolean).join(' ');
 

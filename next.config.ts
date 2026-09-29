@@ -1,4 +1,5 @@
 const path = require('path');
+const { remoteImagePatterns } = require('./config/image-hosts');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -27,63 +28,8 @@ const nextConfig = {
 
     // 2. จัดการเรื่อง Remote Image Domains เฉพาะ Domain ที่ใช้งานจริง
     images: {
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: 'lh3.googleusercontent.com',
-            },
-            {
-                protocol: 'https',
-                hostname: '*.googleusercontent.com',
-            },
-            {
-                protocol: 'https',
-                hostname: 'kdmshospital.com',
-            },
-            {
-                protocol: 'https',
-                hostname: '*.kdmshospital.com',
-            },
-            // แหล่งรูปข่าวเภสัชกรรม — ให้ Next.js ย่อรูปและแปลงเป็น WebP ก่อนส่งให้ผู้ใช้
-            {
-                protocol: 'https',
-                hostname: 'www.hfocus.org',
-            },
-            {
-                protocol: 'https',
-                hostname: 'hfocus.org',
-            },
-            {
-                protocol: 'https',
-                hostname: 'www.pharmacycouncil.org',
-            },
-            {
-                protocol: 'https',
-                hostname: 'pharmacycouncil.org',
-            },
-            // รูปที่ผู้ใช้อัปโหลด (โปรไฟล์ / รูปข่าว) เสิร์ฟจาก backend บน Railway
-            // ถ้าไม่ประกาศไว้ /_next/image จะตอบ 400 ทำให้รูปพัง และมี error ค้างใน console
-            {
-                protocol: 'https',
-                hostname: '*.up.railway.app',
-            },
-            {
-                protocol: 'https',
-                hostname: 'pharmacyexamth.com',
-            },
-            {
-                protocol: 'https',
-                hostname: '*.pharmacyexamth.com',
-            },
-            {
-                protocol: 'http',
-                hostname: 'localhost',
-            },
-            {
-                protocol: 'http',
-                hostname: '127.0.0.1',
-            },
-        ],
+        // รายชื่อโฮสต์อยู่ที่ config/image-hosts.js ที่เดียว ใช้ร่วมกับ CSP img-src ใน middleware
+        remotePatterns: remoteImagePatterns(),
     },
 
     // 3. ปิดการเช็ก TypeScript และ ESLint ตอน Build

@@ -142,9 +142,9 @@ function SaveBlog() {
                         </span>
                       </div>
                       <a href={`/user/newsdetail/${item.news.article_id}`} target="_blank" rel="noopener noreferrer">
-                        <h5 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
+                        <h2 className="text-lg font-medium text-gray-900 mb-2 line-clamp-2 hover:text-blue-600 transition-colors">
                           {item.news.title}
-                        </h5>
+                        </h2>
                       </a>
                       <p className="text-sm text-gray-600 leading-relaxed mb-4 flex-1 line-clamp-3">
                         {item.news.content?.replace(/<[^>]*>?/gm, '')}
@@ -160,9 +160,10 @@ function SaveBlog() {
                         </a>
                         <button
                           onClick={() => removeNews(item.news.article_id)}
+                          aria-label={`ลบ ${item.news.title} ออกจากข่าวที่บันทึกไว้`}
                           className="w-10 h-10 flex items-center justify-center bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all"
                         >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-5 h-5" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>

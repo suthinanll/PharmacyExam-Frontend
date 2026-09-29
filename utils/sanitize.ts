@@ -1,6 +1,25 @@
 import DOMPurify from "dompurify";
 
 /**
+ * รูปที่แปะมาจาก editor มักไม่มี alt ทำให้ audit image-alt ไม่ผ่านทั้งด้าน a11y และ SEO
+ * ใส่ alt="" ให้อัตโนมัติ เพื่อบอกโปรแกรมอ่านหน้าจอว่าเป็นรูปประกอบที่ข้ามได้
+ *
+ * addHook ผูกกับตัว DOMPurify ทั้งโมดูล ถ้าเรียกทุกครั้งที่ sanitize hook จะสะสมทับกันเรื่อย ๆ
+ * จึงลงทะเบียนครั้งเดียว และทำตอนถูกเรียกครั้งแรกเพราะฝั่งเซิร์ฟเวอร์ยังไม่มี DOM
+ */
+let imageAltHookAdded = false;
+function ensureImageAltHook() {
+  if (imageAltHookAdded) return;
+  imageAltHookAdded = true;
+
+  DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+    if (node.nodeName === "IMG" && !(node as Element).hasAttribute("alt")) {
+      (node as Element).setAttribute("alt", "");
+    }
+  });
+}
+
+/**
  * ล้าง HTML ก่อนนำไปแสดงด้วย dangerouslySetInnerHTML
  *
  * เนื้อหาโจทย์ ตัวเลือก และสถานการณ์ถูกสร้างจาก rich text editor และการนำเข้า Excel
@@ -13,6 +32,8 @@ import DOMPurify from "dompurify";
 export function sanitizeHtml(html: string | null | undefined): string {
   if (!html) return "";
   if (typeof window === "undefined") return "";
+
+  ensureImageAltHook();
 
   return DOMPurify.sanitize(html, {
     // อนุญาตเฉพาะแท็กจัดรูปแบบข้อความ ตาราง และรูปภาพที่ editor ใช้จริง

@@ -43,6 +43,46 @@ export interface AIAnalysisResult {
 const API_ENDPOINT = "/api/n8n/analysis";
 
 /**
+ * n8n ตอบ 200 ได้แม้ AI Agent จะไม่ได้ผลลัพธ์ เช่น { } หรือ { "response": [[],[]] }
+ * ถ้าปล่อยผ่าน หน้าเว็บจะวาดกล่องเปล่าโดยไม่บอกอะไรเลย ผู้ใช้เห็นแค่ "กดแล้วไม่มีอะไรเกิดขึ้น"
+ * จึงเช็กก่อนว่ามีเนื้อหาที่แสดงได้จริงไหม
+ */
+export function hasRenderableContent(r: AIAnalysisResult): boolean {
+  const nonEmptyText = (v: unknown) => typeof v === "string" && v.trim().length > 0;
+  const nonEmptyList = (v: unknown) => Array.isArray(v) && v.length > 0;
+
+  return (
+    nonEmptyText(r.summary) ||
+    nonEmptyText(r.analysis_summary) ||
+    nonEmptyText(r.overall_feedback) ||
+    nonEmptyText(r.trend_summary) ||
+    nonEmptyText(r.output) ||
+    nonEmptyText(r.text) ||
+    nonEmptyList(r.weak_topics_advice) ||
+    nonEmptyList(r.key_insights) ||
+    nonEmptyList(r.analysis_points) ||
+    nonEmptyList(r.recommendations) ||
+    Boolean(r.action_plan) ||
+    Boolean(r.study_plan)
+  );
+}
+
+/** โยน error ที่อ่านรู้เรื่อง พร้อมแนบ payload ดิบไว้ให้ไล่ปัญหาต่อที่ n8n ได้ */
+function assertUsable(result: AIAnalysisResult, raw: unknown, scope: string): AIAnalysisResult {
+  if (hasRenderableContent(result)) return result;
+
+  const preview = JSON.stringify(raw ?? null).slice(0, 300);
+  console.error(
+    `n8n ${scope} analysis returned no usable content. Raw payload:`,
+    raw
+  );
+  throw new Error(
+    "n8n ตอบกลับมาแล้วแต่ไม่มีเนื้อหาผลวิเคราะห์ — ลองตรวจ execution ล่าสุดใน n8n " +
+      "ว่า AI Agent ทำงานสำเร็จหรือไม่ (ข้อมูลที่ได้รับ: " + preview + ")"
+  );
+}
+
+/**
  * เรียก n8n Webhook สำหรับวิเคราะห์ผลสอบของผู้เรียนรายบุคคล (User Followup)
  */
 export async function requestUserAIAnalysis(
@@ -79,7 +119,7 @@ export async function requestUserAIAnalysis(
     throw new Error(`AI Analysis Error: ${errorMsg}`);
   }
 
-  return normalizeAIResponse(rawData);
+  return assertUsable(normalizeAIResponse(rawData), rawData, "user");
 }
 
 /**
@@ -115,7 +155,7 @@ export async function requestAdminAIAnalysis(
     throw new Error(`AI Analysis Error: ${errorMsg}`);
   }
 
-  return normalizeAIResponse(rawData);
+  return assertUsable(normalizeAIResponse(rawData), rawData, "admin");
 }
 
 /**

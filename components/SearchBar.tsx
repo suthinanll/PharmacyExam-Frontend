@@ -30,9 +30,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "พิมพ์ส
         />
         <button
           type="submit"
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          aria-label="ค้นหา"
+          className="absolute left-1.5 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center
+                     rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600
+                     focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <Search size={22} />
+          <Search size={20} aria-hidden="true" />
         </button>
       </div>
     </form>
