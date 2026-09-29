@@ -6,15 +6,22 @@
  * อยู่ใน localStorage และ Lighthouse จะล้าง storage ทิ้งก่อนวัดทุกครั้ง
  *
  * สคริปต์นี้แก้ด้วยการ
- *   1) เปิด Chrome ของเครื่องค้างไว้ตัวเดียว แล้วยัด access_token ลง localStorage
+ *   1) เปิด Chrome ค้างไว้ตัวเดียว แล้วยัด access_token ลง localStorage
  *   2) เปิด /user หนึ่งรอบให้ AuthContext เขียน cached_user (เลียนแบบผู้ใช้ที่เคยเข้ามาแล้ว)
  *   3) วัดทุก URL บน Chrome ตัวเดิม โดยตั้ง disableStorageReset ไม่ให้ล้าง localStorage
+ *   4) ล้าง HTTP cache เองก่อนวัดทุกหน้า
+ *
+ * ข้อ 4 สำคัญมาก เพราะ disableStorageReset ไม่ได้กันแค่ localStorage แต่กัน
+ * การล้าง HTTP cache ด้วย ถ้าไม่ล้างเอง หน้าที่ 2 เป็นต้นไปจะวิ่งบน cache ร้อน
+ * (ไฟล์ JS/CSS/ฟอนต์ถูกใช้ซ้ำ) คะแนนจะสูงเกินจริงและไม่ตรงกับที่กดทดสอบใน DevTools
  *
  * วิธีใช้
  *   node scripts/lighthouse-mobile.mjs                        ใช้ค่าจาก config
  *   node scripts/lighthouse-mobile.mjs --base http://localhost:3000
- *   node scripts/lighthouse-mobile.mjs --only /user,/user/followup
+ *   node scripts/lighthouse-mobile.mjs --only "root,user,user/followup"
  *   node scripts/lighthouse-mobile.mjs --desktop              วัดแบบ desktop แทน
+ *   node scripts/lighthouse-mobile.mjs --headful              เปิดหน้าต่างจริง ใกล้เคียง DevTools ที่สุด
+ *   node scripts/lighthouse-mobile.mjs --runs 3               วัดหน้าละหลายรอบแล้วเอาค่ากลาง
  *
  * token อ่านจาก (เรียงตามลำดับ)
  *   ตัวแปรสภาพแวดล้อม LH_TOKEN  หรือ  ไฟล์ scripts/.lighthouse-auth.json  {"token":"..."}
@@ -33,11 +40,13 @@ const PASS_MARK = 90;
 
 // ── อ่านค่าตั้งต้น ────────────────────────────────────────────────────────
 function parseArgs(argv) {
-  const args = { desktop: false };
+  const args = { desktop: false, headful: false, runs: 1 };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--desktop') args.desktop = true;
+    else if (argv[i] === '--headful') args.headful = true;
     else if (argv[i] === '--base') args.base = argv[++i];
     else if (argv[i] === '--only') args.only = argv[++i];
+    else if (argv[i] === '--runs') args.runs = Math.max(1, Number(argv[++i]) || 1);
   }
   return args;
 }
@@ -49,14 +58,14 @@ function parseArgs(argv) {
  */
 function normalizePath(raw) {
   const v = raw.trim();
-  if (!v || v === "root" || v === "/") return "/";
-  if (/^[A-Za-z]:[\/]/.test(v) || v.includes("Program Files")) {
+  if (!v || v === 'root' || v === '/') return '/';
+  if (/^[A-Za-z]:[\\/]/.test(v) || v.includes('Program Files')) {
     throw new Error(
       `--only "${raw}" ถูกเชลล์แปลงเป็นพาธของเครื่องไปแล้ว ` +
         'ให้เขียนโดยไม่ต้องมี / นำหน้า เช่น --only "root,user,user/followup"'
     );
   }
-  return v.startsWith("/") ? v : `/${v}`;
+  return v.startsWith('/') ? v : `/${v}`;
 }
 
 function readToken() {
@@ -71,10 +80,9 @@ function readToken() {
 }
 
 // ── ลงชื่อเข้าใช้ค้างไว้ใน Chrome ที่เปิดอยู่ ─────────────────────────────
-async function seedSession(browserURL, origin, token) {
-  const browser = await puppeteer.connect({ browserURL, defaultViewport: null });
+async function seedSession(browser, origin, token) {
+  const page = await browser.newPage();
   try {
-    const page = await browser.newPage();
     // ต้องอยู่บน origin เดียวกันก่อนถึงจะเขียน localStorage ของ origin นั้นได้
     await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: 60_000 });
     await page.evaluate((t) => localStorage.setItem('access_token', t), token);
@@ -82,11 +90,24 @@ async function seedSession(browserURL, origin, token) {
     // เปิดหน้า /user หนึ่งรอบ ให้ AuthContext ยิง /auth/me แล้วเขียน cached_user
     // ผลวัดจะได้ตรงกับผู้ใช้จริงที่เคยเข้ามาแล้ว ไม่ใช่การเข้าครั้งแรกสด ๆ
     await page.goto(new URL('/user', origin).href, { waitUntil: 'networkidle2', timeout: 60_000 });
-    const ok = await page.evaluate(() => Boolean(localStorage.getItem('cached_user')));
-    await page.close();
-    return ok;
+    return await page.evaluate(() => Boolean(localStorage.getItem('cached_user')));
   } finally {
-    browser.disconnect();
+    await page.close();
+  }
+}
+
+/**
+ * ล้าง HTTP cache โดยไม่แตะ localStorage
+ * ชดเชยสิ่งที่ disableStorageReset ปิดไป ให้ทุกหน้าเริ่มจาก cache เย็นเท่ากัน
+ */
+async function clearHttpCache(browser) {
+  const page = await browser.newPage();
+  try {
+    const client = await page.createCDPSession();
+    await client.send('Network.clearBrowserCache');
+    await client.detach();
+  } finally {
+    await page.close();
   }
 }
 
@@ -105,6 +126,7 @@ async function audit(url, port, desktop) {
     onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
     // หัวใจของสคริปต์ ถ้าไม่ปิด Lighthouse จะล้าง localStorage ทิ้งก่อนวัด
     // แล้วทุกหน้าที่ต้องล็อกอินจะกลายเป็นหน้า /login
+    // (HTTP cache ถูกล้างเองด้วย clearHttpCache ก่อนเรียกฟังก์ชันนี้)
     disableStorageReset: true,
     ...(desktop ? desktopSettings : {}),
   });
@@ -113,6 +135,7 @@ async function audit(url, port, desktop) {
 }
 
 const pct = (c) => (c && c.score !== null ? Math.round(c.score * 100) : null);
+const median = (nums) => [...nums].sort((a, b) => a - b)[Math.floor(nums.length / 2)];
 
 /** audit ที่ตกในหมวดที่ยังไม่ถึงเกณฑ์ เรียงตามน้ำหนักมากไปน้อย */
 function failingAudits(lhr) {
@@ -140,20 +163,29 @@ const paths = (args.only ? args.only.split(',') : config.paths).map(normalizePat
 const token = readToken();
 const mode = args.desktop ? 'desktop' : 'mobile';
 
-console.log(`\nLighthouse (${mode})  ${base}  ${paths.length} หน้า`);
+console.log(`\nLighthouse (${mode}${args.headful ? ', หน้าต่างจริง' : ', headless'})  ${base}  ${paths.length} หน้า` +
+  (args.runs > 1 ? `  วัดหน้าละ ${args.runs} รอบเอาค่ากลาง` : ''));
 console.log(token ? 'ใช้ token ที่ให้มา (วัดหน้าที่ต้องล็อกอินได้)' : '! ไม่มี token — หน้าที่ต้องล็อกอินจะเด้งไป /login');
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
 
 const chrome = await chromeLauncher.launch({
-  chromeFlags: ['--headless=new', '--disable-gpu', '--no-sandbox'],
+  chromeFlags: [
+    ...(args.headful ? [] : ['--headless=new']),
+    '--disable-gpu',
+    '--no-sandbox',
+    // ไม่ให้ส่วนขยายของเบราว์เซอร์มาแย่ง main thread จนตัวเลขเพี้ยน
+    // (รายงานที่รันจาก DevTools บนโปรไฟล์ปกติจะมีส่วนขยายปนมาด้วย)
+    '--disable-extensions',
+  ],
 });
 const browserURL = `http://127.0.0.1:${chrome.port}`;
+const browser = await puppeteer.connect({ browserURL, defaultViewport: null });
 
 const rows = [];
 try {
   if (token) {
-    const seeded = await seedSession(browserURL, base, token);
+    const seeded = await seedSession(browser, base, token);
     console.log(seeded ? 'ลงชื่อเข้าใช้สำเร็จ\n' : '! ยัด token แล้วแต่ไม่พบ cached_user — token อาจหมดอายุ\n');
   } else {
     console.log('');
@@ -163,25 +195,38 @@ try {
     const url = new URL(p, base).href;
     process.stdout.write(`  ${p} ... `);
     try {
-      const lhr = await audit(url, chrome.port, args.desktop);
+      const results = [];
+      for (let i = 0; i < args.runs; i++) {
+        await clearHttpCache(browser);
+        results.push(await audit(url, chrome.port, args.desktop));
+      }
+      // เรียงตามคะแนน performance แล้วหยิบตัวกลาง ลดผลของรอบที่แกว่งผิดปกติ
+      results.sort((a, b) => a.categories.performance.score - b.categories.performance.score);
+      const lhr = results[Math.floor(results.length / 2)];
+
       const row = {
         path: p,
         perf: pct(lhr.categories.performance),
         a11y: pct(lhr.categories.accessibility),
         bp: pct(lhr.categories['best-practices']),
         seo: pct(lhr.categories.seo),
+        spread: args.runs > 1 ? results.map((r) => pct(r.categories.performance)) : null,
         fails: failingAudits(lhr),
       };
       rows.push(row);
       const name = p.replace(/[/:]/g, '_') || '_root';
       fs.writeFileSync(path.join(OUT_DIR, `${mode}${name}.json`), JSON.stringify(lhr));
-      console.log([row.perf, row.a11y, row.bp, row.seo].join(' / '));
+      console.log(
+        [row.perf, row.a11y, row.bp, row.seo].join(' / ') +
+          (row.spread ? `   (perf ทุกรอบ ${row.spread.join(', ')})` : '')
+      );
     } catch (err) {
       rows.push({ path: p, error: err.message });
       console.log(`ผิดพลาด: ${err.message}`);
     }
   }
 } finally {
+  browser.disconnect();
   await chrome.kill();
 }
 
