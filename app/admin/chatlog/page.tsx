@@ -685,7 +685,7 @@ export default function ChatbotKnowledgePage() {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500 font-medium">เอกสารที่ใช้งาน</p>
-                            <h3 className="text-2xl font-medium text-gray-900 mt-0.5">{activeDocuments.length} <span className="text-sm text-gray-500 font-medium">รายการ</span></h3>
+                            <p className="text-2xl font-medium text-gray-900 mt-0.5">{activeDocuments.length} <span className="text-sm text-gray-500 font-medium">รายการ</span></p>
                         </div>
                     </div>
                     <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
@@ -694,7 +694,7 @@ export default function ChatbotKnowledgePage() {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500 font-medium">Vector Database</p>
-                            <h3 className="text-sm font-medium text-gray-900 mt-1">Pinecone (RAG Vector Store)</h3>
+                            <p className="text-sm font-medium text-gray-900 mt-1">Pinecone (RAG Vector Store)</p>
                         </div>
                     </div>
                     <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center gap-4">
@@ -703,7 +703,7 @@ export default function ChatbotKnowledgePage() {
                         </div>
                         <div>
                             <p className="text-sm text-gray-500 font-medium">รูปแบบที่รองรับ</p>
-                            <h3 className="text-sm font-medium text-gray-900 mt-1">PDF, Word, Excel, CSV, Text</h3>
+                            <p className="text-sm font-medium text-gray-900 mt-1">PDF, Word, Excel, CSV, Text</p>
                         </div>
                     </div>
                 </div>
@@ -727,6 +727,7 @@ export default function ChatbotKnowledgePage() {
                         accept=".pdf,.txt,.csv,.doc,.docx,.xls,.xlsx"
                         onChange={handleChange}
                         disabled={isUploading}
+                        aria-label="อัปโหลดไฟล์เอกสารเข้าสู่ฐานความรู้"
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed"
                     />
                     <div className="flex flex-col sm:flex-row items-center gap-4 p-6">
@@ -737,7 +738,7 @@ export default function ChatbotKnowledgePage() {
                                 </div>
                                 <div className="text-center sm:text-left">
                                     <p className="text-sm font-medium text-gray-700">ลากไฟล์ PDF, Word (.docx), Excel (.xlsx), CSV หรือ Text (.txt) มาวางที่นี่</p>
-                                    <p className="text-sm text-gray-400 mt-0.5">รองรับไฟล์ประเภท .pdf, .docx, .xlsx, .csv, .txt ขนาดไม่เกิน 20MB</p>
+                                    <p className="text-sm text-gray-500 mt-0.5">รองรับไฟล์ประเภท .pdf, .docx, .xlsx, .csv, .txt ขนาดไม่เกิน 20MB</p>
                                 </div>
                             </>
                         ) : (
@@ -754,6 +755,7 @@ export default function ChatbotKnowledgePage() {
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); removeSelectedFile(); }}
                                         disabled={isUploading}
+                                        aria-label="ยกเลิกไฟล์ที่เลือกนี้"
                                         className="pointer-events-auto p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                                         title="ยกเลิกไฟล์นี้"
                                     >
@@ -830,6 +832,7 @@ export default function ChatbotKnowledgePage() {
                             <input
                                 type="text"
                                 placeholder="ค้นหาชื่อเอกสาร..."
+                                aria-label="ค้นหาชื่อเอกสารในฐานความรู้"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all shadow-xs"
@@ -875,6 +878,7 @@ export default function ChatbotKnowledgePage() {
                                 <button
                                     type="button"
                                     onClick={() => setSelectedIds([])}
+                                    aria-label="ยกเลิกการเลือกเอกสารทั้งหมด"
                                     className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
                                     title="ยกเลิกการเลือก"
                                 >
@@ -905,16 +909,16 @@ export default function ChatbotKnowledgePage() {
                         ))}
                     </div>
                 ) : filteredDocuments.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-64 bg-white border border-gray-200 rounded-2xl text-gray-400">
+                    <div className="flex flex-col items-center justify-center h-64 bg-white border border-gray-200 rounded-2xl text-gray-500">
                         <Database size={40} className="mb-3 opacity-30 text-gray-500" />
-                        <p className="font-medium text-lg text-gray-600">
+                        <p className="font-medium text-lg text-gray-700">
                             {searchTerm
                                 ? "ไม่พบเอกสารที่ค้นหา"
                                 : tab === 'deleted'
                                     ? "ไม่มีเอกสารในถังขยะ"
                                     : "ยังไม่มีเอกสารในฐานข้อมูลความรู้"}
                         </p>
-                        <p className="text-sm text-gray-400 mt-1">
+                        <p className="text-sm text-gray-500 mt-1">
                             {searchTerm
                                 ? "ลองค้นหาด้วยคำค้นอื่น"
                                 : tab === 'deleted'
@@ -929,10 +933,11 @@ export default function ChatbotKnowledgePage() {
                                 <thead className={tab === 'deleted' ? 'bg-amber-600 text-white' : 'bg-green-600 text-white'}>
                                     <tr>
                                         {/* Checkbox All */}
-                                        <th className="w-12 px-4 py-3.5 text-center rounded-tl-2xl">
+                                        <th scope="col" className="w-12 px-4 py-3.5 text-center rounded-tl-2xl">
                                             <button
                                                 type="button"
                                                 onClick={toggleSelectAllPage}
+                                                aria-label={isAllPageSelected ? "ยกเลิกเลือกทั้งหมดในหน้านี้" : "เลือกทั้งหมดในหน้านี้"}
                                                 className="text-white hover:opacity-80 transition-opacity cursor-pointer inline-flex items-center justify-center"
                                                 title={isAllPageSelected ? "ยกเลิกเลือกทั้งหมดในหน้านี้" : "เลือกทั้งหมดในหน้านี้"}
                                             >
@@ -945,13 +950,13 @@ export default function ChatbotKnowledgePage() {
                                                 )}
                                             </button>
                                         </th>
-                                        <th className="w-12 px-3 py-3.5 text-left text-sm font-medium tracking-wide">#</th>
-                                        <th className="px-5 py-3.5 text-left text-sm font-medium tracking-wide">ชื่อเอกสาร</th>
-                                        <th className="px-5 py-3.5 text-left text-sm font-medium tracking-wide">ขนาดไฟล์</th>
-                                        <th className="px-5 py-3.5 text-left text-sm font-medium tracking-wide">
+                                        <th scope="col" className="w-12 px-3 py-3.5 text-left text-sm font-medium tracking-wide">#</th>
+                                        <th scope="col" className="px-5 py-3.5 text-left text-sm font-medium tracking-wide">ชื่อเอกสาร</th>
+                                        <th scope="col" className="px-5 py-3.5 text-left text-sm font-medium tracking-wide">ขนาดไฟล์</th>
+                                        <th scope="col" className="px-5 py-3.5 text-left text-sm font-medium tracking-wide">
                                             {tab === 'deleted' ? 'วันที่ลบ' : 'วันที่อัปโหลด'}
                                         </th>
-                                        <th className="w-36 px-5 py-3.5 text-center text-sm font-medium tracking-wide rounded-tr-2xl">จัดการ</th>
+                                        <th scope="col" className="w-36 px-5 py-3.5 text-center text-sm font-medium tracking-wide rounded-tr-2xl">จัดการ</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -975,6 +980,7 @@ export default function ChatbotKnowledgePage() {
                                                         type="checkbox"
                                                         checked={isSelected}
                                                         onChange={() => toggleSelectRow(doc.id)}
+                                                        aria-label={`เลือกเอกสาร ${doc.file_name}`}
                                                         className="w-4 h-4 rounded text-green-600 focus:ring-green-500 border-gray-300 cursor-pointer"
                                                     />
                                                 </td>
@@ -1012,6 +1018,7 @@ export default function ChatbotKnowledgePage() {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleOpenPreview(doc)}
+                                                            aria-label={`เปิดอ่านเอกสาร ${doc.file_name}`}
                                                             className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
                                                             title="เปิดอ่านเอกสาร"
                                                         >
@@ -1022,6 +1029,7 @@ export default function ChatbotKnowledgePage() {
                                                         <button
                                                             type="button"
                                                             onClick={() => handleDownloadDocument(doc)}
+                                                            aria-label={`ดาวน์โหลดไฟล์ ${doc.file_name}`}
                                                             className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
                                                             title="ดาวน์โหลดไฟล์"
                                                         >
@@ -1032,6 +1040,7 @@ export default function ChatbotKnowledgePage() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleSoftDelete(doc.id, doc.file_name)}
+                                                                aria-label={`ย้ายเอกสาร ${doc.file_name} ไปถังขยะ`}
                                                                 className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
                                                                 title="ย้ายไปถังขยะ"
                                                             >
@@ -1042,6 +1051,7 @@ export default function ChatbotKnowledgePage() {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handleRestore(doc.id, doc.file_name)}
+                                                                    aria-label={`กู้คืนเอกสาร ${doc.file_name}`}
                                                                     className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
                                                                     title="กู้คืนเอกสาร"
                                                                 >
@@ -1050,6 +1060,7 @@ export default function ChatbotKnowledgePage() {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => handlePermanentDelete(doc.id, doc.file_name)}
+                                                                    aria-label={`ลบเอกสาร ${doc.file_name} ถาวร`}
                                                                     className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
                                                                     title="ลบถาวร"
                                                                 >
@@ -1081,6 +1092,7 @@ export default function ChatbotKnowledgePage() {
                                     <span>แสดง:</span>
                                     <select
                                         value={perPage}
+                                        aria-label="จำนวนรายการต่อหน้า"
                                         onChange={(e) => {
                                             setPerPage(Number(e.target.value));
                                             setCurrentPage(1);
@@ -1100,6 +1112,7 @@ export default function ChatbotKnowledgePage() {
                                         type="button"
                                         disabled={currentPage <= 1}
                                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                        aria-label="ไปยังหน้าก่อนหน้า"
                                         className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-sm font-medium transition cursor-pointer"
                                     >
                                         <ChevronLeft size={16} />
@@ -1113,6 +1126,8 @@ export default function ChatbotKnowledgePage() {
                                                 type="button"
                                                 key={p}
                                                 onClick={() => setCurrentPage(p)}
+                                                aria-label={`ไปยังหน้าที่ ${p}`}
+                                                aria-current={isActive ? "page" : undefined}
                                                 className={`w-8 h-8 text-sm font-medium rounded-lg transition-colors cursor-pointer ${isActive
                                                         ? tab === 'deleted'
                                                             ? 'bg-amber-600 text-white shadow-xs'
@@ -1129,6 +1144,7 @@ export default function ChatbotKnowledgePage() {
                                         type="button"
                                         disabled={currentPage >= totalPages}
                                         onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                        aria-label="ไปยังหน้าถัดไป"
                                         className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-sm font-medium transition cursor-pointer"
                                     >
                                         <span className="hidden sm:inline">ถัดไป</span>
@@ -1164,9 +1180,9 @@ export default function ChatbotKnowledgePage() {
                             <div className="flex items-center gap-3 min-w-0">
                                 {getFileIcon(previewData.doc.file_name)}
                                 <div className="min-w-0">
-                                    <h3 className="text-sm font-medium text-gray-900 truncate" title={previewData.doc.file_name}>
+                                    <h2 className="text-sm font-medium text-gray-900 truncate" title={previewData.doc.file_name}>
                                         {previewData.doc.file_name}
-                                    </h3>
+                                    </h2>
                                     <p className="text-xs text-gray-500 font-medium">{previewData.doc.file_size}</p>
                                 </div>
                             </div>
@@ -1176,6 +1192,7 @@ export default function ChatbotKnowledgePage() {
                                     href={previewData.blobUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    aria-label={`เปิดดู ${previewData.doc.file_name} ในแท็บใหม่`}
                                     className="p-2 text-gray-600 hover:text-green-600 hover:bg-gray-200/60 rounded-xl transition-colors cursor-pointer"
                                     title="เปิดในแท็บใหม่"
                                 >
@@ -1184,6 +1201,7 @@ export default function ChatbotKnowledgePage() {
                                 <button
                                     type="button"
                                     onClick={() => handleDownloadDocument(previewData.doc)}
+                                    aria-label={`ดาวน์โหลดไฟล์ ${previewData.doc.file_name}`}
                                     className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 active:scale-95 text-white rounded-xl text-sm font-medium transition-all shadow-xs cursor-pointer"
                                 >
                                     <Download size={15} />
@@ -1192,6 +1210,7 @@ export default function ChatbotKnowledgePage() {
                                 <button
                                     type="button"
                                     onClick={closePreview}
+                                    aria-label="ปิดหน้าต่างแสดงตัวอย่าง"
                                     className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200/60 rounded-xl transition-colors cursor-pointer"
                                     title="ปิดหน้าต่าง"
                                 >
@@ -1217,15 +1236,16 @@ export default function ChatbotKnowledgePage() {
                                     <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl mb-4">
                                         <FileText size={48} />
                                     </div>
-                                    <h4 className="text-base font-medium text-gray-900 mb-1">
+                                    <h3 className="text-base font-medium text-gray-900 mb-1">
                                         {previewData.doc.file_name}
-                                    </h4>
+                                    </h3>
                                     <p className="text-sm text-gray-500 max-w-md mb-6">
                                         ไฟล์เอกสาร Office (Word / Excel) ไม่สามารถแสดงตัวอย่างบนเบราว์เซอร์ได้โดยตรง คุณสามารถดาวน์โหลดไฟล์เพื่อเปิดอ่านบนเครื่องของคุณได้
                                     </p>
                                     <button
                                         type="button"
                                         onClick={() => handleDownloadDocument(previewData.doc)}
+                                        aria-label={`ดาวน์โหลดไฟล์ ${previewData.doc.file_size}`}
                                         className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white px-5 py-2.5 rounded-xl font-medium text-sm shadow-sm transition-all cursor-pointer"
                                     >
                                         <Download size={18} />

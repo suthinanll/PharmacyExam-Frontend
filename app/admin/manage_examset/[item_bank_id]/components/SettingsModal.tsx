@@ -282,14 +282,17 @@ export default function SettingsModal({
                                 <button
                                     type="button"
                                     onClick={handleDelete}
-                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                    aria-label="ลบชุดข้อสอบ"
+                                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                                     title="ลบชุดข้อสอบ"
                                 >
                                     <Trash2 className="w-5 h-5" />
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={onClose}
-                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500"
+                                    aria-label="ปิดหน้าต่างตั้งค่าชุดข้อสอบ"
+                                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500 cursor-pointer"
                                 >
                                     <X className="w-6 h-6" />
                                 </button>
@@ -299,12 +302,14 @@ export default function SettingsModal({
                         <form onSubmit={handleSubmit}>
                             {/* ชื่อชุดข้อสอบ */}
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="settings-bank-name" className="block text-sm font-medium text-gray-700 mb-2">
                                     ชื่อชุดข้อสอบ <span className="text-red-500">*</span>
                                 </label>
                                 <input
+                                    id="settings-bank-name"
                                     type="text"
                                     name="bank_name"
+                                    aria-label="ชื่อชุดข้อสอบ"
                                     value={formData.bank_name}
                                     onChange={handleInputChange}
                                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition outline-none"
@@ -314,11 +319,13 @@ export default function SettingsModal({
 
                             {/* คำอธิบาย */}
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="settings-description" className="block text-sm font-medium text-gray-700 mb-2">
                                     คำอธิบาย
                                 </label>
                                 <textarea
+                                    id="settings-description"
                                     name="description"
+                                    aria-label="คำอธิบายชุดข้อสอบ"
                                     value={formData.description}
                                     onChange={handleInputChange}
                                     rows={4}
@@ -328,11 +335,13 @@ export default function SettingsModal({
 
                             {/* ระยะเวลา */}
                             <div className="mb-6">
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="settings-duration" className="block text-sm font-medium text-gray-700 mb-2">
                                     ระยะเวลาในการทำข้อสอบ (นาที) <span className="text-red-500">*</span>
                                 </label>
                                 <input
+                                    id="settings-duration"
                                     type="number"
+                                    aria-label="ระยะเวลาในการทำข้อสอบ (นาที)"
                                     value={Math.floor(formData.duration / 60)}
                                     onChange={handleDurationChange}
                                     min="1"

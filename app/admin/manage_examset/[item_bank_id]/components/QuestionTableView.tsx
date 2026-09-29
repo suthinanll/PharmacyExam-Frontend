@@ -121,7 +121,11 @@ function QuestionDetailModal({ row, situationSeqMap, onClose }: { row: FlatRow; 
                             )}
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+                    <button
+                        onClick={onClose}
+                        aria-label="ปิดหน้าต่างรายละเอียดคำถาม"
+                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -384,8 +388,8 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
         return (
             <div className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-16 text-center">
                 <FileText className="w-10 h-10 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 mb-1">ยังไม่มีคำถาม</h3>
-                <p className="text-gray-400 text-sm">กดปุ่ม <span className="text-blue-500 font-medium">แก้ไขข้อมูล</span> เพื่อเพิ่มคำถาม</p>
+                <h2 className="text-lg font-medium text-gray-600 mb-1">ยังไม่มีคำถาม</h2>
+                <p className="text-gray-500 text-sm">กดปุ่ม <span className="text-blue-500 font-medium">แก้ไขข้อมูล</span> เพื่อเพิ่มคำถาม</p>
             </div>
         );
     }
@@ -402,6 +406,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                         placeholder="ค้นหาโจทย์คำถาม..."
+                        aria-label="ค้นหาโจทย์คำถาม"
                         className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                     />
                 </div>
@@ -410,6 +415,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                 <select
                     value={filterSitIdx === 'all' ? 'all' : String(filterSitIdx)}
                     onChange={e => setFilterSitIdx(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                    aria-label="กรองตามสถานการณ์"
                     className="text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
                 >
                     <option value="all">ทุกสถานการณ์</option>
@@ -427,6 +433,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                     <select
                         value={filterSubTopic === 'all' ? 'all' : String(filterSubTopic)}
                         onChange={e => setFilterSubTopic(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                        aria-label="กรองตามหัวข้อย่อย"
                         className="text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
                     >
                         <option value="all">ทุกหัวข้อย่อย</option>
@@ -436,7 +443,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                     </select>
                 )}
 
-                <span className="text-xs text-gray-400 ml-auto whitespace-nowrap">
+                <span className="text-xs text-gray-500 ml-auto whitespace-nowrap">
                     แสดง <strong className="text-gray-700">{rows.length}</strong> / {allRows.length} ข้อ
                 </span>
             </div>
@@ -447,31 +454,31 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="bg-gray-50 border-b border-gray-200">
-                                <th className="px-4 py-3 text-left w-12">
+                                <th scope="col" className="px-4 py-3 text-left w-12">
                                     <ThBtn col="globalNum" label="#" />
                                 </th>
-                                <th className="px-3 py-3 text-left w-20">
+                                <th scope="col" className="px-3 py-3 text-left w-20">
                                     <ThBtn col="sitIdx" label="สถานการณ์" />
                                 </th>
-                                <th className="px-4 py-3 text-left">
+                                <th scope="col" className="px-4 py-3 text-left">
                                     <span className="text-xs font-medium text-gray-500 ">โจทย์คำถาม</span>
                                 </th>
-                                <th className="px-3 py-3 text-left w-36">
+                                <th scope="col" className="px-3 py-3 text-left w-36">
                                     <ThBtn col="subTopicName" label="หัวข้อย่อย" />
                                 </th>
-                                <th className="px-3 py-3 text-center w-16">
+                                <th scope="col" className="px-3 py-3 text-center w-16">
                                     <span className="text-xs font-medium text-gray-500 ">เฉลย</span>
                                 </th>
-                                <th className="px-3 py-3 text-center w-16">
+                                <th scope="col" className="px-3 py-3 text-center w-16">
                                     <ThBtn col="irt_a" label="a" />
                                 </th>
-                                <th className="px-3 py-3 text-center w-16">
+                                <th scope="col" className="px-3 py-3 text-center w-16">
                                     <ThBtn col="irt_b" label="b" />
                                 </th>
-                                <th className="px-3 py-3 text-center w-16">
+                                <th scope="col" className="px-3 py-3 text-center w-16">
                                     <ThBtn col="irt_c" label="c" />
                                 </th>
-                                <th className="px-3 py-3 text-center w-20">
+                                <th scope="col" className="px-3 py-3 text-center w-20">
                                     <span className="text-xs font-medium text-gray-500 ">ระดับ</span>
                                 </th>
                             </tr>

@@ -53,33 +53,33 @@ const TiptapToolbar = ({ editor, onAddLink, onAddImage }: { editor: any; onAddLi
         `p-1.5 rounded transition-colors ${editor.isActive(activeName, attrs) ? "bg-green-100 text-green-600" : "text-gray-500 hover:bg-gray-100"}`;
 
     return (
-        <div className="flex flex-wrap gap-1 pb-2 mb-3 border-b border-gray-100 sticky top-0 bg-white z-10">
-            <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} className={btnClass("bold")}>
+        <div className="flex flex-wrap gap-1 pb-2 mb-3 border-b border-gray-100 sticky top-0 bg-white z-10" role="toolbar" aria-label="เครื่องมือจัดรูปแบบข้อความ">
+            <button type="button" onClick={() => editor.chain().focus().toggleBold().run()} aria-label="ตัวหนา" className={btnClass("bold")}>
                 <Bold className="w-4 h-4" />
             </button>
-            <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} className={btnClass("italic")}>
+            <button type="button" onClick={() => editor.chain().focus().toggleItalic().run()} aria-label="ตัวเอียง" className={btnClass("italic")}>
                 <Italic className="w-4 h-4" />
             </button>
-            <button type="button" onClick={() => editor.chain().focus().toggleStrike().run()} className={btnClass("strike")}>
+            <button type="button" onClick={() => editor.chain().focus().toggleStrike().run()} aria-label="ขีดทับ" className={btnClass("strike")}>
                 <Strikethrough className="w-4 h-4" />
             </button>
             <div className="w-[1px] h-4 bg-gray-200 mx-1 self-center" />
-            <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} className={btnClass("bulletList")}>
+            <button type="button" onClick={() => editor.chain().focus().toggleBulletList().run()} aria-label="รายการแบบสัญลักษณ์" className={btnClass("bulletList")}>
                 <ListIcon className="w-4 h-4" />
             </button>
-            <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} className={btnClass("orderedList")}>
+            <button type="button" onClick={() => editor.chain().focus().toggleOrderedList().run()} aria-label="รายการแบบลำดับเลข" className={btnClass("orderedList")}>
                 <ListOrdered className="w-4 h-4" />
             </button>
-            <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={btnClass("blockquote")}>
+            <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()} aria-label="กล่องข้อความอ้างอิง" className={btnClass("blockquote")}>
                 <Quote className="w-4 h-4" />
             </button>
-            <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded">
+            <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()} aria-label="เส้นคั่นแนวนอน" className="p-1.5 text-gray-500 hover:bg-gray-100 rounded">
                 <Minus className="w-4 h-4" />
             </button>
-            <button type="button" onClick={onAddLink} className={btnClass("link")}>
+            <button type="button" onClick={onAddLink} aria-label="แทรกลิงก์" className={btnClass("link")}>
                 <Link2 className="w-4 h-4" />
             </button>
-            <button type="button" onClick={onAddImage} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded">
+            <button type="button" onClick={onAddImage} aria-label="แทรกรูปภาพ" className="p-1.5 text-gray-500 hover:bg-gray-100 rounded">
                 <ImageIcon className="w-4 h-4" />
             </button>
         </div>
@@ -188,7 +188,9 @@ const DraftCard = ({
             </div>
 
             <button
+                type="button"
                 onClick={() => onRemove(draft.tempId)}
+                aria-label={`ลบรายการร่างข่าวสารที่ ${index + 1}`}
                 className="absolute -right-3 -top-3 p-2 bg-white text-red-500 hover:bg-red-500 hover:text-white rounded-full border border-gray-100 shadow-md transition-all opacity-0 group-hover:opacity-100"
             >
                 <Trash2 className="w-4 h-4" />
@@ -200,6 +202,7 @@ const DraftCard = ({
                         value={draft.title}
                         onChange={(e) => onUpdate(draft.tempId, "title", e.target.value)}
                         placeholder="หัวข้อข่าวสาร..."
+                        aria-label={`หัวข้อข่าวสาร รายการที่ ${index + 1}`}
                         className="w-full text-xl font-medium border-none p-0 focus:ring-0 placeholder-gray-300 bg-transparent"
                     />
 
@@ -216,13 +219,14 @@ const DraftCard = ({
                     </div>
 
                     <div className="flex items-center gap-2 pt-4 border-t border-gray-50">
-                        <Link2 className="w-4 h-4 text-gray-400" />
+                        <Link2 className="w-4 h-4 text-gray-500" />
                         <input
                             type="text"
                             value={draft.sourceUrl || ""}
                             onChange={(e) => onUpdate(draft.tempId, "sourceUrl", e.target.value)}
                             placeholder="ลิงก์แหล่งข่าว (Facebook / เว็บไซต์อ้างอิง)..."
-                            className="w-full text-sm text-blue-600 placeholder-gray-300 border-none p-0 focus:ring-0 bg-transparent"
+                            aria-label={`ลิงก์แหล่งข่าว รายการที่ ${index + 1}`}
+                            className="w-full text-sm text-blue-600 placeholder-gray-400 border-none p-0 focus:ring-0 bg-transparent"
                         />
                     </div>
                 </div>
@@ -247,30 +251,41 @@ const DraftCard = ({
                                 <button
                                     type="button"
                                     onClick={removeImage}
+                                    aria-label={`ลบรูปภาพหน้าปก รายการที่ ${index + 1}`}
                                     className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full shadow-lg opacity-0 group-hover/img:opacity-100 transition-opacity hover:bg-red-600"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
                             </>
                         ) : (
-                            <div
+                            <button
+                                type="button"
                                 onClick={() => fileInputRef.current?.click()}
+                                aria-label={`คลิกเพื่ออัปโหลดภาพหน้าปก รายการที่ ${index + 1}`}
                                 className="w-full h-full flex items-center justify-center cursor-pointer hover:bg-gray-100 transition-colors"
                             >
-                                <div className="text-center text-gray-400">
-                                    <Upload className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                                <div className="text-center text-gray-500">
+                                    <Upload className="w-8 h-8 mx-auto mb-2 opacity-40" />
                                     <p className="text-[10px] font-medium ">Upload Cover</p>
                                 </div>
-                            </div>
+                            </button>
                         )}
                     </div>
 
-                    <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        accept="image/*"
+                        aria-label={`เลือกไฟล์ภาพหน้าปก รายการที่ ${index + 1}`}
+                    />
                     <input
                         type="text"
                         placeholder="หรือวาง URL รูปภาพ..."
                         value={draft.imageUrl.startsWith('blob:') ? '' : draft.imageUrl}
                         onChange={(e) => onUpdate(draft.tempId, "imageUrl", e.target.value)}
+                        aria-label={`หรือวาง URL รูปภาพหน้าปก รายการที่ ${index + 1}`}
                         className="w-full text-[10px] border-gray-200 rounded-lg focus:ring-green-500 py-1"
                     />
 
@@ -637,7 +652,7 @@ function AddBlogPage() {
 
                 <button
                     onClick={addNewDraft}
-                    className="mt-8 w-full py-4 border-2 border-dashed border-gray-300 rounded-3xl text-gray-400 hover:text-green-600 hover:border-green-300 hover:bg-green-50 transition-all flex items-center justify-center gap-2 font-medium"
+                    className="mt-8 w-full py-4 border-2 border-dashed border-gray-300 rounded-3xl text-gray-600 hover:text-green-700 hover:border-green-300 hover:bg-green-50 transition-all flex items-center justify-center gap-2 font-medium"
                 >
                     <Plus className="w-5 h-5" /> เพิ่มรายการในคิว
                 </button>
@@ -655,12 +670,13 @@ function AddBlogPage() {
             {linkModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                        <h3 className="text-lg font-medium text-gray-800 mb-4">เพิ่มลิงก์</h3>
+                        <h2 className="text-lg font-medium text-gray-800 mb-4">เพิ่มลิงก์</h2>
                         <input
                             type="url"
                             value={linkUrl}
                             onChange={(e) => setLinkUrl(e.target.value)}
                             placeholder="https://example.com"
+                            aria-label="URL ลิงก์ที่ต้องการเพิ่ม"
                             className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-green-500 focus:outline-none"
                             autoFocus
                         />
@@ -695,7 +711,7 @@ function AddBlogPage() {
             {imageModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
-                        <h3 className="text-lg font-medium text-gray-800 mb-4">เพิ่มรูปภาพในเนื้อหา</h3>
+                        <h2 className="text-lg font-medium text-gray-800 mb-4">เพิ่มรูปภาพในเนื้อหา</h2>
 
                         {/* แท็บเลือกวิธี */}
                         <div className="flex gap-2 mb-4">
@@ -720,6 +736,7 @@ function AddBlogPage() {
                                 value={imageUrl}
                                 onChange={(e) => setImageUrl(e.target.value)}
                                 placeholder="https://example.com/image.jpg"
+                                aria-label="URL รูปภาพที่ต้องการแทรก"
                                 className="w-full border border-gray-300 rounded-lg px-4 py-2 mb-4 focus:ring-2 focus:ring-green-500 focus:outline-none"
                                 autoFocus
                             />
@@ -732,6 +749,7 @@ function AddBlogPage() {
                                         setImageFile(null);
                                         if (imageFileInputRef.current) imageFileInputRef.current.value = "";
                                     }}
+                                    aria-label="ยกเลิกไฟล์รูปภาพที่เลือก"
                                     className="text-red-500 hover:text-red-700"
                                 >
                                     <X className="w-4 h-4" />
@@ -743,6 +761,7 @@ function AddBlogPage() {
                             ref={imageFileInputRef}
                             type="file"
                             accept="image/*"
+                            aria-label="เลือกไฟล์รูปภาพเพื่ออัปโหลด"
                             onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) setImageFile(file);

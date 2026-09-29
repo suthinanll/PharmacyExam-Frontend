@@ -64,7 +64,8 @@ export default function ItemBankHeader({
             <div className="flex justify-between items-center mb-6">
                 {onBack ? (
                     <button
-                        onClick={onBack}
+                        onClick={onToggleEdit}
+                        aria-label="ย้อนกลับไปหน้ารายละเอียดชุดข้อสอบ"
                         className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
@@ -73,6 +74,7 @@ export default function ItemBankHeader({
                 ) : (
                     <Link
                         href="/admin/manage_examset"
+                        aria-label="ย้อนกลับไปหน้ารายการชุดข้อสอบ"
                         className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
                     >
                         <ArrowLeft className="w-4 h-4" />
@@ -110,6 +112,7 @@ export default function ItemBankHeader({
                             <>
                                 <button
                                     onClick={onCATGuideClick}
+                                    aria-label="เปิดคู่มือ CAT"
                                     className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-green-50 text-green-700 hover:bg-green-100 border border-green-200 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
                                 >
                                     <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -118,6 +121,7 @@ export default function ItemBankHeader({
 
                                 <button
                                     onClick={onToggleEdit}
+                                    aria-label="แก้ไขข้อมูลชุดข้อสอบ"
                                     className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg transition-colors font-medium text-sm sm:text-base shadow-sm whitespace-nowrap"
                                 >
                                     <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -129,6 +133,9 @@ export default function ItemBankHeader({
                                 <button
                                     type="button"
                                     onClick={() => setShowCreateDropdown(!showCreateDropdown)}
+                                    aria-haspopup="true"
+                                    aria-expanded={showCreateDropdown}
+                                    aria-label="สร้างสถานการณ์หรือคำถามใหม่"
                                     className="flex-1 sm:flex-none justify-center flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl transition-all font-medium text-sm sm:text-base shadow-sm whitespace-nowrap active:scale-95 cursor-pointer"
                                 >
                                     <Plus className="w-5 h-5" />
@@ -154,7 +161,7 @@ export default function ItemBankHeader({
                                             </div>
                                             <div>
                                                 <div className="font-medium">สร้างสถานการณ์ใหม่</div>
-                                                <div className="text-xs text-gray-400 font-normal">ข้อสอบที่มีบริบท/โจทย์ยาวร่วมกัน</div>
+                                                <div className="text-xs text-gray-500 font-normal">ข้อสอบที่มีบริบท/โจทย์ยาวร่วมกัน</div>
                                             </div>
                                         </button>
 
@@ -174,7 +181,7 @@ export default function ItemBankHeader({
                                                 </div>
                                                 <div>
                                                     <div className="font-medium">สร้างคำถาม (ไม่มีสถานการณ์)</div>
-                                                    <div className="text-xs text-gray-400 font-normal">คำถามเดี่ยวแบบช้อยส์ทั่วไป</div>
+                                                    <div className="text-xs text-gray-500 font-normal">คำถามเดี่ยวแบบช้อยส์ทั่วไป</div>
                                                 </div>
                                             </button>
                                         )}
@@ -195,7 +202,7 @@ export default function ItemBankHeader({
                                                     </div>
                                                     <div>
                                                         <div className="font-medium">นำเข้าจากไฟล์ Excel</div>
-                                                        <div className="text-xs text-gray-400 font-normal">อัปโหลดไฟล์ .xlsx / .xls (ต่อท้าย/แทนที่)</div>
+                                                        <div className="text-xs text-gray-500 font-normal">อัปโหลดไฟล์ .xlsx / .xls (ต่อท้าย/แทนที่)</div>
                                                     </div>
                                                 </button>
                                             </>

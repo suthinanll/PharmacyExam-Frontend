@@ -191,7 +191,8 @@ export default function SubTopicSearchDropdown({
                                 <button
                                     type="button"
                                     onClick={(e) => handleRemove(e, id)}
-                                    className="text-gray-400 hover:text-red-500 hover:bg-red-50 p-0.5 rounded transition-colors"
+                                    aria-label={`ลบหัวข้อย่อย ${st.sub_topic_name}`}
+                                    className="text-gray-500 hover:text-red-500 hover:bg-red-50 p-0.5 rounded transition-colors"
                                     title="ลบหัวข้อนี้"
                                 >
                                     <X className="w-3.5 h-3.5" />
@@ -204,7 +205,8 @@ export default function SubTopicSearchDropdown({
                         <button
                             type="button"
                             onClick={handleClearAll}
-                            className="text-sm text-gray-400 hover:text-red-600 hover:bg-white px-2 py-1 rounded-lg transition-colors ml-auto font-medium cursor-pointer"
+                            aria-label="ล้างหัวข้อย่อยทั้งหมด"
+                            className="text-sm text-gray-500 hover:text-red-600 hover:bg-white px-2 py-1 rounded-lg transition-colors ml-auto font-medium cursor-pointer"
                         >
                             ล้างทั้งหมด
                         </button>
@@ -215,7 +217,13 @@ export default function SubTopicSearchDropdown({
             {/* Dropdown Trigger Box */}
             <div
                 ref={triggerRef}
+                role="button"
+                tabIndex={0}
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
+                aria-label="เลือกหัวข้อย่อย"
                 onClick={() => setIsOpen(!isOpen)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsOpen(!isOpen); } }}
                 className={`w-full px-3.5 py-2.5 bg-white border rounded-xl flex items-center justify-between cursor-pointer transition-all ${isOpen
                         ? 'border-green-500 ring-2 ring-green-100 shadow-xs'
                         : 'border-slate-200 hover:border-slate-300'
@@ -255,13 +263,15 @@ export default function SubTopicSearchDropdown({
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="พิมพ์ชื่อหัวข้อย่อยหรือหัวข้อหลัก..."
-                            className="w-full bg-transparent border-none text-sm text-gray-900 placeholder:text-gray-400 focus:outline-hidden"
+                            aria-label="ค้นหาหัวข้อย่อย"
+                            className="w-full bg-transparent border-none text-sm text-gray-900 placeholder:text-gray-500 focus:outline-hidden"
                         />
                         {searchTerm && (
                             <button
                                 type="button"
                                 onClick={() => setSearchTerm('')}
-                                className="p-1 text-gray-400 hover:text-gray-600 rounded-md hover:bg-slate-200/60 transition-colors"
+                                aria-label="ล้างคำค้นหาหัวข้อย่อย"
+                                className="p-1 text-gray-500 hover:text-gray-700 rounded-md hover:bg-slate-200/60 transition-colors"
                             >
                                 <X className="w-3.5 h-3.5" />
                             </button>

@@ -1502,6 +1502,7 @@ export default function ItemBankEditPage() {
                     ref={fileInputRef}
                     onChange={handleUploadPdf}
                     accept=".pdf"
+                    aria-label="อัปโหลดไฟล์ PDF ข้อสอบ"
                     className="hidden"
                 />
 
@@ -1547,7 +1548,7 @@ export default function ItemBankEditPage() {
                         {situations.length === 0 ? (
                             <div className="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-12 sm:p-16 text-center">
                                 <FileText className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400 mx-auto mb-4" />
-                                <h3 className="text-lg sm:text-xl font-medium text-gray-700 mb-2">ยังไม่มีสถานการณ์</h3>
+                                <h2 className="text-lg sm:text-xl font-medium text-gray-700 mb-2">ยังไม่มีสถานการณ์</h2>
                                 <p className="text-gray-500 mb-6 text-sm sm:text-base">เริ่มต้นสร้างข้อสอบโดยการเพิ่มสถานการณ์ใหม่</p>
                             </div>
 
@@ -1609,6 +1610,7 @@ export default function ItemBankEditPage() {
                                                             type="button"
                                                             onClick={() => moveSituation(sitIdx, 'up')}
                                                             disabled={sitIdx === 0}
+                                                            aria-label="ย้ายสถานการณ์ขึ้น"
                                                             className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                             title="ย้ายขึ้น"
                                                         >
@@ -1619,6 +1621,7 @@ export default function ItemBankEditPage() {
                                                             type="button"
                                                             onClick={() => moveSituation(sitIdx, 'down')}
                                                             disabled={sitIdx === situations.length - 1}
+                                                            aria-label="ย้ายสถานการณ์ลง"
                                                             className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                             title="ย้ายลง"
                                                         >
@@ -1628,6 +1631,7 @@ export default function ItemBankEditPage() {
                                                     <button
                                                         type="button"
                                                         onClick={() => removeSituation(sitIdx)}
+                                                        aria-label={isSituation ? "ลบสถานการณ์" : "ลบคำถามเดี่ยว"}
                                                         className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                                         title={isSituation ? "ลบสถานการณ์" : "ลบคำถามเดี่ยว"}
                                                     >
@@ -1636,6 +1640,7 @@ export default function ItemBankEditPage() {
                                                     <button
                                                         type="button"
                                                         onClick={() => isSituation ? toggleSituationCollapse(sitIdx) : toggleQuestionCollapse(sitIdx, 0)}
+                                                        aria-label={(isSituation ? isCollapsed : collapsedQuestions.has(`${sitIdx}-0`)) ? "ขยายสถานการณ์" : "ยุบสถานการณ์"}
                                                         className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
                                                     >
                                                         {(isSituation ? isCollapsed : collapsedQuestions.has(`${sitIdx}-0`))
@@ -1668,7 +1673,7 @@ export default function ItemBankEditPage() {
                                                     {/* Question area header (Only when situation) */}
                                                     {isSituation && (
                                                         <div className="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
-                                                            <h4 className="text-sm font-medium text-gray-700">คำถามในสถานการณ์นี้</h4>
+                                                            <h3 className="text-sm font-medium text-gray-700">คำถามในสถานการณ์นี้</h3>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => addQuestion(sitIdx)}
@@ -1728,6 +1733,7 @@ export default function ItemBankEditPage() {
                                                                                             type="button"
                                                                                             onClick={() => moveQuestion(sitIdx, qIdx, 'up')}
                                                                                             disabled={qIdx === 0}
+                                                                                            aria-label="ย้ายคำถามขึ้น"
                                                                                             className="p-1 text-gray-400 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                                             title="ย้ายขึ้น"
                                                                                         >
@@ -1737,6 +1743,7 @@ export default function ItemBankEditPage() {
                                                                                             type="button"
                                                                                             onClick={() => moveQuestion(sitIdx, qIdx, 'down')}
                                                                                             disabled={qIdx === situation.questions.length - 1}
+                                                                                            aria-label="ย้ายคำถามลง"
                                                                                             className="p-1 text-gray-400 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                                             title="ย้ายลง"
                                                                                         >
@@ -1746,6 +1753,7 @@ export default function ItemBankEditPage() {
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => removeQuestion(sitIdx, qIdx)}
+                                                                                        aria-label="ลบคำถาม"
                                                                                         className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                                                                         title="ลบคำถาม"
                                                                                     >
@@ -1754,6 +1762,7 @@ export default function ItemBankEditPage() {
                                                                                     <button
                                                                                         type="button"
                                                                                         onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
+                                                                                        aria-label={isQCollapsed ? "ขยายคำถาม" : "ยุบคำถาม"}
                                                                                         className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
                                                                                     >
                                                                                         {isQCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -1807,6 +1816,7 @@ export default function ItemBankEditPage() {
                                                                                                 <input
                                                                                                     type="file"
                                                                                                     accept="image/*"
+                                                                                                    aria-label="อัปโหลดรูปภาพคำถาม"
                                                                                                     onChange={async (e) => {
                                                                                                         const file = e.target.files?.[0];
                                                                                                         if (!file) return;
@@ -1889,6 +1899,7 @@ export default function ItemBankEditPage() {
                                                                                                     <input
                                                                                                         type="text"
                                                                                                         value={option.option_text}
+                                                                                                        aria-label={`ตัวเลือกที่ ${optIdx + 1}`}
                                                                                                         onChange={(e) => updateAnswerOption(sitIdx, qIdx, optIdx, 'option_text', e.target.value)}
                                                                                                         className="flex-1 px-3 sm:px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all text-base"
                                                                                                         placeholder={`ตัวเลือกที่ ${optIdx + 1}`}
@@ -1897,6 +1908,7 @@ export default function ItemBankEditPage() {
                                                                                                     <input
                                                                                                         type="radio"
                                                                                                         name={`correct-${sitIdx}-${qIdx}`}
+                                                                                                        aria-label={`เฉลยข้อตัวเลือกที่ ${optIdx + 1}`}
                                                                                                         checked={option.is_correct}
                                                                                                         onChange={() => updateAnswerOption(sitIdx, qIdx, optIdx, 'is_correct', true)}
                                                                                                         className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 focus:ring-green-500 cursor-pointer flex-shrink-0"
@@ -1960,6 +1972,7 @@ export default function ItemBankEditPage() {
                                                                                                 <input
                                                                                                     type="number"
                                                                                                     step="0.01"
+                                                                                                    aria-label="อำนาจจำแนก (a)"
                                                                                                     value={question.irt_a_discrimination || ''}
                                                                                                     onChange={(e) => updateQuestion(sitIdx, qIdx, 'irt_a_discrimination', e.target.value)}
                                                                                                     className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-green-500 outline-none"
@@ -1970,6 +1983,7 @@ export default function ItemBankEditPage() {
                                                                                                 <input
                                                                                                     type="number"
                                                                                                     step="0.01"
+                                                                                                    aria-label="ความยาก (b)"
                                                                                                     value={question.irt_b_difficulty || ''}
                                                                                                     onChange={(e) => updateQuestion(sitIdx, qIdx, 'irt_b_difficulty', e.target.value)}
                                                                                                     className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-green-500 outline-none"
@@ -1980,6 +1994,7 @@ export default function ItemBankEditPage() {
                                                                                                 <input
                                                                                                     type="number"
                                                                                                     step="0.01"
+                                                                                                    aria-label="การเดา (c)"
                                                                                                     value={question.irt_c_guessing || ''}
                                                                                                     onChange={(e) => updateQuestion(sitIdx, qIdx, 'irt_c_guessing', e.target.value)}
                                                                                                     className="w-full px-3 py-1.5 rounded-lg border border-gray-300 text-sm focus:ring-2 focus:ring-green-500 outline-none"

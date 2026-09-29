@@ -149,10 +149,11 @@ function SliderField({
             <div className="flex items-center justify-between mb-3">
                 <div>
                     <span className="text-sm font-medium text-gray-800">{label}</span>
-                    <span className="ml-2 text-sm text-gray-400">{sublabel}</span>
+                    <span className="ml-2 text-sm text-gray-500">{sublabel}</span>
                 </div>
                 <input
                     type="number" step={step} value={value}
+                    aria-label={`${label} ${sublabel}`}
                     onChange={e => {
                         const v = parseFloat(e.target.value);
                         if (!isNaN(v)) onChange(Math.max(min, Math.min(max, v)));
@@ -166,6 +167,7 @@ function SliderField({
                 <div className="absolute h-1.5 rounded-full" style={{ width: `${pct}%`, background: color }} />
                 <input
                     type="range" min={min} max={max} step={step} value={value}
+                    aria-label={`${label} ${sublabel}`}
                     onChange={e => onChange(parseFloat(e.target.value))}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     style={{ zIndex: 10 }}
@@ -175,7 +177,7 @@ function SliderField({
                     style={{ left: `calc(${pct}% - 8px)`, background: color }}
                 />
             </div>
-            <div className="flex justify-between text-sm text-gray-400 mt-1.5">
+            <div className="flex justify-between text-sm text-gray-500 mt-1.5">
                 <span>{fmt(min)}</span>
                 <span>{fmt((min + max) / 2)}</span>
                 <span>{fmt(max)}</span>
@@ -781,9 +783,11 @@ export default function IRTManagementPage() {
                 <div className="bg-white border border-gray-200 rounded-2xl shadow-2xs relative z-30">
                     <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-6">
                         <div className="flex-1 relative">
-                            <label className="block text-sm font-medium text-gray-500 mb-1.5">คลังข้อสอบ</label>
+                            <label htmlFor="irt-bank-selector" className="block text-sm font-medium text-gray-700 mb-1.5">คลังข้อสอบ</label>
                             <div className="relative">
                                 <select
+                                    id="irt-bank-selector"
+                                    aria-label="คลังข้อสอบ"
                                     value={selectedBankId ?? ''}
                                     onChange={e => { setSelectedBankId(e.target.value ? +e.target.value : null); setCurrentPage(1); setCheckedIds(new Set()); }}
                                     className="w-full appearance-none border border-gray-200 rounded-xl px-4 py-2.5 pr-10 text-sm font-medium text-gray-800 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 cursor-pointer"
@@ -905,9 +909,10 @@ export default function IRTManagementPage() {
                     <div className="flex flex-wrap gap-2 items-center flex-1">
                         {/* Search */}
                         <div className="relative">
-                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
                             <input
                                 type="text" placeholder="ค้นหาข้อสอบ..." value={searchTerm}
+                                aria-label="ค้นหาข้อสอบ"
                                 onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                                 className="pl-8 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 w-52"
                             />
@@ -934,6 +939,7 @@ export default function IRTManagementPage() {
                         <div className="relative">
                             <select
                                 value={difficultyFilter}
+                                aria-label="กรองระดับความยาก"
                                 onChange={e => { setDifficultyFilter(e.target.value); setCurrentPage(1); }}
                                 className="appearance-none pl-3 pr-8 py-2 border border-gray-200 rounded-lg text-sm font-medium bg-white text-gray-700 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 cursor-pointer shadow-2xs"
                             >
@@ -948,8 +954,12 @@ export default function IRTManagementPage() {
                         </div>
 
                         {/* Sort */}
-                        <button onClick={() => setSortOrder(s => s === 'desc' ? 'asc' : 'desc')}
-                            className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-600 hover:text-gray-900 hover:border-gray-300 text-sm font-medium transition-colors cursor-pointer">
+                        <button
+                            type="button"
+                            onClick={() => setSortOrder(s => s === 'desc' ? 'asc' : 'desc')}
+                            aria-label="สลับลำดับการจัดเรียง"
+                            className="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-lg bg-white text-gray-600 hover:text-gray-900 hover:border-gray-300 text-sm font-medium transition-colors cursor-pointer"
+                        >
                             <ArrowUpDown size={12} />
                             {sortOrder === 'desc' ? 'ใหม่' : 'เก่า'}
                         </button>
@@ -979,6 +989,7 @@ export default function IRTManagementPage() {
                                     type="checkbox"
                                     checked={allPageChecked}
                                     onChange={toggleCheckAll}
+                                    aria-label="เลือกข้อสอบทั้งหมดในหน้านี้"
                                     className="w-4 h-4 rounded border-gray-300 text-blue-600 accent-blue-600"
                                 />
                                 เลือกหน้านี้
@@ -1064,22 +1075,23 @@ export default function IRTManagementPage() {
                             <table className="min-w-full">
                                 <thead>
                                     <tr className="border-b border-gray-200 bg-gray-50">
-                                        <th className="pl-4 pr-2 py-3.5 w-10">
+                                        <th scope="col" className="pl-4 pr-2 py-3.5 w-10">
                                             <input
                                                 type="checkbox"
                                                 checked={allPageChecked}
                                                 onChange={toggleCheckAll}
+                                                aria-label="เลือกข้อสอบทั้งหมดในตาราง"
                                                 className="w-4 h-4 rounded border-gray-300 text-blue-600 accent-blue-600"
                                             />
                                         </th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-medium text-gray-500 whitespace-nowrap w-16">ID</th>
-                                        <th className="px-3 py-3.5 text-left text-sm font-medium text-gray-500 whitespace-nowrap min-w-[140px]">คลังข้อสอบ</th>
-                                        <th className="px-4 py-3.5 text-left text-sm font-medium text-gray-500 min-w-[220px]">คำถาม</th>
-                                        <th className="px-4 py-3.5 text-center text-sm font-medium text-gray-600 whitespace-nowrap">อำนาจจำแนก (a)</th>
-                                        <th className="px-4 py-3.5 text-center text-sm font-medium text-gray-600 whitespace-nowrap">ความยาก (b)</th>
-                                        <th className="px-4 py-3.5 text-center text-sm font-medium text-gray-600 whitespace-nowrap">การเดา (c)</th>
-                                        <th className="px-4 py-3.5 text-center text-sm font-medium text-gray-500 whitespace-nowrap">ระดับ</th>
-                                        <th className="pr-4 pl-2 py-3.5 text-center text-sm font-medium text-gray-500 whitespace-nowrap w-20">จัดการ</th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-medium text-gray-500 whitespace-nowrap w-16">ID</th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-medium text-gray-500 whitespace-nowrap min-w-[140px]">คลังข้อสอบ</th>
+                                        <th scope="col" className="px-4 py-3.5 text-left text-sm font-medium text-gray-500 min-w-[220px]">คำถาม</th>
+                                        <th scope="col" className="px-4 py-3.5 text-center text-sm font-medium text-gray-600 whitespace-nowrap">อำนาจจำแนก (a)</th>
+                                        <th scope="col" className="px-4 py-3.5 text-center text-sm font-medium text-gray-600 whitespace-nowrap">ความยาก (b)</th>
+                                        <th scope="col" className="px-4 py-3.5 text-center text-sm font-medium text-gray-600 whitespace-nowrap">การเดา (c)</th>
+                                        <th scope="col" className="px-4 py-3.5 text-center text-sm font-medium text-gray-500 whitespace-nowrap">ระดับ</th>
+                                        <th scope="col" className="pr-4 pl-2 py-3.5 text-center text-sm font-medium text-gray-500 whitespace-nowrap w-20">จัดการ</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
@@ -1103,10 +1115,11 @@ export default function IRTManagementPage() {
                                                             type="checkbox"
                                                             checked={isChecked}
                                                             onChange={() => toggleCheck(item.item_id)}
+                                                            aria-label={`เลือกข้อสอบ ID #${item.item_id}`}
                                                             className="w-4 h-4 rounded border-gray-300 text-blue-600 accent-blue-600"
                                                         />
                                                     </td>
-                                                    <td className="px-3 py-3.5 text-sm text-gray-400 ">#{item.item_id}</td>
+                                                    <td className="px-3 py-3.5 text-sm text-gray-500 ">#{item.item_id}</td>
                                                     <td className="px-3 py-3.5">
                                                         <span className="text-sm font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md line-clamp-1">
                                                             {item.item_bank?.bank_name || '—'}
@@ -1135,16 +1148,20 @@ export default function IRTManagementPage() {
                                                     <td className="pr-4 pl-2 py-3.5 text-center">
                                                         <div className="flex items-center justify-center gap-1">
                                                             <button
+                                                                type="button"
                                                                 onClick={() => openEdit(item)}
-                                                                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-700 transition-colors cursor-pointer"
+                                                                aria-label={`แก้ไขค่า IRT ข้อสอบ #${item.item_id}`}
+                                                                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
                                                                 title="แก้ไขค่า IRT"
                                                             >
                                                                 <Eye size={15} />
                                                             </button>
                                                             {(item.irt_b_difficulty !== null || item.irt_a_discrimination !== null || item.irt_c_guessing !== null) && (
                                                                 <button
+                                                                    type="button"
                                                                     onClick={() => handleResetSingleToNull(item)}
-                                                                    className="p-1.5 hover:bg-rose-50 rounded-lg text-gray-300 hover:text-rose-600 transition-colors cursor-pointer"
+                                                                    aria-label={`ล้างค่า IRT ข้อสอบ #${item.item_id}`}
+                                                                    className="p-1.5 hover:bg-rose-50 rounded-lg text-gray-400 hover:text-rose-600 transition-colors cursor-pointer"
                                                                     title="ล้างค่า IRT (กลับเป็น null)"
                                                                 >
                                                                     <RotateCcw size={14} />
@@ -1205,7 +1222,7 @@ export default function IRTManagementPage() {
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm text-gray-400 mb-0.5">การเดา c</p>
+                                                    <p className="text-sm text-gray-500 mb-0.5">การเดา c</p>
                                                     <p className="text-sm font-medium" style={{ color: '#be185d' }}>
                                                         {item.irt_c_guessing !== null ? item.irt_c_guessing.toFixed(2) : '—'}
                                                     </p>
@@ -1219,14 +1236,18 @@ export default function IRTManagementPage() {
                                     </div>
                                     <div className="flex gap-2 mt-4">
                                         <button
+                                            type="button"
                                             onClick={() => openEdit(item)}
+                                            aria-label={`แก้ไขค่า IRT ข้อสอบ #${item.item_id}`}
                                             className="flex-1 flex items-center justify-center gap-1 text-sm text-gray-500 hover:text-green-600 font-medium px-2 py-1.5 rounded-lg hover:bg-gray-50 border border-gray-200 transition-colors cursor-pointer"
                                         >
                                             <Eye size={12} /> แก้ไข
                                         </button>
                                         {(item.irt_b_difficulty !== null || item.irt_a_discrimination !== null || item.irt_c_guessing !== null) && (
                                             <button
+                                                type="button"
                                                 onClick={() => handleResetSingleToNull(item)}
+                                                aria-label={`ล้างค่า IRT ข้อสอบ #${item.item_id}`}
                                                 className="px-3 text-rose-500 hover:bg-rose-50 border border-gray-100 rounded-lg transition-colors cursor-pointer"
                                                 title="ล้างค่า IRT (กลับเป็น null)"
                                             >
@@ -1263,13 +1284,17 @@ export default function IRTManagementPage() {
                         <div className="sticky top-0 bg-white px-6 pt-6 pb-4 border-b border-gray-100 z-10">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <h3 className="text-base font-medium text-gray-900">แก้ไขพารามิเตอร์ IRT</h3>
-                                    <p className="text-sm text-gray-400 mt-0.5">
+                                    <h2 className="text-base font-medium text-gray-900">แก้ไขพารามิเตอร์ IRT</h2>
+                                    <p className="text-sm text-gray-500 mt-0.5">
                                         ข้อสอบ #{editItem.item_id} · {editItem.item_bank?.bank_name}
                                     </p>
                                 </div>
-                                <button onClick={() => setShowEditModal(false)}
-                                    className="text-gray-300 hover:text-gray-500 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowEditModal(false)}
+                                    aria-label="ปิดหน้าต่างแก้ไขพารามิเตอร์ IRT"
+                                    className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
+                                >
                                     <X size={18} />
                                 </button>
                             </div>
@@ -1388,11 +1413,15 @@ export default function IRTManagementPage() {
                     <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full max-w-lg shadow-2xl">
                         <div className="px-6 pt-6 pb-4 border-b border-gray-100 flex justify-between items-start">
                             <div>
-                                <h3 className="text-base font-medium text-gray-900">ตั้งค่า IRT — {checkedIds.size} ข้อ</h3>
-                                <p className="text-sm text-gray-400 mt-0.5">อัปเดตพร้อมกันทุกข้อที่เลือก</p>
+                                <h2 className="text-base font-medium text-gray-900">ตั้งค่า IRT — {checkedIds.size} ข้อ</h2>
+                                <p className="text-sm text-gray-500 mt-0.5">อัปเดตพร้อมกันทุกข้อที่เลือก</p>
                             </div>
-                            <button onClick={() => setShowBulkModal(false)}
-                                className="text-gray-300 hover:text-gray-500 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer">
+                            <button
+                                type="button"
+                                onClick={() => setShowBulkModal(false)}
+                                aria-label="ปิดหน้าต่างตั้งค่า IRT พร้อมกัน"
+                                className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
+                            >
                                 <X size={18} />
                             </button>
                         </div>
@@ -1472,11 +1501,15 @@ export default function IRTManagementPage() {
                     <div className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl p-6 space-y-4">
                         <div className="flex justify-between items-start border-b border-gray-100 pb-3">
                             <div>
-                                <h3 className="text-base font-medium text-gray-900">ฟังก์ชันสารสนเทศของแบบทดสอบ (TIF)</h3>
-                                <p className="text-sm text-gray-400 mt-0.5">{tifBankName}</p>
+                                <h2 className="text-base font-medium text-gray-900">ฟังก์ชันสารสนเทศของแบบทดสอบ (TIF)</h2>
+                                <p className="text-sm text-gray-500 mt-0.5">{tifBankName}</p>
                             </div>
-                            <button onClick={() => setShowTIF(false)}
-                                className="text-gray-300 hover:text-gray-500 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer">
+                            <button
+                                type="button"
+                                onClick={() => setShowTIF(false)}
+                                aria-label="ปิดหน้าต่าง TIF"
+                                className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
+                            >
                                 <X size={18} />
                             </button>
                         </div>
@@ -1523,17 +1556,21 @@ export default function IRTManagementPage() {
                                     <Sparkles size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-medium text-gray-900 flex items-center gap-2">
+                                    <h2 className="text-lg font-medium text-gray-900 flex items-center gap-2">
                                         Auto-Calibrate พารามิเตอร์ IRT จากผลสอบจริง (CTT)
                                         <span className="text-sm px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 font-medium">Beta</span>
-                                    </h3>
+                                    </h2>
                                     <p className="text-sm text-gray-500 mt-0.5">
                                         คำนวณค่าความยาก (p-value) และอำนาจจำแนก (Point-Biserial) จากประวัติการสอบจริง แล้วประมาณการเป็นค่า a, b, c
                                     </p>
                                 </div>
                             </div>
-                            <button onClick={() => setShowAutoCalibModal(false)}
-                                className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-xl transition-all cursor-pointer">
+                            <button
+                                type="button"
+                                onClick={() => setShowAutoCalibModal(false)}
+                                aria-label="ปิดหน้าต่าง Auto-Calibrate"
+                                className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
+                            >
                                 <X size={20} />
                             </button>
                         </div>
@@ -1798,14 +1835,18 @@ export default function IRTManagementPage() {
                                     <Upload size={20} />
                                 </div>
                                 <div>
-                                    <h3 className="text-lg font-medium text-gray-900">นำเข้าพารามิเตอร์ IRT (Calibrated CSV)</h3>
+                                    <h2 className="text-lg font-medium text-gray-900">นำเข้าพารามิเตอร์ IRT (Calibrated CSV)</h2>
                                     <p className="text-sm text-gray-500 mt-0.5">
                                         อัปเดตค่าพารามิเตอร์ a, b, c จากไฟล์ผลลัพธ์ที่ได้จากการ Calibrate ใน R, Python, หรือ BILOG-MG
                                     </p>
                                 </div>
                             </div>
-                            <button onClick={() => setShowImportModal(false)}
-                                className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-xl transition-all cursor-pointer">
+                            <button
+                                type="button"
+                                onClick={() => setShowImportModal(false)}
+                                aria-label="ปิดหน้าต่างนำเข้าพารามิเตอร์ IRT"
+                                className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
+                            >
                                 <X size={20} />
                             </button>
                         </div>
@@ -1821,6 +1862,7 @@ export default function IRTManagementPage() {
                                     type="file"
                                     ref={importFileInputRef}
                                     accept=".csv,.txt"
+                                    aria-label="เลือกไฟล์ CSV สำหรับนำเข้าพารามิเตอร์ IRT"
                                     className="hidden"
                                     onChange={e => {
                                         const file = e.target.files?.[0];
@@ -1860,21 +1902,21 @@ export default function IRTManagementPage() {
                             {importParsedItems.length > 0 && (
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <h4 className="text-sm font-medium text-gray-800">
+                                        <h3 className="text-sm font-medium text-gray-800">
                                             ตัวอย่างข้อมูลที่อ่านได้ ({importParsedItems.filter(r => r.valid).length} ข้อถูกต้อง / {importParsedItems.filter(r => !r.valid).length} ไม่ถูกต้อง)
-                                        </h4>
+                                        </h3>
                                     </div>
                                     <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-2xs">
                                         <div className="overflow-x-auto max-h-60">
                                             <table className="w-full text-left border-collapse text-sm">
                                                 <thead className="bg-gray-50 sticky top-0 border-b border-gray-200 font-medium text-gray-700">
                                                     <tr>
-                                                        <th className="p-2.5">Item ID</th>
-                                                        <th className="p-2.5">โจทย์คำถาม</th>
-                                                        <th className="p-2.5 text-center">a (Discrim)</th>
-                                                        <th className="p-2.5 text-center">b (Diff)</th>
-                                                        <th className="p-2.5 text-center">c (Guess)</th>
-                                                        <th className="p-2.5 text-center">สถานะ</th>
+                                                        <th scope="col" className="p-2.5">Item ID</th>
+                                                        <th scope="col" className="p-2.5">โจทย์คำถาม</th>
+                                                        <th scope="col" className="p-2.5 text-center">a (Discrim)</th>
+                                                        <th scope="col" className="p-2.5 text-center">b (Diff)</th>
+                                                        <th scope="col" className="p-2.5 text-center">c (Guess)</th>
+                                                        <th scope="col" className="p-2.5 text-center">สถานะ</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody className="divide-y divide-gray-100 ">

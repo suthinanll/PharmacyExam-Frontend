@@ -399,14 +399,16 @@ function Page() {
               <input
                 type="text"
                 placeholder="ค้นหากำหนดการ..."
+                aria-label="ค้นหากำหนดการ"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             </div>
             <select
               value={statusFilter}
+              aria-label="กรองตามสถานะกำหนดการ"
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2 bg-white border border-gray-300 rounded-xl outline-none text-sm focus:ring-green-500 focus:border-green-500 font-medium text-gray-700"
             >
@@ -416,6 +418,7 @@ function Page() {
             </select>
             <select
               value={typeFilter}
+              aria-label="กรองตามประเภทกำหนดการ"
               onChange={(e) => setTypeFilter(e.target.value)}
               className="px-4 py-2 bg-white border border-gray-300 rounded-xl outline-none text-sm focus:ring-green-500 focus:border-green-500 font-medium text-gray-700"
             >
@@ -483,15 +486,19 @@ function Page() {
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
             <div className="flex items-center justify-between mb-6">
               <button
+                type="button"
                 onClick={() => setViewDate(new Date(currentYearAD, currentMonth - 1))}
-                className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
+                aria-label="เดือนก่อนหน้า"
+                className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors cursor-pointer"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <h2 className="text-xl font-medium text-gray-800">{months[currentMonth]} {currentYearAD + 543}</h2>
               <button
+                type="button"
                 onClick={() => setViewDate(new Date(currentYearAD, currentMonth + 1))}
-                className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
+                aria-label="เดือนถัดไป"
+                className="p-2 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors cursor-pointer"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -535,20 +542,20 @@ function Page() {
                   >
                     {/* Checkbox */}
                     <button
+                      type="button"
                       onClick={() => toggleSelect(event.id)}
-                      className="shrink-0 text-gray-400 hover:text-green-600 transition-colors"
+                      aria-label={`เลือกกำหนดการ ${event.title}`}
+                      className="shrink-0 text-gray-400 hover:text-green-600 transition-colors cursor-pointer"
                     >
                       {isChecked
                         ? <CheckSquare className="w-5 h-5 text-green-600" />
                         : <Square className="w-5 h-5" />}
                     </button>
 
-
-                    
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <h3 className="text-base font-medium text-gray-900 truncate ">{event.title}</h3>
+                        <h2 className="text-base font-medium text-gray-900 truncate ">{event.title}</h2>
                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${event.is_published ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-100 text-gray-500 border-gray-200"}`}>
                           {event.is_published ? "เผยแพร่" : "แบบร่าง"}
                         </span>
@@ -584,21 +591,27 @@ function Page() {
                     {/* Actions */}
                     <div className="flex items-center gap-2 shrink-0">
                       <button
+                        type="button"
                         onClick={() => handleToggleStatus(event)}
+                        aria-label={event.is_published ? "งดเผยแพร่กำหนดการ" : "เผยแพร่กำหนดการ"}
                         title={event.is_published ? "งดเผยแพร่" : "เผยแพร่"}
-                        className={`p-2 rounded-lg border transition-all ${event.is_published ? "text-amber-500 bg-amber-50 border-amber-200 hover:bg-amber-500 hover:text-white" : "text-green-600 bg-green-50 border-green-200 hover:bg-green-600 hover:text-white"}`}
+                        className={`p-2 rounded-lg border transition-all cursor-pointer ${event.is_published ? "text-amber-500 bg-amber-50 border-amber-200 hover:bg-amber-500 hover:text-white" : "text-green-600 bg-green-50 border-green-200 hover:bg-green-600 hover:text-white"}`}
                       >
                         {event.is_published ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleEditClick(event)}
-                        className="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all"
+                        aria-label={`แก้ไขกำหนดการ ${event.title}`}
+                        className="px-4 py-2 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-all cursor-pointer"
                       >
                         แก้ไข
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleDeleteConfirm(event)}
-                        className="p-2 text-red-500 bg-red-50 border border-red-200 hover:bg-red-500 hover:text-white rounded-lg transition-all"
+                        aria-label={`ลบกำหนดการ ${event.title}`}
+                        className="p-2 text-red-500 bg-red-50 border border-red-200 hover:bg-red-500 hover:text-white rounded-lg transition-all cursor-pointer"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -622,19 +635,23 @@ function Page() {
               <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-medium text-gray-800">แก้ไขกำหนดการ</h2>
-                  <p className="text-gray-400 text-xs mt-0.5">อัปเดตข้อมูลรายละเอียด</p>
+                  <p className="text-gray-500 text-xs mt-0.5">อัปเดตข้อมูลรายละเอียด</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setIsEditModalOpen(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors"
+                  aria-label="ปิดหน้าต่างแก้ไขกำหนดการ"
+                  className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <form onSubmit={handleEditSubmit} className="p-8 space-y-6 overflow-y-auto">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-500 ">ชื่อกำหนดการ</label>
+                  <label htmlFor="edit-cal-title" className="text-xs font-medium text-gray-700">ชื่อกำหนดการ</label>
                   <input
+                    id="edit-cal-title"
+                    aria-label="ชื่อกำหนดการ"
                     type="text"
                     value={editFormData.title}
                     onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
@@ -645,8 +662,10 @@ function Page() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-500 ">รายละเอียดเพิ่มเติม</label>
+                  <label htmlFor="edit-cal-desc" className="text-xs font-medium text-gray-700">รายละเอียดเพิ่มเติม</label>
                   <textarea
+                    id="edit-cal-desc"
+                    aria-label="รายละเอียดเพิ่มเติม"
                     rows={2}
                     value={editFormData.description}
                     onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
@@ -656,11 +675,13 @@ function Page() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                  <label htmlFor="edit-cal-url" className="text-xs font-medium text-gray-700 flex items-center gap-1.5">
                     <LinkIcon className="w-3.5 h-3.5 text-green-600" />
-                    แนบลิงก์ (URL) / เอกสารอ้างอิง <span className="text-gray-400 font-normal">(ไม่บังคับกรอก)</span>
+                    แนบลิงก์ (URL) / เอกสารอ้างอิง <span className="text-gray-500 font-normal">(ไม่บังคับกรอก)</span>
                   </label>
                   <input
+                    id="edit-cal-url"
+                    aria-label="แนบลิงก์ (URL) หรือเอกสารอ้างอิง"
                     type="url"
                     value={editFormData.link_url || ""}
                     onChange={(e) => setEditFormData({ ...editFormData, link_url: e.target.value })}
@@ -669,7 +690,7 @@ function Page() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-gray-500 ">หมวดหมู่</label>
+                  <span className="text-xs font-medium text-gray-700 block">หมวดหมู่</span>
                   <div className="flex flex-wrap gap-2">
                     {Object.keys(CATEGORY_STYLES).map((tag) => (
                       <button
@@ -688,10 +709,12 @@ function Page() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-500 ">วันเริ่มต้น</label>
+                    <label htmlFor="edit-cal-start" className="text-xs font-medium text-gray-700">วันเริ่มต้น</label>
                     <div className="relative">
                       <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
                       <input
+                        id="edit-cal-start"
+                        aria-label="วันเริ่มต้น"
                         type="date"
                         value={editFormData.startDate}
                         onChange={(e) => setEditFormData({ ...editFormData, startDate: e.target.value })}
@@ -701,10 +724,12 @@ function Page() {
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-500 ">วันสิ้นสุด</label>
+                    <label htmlFor="edit-cal-end" className="text-xs font-medium text-gray-700">วันสิ้นสุด</label>
                     <div className="relative">
                       <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
                       <input
+                        id="edit-cal-end"
+                        aria-label="วันสิ้นสุด"
                         type="date"
                         value={editFormData.endDate}
                         onChange={(e) => setEditFormData({ ...editFormData, endDate: e.target.value })}
