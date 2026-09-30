@@ -342,12 +342,44 @@ export default function ExamHistoryPage() {
     const toggleCat = (id: number) =>
         setSelectedCats((prev) => prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]);
 
+    /**
+     * ส่วนหัวของหน้า แยกออกมาเพื่อให้แสดงได้ทันทีตั้งแต่ยังโหลดข้อมูลไม่เสร็จ
+     *
+     * เดิมทั้งหน้าถูกแทนด้วย spinner ระหว่างโหลด <h1> จึงปรากฏหลังจากดาวน์โหลด JS
+     * ครบ hydrate เสร็จ และ fetch จบ ซึ่งบนมือถือกินเวลาอีก 2.5 วินาทีหลัง FCP
+     * และ <h1> นี้เองคือองค์ประกอบ LCP ของหน้า (Lighthouse วัดได้ LCP 4.0 วินาที
+     * ทั้งที่ FCP 1.4 วินาที) ทั้งที่เป็นข้อความคงที่ ไม่ได้ขึ้นกับข้อมูลเลย
+     */
+    const PageHeader = () => (
+        <>
+            {/* Breadcrumb */}
+            <div className="flex items-center text-sm text-gray-500 mb-5">
+                <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+                <span className="mx-2">›</span>
+                <span className="text-gray-600 font-medium">ประวัติการทำข้อสอบ</span>
+            </div>
+
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-6">
+                <div>
+                    <h1 className="text-3xl md:text-3xl font-medium text-[#1C2033]">ประวัติการทำข้อสอบ</h1>
+                    <p className="text-sm text-[#6B7089] mt-1">ประวัติการทำข้อสอบทั้งหมด (ปกติ และ CAT)</p>
+                </div>
+            </div>
+        </>
+    );
+
     // ── Render States ──
     if (loading) return (
         <>
             <Navbar />
-            <div className="min-h-screen flex items-start justify-center pt-24">
-                <LoadingSpinner size="lg" text="กำลังโหลดประวัติการสอบ..." />
+            <div className="min-h-screen bg-[#F6F7FB] p-4 md:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto">
+                    <PageHeader />
+                    <div className="pt-8">
+                        <LoadingSpinner size="lg" text="กำลังโหลดประวัติการสอบ..." />
+                    </div>
+                </div>
             </div>
             <Footer />
         </>
@@ -379,21 +411,7 @@ export default function ExamHistoryPage() {
             <div className="min-h-screen bg-[#F6F7FB] p-4 md:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
 
-                    {/* Breadcrumb */}
-                    <div className="flex items-center text-sm text-gray-500 mb-5">
-                        <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
-                        <span className="mx-2">›</span>
-                        <span className="text-gray-600 font-medium">ประวัติการทำข้อสอบ</span>
-                    </div>
-
-                    {/* Header */}
-                    <div className="flex items-center gap-3 mb-6">
-
-                        <div>
-                            <h1 className="text-3xl md:text-3xl font-medium text-[#1C2033]">ประวัติการทำข้อสอบ</h1>
-                            <p className="text-sm text-[#6B7089] mt-1">ประวัติการทำข้อสอบทั้งหมด (ปกติ และ CAT)</p>
-                        </div>
-                    </div>
+                    <PageHeader />
 
                     {/* Stats Summary Bar */}
                     <StatBar records={allRecords} />

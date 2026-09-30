@@ -66,17 +66,11 @@ function normalizeUserData(userData: any): User {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUserState] = useState<User | null>(() => {
-        if (typeof window === 'undefined') return null;
-        try {
-            const token = localStorage.getItem('access_token');
-            const cached = localStorage.getItem('cached_user');
-            if (token && cached) {
-                return JSON.parse(cached);
-            }
-        } catch { }
-        return null;
-    });
+    // ต้องเริ่มที่ null ให้ตรงกับฝั่งเซิร์ฟเวอร์เสมอ ห้ามอ่าน localStorage ตรงนี้
+    // ไม่งั้น render แรกของไคลเอนต์จะได้ user ที่เซิร์ฟเวอร์ไม่มี หน้าที่แสดงต่างกัน
+    // ตามสถานะล็อกอิน (เช่นสลับ Navbar) จะ hydration mismatch (React error #418)
+    // ค่าจาก cache ถูกเติมใน useLayoutEffect ด้านล่างแทน ซึ่งทำงานก่อนเบราว์เซอร์วาด
+    const [user, setUserState] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
@@ -182,7 +176,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // ใช้ useLayoutEffect แทน initial state เพื่อไม่ให้ HTML ฝั่งเซิร์ฟเวอร์กับไคลเอนต์ต่างกัน
     useLayoutEffect(() => {
         try {
-            if (localStorage.getItem('access_token') && localStorage.getItem('cached_user')) {
+            const token = localStorage.getItem('access_token');
+            const cached = localStorage.getItem('cached_user');
+            if (token && cached) {
+                setUserState(JSON.parse(cached));
                 setIsLoading(false);
             }
         } catch { }

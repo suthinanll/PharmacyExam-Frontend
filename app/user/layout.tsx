@@ -54,12 +54,17 @@ export default function UserLayout({ children }: { children: React.ReactNode }) 
         }
     }, [isLoading, isAuthenticated, user, router, isGuestViewable]);
 
+    // ระหว่างยังไม่รู้ผลการยืนยันตัวตน ปล่อยให้หน้าลูกวาดโครงของตัวเองไปก่อน
+    //
+    // เดิมคืน spinner เต็มจอ ซึ่งทำให้ HTML ที่เซิร์ฟเวอร์ส่งออกไปมีแต่ spinner
+    // หัวข้อของหน้าจึงปรากฏได้ก็ต่อเมื่อดาวน์โหลด JS ครบและ hydrate เสร็จ
+    // บนมือถือกินเวลาอีกราว 2.5 วินาทีหลัง FCP และหัวข้อนั้นเองคือองค์ประกอบ LCP
+    //
+    // หน้าลูกมีสถานะโหลดของตัวเองอยู่แล้ว (ส่วนหัวแสดงทันที ส่วนข้อมูลเป็น spinner)
+    // จึงไม่เห็นหน้าเปล่า ส่วนข้อมูลของผู้ใช้ยังไม่ถูกเปิดเผย เพราะต้องมี token
+    // ถึงจะดึงมาได้ และ useEffect ด้านบนยัง redirect คนที่ไม่มีสิทธิ์ออกไปเหมือนเดิม
     if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <LoadingSpinner size="lg" text="กำลังโหลดข้อมูล..." />
-            </div>
-        );
+        return <>{children}</>;
     }
 
     // หน้า guest-viewable ให้แสดงได้ทุกกรณี ส่วนหน้าอื่นยังคง guard เหมือนเดิม

@@ -412,6 +412,11 @@ const Profile = () => {
                                                 src={user.profile_picture}
                                                 alt="Profile"
                                                 onError={() => setImgError(true)}
+                                                /* รูปนี้คือองค์ประกอบ LCP ของหน้า เดิมเบราว์เซอร์เพิ่งรู้จัก
+                                                   หลัง JS วาดเสร็จ (resourceLoadDelay 862ms)
+                                                   fetchPriority สั่งให้ดาวน์โหลดทันทีที่เจอ */
+                                                fetchPriority="high"
+                                                decoding="async"
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
