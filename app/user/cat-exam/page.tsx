@@ -287,9 +287,14 @@ export default function CATSetupPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 text-slate-900">
+            <div className="bg-gray-50 text-slate-900">
                 <Navbar_user />
-                <div className="p-4 md:p-6 lg:p-8">
+                {/*
+                  min-h-screen ต้องอยู่บนกล่องเนื้อหา ไม่ใช่กล่องที่ครอบ footer ด้วย
+                  ไม่งั้นตอนกำลังโหลด footer จะขึ้นมาอยู่กลางจอ แล้วกระโดดลงเมื่อข้อมูลมาถึง
+                  วัดบน production ครั้งแรกได้ CLS 0.295 จากการเลื่อนของ footer จุดเดียว
+                */}
+                <div className="min-h-screen p-4 md:p-6 lg:p-8">
                     <div className="max-w-7xl mx-auto">
                         <PageHeader />
                         <div className="flex items-start justify-center pt-12">
