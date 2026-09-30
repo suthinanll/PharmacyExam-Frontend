@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import LazyRecharts from "@/components/charts/LazyRecharts";
+import SimpleRadar from "@/components/charts/SimpleRadar";
 
 // Types
 interface ExamResult {
@@ -40,6 +40,42 @@ interface QuestionResponse {
 }
 
 const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
+
+function Breadcrumb() {
+    return (
+        <div className="flex items-center text-sm text-gray-500 mb-5">
+            <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+            <span className="mx-2">›</span>
+            <Link href="/user/examset" className="hover:text-green-600 cursor-pointer transition">คลังข้อสอบ</Link>
+            <span className="mx-2">›</span>
+            <span className="text-gray-600 font-medium">สรุปผลสอบ</span>
+        </div>
+    );
+}
+
+/**
+ * หน้าตอนกำลังโหลด ใช้ทั้งใน Suspense fallback และตอนรอผลสอบจาก API
+ *
+ * useSearchParams ทำให้ HTML จากเซิร์ฟเวอร์เป็น fallback ของ Suspense ไม่ใช่สถานะ loading
+ * เดิม fallback มีแค่ spinner กลางจอ ไม่มี navbar หน้าจึงเปลี่ยนโครงสองรอบกว่าจะเห็นผล
+ * ใช้โครงเดียวกันทั้งสองที่ ให้ navbar กับ breadcrumb วาดได้ตั้งแต่ HTML แรกและไม่กระโดด
+ */
+function LoadingView() {
+    return (
+        <>
+            <Navbar_user />
+            <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto">
+                    <Breadcrumb />
+                    <div className="flex items-start justify-center pt-12">
+                        <LoadingSpinner size="lg" text="กำลังโหลดผลการสอบ..." />
+                    </div>
+                </div>
+            </div>
+            <Footer />
+        </>
+    );
+}
 
 function Summarize() {
     const searchParams = useSearchParams();
@@ -131,17 +167,7 @@ function Summarize() {
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
-    if (loading) {
-        return (
-            <>
-                <Navbar_user />
-                <div className="min-h-screen flex items-start justify-center pt-24">
-                    <LoadingSpinner size="lg" text="กำลังโหลดผลการสอบ..." />
-                </div>
-                <Footer />
-            </>
-        );
-    }
+    if (loading) return <LoadingView />;
 
     if (error || !examResult) {
         return (
@@ -182,14 +208,7 @@ function Summarize() {
             <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
 
-                    {/* Breadcrumb */}
-                    <div className="flex items-center text-sm text-gray-500 mb-5">
-                        <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
-                        <span className="mx-2">›</span>
-                        <Link href="/user/examset" className="hover:text-green-600 cursor-pointer transition">คลังข้อสอบ</Link>
-                        <span className="mx-2">›</span>
-                        <span className="text-gray-600 font-medium">สรุปผลสอบ</span>
-                    </div>
+                    <Breadcrumb />
 
                     {/* Page Title */}
                     <div className="mb-6">
@@ -282,40 +301,9 @@ function Summarize() {
                             <div className="flex flex-col lg:flex-row gap-6">
                                 {/* Radar Chart */}
                                 <div className="w-full lg:w-5/12 h-72">
-                                    <LazyRecharts height="100%">
-                                      {(R) => (
-                                        <R.ResponsiveContainer width="100%" height="100%">
-                                          <R.RadarChart cx="50%" cy="50%" outerRadius="75%"
-                                              data={topicPerformance.map(t => ({
-                                                  subject: t.topicName.length > 14 ? t.topicName.substring(0, 14) + '…' : t.topicName,
-                                                  fullName: t.topicName,
-                                                  Performance: t.percentage,
-                                                  fullMark: 100
-                                              }))}>
-                                              <R.PolarGrid stroke="#e5e7eb" />
-                                              <R.PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 11 }} />
-                                              <R.PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-                                              <R.Tooltip
-                                                  content={({ active, payload }) => {
-                                                      if (active && payload?.length) {
-                                                          const d = payload[0].payload;
-                                                          return (
-                                                              <div className="bg-white border border-gray-100 shadow-lg rounded-xl px-3 py-2 text-sm">
-                                                                  <p className="font-semibold text-gray-800">{d.fullName}</p>
-                                                                  <p className="text-green-600 font-medium">{d.Performance}%</p>
-                                                              </div>
-                                                          );
-                                                      }
-                                                      return null;
-                                                  }}
-                                              />
-                                              <R.Radar name="Performance" dataKey="Performance"
-                                                  stroke="#22c55e" fill="#22c55e" fillOpacity={0.25}
-                                                  dot={{ r: 3, fill: '#22c55e' }} />
-                                          </R.RadarChart>
-                                      </R.ResponsiveContainer>
-                                      )}
-                                    </LazyRecharts>
+                                    <SimpleRadar
+                                        data={topicPerformance.map(t => ({ name: t.topicName, value: t.percentage }))}
+                                    />
                                 </div>
 
                                 {/* Topic list */}
@@ -384,6 +372,9 @@ function Summarize() {
                     <div className="flex flex-wrap gap-3">
                         <Link
                             href={`/user/examset/take-exam/summarize-exam/answer`}
+                            // หน้าเฉลยเป็นก้อน JS แยก ถ้าปล่อยให้ prefetch เองจะถูกโหลดระหว่างเปิดหน้านี้
+                            // และไปเพิ่ม TBT ทั้งที่ผู้ใช้ยังไม่ได้กด
+                            prefetch={false}
                             className="flex-1 sm:flex-none px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm text-center transition-colors shadow-sm"
                         >
                             ดูเฉลยคำตอบ
@@ -406,11 +397,7 @@ function Summarize() {
 
 export default function SummarizePage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-        }>
+        <Suspense fallback={<LoadingView />}>
             <Summarize />
         </Suspense>
     );
