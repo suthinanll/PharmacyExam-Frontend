@@ -75,6 +75,46 @@ function InfoTooltip({ text, position = "top" }: { text: string; position?: "top
 }
 
 // ==================== MAIN COMPONENT ====================
+/**
+ * ส่วนหัวของหน้า แยกออกมาเพื่อให้แสดงได้ตั้งแต่ตอนยังโหลดข้อมูลไม่เสร็จ
+ *
+ * <h1> ของหน้านี้คือองค์ประกอบ LCP เดิมมันอยู่หลัง if (loading) ทำให้ HTML
+ * จากเซิร์ฟเวอร์มีแต่ spinner ผู้ใช้จึงต้องรอ JS ทำงานเสร็จก่อนถึงจะเห็นหัวข้อ
+ * (วัดได้ว่าเป็น render delay ราว 2.5 วินาที) พอย้ายออกมาไว้ตรงนี้
+ * หัวข้อจะติดมากับ HTML ตั้งแต่แรกและวาดพร้อมเฟรมแรกได้เลย
+ */
+function PageHeader() {
+    return (
+        <>
+            {/* Breadcrumb */}
+            <div className="flex items-center text-sm text-gray-500 mb-5">
+                <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+                <span className="mx-2">›</span>
+                <span className="text-gray-600 font-medium">สอบแบบปรับตัว (CAT)</span>
+            </div>
+
+            {/* Page Header */}
+            <div className="mb-8">
+                <div className="flex items-start justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-medium text-gray-900 mb-2">การสอบแบบปรับตัวด้วยคอมพิวเตอร์ (CAT)</h1>
+                        <p className="text-gray-500 text-base">
+                            ระบบจะเลือกข้อสอบที่เหมาะกับระดับของคุณแบบเรียลไทม์ปรับการตั้งค่าแล้ว <strong className="text-gray-600">เริ่มการทดสอบ</strong>
+                        </p>
+                    </div>
+                    <Link
+                        href="/user/cat-exam/info"
+                        className="inline-flex items-center justify-center px-4 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-medium text-sm gap-2 shadow cursor-pointer"
+                    >
+                        <BookOpen className="w-4 h-4" />
+                        CAT คืออะไร?
+                    </Link>
+                </div>
+            </div>
+        </>
+    );
+}
+
 export default function CATSetupPage() {
     const router = useRouter();
     const { getToken } = useAuth();
@@ -247,13 +287,18 @@ export default function CATSetupPage() {
 
     if (loading) {
         return (
-            <>
+            <div className="min-h-screen bg-gray-50 text-slate-900">
                 <Navbar_user />
-                <div className="min-h-screen flex items-start justify-center pt-24">
-                    <LoadingSpinner size="lg" text="กำลังโหลดข้อมูลข้อสอบ CAT..." />
+                <div className="p-4 md:p-6 lg:p-8">
+                    <div className="max-w-7xl mx-auto">
+                        <PageHeader />
+                        <div className="flex items-start justify-center pt-12">
+                            <LoadingSpinner size="lg" text="กำลังโหลดข้อมูลข้อสอบ CAT..." />
+                        </div>
+                    </div>
                 </div>
                 <Footer />
-            </>
+            </div>
         );
     }
 
@@ -265,31 +310,8 @@ export default function CATSetupPage() {
 
             <div className="p-4 md:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
-                    {/* Breadcrumb */}
-                    <div className="flex items-center text-sm text-gray-500 mb-5">
-                        <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
-                        <span className="mx-2">›</span>
-                        <span className="text-gray-600 font-medium">สอบแบบปรับตัว (CAT)</span>
-                    </div>
+                    <PageHeader />
 
-                    {/* Page Header */}
-                    <div className="mb-8">
-                        <div className="flex items-start justify-between gap-4">
-                            <div>
-                                <h1 className="text-3xl font-medium text-gray-900 mb-2">การสอบแบบปรับตัวด้วยคอมพิวเตอร์ (CAT)</h1>
-                                <p className="text-gray-500 text-base">
-                                    ระบบจะเลือกข้อสอบที่เหมาะกับระดับของคุณแบบเรียลไทม์ปรับการตั้งค่าแล้ว <strong className="text-gray-600">เริ่มการทดสอบ</strong>
-                                </p>
-                            </div>
-                            <Link
-                                href="/user/cat-exam/info"
-                                className="inline-flex items-center justify-center px-4 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-medium text-sm gap-2 shadow cursor-pointer"
-                            >
-                                <BookOpen className="w-4 h-4" />
-                                CAT คืออะไร?
-                            </Link>
-                        </div>
-                    </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         {/* ─── Left Column: Settings ─── */}

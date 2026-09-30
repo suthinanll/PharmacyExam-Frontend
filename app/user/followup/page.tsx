@@ -194,6 +194,39 @@ const StatRow = ({
   </div>
 );
 
+/**
+ * ส่วนหัวของหน้า แยกออกมาเพื่อให้แสดงได้ตั้งแต่ตอนยังโหลดข้อมูลไม่เสร็จ
+ *
+ * <h1> กับคำอธิบายใต้หัวข้อคือองค์ประกอบ LCP ของหน้านี้ เดิมอยู่หลัง if (loading)
+ * ทำให้ HTML จากเซิร์ฟเวอร์มีแต่ spinner ต้องรอ JS ทำงานเสร็จก่อนถึงจะวาดหัวข้อ
+ * (วัดได้เป็น render delay ราว 2.5 วินาที) ย้ายออกมาไว้ตรงนี้แล้วหัวข้อจะติดมากับ
+ * HTML ตั้งแต่แรกและวาดพร้อมเฟรมแรกได้เลย
+ */
+function PageHeader() {
+    return (
+        <div>
+            <div className="flex items-center text-sm text-gray-500 mb-2">
+                <Link
+                    href="/user"
+                    className="hover:text-indigo-600 cursor-pointer transition"
+                >
+                    หน้าหลัก
+                </Link>
+                <span className="mx-2">›</span>
+                <span className="text-gray-700 font-medium">
+                    ติดตามความคืบหน้า
+                </span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl font-medium text-gray-800">
+                ติดตามความคืบหน้า
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">
+                ภาพรวมผลการทำข้อสอบ จุดแข็ง-จุดอ่อน และหัวข้อที่ควรพัฒนาของคุณ
+            </p>
+        </div>
+    );
+}
 const PharmacistDashboard = () => {
   const { getToken, user } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -355,8 +388,13 @@ const PharmacistDashboard = () => {
     return (
       <>
         <Navbar_user />
-        <div className="min-h-[70vh] flex items-center justify-center">
-          <LoadingSpinner size="lg" text="กำลังโหลดข้อมูลสถิติและความก้าวหน้า..." />
+        <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto space-y-6">
+            <PageHeader />
+            <div className="flex items-start justify-center pt-12">
+              <LoadingSpinner size="lg" text="กำลังโหลดข้อมูลสถิติและความก้าวหน้า..." />
+            </div>
+          </div>
         </div>
         <Footer />
       </>
@@ -411,27 +449,7 @@ const PharmacistDashboard = () => {
       <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* ── Header ─────────────────────────────────────────────────────── */}
-          <div>
-            <div className="flex items-center text-sm text-gray-500 mb-2">
-              <Link
-                href="/user"
-                className="hover:text-indigo-600 cursor-pointer transition"
-              >
-                หน้าหลัก
-              </Link>
-              <span className="mx-2">›</span>
-              <span className="text-gray-700 font-medium">
-                ติดตามความคืบหน้า
-              </span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl font-medium text-gray-800">
-              ติดตามความคืบหน้า
-            </h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1">
-              ภาพรวมผลการทำข้อสอบ จุดแข็ง-จุดอ่อน และหัวข้อที่ควรพัฒนาของคุณ
-            </p>
-          </div>
+          <PageHeader />
 
           {/* ── Ranking card ────────────────────────────────────────────────── */}
           <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-sm">
