@@ -71,6 +71,7 @@ function ItemDetailModal({
                     </div>
                     <button
                         onClick={onClose}
+                        aria-label="ปิดหน้าต่างรายละเอียดข้อสอบ"
                         className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
                     >
                         <XCircle className="w-5 h-5" />
@@ -107,13 +108,13 @@ function ItemDetailModal({
                             },
                             {
                                 label: 'ความยาก (b)',
-                                value: '—',
-                                color: 'bg-indigo-50 border-indigo-200 text-indigo-800'
+                                value: Number(item.irt_b_difficulty).toFixed(2),
+                                color: 'bg-blue-50 border-blue-200 text-blue-800'
                             },
                             {
                                 label: 'โอกาสการเดา (c)',
-                                value: '-',
-                                color: 'bg-indigo-50 border-indigo-200 text-indigo-800'
+                                value: Number(item.irt_c_guessing).toFixed(2),
+                                color: 'bg-purple-50 border-purple-200 text-purple-800'
                             }
                         ].map((s) => (
                             <div key={s.label} className={`rounded-xl border p-3 text-center ${s.color}`}>
@@ -441,6 +442,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
             {/* Header Section */}
             <Link
                 href="/admin/manage_examset"
+                aria-label="ย้อนกลับไปหน้ารายการชุดข้อสอบ"
                 className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
                 <ArrowLeft className="w-4 h-4" />
@@ -460,6 +462,9 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                     <div className="relative" ref={settingsMenuRef}>
                         <button
                             onClick={() => setIsSettingsMenuOpen(!isSettingsMenuOpen)}
+                            aria-label="เมนูตั้งค่าชุดข้อสอบ"
+                            aria-haspopup="true"
+                            aria-expanded={isSettingsMenuOpen}
                             className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-gray-700 hover:text-gray-900 hover:border-gray-300 hover:bg-gray-50 text-sm font-medium shadow-2xs transition-all active:scale-95 cursor-pointer"
                         >
                             <Settings className="w-4 h-4 text-gray-500" />
@@ -578,7 +583,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                 <div className="lg:col-span-2 space-y-6">
                     {/* Score Distribution Chart */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-medium text-gray-800 mb-6">การกระจายตัวของคะแนน</h3>
+                        <h2 className="text-lg font-medium text-gray-800 mb-6">การกระจายตัวของคะแนน</h2>
                         <div className="h-[300px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart
@@ -629,7 +634,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                 <div className="space-y-6">
                     {/* Item Bank Details Card */}
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 className="text-lg font-medium text-gray-800 mb-6">รายละเอียดชุดข้อสอบ</h3>
+                        <h2 className="text-lg font-medium text-gray-800 mb-6">รายละเอียดชุดข้อสอบ</h2>
                         <div className="space-y-4">
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-600 font-medium">วันที่สร้าง</span>
@@ -717,9 +722,9 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 space-y-5">
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-gray-100 pb-4">
                             <div>
-                                <h3 className="text-lg font-medium text-gray-800 flex items-center gap-2">
+                                <h2 className="text-lg font-medium text-gray-800 flex items-center gap-2">
                                     <span>การวิเคราะห์ข้อสอบเชิงลึก</span>
-                                </h3>
+                                </h2>
                                 <p className="text-sm text-gray-500 mt-0.5">
                                     สถิติข้อสอบเรียงตามอัตราการตอบผิดสูงสุด และข้อที่ผู้เข้าสอบใช้เวลาทำนานที่สุด
                                 </p>
@@ -742,9 +747,9 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                                     <AlertTriangle className="w-4 h-4" />
                                                 </div>
                                                 <div className="flex items-baseline gap-1.5">
-                                                    <h4 className="text-sm font-medium text-gray-800">
+                                                    <h3 className="text-sm font-medium text-gray-800">
                                                         ตอบผิดบ่อยที่สุด
-                                                    </h4>
+                                                    </h3>
                                                     <span className="text-xs text-gray-500 font-normal">
                                                         ({allMissed.length} ข้อ)
                                                     </span>
@@ -836,9 +841,9 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                                     <Clock className="w-4 h-4" />
                                                 </div>
                                                 <div className="flex items-baseline gap-1.5">
-                                                    <h4 className="text-sm font-medium text-gray-800">
+                                                    <h3 className="text-sm font-medium text-gray-800">
                                                         ใช้เวลานานที่สุด
-                                                    </h4>
+                                                    </h3>
                                                     <span className="text-xs text-gray-500 font-normal">
                                                         ({allSlowest.length} ข้อ)
                                                     </span>
@@ -931,15 +936,15 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
 
             {/* Recent Activity */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h3 className="text-lg font-medium text-gray-800 mb-4">กิจกรรมล่าสุด</h3>
+                <h2 className="text-lg font-medium text-gray-800 mb-4">กิจกรรมล่าสุด</h2>
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-gray-100">
-                                <th className="py-3 font-medium text-gray-600 text-sm">ผู้เข้าสอบ</th>
-                                <th className="py-3 font-medium text-gray-600 text-sm">วันที่</th>
-                                <th className="py-3 font-medium text-gray-600 text-sm">คะแนน</th>
-                                <th className="py-3 font-medium text-gray-600 text-sm">สถานะ</th>
+                                <th scope="col" className="py-3 font-medium text-gray-600 text-sm">ผู้เข้าสอบ</th>
+                                <th scope="col" className="py-3 font-medium text-gray-600 text-sm">วันที่</th>
+                                <th scope="col" className="py-3 font-medium text-gray-600 text-sm">คะแนน</th>
+                                <th scope="col" className="py-3 font-medium text-gray-600 text-sm">สถานะ</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -1028,9 +1033,9 @@ function StatsCard({ title, value, icon, subtext }: any) {
             <div className="mb-3 p-3 bg-green-50 rounded-full border border-green-100">
                 {icon}
             </div>
-            <h4 className="text-3xl font-medium text-green-700 mb-1">{value}</h4>
-            <p className="text-sm font-medium text-gray-500">{title}</p>
-            {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
+            <p className="text-3xl font-medium text-green-700 mb-1">{value}</p>
+            <p className="text-sm font-medium text-gray-600">{title}</p>
+            {subtext && <p className="text-xs text-gray-500 mt-1">{subtext}</p>}
         </div>
     );
 }

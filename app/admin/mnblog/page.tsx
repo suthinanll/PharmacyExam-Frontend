@@ -112,14 +112,14 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
         </div>
 
         <div className="p-5 flex flex-col flex-grow">
-          <h3 className="text-base font-medium text-gray-800 mb-2 line-clamp-2 leading-snug">{blog.title}</h3>
+          <h2 className="text-base font-medium text-gray-800 mb-2 line-clamp-2 leading-snug">{blog.title}</h2>
           {/* ใช้ stripHtml เพื่อไม่ให้เห็น <div> หรือ <p> ในหน้า Dashboard */}
           <p className="text-sm text-gray-500 mb-4 line-clamp-2 flex-grow">
             {stripHtml(blog.content)}
           </p>
-          <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-400 font-medium">
+          <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-500 font-medium">
             <div className="flex items-center gap-1.5">
-              <Clock size={14} className="text-gray-300" />
+              <Clock size={14} className="text-gray-400" />
               {formatDate(blog.created_at)}
             </div>
             <span className="text-green-600 font-medium  tracking-tighter">Edit Details →</span>
@@ -132,6 +132,7 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
         <button
           disabled={isActionLoading}
           onClick={toggleStatus}
+          aria-label={isPublished ? `เปลี่ยนสถานะข่าวสาร "${blog.title}" เป็นฉบับร่าง` : `เผยแพร่ข่าวสาร "${blog.title}"`}
           className={`p-2.5 rounded-xl shadow-xl transition-all active:scale-90 ${isPublished ? 'bg-amber-500 hover:bg-amber-600' : 'bg-blue-600 hover:bg-blue-700'} text-white`}
         >
           {isPublished ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -139,6 +140,7 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
         <button
           disabled={isActionLoading}
           onClick={handleDelete}
+          aria-label={`ลบข่าวสาร "${blog.title}"`}
           className="p-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl shadow-xl transition-all active:scale-90"
         >
           <Trash2 size={18} />
@@ -224,15 +226,16 @@ function Page() {
               <input
                 type="text"
                 placeholder="ค้นหาข่าวสารของคุณ..."
+                aria-label="ค้นหาข่าวสารของคุณ"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
             </div>
           </div>
 
-          <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1 w-full xl:w-auto overflow-x-auto">
+          <div className="flex items-center bg-gray-100 rounded-xl p-1 gap-1 w-full xl:w-auto overflow-x-auto" role="group" aria-label="กรองสถานะข่าวสาร">
             {[
               { id: "ALL", label: "ทั้งหมด" },
               { id: "PUBLISHED", label: "Live" },
@@ -241,14 +244,15 @@ function Page() {
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
+                aria-label={`กรองตามสถานะ ${tab.label}`}
                 className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                   statusFilter === tab.id
                     ? 'bg-white shadow-sm text-green-700'
-                    : 'text-gray-500 hover:text-gray-700'
+                    : 'text-gray-600 hover:text-gray-800'
                 }`}
               >
                 {tab.label}
-                <span className={`text-xs ${statusFilter === tab.id ? 'text-green-500 bg-green-50 px-1.5 rounded-md' : 'text-gray-400'}`}>
+                <span className={`text-xs ${statusFilter === tab.id ? 'text-green-600 bg-green-50 px-1.5 rounded-md' : 'text-gray-500'}`}>
                   {counts[tab.id as keyof typeof counts]}
                 </span>
               </button>
@@ -257,8 +261,8 @@ function Page() {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center py-32 text-gray-300">
-            <Loader2 className="w-12 h-12 animate-spin mb-4 text-green-500 opacity-40" />
+          <div className="flex flex-col items-center py-32 text-gray-400">
+            <Loader2 className="w-12 h-12 animate-spin mb-4 text-green-600 opacity-60" />
             <p className="font-medium  text-xs">Synchronizing Data...</p>
           </div>
         ) : filteredBlogs.length > 0 ? (
@@ -269,9 +273,9 @@ function Page() {
           </div>
         ) : (
           <div className="text-center py-32 bg-gray-50/50 border-2 border-dashed border-gray-200 rounded-[40px]">
-            <ImageOff className="w-12 h-12 mx-auto mb-4 text-gray-200" />
-            <h3 className="text-gray-400 font-medium  tracking-tighter">No Articles Found</h3>
-            <p className="text-gray-400 text-sm mt-1">ลองเปลี่ยนคำค้นหาหรือตัวกรองสถานะ</p>
+            <ImageOff className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <h2 className="text-gray-600 font-medium  tracking-tighter">No Articles Found</h2>
+            <p className="text-gray-500 text-sm mt-1">ลองเปลี่ยนคำค้นหาหรือตัวกรองสถานะ</p>
           </div>
         )}
       </div>

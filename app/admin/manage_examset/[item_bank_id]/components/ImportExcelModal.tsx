@@ -151,18 +151,20 @@ export default function ImportExcelModal({
                             <FileSpreadsheet className="w-5 h-5" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900">
+                            <h2 className="text-lg font-semibold text-gray-900">
                                 นำเข้าข้อสอบจาก Excel
-                            </h3>
+                            </h2>
                             <p className="text-xs text-gray-500">
                                 {itemBankName ? `ชุดข้อสอบ: ${itemBankName}` : 'อัปโหลดไฟล์ข้อสอบ .xlsx หรือ .xls'}
                             </p>
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={onClose}
                         disabled={loading}
-                        className="text-gray-400 hover:text-gray-600 hover:bg-slate-100 p-2 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
+                        aria-label="ปิดหน้าต่างนำเข้า Excel"
+                        className="text-gray-500 hover:text-gray-700 hover:bg-slate-100 p-2 rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -284,6 +286,7 @@ export default function ImportExcelModal({
                                     type="file"
                                     accept=".xlsx, .xls"
                                     onChange={handleFileChange}
+                                    aria-label="เลือกไฟล์ Excel ข้อสอบ"
                                     className="hidden"
                                 />
                                 <div className="p-3 bg-emerald-50 rounded-full text-emerald-600 mb-0.5">
@@ -292,7 +295,7 @@ export default function ImportExcelModal({
                                 <p className="text-sm font-medium text-gray-800">
                                     คลิกเพื่อเลือกไฟล์ Excel หรือลากไฟล์มาวางที่นี่
                                 </p>
-                                <p className="text-xs text-gray-400">
+                                <p className="text-xs text-gray-500">
                                     รองรับเฉพาะไฟล์ .xlsx และ .xls (ขนาดไม่เกิน 50MB)
                                 </p>
                             </div>
@@ -316,7 +319,8 @@ export default function ImportExcelModal({
                                     type="button"
                                     onClick={handleRemoveFile}
                                     disabled={loading}
-                                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-2 shrink-0 cursor-pointer disabled:opacity-50"
+                                    aria-label="ยกเลิกไฟล์"
+                                    className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-2 shrink-0 cursor-pointer disabled:opacity-50"
                                     title="ยกเลิกไฟล์"
                                 >
                                     <X className="w-4 h-4" />

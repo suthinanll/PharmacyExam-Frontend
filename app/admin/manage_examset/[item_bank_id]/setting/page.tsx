@@ -295,8 +295,10 @@ export default function ItemBankSettingsPage() {
                             <p className="text-gray-600">แก้ไขข้อมูลพื้นฐานของชุดข้อสอบ</p>
                         </div>
                         <button
+                            type="button"
                             onClick={handleDelete}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2 border border-red-200"
+                            aria-label="ลบชุดข้อสอบ"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors flex items-center gap-2 border border-red-200 cursor-pointer"
                         >
                             <Trash2 className="w-5 h-5" />
                             ลบชุดข้อสอบ
@@ -307,12 +309,14 @@ export default function ItemBankSettingsPage() {
                     <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sm:p-8">
                         {/* ชื่อชุดข้อสอบ */}
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="page-bank-name" className="block text-sm font-medium text-gray-700 mb-2">
                                 ชื่อชุดข้อสอบ <span className="text-red-500">*</span>
                             </label>
                             <input
+                                id="page-bank-name"
                                 type="text"
                                 name="bank_name"
+                                aria-label="ชื่อชุดข้อสอบ"
                                 value={formData.bank_name}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition outline-none"
@@ -322,11 +326,13 @@ export default function ItemBankSettingsPage() {
 
                         {/* คำอธิบาย */}
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="page-bank-desc" className="block text-sm font-medium text-gray-700 mb-2">
                                 คำอธิบาย
                             </label>
                             <textarea
+                                id="page-bank-desc"
                                 name="description"
+                                aria-label="คำอธิบาย"
                                 value={formData.description}
                                 onChange={handleInputChange}
                                 rows={4}
@@ -336,11 +342,13 @@ export default function ItemBankSettingsPage() {
 
                         {/* ระยะเวลา */}
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label htmlFor="page-bank-duration" className="block text-sm font-medium text-gray-700 mb-2">
                                 ระยะเวลาในการทำข้อสอบ (นาที) <span className="text-red-500">*</span>
                             </label>
                             <input
+                                id="page-bank-duration"
                                 type="number"
+                                aria-label="ระยะเวลาในการทำข้อสอบ (นาที)"
                                 value={Math.floor(formData.duration / 60)}
                                 onChange={handleDurationChange}
                                 min="1"
@@ -351,9 +359,9 @@ export default function ItemBankSettingsPage() {
 
                         {/* ประเภทข้อสอบ */}
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-3">
+                            <span className="block text-sm font-medium text-gray-700 mb-3">
                                 ประเภทข้อสอบ
-                            </label>
+                            </span>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 {categories.map((category) => (
                                     <label
@@ -365,6 +373,7 @@ export default function ItemBankSettingsPage() {
                                     >
                                         <input
                                             type="checkbox"
+                                            aria-label={category.category_name}
                                             checked={formData.category_ids.includes(category.category_id)}
                                             onChange={() => handleCategoryToggle(category.category_id)}
                                             className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
@@ -383,6 +392,7 @@ export default function ItemBankSettingsPage() {
                                 <input
                                     type="checkbox"
                                     name="is_active"
+                                    aria-label="เปิดใช้งานชุดข้อสอบ"
                                     checked={formData.is_active}
                                     onChange={handleInputChange}
                                     className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"

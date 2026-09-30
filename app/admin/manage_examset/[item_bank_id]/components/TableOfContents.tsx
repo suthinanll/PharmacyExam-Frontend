@@ -99,7 +99,7 @@ export default function TableOfContents({
             {/* Toggle Button / Drag Handle / Back to Top */}
             <div className="flex items-center gap-2" style={{ cursor: 'grab' }}>
                 <div
-                    className="p-1.5 bg-white rounded-full shadow-lg border border-gray-200 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="p-1.5 bg-white rounded-full shadow-lg border border-gray-200 text-gray-500 hover:text-gray-700 transition-colors"
                     title="ลากเพื่อย้ายสารบัญ"
                 >
                     <GripVertical className="w-4 h-4 cursor-grab" />
@@ -107,6 +107,7 @@ export default function TableOfContents({
                 <button
                     type="button"
                     onClick={scrollToTop}
+                    aria-label="กลับขึ้นข้างบน"
                     className="bg-white p-2.5 rounded-full shadow-lg border border-gray-200 text-gray-600 hover:text-green-600 hover:border-green-200 transition-all active:scale-95"
                     title="กลับขึ้นข้างบน"
                 >
@@ -115,6 +116,7 @@ export default function TableOfContents({
                 <button
                     type="button"
                     onClick={() => setShowTOC(!showTOC)}
+                    aria-label={showTOC ? "ซ่อนสารบัญ" : "แสดงสารบัญ"}
                     className="bg-white p-2.5 rounded-full shadow-lg border border-gray-200 text-gray-600 hover:text-green-600 hover:border-green-200 transition-all active:scale-95"
                     title={showTOC ? "ซ่อนสารบัญ" : "แสดงสารบัญ"}
                 >
@@ -194,7 +196,8 @@ export default function TableOfContents({
                                         <button
                                             type="button"
                                             onClick={(e) => toggleExpand(idx, e)}
-                                            className="p-1.5 hover:bg-black/5 rounded-l-lg text-gray-400 hover:text-gray-600 transition-colors"
+                                            aria-label={isExpanded ? `ย่อสถานการณ์ที่ ${situationIndexMap[idx] || idx + 1}` : `ขยายสถานการณ์ที่ ${situationIndexMap[idx] || idx + 1}`}
+                                            className="p-1.5 hover:bg-black/5 rounded-l-lg text-gray-500 hover:text-gray-700 transition-colors"
                                         >
                                             {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
                                         </button>

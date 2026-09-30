@@ -61,11 +61,14 @@ export default function Pagination({
     const endIndex = Math.min(currentPage * perPage, totalItems);
 
     return (
-        <div className={`flex flex-col ${compact ? '' : 'sm:flex-row'} justify-between items-center gap-4 mt-6 pt-4 border-t border-gray-100 ${className}`}>
-            <div className={`text-xs text-gray-500 ${compact ? 'text-center' : ''}`}>
-                แสดง <span className="font-semibold text-gray-800">{totalItems > 0 ? startIndex : 0}</span> -{' '}
-                <span className="font-semibold text-gray-800">{endIndex}</span> จากทั้งหมด{' '}
-                <span className="font-semibold text-gray-800">{totalItems}</span> {itemLabel} (หน้า {currentPage}/{totalPages})
+        <nav
+            aria-label="การแบ่งหน้าข้อมูล"
+            className={`flex flex-col ${compact ? '' : 'sm:flex-row'} justify-between items-center gap-4 mt-6 pt-4 border-t border-gray-100 ${className}`}
+        >
+            <div className={`text-xs text-gray-700 ${compact ? 'text-center' : ''}`}>
+                แสดง <span className="font-semibold text-gray-900">{totalItems > 0 ? startIndex : 0}</span> -{' '}
+                <span className="font-semibold text-gray-900">{endIndex}</span> จากทั้งหมด{' '}
+                <span className="font-semibold text-gray-900">{totalItems}</span> {itemLabel} (หน้า {currentPage}/{totalPages})
             </div>
 
             <div className={`flex items-center gap-1.5 ${compact ? 'flex-wrap justify-center' : ''}`}>
@@ -73,16 +76,17 @@ export default function Pagination({
                     type="button"
                     disabled={currentPage <= 1}
                     onClick={() => handlePageChange(currentPage - 1)}
-                    className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-medium transition cursor-pointer"
+                    aria-label="ไปหน้าก่อนหน้า"
+                    className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-semibold transition cursor-pointer"
                 >
-                    <ChevronLeft size={14} />
+                    <ChevronLeft size={14} aria-hidden="true" />
                     <span className="hidden sm:inline">ก่อนหน้า</span>
                 </button>
 
                 {getPaginationItems(currentPage, totalPages).map((p, idx) => {
                     if (typeof p === 'string') {
                         return (
-                            <span key={`dots-${idx}`} className="w-8 h-8 flex items-center justify-center text-xs text-gray-400">
+                            <span key={`dots-${idx}`} className="w-8 h-8 flex items-center justify-center text-xs text-gray-500 font-semibold" aria-hidden="true">
                                 ...
                             </span>
                         );
@@ -94,9 +98,11 @@ export default function Pagination({
                             type="button"
                             key={`page-${p}`}
                             onClick={() => handlePageChange(p)}
+                            aria-label={`ไปยังหน้าที่ ${p}`}
+                            aria-current={isActive ? 'page' : undefined}
                             className={`w-8 h-8 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${isActive
                                 ? activeColor
-                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 hover:text-gray-900'
+                                : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 hover:text-gray-900'
                                 }`}
                         >
                             {p}
@@ -108,12 +114,13 @@ export default function Pagination({
                     type="button"
                     disabled={currentPage >= totalPages || totalPages === 0}
                     onClick={() => handlePageChange(currentPage + 1)}
-                    className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-medium transition cursor-pointer"
+                    aria-label="ไปหน้าถัดไป"
+                    className="px-2.5 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50 bg-white text-xs font-semibold transition cursor-pointer"
                 >
                     <span className="hidden sm:inline">ถัดไป</span>
-                    <ChevronRight size={14} />
+                    <ChevronRight size={14} aria-hidden="true" />
                 </button>
             </div>
-        </div>
+        </nav>
     );
 }

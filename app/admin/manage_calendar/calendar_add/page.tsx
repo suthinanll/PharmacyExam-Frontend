@@ -262,10 +262,10 @@ function Page() {
 
         {/* ── PDF Import ───────────────────────────────────────────── */}
         <div className="bg-white border border-green-200 rounded-2xl p-6 mb-8 shadow-sm">
-          <h3 className="text-sm font-medium text-gray-700 mb-4 flex items-center gap-2">
+          <h2 className="text-sm font-medium text-gray-700 mb-4 flex items-center gap-2">
             <Calendar className="w-4 h-4 text-green-600" />
             นำเข้าข้อมูลด้วย AI จากไฟล์ PDF
-          </h3>
+          </h2>
           <div className="flex flex-col sm:flex-row gap-4">
             <label className="flex-1 flex flex-col items-center justify-center h-28 border-2 border-dashed border-green-200 rounded-xl cursor-pointer bg-green-50/30 hover:bg-green-50 transition-all">
               <p className="text-sm text-gray-600 mb-0.5">
@@ -273,8 +273,14 @@ function Page() {
                   ? <span className="font-medium text-green-700">{pdfFile.name}</span>
                   : "คลิกเพื่อเลือกไฟล์ PDF"}
               </p>
-              <p className="text-xs text-gray-400">ระบบจะดึงชื่อ วันที่ และประเภทให้อัตโนมัติ</p>
-              <input type="file" className="hidden" accept=".pdf" onChange={(e) => setPdfFile(e.target.files?.[0] || null)} />
+              <p className="text-xs text-gray-500">ระบบจะดึงชื่อ วันที่ และประเภทให้อัตโนมัติ</p>
+              <input
+                type="file"
+                className="hidden"
+                accept=".pdf"
+                aria-label="อัปโหลดไฟล์ PDF กำหนดการ"
+                onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+              />
             </label>
             <button
               onClick={handleGenerateFromPdf}
@@ -304,6 +310,7 @@ function Page() {
                 {events.length > 1 && (
                   <button
                     onClick={() => removeEvent(event.id)}
+                    aria-label={`ลบกำหนดการรายการที่ ${index + 1}`}
                     className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <X className="w-4 h-4" />
@@ -315,40 +322,46 @@ function Page() {
                 {/* Title + Dates */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-gray-500 ">
+                    <label htmlFor={`event-title-${event.id}`} className="text-xs font-medium text-gray-500 ">
                       ชื่อกำหนดการ <span className="text-red-500">*</span>
                     </label>
                     <input
+                      id={`event-title-${event.id}`}
                       type="text"
                       value={event.title}
                       onChange={(e) => updateEvent(event.id, "title", e.target.value)}
                       placeholder="เช่น เปิดระบบรับสมัครสอบ"
+                      aria-label={`ชื่อกำหนดการ รายการที่ ${index + 1}`}
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-gray-500 ">
+                      <label htmlFor={`event-start-${event.id}`} className="text-xs font-medium text-gray-500 ">
                         วันเริ่มต้น <span className="text-red-500">*</span>
                       </label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
                         <input
+                          id={`event-start-${event.id}`}
                           type="date"
                           value={event.startDate}
                           onChange={(e) => updateEvent(event.id, "startDate", e.target.value)}
+                          aria-label={`วันเริ่มต้น รายการที่ ${index + 1}`}
                           className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm"
                         />
                       </div>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs font-medium text-gray-500 ">วันสิ้นสุด</label>
+                      <label htmlFor={`event-end-${event.id}`} className="text-xs font-medium text-gray-500 ">วันสิ้นสุด</label>
                       <div className="relative">
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
                         <input
+                          id={`event-end-${event.id}`}
                           type="date"
                           value={event.endDate}
                           onChange={(e) => updateEvent(event.id, "endDate", e.target.value)}
+                          aria-label={`วันสิ้นสุด รายการที่ ${index + 1}`}
                           className="w-full pl-10 pr-3 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm"
                         />
                       </div>
@@ -358,27 +371,31 @@ function Page() {
 
                 {/* Description */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-500 ">รายละเอียดเพิ่มเติม</label>
+                  <label htmlFor={`event-desc-${event.id}`} className="text-xs font-medium text-gray-500 ">รายละเอียดเพิ่มเติม</label>
                   <textarea
+                    id={`event-desc-${event.id}`}
                     rows={2}
                     value={event.description}
                     onChange={(e) => updateEvent(event.id, "description", e.target.value)}
                     placeholder="รายละเอียดกิจกรรม..."
+                    aria-label={`รายละเอียดเพิ่มเติม รายการที่ ${index + 1}`}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm resize-none"
                   />
                 </div>
 
                 {/* Link URL (Optional) */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
+                  <label htmlFor={`event-url-${event.id}`} className="text-xs font-medium text-gray-500 flex items-center gap-1.5">
                     <LinkIcon className="w-3.5 h-3.5 text-green-600" />
-                    แนบลิงก์ (URL) / เอกสารอ้างอิง <span className="text-gray-400 font-normal">(ไม่บังคับกรอก)</span>
+                    แนบลิงก์ (URL) / เอกสารอ้างอิง <span className="text-gray-500 font-normal">(ไม่บังคับกรอก)</span>
                   </label>
                   <input
+                    id={`event-url-${event.id}`}
                     type="url"
                     value={event.link_url || ""}
                     onChange={(e) => updateEvent(event.id, "link_url", e.target.value)}
                     placeholder="เช่น https://example.com/exam-info หรือลิงก์รับสมัครสอบ"
+                    aria-label={`แนบลิงก์ หรือเอกสารอ้างอิง รายการที่ ${index + 1}`}
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none text-sm"
                   />
                 </div>
@@ -386,7 +403,7 @@ function Page() {
                 {/* Categories */}
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-gray-500 ">
-                    ประเภทหลักสูตร <span className="text-gray-400 font-normal">(ไม่บังคับเลือก)</span>
+                    ประเภทหลักสูตร <span className="text-gray-500 font-normal">(ไม่บังคับเลือก)</span>
                   </label>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                     {CATEGORY_OPTIONS.map((cat) => {
@@ -396,8 +413,10 @@ function Page() {
                           key={cat.value}
                           type="button"
                           onClick={() => toggleCategory(event.id, cat.value)}
+                          aria-pressed={selected}
+                          aria-label={`${cat.label} ${selected ? "เลือกอยู่" : "ไม่ได้เลือก"}`}
                           className={`flex items-center justify-between px-4 py-3 rounded-xl border-2 text-left text-xs font-medium transition-all
-                            ${selected ? `${cat.color} shadow-sm` : "bg-white border-gray-200 text-gray-400 hover:border-gray-300"}`}
+                            ${selected ? `${cat.color} shadow-sm` : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"}`}
                         >
                           <span className="leading-tight">{cat.label}</span>
                           {selected && <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0 ml-1" />}

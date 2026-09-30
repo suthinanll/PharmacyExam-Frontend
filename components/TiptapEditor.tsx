@@ -48,6 +48,7 @@ const ToolbarButton = ({
         onMouseDown={(e) => e.preventDefault()}
         onClick={onClick}
         title={title}
+        aria-label={title}
         className={`p-1.5 min-w-[32px] h-8 rounded-lg transition-all cursor-pointer flex items-center justify-center select-none ${active
             ? 'bg-emerald-600 text-white font-bold shadow-xs scale-105 ring-2 ring-emerald-300'
             : 'text-gray-600 hover:bg-gray-200/80 hover:text-gray-900 bg-transparent'

@@ -1,46 +1,19 @@
-'use client';
+import type { Metadata } from 'next';
+import AdminAuthGuard from './components/AdminAuthGuard';
 
-import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import Swal from "@/utils/sweetalert";
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+export const metadata: Metadata = {
+  title: {
+    template: '%s | ระบบจัดการผู้ดูแลระบบ Pharmacy Exam',
+    default: 'ระบบจัดการผู้ดูแลระบบ (Admin Dashboard) | Pharmacy Exam',
+  },
+  description: 'แผงควบคุมระบบการจัดการข้อสอบ คลังข้อสอบ ผู้ใช้งาน และการวิเคราะห์สถิติผลสอบจำลองสภาเภสัชกรรม',
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+  },
+};
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const { user, isLoading, isAuthenticated } = useAuth();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (!isLoading) {
-            if (!isAuthenticated) {
-                router.push('/login');
-            } else if (user?.role_id !== 2 && user?.role_id !== 3) {
-                Swal.fire({
-                    icon: 'info',
-                    title: 'ยังไม่มีสิทธิ์ผู้ดูแลระบบ',
-                    text: 'ดูตัวอย่างฟีเจอร์และสมัครเป็นผู้ดูแลระบบได้เลย',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true,
-                });
-                router.push('/upgrade-admin');
-            }
-        }
-    }, [isLoading, isAuthenticated, user, router]);
-
-    if (isLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <LoadingSpinner size="lg" text="กำลังโหลดข้อมูลระบบผู้ดูแล..." />
-            </div>
-        );
-    }
-
-    if (!isAuthenticated || (user?.role_id !== 2 && user?.role_id !== 3)) {
-        return null;
-    }
-
-    return <>{children}</>;
+  return <AdminAuthGuard>{children}</AdminAuthGuard>;
 }

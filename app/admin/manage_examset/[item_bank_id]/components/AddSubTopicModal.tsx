@@ -35,11 +35,12 @@ export default function AddSubTopicModal({
         <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4 border border-gray-100">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-xl font-medium text-gray-900">เพิ่มหัวข้อย่อยใหม่</h3>
+                    <h2 className="text-xl font-medium text-gray-900">เพิ่มหัวข้อย่อยใหม่</h2>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                        aria-label="ปิดหน้าต่างเพิ่มหัวข้อย่อย"
+                        className="p-1 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                     >
                         <X className="w-5 h-5 text-gray-500" />
                     </button>
@@ -47,10 +48,12 @@ export default function AddSubTopicModal({
 
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">
+                        <label htmlFor="modal-topic-select" className="text-sm font-medium text-gray-700">
                             หัวข้อหลัก <span className="text-red-500">*</span>
                         </label>
                         <select
+                            id="modal-topic-select"
+                            aria-label="เลือกหัวข้อหลัก"
                             value={newSubTopicTopicId}
                             onChange={(e) => setNewSubTopicTopicId(Number(e.target.value))}
                             className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all bg-white"
@@ -65,10 +68,12 @@ export default function AddSubTopicModal({
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">
+                        <label htmlFor="modal-subtopic-input" className="text-sm font-medium text-gray-700">
                             ชื่อหัวข้อย่อย <span className="text-red-500">*</span>
                         </label>
                         <input
+                            id="modal-subtopic-input"
+                            aria-label="ชื่อหัวข้อย่อย"
                             type="text"
                             value={newSubTopicName}
                             onChange={(e) => setNewSubTopicName(e.target.value)}
