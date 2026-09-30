@@ -2,16 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
-import {
-  RadarChart,
-  Radar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import LazyRecharts from "@/components/charts/LazyRecharts";
 import {
   FileText,
   CheckCircle2,
@@ -694,45 +685,49 @@ const PharmacistDashboard = () => {
                       </p>
                     )}
                     <div className="w-full h-[320px] sm:h-[350px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart data={filteredRadarData}>
-                          <PolarGrid stroke="#E5E7EB" />
-                          <PolarAngleAxis
-                            dataKey="subject"
-                            tick={{ fontSize: 12, fill: "#4B5563", fontWeight: 500 }}
-                          />
-                          <PolarRadiusAxis
-                            angle={90}
-                            domain={[0, 100]}
-                            tick={{ fontSize: 11, fill: "#9CA3AF" }}
-                          />
-                          <Radar
-                            name="คะแนนของคุณ"
-                            dataKey="score"
-                            stroke="#4F46E5"
-                            fill="#6366F1"
-                            fillOpacity={0.35}
-                            strokeWidth={2.5}
-                          />
-                          <Tooltip
-                            contentStyle={{
-                              borderRadius: "14px",
-                              border: "1px solid #E5E7EB",
-                              boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
-                              fontSize: "13px",
-                              fontWeight: 500,
-                            }}
-                            formatter={(val: any) => [`${val} คะแนน`, "คะแนนที่ได้"]}
-                          />
-                          <Legend
-                            wrapperStyle={{
-                              fontSize: "13px",
-                              fontWeight: 500,
-                              paddingTop: "10px",
-                            }}
-                          />
-                        </RadarChart>
-                      </ResponsiveContainer>
+                      <LazyRecharts height="100%">
+                        {(R) => (
+                          <R.ResponsiveContainer width="100%" height="100%">
+                            <R.RadarChart data={filteredRadarData}>
+                              <R.PolarGrid stroke="#E5E7EB" />
+                              <R.PolarAngleAxis
+                                dataKey="subject"
+                                tick={{ fontSize: 12, fill: "#4B5563", fontWeight: 500 }}
+                              />
+                              <R.PolarRadiusAxis
+                                angle={90}
+                                domain={[0, 100]}
+                                tick={{ fontSize: 11, fill: "#9CA3AF" }}
+                              />
+                              <R.Radar
+                                name="คะแนนของคุณ"
+                                dataKey="score"
+                                stroke="#4F46E5"
+                                fill="#6366F1"
+                                fillOpacity={0.35}
+                                strokeWidth={2.5}
+                              />
+                              <R.Tooltip
+                                contentStyle={{
+                                  borderRadius: "14px",
+                                  border: "1px solid #E5E7EB",
+                                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                                  fontSize: "13px",
+                                  fontWeight: 500,
+                                }}
+                                formatter={(val: any) => [`${val} คะแนน`, "คะแนนที่ได้"]}
+                              />
+                              <R.Legend
+                                wrapperStyle={{
+                                  fontSize: "13px",
+                                  fontWeight: 500,
+                                  paddingTop: "10px",
+                                }}
+                              />
+                            </R.RadarChart>
+                          </R.ResponsiveContainer>
+                        )}
+                      </LazyRecharts>
                     </div>
                   </div>
                 )}

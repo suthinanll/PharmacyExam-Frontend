@@ -56,7 +56,10 @@ const NewsDetailPage = () => {
         return (
             <>
                 <Navbar />
-                <div className="bg-gray-50 min-h-[70vh] flex items-center justify-center">
+                {/* min-h-screen เพื่อดัน Footer ให้อยู่ใต้เส้นพับตั้งแต่แรก
+                    ถ้าใช้ความสูงสั้นกว่านี้ Footer จะอยู่ในจอแล้วถูกดันลงตอนเนื้อข่าวมาถึง
+                    กลายเป็น layout shift ก้อนใหญ่ (Lighthouse วัดได้ CLS 0.155) */}
+                <div className="bg-gray-50 min-h-screen flex items-start justify-center pt-24">
                     <LoadingSpinner text="กำลังโหลดรายละเอียดข่าว..." size="lg" />
                 </div>
                 <Footer />
@@ -92,6 +95,11 @@ const NewsDetailPage = () => {
                                         : "/img/news1.jpg"
                                 }
                                 alt={news.title}
+                                /* รูปปกคือองค์ประกอบ LCP ของหน้า เดิมเบราว์เซอร์เพิ่งรู้จักมัน
+                                   หลัง JS วาดเสร็จ (resourceLoadDelay 2.2 วินาที)
+                                   fetchPriority สั่งให้ดาวน์โหลดทันทีที่เจอ */
+                                fetchPriority="high"
+                                decoding="async"
                                 className="w-full h-full object-cover"
                             />
                             <div className="absolute top-4 left-4">

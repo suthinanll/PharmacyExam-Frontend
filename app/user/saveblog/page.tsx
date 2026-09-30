@@ -128,6 +128,13 @@ function SaveBlog() {
                           width={500}
                           height={300}
                           unoptimized
+                          /* รูปใบแรกคือองค์ประกอบ LCP ของหน้า เดิมกว่าเบราว์เซอร์จะรู้จัก
+                             ก็ผ่านไป 1.3 วินาที (resourceLoadDelay) priority สั่งโหลดทันที
+                             ส่วนใบที่เหลืออยู่ใต้เส้นพับ ให้โหลดทีหลังตามปกติ
+                             คง unoptimized ไว้ เพราะรูปข่าวมาจากหลายโดเมน ถ้าให้ Next
+                             ย่อเองแล้วโดเมนไหนไม่อยู่ใน remotePatterns รูปจะพังทันที */
+                          priority={index === 0}
+                          loading={index === 0 ? undefined : 'lazy'}
                           className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       </a>

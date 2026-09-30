@@ -45,8 +45,19 @@ type CountdownHeroProps = {
   renderUpcomingExam: (exam: CountdownExam, index: number) => ReactNode;
 };
 
+/**
+ * ต้องระบุ timeZone ให้ชัดเจน เพราะการ์ดนี้ถูก render ทั้งฝั่งเซิร์ฟเวอร์และไคลเอนต์
+ * เซิร์ฟเวอร์บน Railway รันที่ UTC ส่วนเบราว์เซอร์ผู้ใช้อยู่ UTC+7 ถ้าปล่อยให้ใช้
+ * เขตเวลาของเครื่อง วันที่ที่ได้จะไม่ตรงกันเมื่อเวลาคาบเกี่ยวข้ามวัน แล้วเกิด
+ * hydration mismatch (React error #418) ซึ่งทำให้ React ทิ้ง HTML แล้ววาดใหม่
+ */
 const formatThaiDate = (stamp: number | null | undefined) =>
-  stamp ? new Date(stamp).toLocaleDateString("th-TH", { dateStyle: "long" }) : "-";
+  stamp
+    ? new Date(stamp).toLocaleDateString("th-TH", {
+        dateStyle: "long",
+        timeZone: "Asia/Bangkok",
+      })
+    : "-";
 
 // ── สถานะของกำหนดการ ─────────────────────────────────────────
 

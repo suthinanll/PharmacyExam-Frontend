@@ -4,18 +4,7 @@ import React, { useState, useEffect } from "react";
 import Navbar_user from "@/components/Navbar_user";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Area,
-  AreaChart,
-} from "recharts";
+import LazyRecharts from "@/components/charts/LazyRecharts";
 
 // ==================== TYPE DEFINITIONS ====================
 enum ContentArea {
@@ -1487,55 +1476,63 @@ export default function PharmacyCATSystem() {
 
             <div className="bg-gray-50 rounded-2xl p-6 mb-8">
               <h3 className="text-xl font-medium text-gray-800 mb-4">📊 กราฟการเปลี่ยนแปลงของ θ</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="item" label={{ value: "ข้อที่", position: "insideBottom", offset: -5 }} />
-                  <YAxis domain={[-4, 4]} label={{ value: "θ", angle: -90, position: "insideLeft" }} />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="theta"
-                    stroke="#43a047"
-                    strokeWidth={2}
-                    name="θ (Ability)"
-                    dot={{ r: 4 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="cutScore"
-                    stroke="#ff9800"
-                    strokeWidth={2}
-                    strokeDasharray="5 5"
-                    name="Cut Score"
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <LazyRecharts height={300}>
+                {(R) => (
+                  <R.ResponsiveContainer width="100%" height={300}>
+                  <R.LineChart data={chartData}>
+                    <R.CartesianGrid strokeDasharray="3 3" />
+                    <R.XAxis dataKey="item" label={{ value: "ข้อที่", position: "insideBottom", offset: -5 }} />
+                    <R.YAxis domain={[-4, 4]} label={{ value: "θ", angle: -90, position: "insideLeft" }} />
+                    <R.Tooltip />
+                    <R.Legend />
+                    <R.Line
+                      type="monotone"
+                      dataKey="theta"
+                      stroke="#43a047"
+                      strokeWidth={2}
+                      name="θ (Ability)"
+                      dot={{ r: 4 }}
+                    />
+                    <R.Line
+                      type="monotone"
+                      dataKey="cutScore"
+                      stroke="#ff9800"
+                      strokeWidth={2}
+                      strokeDasharray="5 5"
+                      name="Cut Score"
+                      dot={false}
+                    />
+                  </R.LineChart>
+                </R.ResponsiveContainer>
+                )}
+              </LazyRecharts>
             </div>
 
             <div className="bg-gray-50 rounded-2xl p-6 mb-8">
               <h3 className="text-xl font-medium text-gray-800 mb-4">🔔 กราฟ Normal Distribution ของ θ</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={normalDistData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="x"
-                    label={{ value: "θ (Ability)", position: "insideBottom", offset: -5 }}
-                    ticks={["-4.0", "-3.0", "-2.0", "-1.0", "0.0", "1.0", "2.0", "3.0", "4.0"]}
-                  />
-                  <YAxis label={{ value: "Probability Density", angle: -90, position: "insideLeft" }} />
-                  <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="y"
-                    stroke="#43a047"
-                    fill="rgba(67, 160, 71, 0.2)"
-                    name="Posterior Distribution"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+              <LazyRecharts height={300}>
+                {(R) => (
+                  <R.ResponsiveContainer width="100%" height={300}>
+                  <R.AreaChart data={normalDistData}>
+                    <R.CartesianGrid strokeDasharray="3 3" />
+                    <R.XAxis
+                      dataKey="x"
+                      label={{ value: "θ (Ability)", position: "insideBottom", offset: -5 }}
+                      ticks={["-4.0", "-3.0", "-2.0", "-1.0", "0.0", "1.0", "2.0", "3.0", "4.0"]}
+                    />
+                    <R.YAxis label={{ value: "Probability Density", angle: -90, position: "insideLeft" }} />
+                    <R.Tooltip />
+                    <R.Area
+                      type="monotone"
+                      dataKey="y"
+                      stroke="#43a047"
+                      fill="rgba(67, 160, 71, 0.2)"
+                      name="Posterior Distribution"
+                    />
+                  </R.AreaChart>
+                </R.ResponsiveContainer>
+                )}
+              </LazyRecharts>
               <div className="mt-4 text-center text-sm text-gray-600">
                 <p>การกระจายของความน่าจะเป็นของความสามารถ (θ) ของผู้สอบ</p>
                 <p>จุดสูงสุดแสดงถึงค่าประมาณที่น่าจะเป็นมากที่สุด</p>

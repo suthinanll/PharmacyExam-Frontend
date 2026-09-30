@@ -1,20 +1,6 @@
 "use client";
 
-import {
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
-  Radar,
-  RadarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import LazyRecharts from "@/components/charts/LazyRecharts";
 import {
   Award,
   CalendarCheck,
@@ -205,40 +191,44 @@ export const ProgressSection = ({ progress }: { progress: UserProgress }) => {
           </div>
 
           <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                <YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 12 }}
-                  formatter={(value, name) => [
-                    value === null || value === undefined
-                      ? "—"
-                      : `${value}${name === "ความแม่นยำ" ? "%" : " คะแนน"}`,
-                    String(name),
-                  ]}
-                />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Line
-                  type="monotone"
-                  dataKey="คะแนน"
-                  stroke="#2563eb"
-                  strokeWidth={2.5}
-                  dot={{ r: 4, fill: "#2563eb" }}
-                  activeDot={{ r: 6 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="ความแม่นยำ"
-                  stroke="#14b8a6"
-                  strokeWidth={2}
-                  strokeDasharray="5 4"
-                  dot={{ r: 3, fill: "#14b8a6" }}
-                  connectNulls
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <LazyRecharts height="100%">
+              {(R) => (
+                <R.ResponsiveContainer width="100%" height="100%">
+                <R.LineChart data={chartData} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
+                  <R.CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <R.XAxis dataKey="name" tick={{ fontSize: 11, fill: "#94a3b8" }} />
+                  <R.YAxis domain={[0, 100]} tick={{ fontSize: 11, fill: "#94a3b8" }} />
+                  <R.Tooltip
+                    contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 12 }}
+                    formatter={(value, name) => [
+                      value === null || value === undefined
+                        ? "—"
+                        : `${value}${name === "ความแม่นยำ" ? "%" : " คะแนน"}`,
+                      String(name),
+                    ]}
+                  />
+                  <R.Legend wrapperStyle={{ fontSize: 12 }} />
+                  <R.Line
+                    type="monotone"
+                    dataKey="คะแนน"
+                    stroke="#2563eb"
+                    strokeWidth={2.5}
+                    dot={{ r: 4, fill: "#2563eb" }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <R.Line
+                    type="monotone"
+                    dataKey="ความแม่นยำ"
+                    stroke="#14b8a6"
+                    strokeWidth={2}
+                    strokeDasharray="5 4"
+                    dot={{ r: 3, fill: "#14b8a6" }}
+                    connectNulls
+                  />
+                </R.LineChart>
+              </R.ResponsiveContainer>
+              )}
+            </LazyRecharts>
           </div>
         </div>
 
@@ -321,20 +311,24 @@ export const ProgressSection = ({ progress }: { progress: UserProgress }) => {
           </div>
 
           <div className="h-72 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radar_compare}>
-                <PolarGrid stroke="#e2e8f0" />
-                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: "#64748b" }} />
-                <PolarRadiusAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#cbd5e1" }} />
-                <Radar name="ครั้งแรก" dataKey="first" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.25} />
-                <Radar name="ครั้งล่าสุด" dataKey="latest" stroke="#2563eb" fill="#3b82f6" fillOpacity={0.3} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 12 }}
-                  formatter={(value: number) => `${value}%`}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+            <LazyRecharts height="100%">
+              {(R) => (
+                <R.ResponsiveContainer width="100%" height="100%">
+                <R.RadarChart data={radar_compare}>
+                  <R.PolarGrid stroke="#e2e8f0" />
+                  <R.PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: "#64748b" }} />
+                  <R.PolarRadiusAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#cbd5e1" }} />
+                  <R.Radar name="ครั้งแรก" dataKey="first" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.25} />
+                  <R.Radar name="ครั้งล่าสุด" dataKey="latest" stroke="#2563eb" fill="#3b82f6" fillOpacity={0.3} />
+                  <R.Legend wrapperStyle={{ fontSize: 12 }} />
+                  <R.Tooltip
+                    contentStyle={{ borderRadius: 12, border: "1px solid #e2e8f0", fontSize: 12 }}
+                    formatter={(value: number) => `${value}%`}
+                  />
+                </R.RadarChart>
+              </R.ResponsiveContainer>
+              )}
+            </LazyRecharts>
           </div>
         </div>
       )}

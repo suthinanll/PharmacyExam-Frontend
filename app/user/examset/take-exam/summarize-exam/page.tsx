@@ -11,10 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
-import {
-    Radar, RadarChart, PolarGrid, PolarAngleAxis,
-    PolarRadiusAxis, ResponsiveContainer, Tooltip
-} from 'recharts';
+import LazyRecharts from "@/components/charts/LazyRecharts";
 
 // Types
 interface ExamResult {
@@ -285,36 +282,40 @@ function Summarize() {
                             <div className="flex flex-col lg:flex-row gap-6">
                                 {/* Radar Chart */}
                                 <div className="w-full lg:w-5/12 h-72">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <RadarChart cx="50%" cy="50%" outerRadius="75%"
-                                            data={topicPerformance.map(t => ({
-                                                subject: t.topicName.length > 14 ? t.topicName.substring(0, 14) + '…' : t.topicName,
-                                                fullName: t.topicName,
-                                                Performance: t.percentage,
-                                                fullMark: 100
-                                            }))}>
-                                            <PolarGrid stroke="#e5e7eb" />
-                                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 11 }} />
-                                            <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-                                            <Tooltip
-                                                content={({ active, payload }) => {
-                                                    if (active && payload?.length) {
-                                                        const d = payload[0].payload;
-                                                        return (
-                                                            <div className="bg-white border border-gray-100 shadow-lg rounded-xl px-3 py-2 text-sm">
-                                                                <p className="font-semibold text-gray-800">{d.fullName}</p>
-                                                                <p className="text-green-600 font-medium">{d.Performance}%</p>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return null;
-                                                }}
-                                            />
-                                            <Radar name="Performance" dataKey="Performance"
-                                                stroke="#22c55e" fill="#22c55e" fillOpacity={0.25}
-                                                dot={{ r: 3, fill: '#22c55e' }} />
-                                        </RadarChart>
-                                    </ResponsiveContainer>
+                                    <LazyRecharts height="100%">
+                                      {(R) => (
+                                        <R.ResponsiveContainer width="100%" height="100%">
+                                          <R.RadarChart cx="50%" cy="50%" outerRadius="75%"
+                                              data={topicPerformance.map(t => ({
+                                                  subject: t.topicName.length > 14 ? t.topicName.substring(0, 14) + '…' : t.topicName,
+                                                  fullName: t.topicName,
+                                                  Performance: t.percentage,
+                                                  fullMark: 100
+                                              }))}>
+                                              <R.PolarGrid stroke="#e5e7eb" />
+                                              <R.PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 11 }} />
+                                              <R.PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                                              <R.Tooltip
+                                                  content={({ active, payload }) => {
+                                                      if (active && payload?.length) {
+                                                          const d = payload[0].payload;
+                                                          return (
+                                                              <div className="bg-white border border-gray-100 shadow-lg rounded-xl px-3 py-2 text-sm">
+                                                                  <p className="font-semibold text-gray-800">{d.fullName}</p>
+                                                                  <p className="text-green-600 font-medium">{d.Performance}%</p>
+                                                              </div>
+                                                          );
+                                                      }
+                                                      return null;
+                                                  }}
+                                              />
+                                              <R.Radar name="Performance" dataKey="Performance"
+                                                  stroke="#22c55e" fill="#22c55e" fillOpacity={0.25}
+                                                  dot={{ r: 3, fill: '#22c55e' }} />
+                                          </R.RadarChart>
+                                      </R.ResponsiveContainer>
+                                      )}
+                                    </LazyRecharts>
                                 </div>
 
                                 {/* Topic list */}

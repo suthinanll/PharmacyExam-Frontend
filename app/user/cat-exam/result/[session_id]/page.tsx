@@ -6,12 +6,7 @@ import Footer from "@/components/Footer";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-    ResponsiveContainer, Area, AreaChart, ReferenceLine,
-    ComposedChart,
-    Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
-} from "recharts";
+import LazyRecharts from "@/components/charts/LazyRecharts";
 import { CheckCircle2, XCircle, HelpCircle, BookOpen, Info, Award, Target, AlertTriangle, BarChart3, ClipboardList, RefreshCw, ChevronDown, ChevronUp } from "lucide-react";
 
 const LABELS = ["ก", "ข", "ค", "ง", "จ", "ฉ", "ช", "ซ"];
@@ -170,47 +165,51 @@ function ThetaProgressChart({ responses, cutScore }: { responses: Response[]; cu
                 </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={270}>
-                <AreaChart data={data} margin={{ top: 15, right: 20, left: 10, bottom: 20 }}>
-                    <defs>
-                        <linearGradient id="thetaFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.18} />
-                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis
-                        dataKey="item"
-                        label={{ value: "ข้อที่", position: "insideBottom", offset: -10, fill: "#94a3b8", fontSize: 12 }}
-                        tick={{ fontSize: 11, fill: "#64748b" }}
-                        axisLine={{ stroke: "#cbd5e1" }}
-                    />
-                    <YAxis
-                        domain={[minTheta, maxTheta]}
-                        label={{ value: "ค่าความสามารถ (θ)", angle: -90, position: "insideLeft", offset: 12, fill: "#94a3b8", fontSize: 11 }}
-                        tick={{ fontSize: 11, fill: "#64748b" }}
-                        axisLine={{ stroke: "#cbd5e1" }}
-                        tickFormatter={(v) => v > 0 ? `+${v.toFixed(1)}` : v === 0 ? "0.0" : v.toFixed(1)}
-                    />
-                    <Tooltip content={<CustomThetaTooltip />} />
-                    <ReferenceLine
-                        y={cutScore}
-                        stroke="#f59e0b"
-                        strokeDasharray="4 4"
-                        strokeWidth={1.5}
-                        label={{ value: `เกณฑ์ (${cutScore.toFixed(1)})`, fill: "#d97706", fontSize: 11, position: "insideTopRight" }}
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="theta"
-                        stroke="#2563eb"
-                        strokeWidth={2.5}
-                        fill="url(#thetaFill)"
-                        dot={renderCustomThetaDot}
-                        activeDot={{ r: 7, strokeWidth: 2, stroke: "#fff" }}
-                    />
-                </AreaChart>
-            </ResponsiveContainer>
+            <LazyRecharts height={270}>
+              {(R) => (
+                <R.ResponsiveContainer width="100%" height={270}>
+                  <R.AreaChart data={data} margin={{ top: 15, right: 20, left: 10, bottom: 20 }}>
+                      <defs>
+                          <linearGradient id="thetaFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.18} />
+                              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
+                          </linearGradient>
+                      </defs>
+                      <R.CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                      <R.XAxis
+                          dataKey="item"
+                          label={{ value: "ข้อที่", position: "insideBottom", offset: -10, fill: "#94a3b8", fontSize: 12 }}
+                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          axisLine={{ stroke: "#cbd5e1" }}
+                      />
+                      <R.YAxis
+                          domain={[minTheta, maxTheta]}
+                          label={{ value: "ค่าความสามารถ (θ)", angle: -90, position: "insideLeft", offset: 12, fill: "#94a3b8", fontSize: 11 }}
+                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          axisLine={{ stroke: "#cbd5e1" }}
+                          tickFormatter={(v) => v > 0 ? `+${v.toFixed(1)}` : v === 0 ? "0.0" : v.toFixed(1)}
+                      />
+                      <R.Tooltip content={<CustomThetaTooltip />} />
+                      <R.ReferenceLine
+                          y={cutScore}
+                          stroke="#f59e0b"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.5}
+                          label={{ value: `เกณฑ์ (${cutScore.toFixed(1)})`, fill: "#d97706", fontSize: 11, position: "insideTopRight" }}
+                      />
+                      <R.Area
+                          type="monotone"
+                          dataKey="theta"
+                          stroke="#2563eb"
+                          strokeWidth={2.5}
+                          fill="url(#thetaFill)"
+                          dot={renderCustomThetaDot}
+                          activeDot={{ r: 7, strokeWidth: 2, stroke: "#fff" }}
+                      />
+                  </R.AreaChart>
+              </R.ResponsiveContainer>
+              )}
+            </LazyRecharts>
         </div>
     );
 }
@@ -239,58 +238,62 @@ function SEConvergenceChart({ responses, targetSE }: { responses: Response[]; ta
                 </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={270}>
-                <AreaChart data={data} margin={{ top: 15, right: 20, left: 10, bottom: 20 }}>
-                    <defs>
-                        <linearGradient id="seFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.18} />
-                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.0} />
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis
-                        dataKey="item"
-                        label={{ value: "ข้อที่", position: "insideBottom", offset: -10, fill: "#94a3b8", fontSize: 12 }}
-                        tick={{ fontSize: 11, fill: "#64748b" }}
-                        axisLine={{ stroke: "#cbd5e1" }}
-                    />
-                    <YAxis
-                        domain={[0, 1.2]}
-                        label={{ value: "SE", angle: -90, position: "insideLeft", offset: 12, fill: "#94a3b8", fontSize: 11 }}
-                        tick={{ fontSize: 11, fill: "#64748b" }}
-                        axisLine={{ stroke: "#cbd5e1" }}
-                    />
-                    <Tooltip
-                        content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                                const d = payload[0].payload;
-                                return (
-                                    <div className="bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 text-xs space-y-1">
-                                        <p className="font-semibold text-gray-800">ข้อที่ {d.item}</p>
-                                        <p className="text-purple-600 font-medium">SE: {d.se?.toFixed(3)}</p>
-                                    </div>
-                                );
-                            }
-                            return null;
-                        }}
-                    />
-                    <ReferenceLine
-                        y={targetSE}
-                        stroke="#22c55e"
-                        strokeDasharray="4 4"
-                        strokeWidth={1.5}
-                        label={{ value: `เป้าหมาย (${targetSE})`, fill: "#16a34a", fontSize: 11, position: "insideTopRight" }}
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="se"
-                        stroke="#8b5cf6"
-                        strokeWidth={2.5}
-                        fill="url(#seFill)"
-                        dot={{ r: 4, fill: "#8b5cf6", stroke: "#fff", strokeWidth: 2 }}
-                    />
-                </AreaChart>
-            </ResponsiveContainer>
+            <LazyRecharts height={270}>
+              {(R) => (
+                <R.ResponsiveContainer width="100%" height={270}>
+                  <R.AreaChart data={data} margin={{ top: 15, right: 20, left: 10, bottom: 20 }}>
+                      <defs>
+                          <linearGradient id="seFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.18} />
+                              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.0} />
+                          </linearGradient>
+                      </defs>
+                      <R.CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                      <R.XAxis
+                          dataKey="item"
+                          label={{ value: "ข้อที่", position: "insideBottom", offset: -10, fill: "#94a3b8", fontSize: 12 }}
+                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          axisLine={{ stroke: "#cbd5e1" }}
+                      />
+                      <R.YAxis
+                          domain={[0, 1.2]}
+                          label={{ value: "SE", angle: -90, position: "insideLeft", offset: 12, fill: "#94a3b8", fontSize: 11 }}
+                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          axisLine={{ stroke: "#cbd5e1" }}
+                      />
+                      <R.Tooltip
+                          content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                  const d = payload[0].payload;
+                                  return (
+                                      <div className="bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 text-xs space-y-1">
+                                          <p className="font-semibold text-gray-800">ข้อที่ {d.item}</p>
+                                          <p className="text-purple-600 font-medium">SE: {d.se?.toFixed(3)}</p>
+                                      </div>
+                                  );
+                              }
+                              return null;
+                          }}
+                      />
+                      <R.ReferenceLine
+                          y={targetSE}
+                          stroke="#22c55e"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.5}
+                          label={{ value: `เป้าหมาย (${targetSE})`, fill: "#16a34a", fontSize: 11, position: "insideTopRight" }}
+                      />
+                      <R.Area
+                          type="monotone"
+                          dataKey="se"
+                          stroke="#8b5cf6"
+                          strokeWidth={2.5}
+                          fill="url(#seFill)"
+                          dot={{ r: 4, fill: "#8b5cf6", stroke: "#fff", strokeWidth: 2 }}
+                      />
+                  </R.AreaChart>
+              </R.ResponsiveContainer>
+              )}
+            </LazyRecharts>
         </div>
     );
 }
@@ -299,7 +302,8 @@ function SEConvergenceChart({ responses, targetSE }: { responses: Response[]; ta
 function PosteriorChart({ finalTheta, finalSE, cutScore }: { finalTheta: number; finalSE: number; cutScore: number }) {
     const pointsCount = 120;
     const step = 8.0 / pointsCount;
-    const data = [];
+    // ระบุชนิดให้ชัด เพราะ data ถูกใช้ในฟังก์ชันที่ส่งให้ LazyRecharts แล้ว TS อนุมานจาก push ไม่ได้
+    const data: { x: number; y: number }[] = [];
     for (let i = 0; i <= pointsCount; i++) {
         const xVal = +(-4.0 + i * step).toFixed(2);
         const yVal = +normalPDF(xVal, finalTheta, Math.max(0.1, finalSE)).toFixed(4);
@@ -327,69 +331,73 @@ function PosteriorChart({ finalTheta, finalSE, cutScore }: { finalTheta: number;
                 </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={270}>
-                <AreaChart data={data} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
-                    <defs>
-                        <linearGradient id="posteriorFill" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor={isPassed ? "#16a34a" : "#2563eb"} stopOpacity={0.25} />
-                            <stop offset="95%" stopColor={isPassed ? "#16a34a" : "#2563eb"} stopOpacity={0.0} />
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
-                    <XAxis
-                        dataKey="x"
-                        type="number"
-                        domain={[-4, 4]}
-                        ticks={[-4, -3, -2, -1, 0, 1, 2, 3, 4]}
-                        label={{ value: "ระดับความสามารถ (θ)", position: "insideBottom", offset: -10, fill: "#94a3b8", fontSize: 12 }}
-                        tick={{ fontSize: 11, fill: "#64748b" }}
-                        axisLine={{ stroke: "#cbd5e1" }}
-                        tickFormatter={(v) => v > 0 ? `+${v}` : `${v}`}
-                    />
-                    <YAxis hide />
-                    <Tooltip
-                        content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                                const d = payload[0].payload;
-                                return (
-                                    <div className="bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 text-xs space-y-1">
-                                        <p className="font-semibold text-gray-800">θ = {d.x > 0 ? `+${d.x.toFixed(2)}` : d.x.toFixed(2)}</p>
-                                        <p className="text-blue-600">ความน่าจะเป็นสัมพัทธ์: {d.y.toFixed(3)}</p>
-                                    </div>
-                                );
-                            }
-                            return null;
-                        }}
-                    />
-                    <ReferenceLine
-                        x={cutScore}
-                        stroke="#f59e0b"
-                        strokeDasharray="4 4"
-                        strokeWidth={1.5}
-                        label={{ value: "เกณฑ์ (0.0)", fill: "#d97706", fontSize: 11, position: "top" }}
-                    />
-                    <ReferenceLine
-                        x={finalTheta}
-                        stroke="#2563eb"
-                        strokeWidth={2}
-                        label={{
-                            value: `θ = ${finalTheta >= 0 ? `+${finalTheta.toFixed(2)}` : finalTheta.toFixed(2)}`,
-                            fill: "#1d4ed8",
-                            fontSize: 11,
-                            fontWeight: 600,
-                            position: "insideTopLeft",
-                        }}
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="y"
-                        stroke={isPassed ? "#16a34a" : "#2563eb"}
-                        strokeWidth={2.5}
-                        fill="url(#posteriorFill)"
-                        name="ความน่าจะเป็น"
-                    />
-                </AreaChart>
-            </ResponsiveContainer>
+            <LazyRecharts height={270}>
+              {(R) => (
+                <R.ResponsiveContainer width="100%" height={270}>
+                  <R.AreaChart data={data} margin={{ top: 20, right: 20, left: 10, bottom: 20 }}>
+                      <defs>
+                          <linearGradient id="posteriorFill" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={isPassed ? "#16a34a" : "#2563eb"} stopOpacity={0.25} />
+                              <stop offset="95%" stopColor={isPassed ? "#16a34a" : "#2563eb"} stopOpacity={0.0} />
+                          </linearGradient>
+                      </defs>
+                      <R.CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                      <R.XAxis
+                          dataKey="x"
+                          type="number"
+                          domain={[-4, 4]}
+                          ticks={[-4, -3, -2, -1, 0, 1, 2, 3, 4]}
+                          label={{ value: "ระดับความสามารถ (θ)", position: "insideBottom", offset: -10, fill: "#94a3b8", fontSize: 12 }}
+                          tick={{ fontSize: 11, fill: "#64748b" }}
+                          axisLine={{ stroke: "#cbd5e1" }}
+                          tickFormatter={(v) => v > 0 ? `+${v}` : `${v}`}
+                      />
+                      <R.YAxis hide />
+                      <R.Tooltip
+                          content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                  const d = payload[0].payload;
+                                  return (
+                                      <div className="bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 text-xs space-y-1">
+                                          <p className="font-semibold text-gray-800">θ = {d.x > 0 ? `+${d.x.toFixed(2)}` : d.x.toFixed(2)}</p>
+                                          <p className="text-blue-600">ความน่าจะเป็นสัมพัทธ์: {d.y.toFixed(3)}</p>
+                                      </div>
+                                  );
+                              }
+                              return null;
+                          }}
+                      />
+                      <R.ReferenceLine
+                          x={cutScore}
+                          stroke="#f59e0b"
+                          strokeDasharray="4 4"
+                          strokeWidth={1.5}
+                          label={{ value: "เกณฑ์ (0.0)", fill: "#d97706", fontSize: 11, position: "top" }}
+                      />
+                      <R.ReferenceLine
+                          x={finalTheta}
+                          stroke="#2563eb"
+                          strokeWidth={2}
+                          label={{
+                              value: `θ = ${finalTheta >= 0 ? `+${finalTheta.toFixed(2)}` : finalTheta.toFixed(2)}`,
+                              fill: "#1d4ed8",
+                              fontSize: 11,
+                              fontWeight: 600,
+                              position: "insideTopLeft",
+                          }}
+                      />
+                      <R.Area
+                          type="monotone"
+                          dataKey="y"
+                          stroke={isPassed ? "#16a34a" : "#2563eb"}
+                          strokeWidth={2.5}
+                          fill="url(#posteriorFill)"
+                          name="ความน่าจะเป็น"
+                      />
+                  </R.AreaChart>
+              </R.ResponsiveContainer>
+              )}
+            </LazyRecharts>
         </div>
     );
 }
@@ -413,35 +421,39 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
             <div className="flex flex-col lg:flex-row gap-8 items-stretch mb-2">
                 {/* Radar Chart */}
                 <div className="w-full lg:w-1/2 h-[350px] flex items-center justify-center">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                            <PolarGrid stroke="#e5e7eb" />
-                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 12 }} />
-                            <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
-                            <Tooltip
-                                content={({ active, payload }) => {
-                                    if (active && payload && payload.length) {
-                                        const d = payload[0].payload;
-                                        return (
-                                            <div className="bg-white p-3 shadow-xl border border-gray-100 rounded-xl">
-                                                <p className="font-medium text-gray-800 mb-1">{d.fullName}</p>
-                                                <p className="text-blue-600 font-medium">ความแม่นยำ: {d.Performance}%</p>
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                }}
-                            />
-                            <Radar
-                                name="Performance"
-                                dataKey="Performance"
-                                stroke="#22c55e"
-                                fill="#22c55e"
-                                fillOpacity={0.35}
-                                dot={{ r: 4, fill: '#22c55e' }}
-                            />
-                        </RadarChart>
-                    </ResponsiveContainer>
+                    <LazyRecharts height="100%">
+                      {(R) => (
+                        <R.ResponsiveContainer width="100%" height="100%">
+                          <R.RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                              <R.PolarGrid stroke="#e5e7eb" />
+                              <R.PolarAngleAxis dataKey="subject" tick={{ fill: '#6b7280', fontSize: 12 }} />
+                              <R.PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                              <R.Tooltip
+                                  content={({ active, payload }) => {
+                                      if (active && payload && payload.length) {
+                                          const d = payload[0].payload;
+                                          return (
+                                              <div className="bg-white p-3 shadow-xl border border-gray-100 rounded-xl">
+                                                  <p className="font-medium text-gray-800 mb-1">{d.fullName}</p>
+                                                  <p className="text-blue-600 font-medium">ความแม่นยำ: {d.Performance}%</p>
+                                              </div>
+                                          );
+                                      }
+                                      return null;
+                                  }}
+                              />
+                              <R.Radar
+                                  name="Performance"
+                                  dataKey="Performance"
+                                  stroke="#22c55e"
+                                  fill="#22c55e"
+                                  fillOpacity={0.35}
+                                  dot={{ r: 4, fill: '#22c55e' }}
+                              />
+                          </R.RadarChart>
+                      </R.ResponsiveContainer>
+                      )}
+                    </LazyRecharts>
                 </div>
 
                 {/* Score List (Unified nested cards) */}

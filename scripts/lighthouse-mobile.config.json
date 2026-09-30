@@ -13,6 +13,11 @@
     "/user/profile",
     "/user/saveblog",
     "/user/cat-exam",
-    "/user/cat-exam/info"
-  ]
+    "/user/cat-exam/info",
+    "/user/newsdetail/4",
+    "/user/cat-exam/result/92",
+    "/user/examset/take-exam/summarize-exam",
+    "/user/examset/take-exam/summarize-exam/answer"
+  ],
+  "_note": "ไม่ใส่ /user/cat-exam/exam และ /user/examset/take-exam ไว้ในรายการปกติ เพราะเปิดหน้าแล้วอาจสร้าง session การสอบใหม่ทุกครั้ง ถ้าจะวัดให้ใช้ --only ระบุเองเป็นครั้ง ๆ"
 }

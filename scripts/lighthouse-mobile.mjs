@@ -97,12 +97,28 @@ async function seedSession(browser, origin, token) {
 }
 
 /**
- * ล้าง HTTP cache โดยไม่แตะ localStorage
- * ชดเชยสิ่งที่ disableStorageReset ปิดไป ให้ทุกหน้าเริ่มจาก cache เย็นเท่ากัน
+ * ล้างทุกอย่างที่ Lighthouse เคยล้างให้ ยกเว้น localStorage ที่เก็บ token ไว้
+ *
+ * disableStorageReset ปิดการล้างไปทั้งชุด ไม่ใช่แค่ localStorage จึงต้องล้างเอง
+ *   - HTTP cache      ถ้าไม่ล้าง หน้าถัด ๆ ไปวิ่งบน cache ร้อน คะแนนสูงเกินจริง
+ *   - service worker  ถ้าไม่ล้าง รอบถัดไปได้ HTML เก่าจาก cache ของ SW มาชนกับ JS
+ *                     ใหม่ กลายเป็น hydration mismatch (React error #418) ที่ไม่มีจริง
+ *   - CacheStorage    ที่ SW ใช้เก็บไฟล์
  */
-async function clearHttpCache(browser) {
+async function clearBrowsingState(browser, origin) {
   const page = await browser.newPage();
   try {
+    await page.goto(origin, { waitUntil: 'domcontentloaded', timeout: 60_000 });
+    await page.evaluate(async () => {
+      if (navigator.serviceWorker) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      }
+      if (window.caches) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    });
     const client = await page.createCDPSession();
     await client.send('Network.clearBrowserCache');
     await client.detach();
@@ -197,7 +213,7 @@ try {
     try {
       const results = [];
       for (let i = 0; i < args.runs; i++) {
-        await clearHttpCache(browser);
+        await clearBrowsingState(browser, base);
         results.push(await audit(url, chrome.port, args.desktop));
       }
       // เรียงตามคะแนน performance แล้วหยิบตัวกลาง ลดผลของรอบที่แกว่งผิดปกติ
