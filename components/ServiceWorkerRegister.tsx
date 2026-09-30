@@ -39,12 +39,18 @@ export default async function ServiceWorkerRegister() {
                 );
   
                 // Auto reload when the new Service Worker takes over
+                //
+                // reload เฉพาะตอนมี SW ตัวเก่าคุมหน้าอยู่แล้วและถูกตัวใหม่แทนที่ (อัปเดตเวอร์ชัน)
+                // ตอนเข้าเว็บครั้งแรกยังไม่มี SW คุมหน้า แต่ sw.js เรียก clients.claim() ทันที
+                // ที่ activate ทำให้ controllerchange เกิดขึ้นด้วย ถ้าไม่เช็คตรงนี้หน้าจะโหลดซ้ำ
+                // ทั้งหน้าโดยไม่จำเป็น (Lighthouse วัดได้ว่าเอกสารถูกขอสองรอบ API ถูกเรียกซ้ำ
+                // และ TBT ของหน้า summarize-exam ขึ้นไปถึง 1,020ms)
+                var hadController = !!navigator.serviceWorker.controller;
                 var refreshing = false;
                 navigator.serviceWorker.addEventListener('controllerchange', function() {
-                  if (!refreshing) {
-                    refreshing = true;
-                    window.location.reload();
-                  }
+                  if (!hadController || refreshing) return;
+                  refreshing = true;
+                  window.location.reload();
                 });
               });
             }
