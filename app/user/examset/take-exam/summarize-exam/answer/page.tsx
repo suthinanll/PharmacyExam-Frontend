@@ -74,6 +74,54 @@ function scrollToEl(id: string) {
     window.scrollTo({ top, behavior: 'smooth' });
 }
 
+/** จัดข้อที่อยู่ในสถานการณ์เดียวกันไว้กลุ่มเดียวกัน ข้อทั่วไปแยกเป็นกลุ่มละข้อ */
+function groupBySituation(responses: QuestionResponse[]) {
+    const groups: { situation: Situation | null; questions: { q: QuestionResponse; idx: number }[] }[] = [];
+    responses.forEach((q, idx) => {
+        const sitId = q.situation?.situation_id;
+        const existing = groups.find(g => g.situation?.situation_id === sitId && sitId !== undefined);
+        if (existing && sitId) existing.questions.push({ q, idx });
+        else groups.push({ situation: q.situation || null, questions: [{ q, idx }] });
+    });
+    return groups;
+}
+
+function Breadcrumb() {
+    return (
+        <div className="flex items-center text-sm text-gray-500 mb-5">
+            <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+            <span className="mx-2">›</span>
+            <Link href="/user/examset" className="hover:text-green-600 cursor-pointer transition">คลังข้อสอบ</Link>
+            <span className="mx-2">›</span>
+            <Link href="/user/examset/take-exam/summarize-exam" className="hover:text-green-600 cursor-pointer transition">สรุปผลสอบ</Link>
+            <span className="mx-2">›</span>
+            <span className="text-gray-600 font-medium">เฉลยคำตอบ</span>
+        </div>
+    );
+}
+
+/**
+ * หน้าตอนกำลังโหลด ใช้ทั้งใน Suspense fallback และตอนรอเฉลยจาก API
+ * (useSearchParams ทำให้ HTML จากเซิร์ฟเวอร์เป็น fallback ของ Suspense) ใช้โครงเดียวกัน
+ * ให้ navbar กับ breadcrumb วาดได้ตั้งแต่ HTML แรกและไม่กระโดดตอนเปลี่ยนสถานะ
+ */
+function LoadingView() {
+    return (
+        <>
+            <Navbar_user />
+            <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto">
+                    <Breadcrumb />
+                    <div className="flex items-start justify-center pt-12">
+                        <LoadingSpinner size="lg" text="กำลังโหลดเฉลยข้อสอบ..." />
+                    </div>
+                </div>
+            </div>
+            <Footer />
+        </>
+    );
+}
+
 // ─── QuestionCard ─────────────────────────────────────────────────────────────
 function QuestionCard({
     question,
@@ -238,6 +286,7 @@ function AnswerPageContent() {
     const [error, setError] = useState<string | null>(null);
     const [showTOC, setShowTOC] = useState(true);
     const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
+    const [pendingScroll, setPendingScroll] = useState<string | null>(null);
     const [tocExpanded, setTocExpanded] = useState<Set<number>>(new Set([0]));
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [statsModal, setStatsModal] = useState<{ open: boolean; data: MasteryData | null }>({ open: false, data: null });
@@ -274,8 +323,14 @@ function AnswerPageContent() {
             const res = await fetch(`${API_URL}/items-bank/exam/${targetSessionId}/result`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            if (res.ok) setExamResult(await res.json());
-            else throw new Error();
+            if (!res.ok) throw new Error();
+            const data: ExamResult = await res.json();
+            // เปิดหน้ามาให้กางแค่กลุ่มแรก ที่เหลือพับไว้ก่อน
+            // ทุกข้อต้องผ่าน DOMPurify และ formatScientificText ตอนเรนเดอร์ ถ้ากางทั้งหมด
+            // ข้อสอบร้อยข้อจะกลายเป็นงานก้อนใหญ่ตอนเปิดหน้า (TBT บนมือถือราว 450ms)
+            // ตั้งค่าพร้อมกับ setExamResult เพื่อไม่ให้เรนเดอร์แบบกางทั้งหมดก่อนแม้แต่รอบเดียว
+            setCollapsedGroups(new Set(groupBySituation(data.responses ?? []).map((_, i) => i).slice(1)));
+            setExamResult(data);
         } catch {
             setError('เกิดข้อผิดพลาดในการโหลดเฉลยคำตอบ');
         } finally {
@@ -299,33 +354,26 @@ function AnswerPageContent() {
         }
     };
 
-    const groupBySituation = () => {
-        const groups: { situation: Situation | null; questions: { q: QuestionResponse; idx: number }[] }[] = [];
-        examResult?.responses.forEach((q, idx) => {
-            const sitId = q.situation?.situation_id;
-            const existing = groups.find(g => g.situation?.situation_id === sitId && sitId !== undefined);
-            if (existing && sitId) existing.questions.push({ q, idx });
-            else groups.push({ situation: q.situation || null, questions: [{ q, idx }] });
-        });
-        return groups;
-    };
-
     const toggleCollapse = (idx: number) =>
         setCollapsedGroups(prev => { const s = new Set(prev); s.has(idx) ? s.delete(idx) : s.add(idx); return s; });
+
+    const openAndScroll = (gIdx: number, id: string) => {
+        setCollapsedGroups(prev => { const s = new Set(prev); s.delete(gIdx); return s; });
+        setPendingScroll(id);
+    };
+
+    // เลื่อนหลังกลุ่มที่เพิ่งกางถูกวาดลง DOM แล้ว ก่อนหน้านั้นยังไม่มีข้อให้เลื่อนไปหา
+    useEffect(() => {
+        if (!pendingScroll) return;
+        scrollToEl(pendingScroll);
+        setPendingScroll(null);
+    }, [pendingScroll]);
 
     const toggleToc = (idx: number) =>
         setTocExpanded(prev => { const s = new Set(prev); s.has(idx) ? s.delete(idx) : s.add(idx); return s; });
 
     // ── Loading ──
-    if (loading) return (
-        <>
-            <Navbar_user />
-            <div className="min-h-screen flex items-start justify-center pt-24">
-                <LoadingSpinner size="lg" text="กำลังโหลดเฉลยข้อสอบ..." />
-            </div>
-            <Footer />
-        </>
-    );
+    if (loading) return <LoadingView />;
 
     // ── Error ──
     if (error || !examResult) return (
@@ -345,7 +393,7 @@ function AnswerPageContent() {
         </>
     );
 
-    const groups = groupBySituation();
+    const groups = groupBySituation(examResult.responses);
     const wrong = examResult.total_questions - examResult.correct_count;
     const pct = Math.round((examResult.correct_count / examResult.total_questions) * 100);
 
@@ -355,16 +403,7 @@ function AnswerPageContent() {
             <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
 
-                    {/* Breadcrumb */}
-                    <div className="flex items-center text-sm text-gray-500 mb-5">
-                        <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
-                        <span className="mx-2">›</span>
-                        <Link href="/user/examset" className="hover:text-green-600 cursor-pointer transition">คลังข้อสอบ</Link>
-                        <span className="mx-2">›</span>
-                        <Link href="/user/examset/take-exam/summarize-exam" className="hover:text-green-600 cursor-pointer transition">สรุปผลสอบ</Link>
-                        <span className="mx-2">›</span>
-                        <span className="text-gray-600 font-medium">เฉลยคำตอบ</span>
-                    </div>
+                    <Breadcrumb />
 
                     {/* Page title */}
                     <div className="mb-6">
@@ -564,7 +603,7 @@ function AnswerPageContent() {
                                                 {group.questions.map(({ q, idx }) => (
                                                     <button
                                                         key={idx}
-                                                        onClick={() => scrollToEl(`question-${idx}`)}
+                                                        onClick={() => openAndScroll(gIdx, `question-${idx}`)}
                                                         className={`w-full text-left flex items-center gap-1.5 py-1 px-1.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${q.is_correct ? 'text-green-700 hover:bg-green-50' : 'text-rose-600 hover:bg-rose-50'}`}
                                                     >
                                                         {q.is_correct
@@ -691,11 +730,7 @@ function AnswerPageContent() {
 
 export default function AnswerPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="w-7 h-7 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-        }>
+        <Suspense fallback={<LoadingView />}>
             <AnswerPageContent />
         </Suspense>
     );
