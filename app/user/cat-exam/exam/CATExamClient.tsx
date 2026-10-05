@@ -66,6 +66,45 @@ function formatTime(seconds: number): string {
   return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
 }
 
+/** ข้อความ HTML เป็นข้อความล้วน ใช้แสดงระหว่างรอ hydrate เท่านั้น (React escape ให้แล้ว จึงไม่เปิดช่อง XSS) */
+function htmlToPlainText(html: string): string {
+  return html
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&");
+}
+
+const noopSubscribe = () => () => {};
+/** false ตอนเรนเดอร์บนเซิร์ฟเวอร์และตอน hydrate, true หลังจากนั้น (ไม่ต้องรอ effect จึงไม่กะพริบ) */
+function useHydrated() {
+  return React.useSyncExternalStore(noopSubscribe, () => true, () => false);
+}
+
+/**
+ * ข้อความโจทย์ สถานการณ์ และตัวเลือก ซึ่งเป็น HTML จาก editor
+ *
+ * sanitizeHtml (DOMPurify) ทำงานได้เฉพาะในเบราว์เซอร์ บนเซิร์ฟเวอร์คืนค่าว่าง
+ * ถ้าใส่ dangerouslySetInnerHTML ตรง ๆ HTML แรกจะไม่มีข้อความโจทย์เลย
+ * จึงส่งเป็นข้อความล้วนไปก่อน (ข้อความสถานการณ์คือองค์ประกอบ LCP ของหน้า)
+ * แล้วสลับเป็น HTML ที่ผ่านการล้างแล้วทันทีที่ hydrate เสร็จ ทั้งสองฝั่งจึงเรนเดอร์ตรงกัน
+ *
+ * ข้อความส่วนใหญ่ไม่มีแท็กหรือ entity เลย กรณีนั้นแสดงเป็นข้อความธรรมดาตลอด ไม่ต้องสลับ
+ * เพราะการแทนที่ด้วย innerHTML หลัง hydrate ทำให้เบราว์เซอร์วาดข้อความใหม่
+ * และนับเป็น LCP รอบใหม่ (วัดได้ LCP เลื่อนจาก FCP ไปเป็น 2.8-3.1 วินาที)
+ */
+function RichText({ html, as: Tag = "p", className }: { html: string; as?: "p" | "span"; className?: string }) {
+  const hydrated = useHydrated();
+  if (!/[<&]/.test(html)) return <Tag className={className}>{html}</Tag>;
+  if (!hydrated) return <Tag className={className}>{htmlToPlainText(html)}</Tag>;
+  return <Tag className={className} dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />;
+}
+
 function stripHTML(html: string): string {
   if (typeof window === 'undefined') return html;
   const tmp = document.createElement('DIV');
@@ -521,16 +560,33 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
 }
 
 
+/** หน้าระหว่างโหลดข้อสอบ ใช้ทั้งในคอมโพเนนต์นี้และเป็น fallback ของ Suspense ใน page.tsx */
+export function CATExamLoading() {
+  return (
+    <>
+      <Navbar_user />
+      <div className="min-h-screen flex items-start justify-center pt-24">
+        <LoadingSpinner size="lg" text="กำลังโหลดข้อสอบ CAT..." />
+      </div>
+      <Footer />
+    </>
+  );
+}
+
 // ==================== MAIN COMPONENT ====================
-function CATExamPageContent() {
+/**
+ * initialSession = ข้อสอบข้อปัจจุบันที่เซิร์ฟเวอร์ดึงมาให้แล้ว (page.tsx)
+ * ถ้าเป็น null (เริ่มสอบใหม่ ไม่มีคุกกี้ หรือดึงไม่สำเร็จ) จะหา session ฝั่งไคลเอนต์เหมือนเดิม
+ */
+function CATExamPageContent({ initialSession }: { initialSession: CATSession | null }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { getToken } = useAuth();
   const itemBankId = searchParams?.get("item_bank_id");
   const urlSessionId = searchParams?.get("session_id");
 
-  const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<CATSession | null>(null);
+  const [loading, setLoading] = useState(initialSession === null);
+  const [session, setSession] = useState<CATSession | null>(initialSession);
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
   const [examStartTime, setExamStartTime] = useState<number>(0);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -682,6 +738,14 @@ function CATExamPageContent() {
         } catch (e) {}
       }
 
+      // เซิร์ฟเวอร์ดึงข้อปัจจุบันมาให้แล้ว ใช้ได้เลยถ้าเป็น session เดียวกับที่แท็บนี้กำลังสอบอยู่
+      if (initialSession && (!sId || sId === initialSession.session_id)) {
+        sessionIdRef.current = initialSession.session_id;
+        sessionStorage.setItem("active_cat_session", JSON.stringify({ session_id: initialSession.session_id }));
+        setExamStartTime(Date.now());
+        return;
+      }
+
       // 2. Fallback to URL searchParams
       if (!sId && urlSessionId) {
         sId = parseInt(urlSessionId);
@@ -821,17 +885,7 @@ function CATExamPageContent() {
 
 
   // ─── Loading state ───────────────────────────────
-  if (loading && !session) {
-    return (
-      <>
-        <Navbar_user />
-        <div className="min-h-screen flex items-start justify-center pt-24">
-          <LoadingSpinner size="lg" text="กำลังโหลดข้อสอบ CAT..." />
-        </div>
-        <Footer />
-      </>
-    );
-  }
+  if (loading && !session) return <CATExamLoading />;
 
   if (!session) return null;
 
@@ -842,7 +896,7 @@ function CATExamPageContent() {
     <>
       <Navbar_user />
 
-      <div className={`min-h-screen py-5 transition-all duration-[1500ms] ${finalStatus === "passed"
+      <div className={`min-h-screen py-5 transition-colors duration-[1500ms] ${finalStatus === "passed"
         ? "bg-green-50/60"
         : finalStatus === "failed"
           ? "bg-red-50/60"
@@ -1027,14 +1081,14 @@ function CATExamPageContent() {
                       </div>
                       <div className="p-5">
                         {session.current_item.situation.situation_title && (
-                          <p
+                          <RichText
                             className="font-medium text-gray-800 mb-2"
-                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(session.current_item.situation.situation_title) }}
+                            html={session.current_item.situation.situation_title}
                           />
                         )}
-                        <p
+                        <RichText
                           className="text-gray-700 leading-relaxed whitespace-pre-wrap text-sm lg:text-base"
-                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(session.current_item.situation.situation_text)) }}
+                          html={formatScientificText(session.current_item.situation.situation_text)}
                         />
                         {session.current_item.situation.situation_image_url && (
                           <img
@@ -1080,9 +1134,9 @@ function CATExamPageContent() {
                       </div>
 
                       {/* Question text */}
-                      <p
+                      <RichText
                         className="text-base lg:text-lg text-gray-800 leading-relaxed font-medium whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(session.current_item.question_text)) }}
+                        html={formatScientificText(session.current_item.question_text)}
                       />
                       {session.current_item.question_image_url && (
                         <div className="mt-4">
@@ -1138,9 +1192,10 @@ function CATExamPageContent() {
 
                               <div className="flex-1 text-left">
                                 {option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' && (
-                                  <span
+                                  <RichText
+                                    as="span"
                                     className="text-gray-800 text-sm lg:text-base leading-relaxed block"
-                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(option.option_text)) }}
+                                    html={formatScientificText(option.option_text)}
                                   />
                                 )}
                                 {option.option_image_url && option.option_image_url.trim() !== '' && (
@@ -1288,14 +1343,16 @@ function CATExamPageContent() {
   );
 }
 
-export default function CATExamPage() {
+export type { CATSession };
+
+export default function CATExamClient({ initialSession }: { initialSession: CATSession | null }) {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <LoadingSpinner size="lg" text="กำลังโหลดข้อสอบ CAT..." />
       </div>
     }>
-      <CATExamPageContent />
+      <CATExamPageContent initialSession={initialSession} />
     </Suspense>
   );
 }

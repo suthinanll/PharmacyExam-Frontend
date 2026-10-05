@@ -230,7 +230,8 @@ try {
         fails: failingAudits(lhr),
       };
       rows.push(row);
-      const name = p.replace(/[/:]/g, '_') || '_root';
+      // แทนอักขระที่ใช้ในชื่อไฟล์ Windows ไม่ได้ (รวม ? = & ของ query string)
+      const name = p.replace(/[/:?=&*"<>|]/g, '_') || '_root';
       fs.writeFileSync(path.join(OUT_DIR, `${mode}${name}.json`), JSON.stringify(lhr));
       console.log(
         [row.perf, row.a11y, row.bp, row.seo].join(' / ') +
