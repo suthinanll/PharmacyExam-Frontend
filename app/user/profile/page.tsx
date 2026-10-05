@@ -6,11 +6,12 @@ import { useState, useEffect, useRef } from 'react';
 import Swal from "@/utils/sweetalert";
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
+import { clearAuthCookie } from '@/lib/authCookie';
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ImageCropModal from "@/components/ImageCropModal";
 
 const Profile = () => {
-    const { getToken, refreshUser } = useAuth();
+    const { getToken, refreshUser, user: cachedUser } = useAuth();
     const [user, setUser] = useState<{
         first_name: string,
         last_name: string,
@@ -48,6 +49,15 @@ const Profile = () => {
         setImgError(false);
     }, [user?.profile_picture, previewImage]);
 
+    // วาดโปรไฟล์จากข้อมูลที่ AuthContext แคชไว้ไปก่อน (ได้ตั้งแต่ hydrate)
+    // แล้วค่อยแทนด้วยผลจาก /auth/me ด้านล่าง เดิมต้องรอ /auth/me ตอบก่อนถึงจะเห็นอะไร
+    // รูปโปรไฟล์ (องค์ประกอบ LCP) จึงเริ่มโหลดช้าไปอีกหนึ่งรอบเครือข่าย
+    useEffect(() => {
+        if (cachedUser) {
+            setUser(prev => prev ?? { ...cachedUser, tel: cachedUser.tel ?? '' });
+        }
+    }, [cachedUser]);
+
     useEffect(() => {
         const fetchUser = async () => {
             try {
@@ -67,6 +77,7 @@ const Profile = () => {
                 } else if (res.status === 401) {
                     // ถ้า Token หมดอายุให้เตะออกไปหน้า Login
                     localStorage.removeItem("access_token");
+                    clearAuthCookie();
                     window.location.href = "/login";
                 }
             } catch (err) {
@@ -350,9 +361,31 @@ const Profile = () => {
         }
     };
 
+    // ส่วนหัวของหน้าวาดได้ตั้งแต่ HTML แรก (ยังไม่ต้องรู้ข้อมูลผู้ใช้)
+    // เดิมสถานะโหลดมีแค่ spinner กลางจอ ไม่มีแม้แต่ navbar
+    const pageHeader = (
+        <>
+            <div className="flex items-center text-sm text-gray-500 mb-5">
+                <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+                <span className="mx-2">›</span>
+                <span className="text-gray-600 font-medium">โปรไฟล์ของฉัน</span>
+            </div>
+            <h1 className="text-3xl font-medium text-gray-900 mb-5">โปรไฟล์ของฉัน</h1>
+        </>
+    );
+
     if (!user) return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-            <LoadingSpinner size="lg" text="กำลังโหลดข้อมูลโปรไฟล์..." />
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+            <Navbar_user />
+            <main className="flex-grow p-4 md:p-6 lg:p-8">
+                <div className="max-w-7xl mx-auto">
+                    {pageHeader}
+                    <div className="flex items-start justify-center pt-12">
+                        <LoadingSpinner size="lg" text="กำลังโหลดข้อมูลโปรไฟล์..." />
+                    </div>
+                </div>
+            </main>
+            <Footer />
         </div>
     );
 
@@ -370,11 +403,7 @@ const Profile = () => {
 
             <main className="flex-grow p-4 md:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center text-sm text-gray-500 mb-5">
-                        <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
-                        <span className="mx-2">›</span>
-                        <span className="text-gray-600 font-medium">โปรไฟล์ของฉัน</span>
-                    </div>
+                    {pageHeader}
 
                     {/* แจ้งเตือนข้อมูลที่ยังไม่ครบ */}
                     {missingFields.length > 0 && (
@@ -470,7 +499,7 @@ const Profile = () => {
                                 </div>
 
                                 <div>
-                                    <h1 className="text-lg md:text-xl font-medium text-gray-900">โปรไฟล์ผู้ใช้งาน</h1>
+                                    <h2 className="text-lg md:text-xl font-medium text-gray-900">โปรไฟล์ผู้ใช้งาน</h2>
                                     <p className="text-xs md:text-sm text-gray-500">จัดการข้อมูลส่วนตัวของคุณ</p>
                                     {isUploadingImage && (
                                         <p className="text-xs text-indigo-600 mt-1 flex items-center gap-1">

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useLayoutEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { setAuthCookie, clearAuthCookie } from '@/lib/authCookie';
 
 interface User {
     user_id: number;
@@ -65,6 +66,18 @@ function normalizeUserData(userData: any): User {
     };
 }
 
+/**
+ * อยู่นอกคอมโพเนนต์เพื่อให้เป็นฟังก์ชันตัวเดิมตลอด
+ * หลายหน้าใส่ getToken ไว้ใน deps ของ useCallback/useEffect ที่ดึงข้อมูลตอนเปิดหน้า
+ * เดิมสร้างใหม่ทุกครั้งที่ AuthProvider render (ได้ user จากแคช แล้วได้จาก /auth/me อีกรอบ)
+ * ทำให้หน้าเหล่านั้นยิง API ซ้ำ 2-3 รอบ เช่นหน้า saveblog ดึง /bookmark 3 ครั้ง
+ * แย่งเครือข่ายกับรูปที่เป็นองค์ประกอบ LCP
+ */
+function getToken() {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('access_token');
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     // ต้องเริ่มที่ null ให้ตรงกับฝั่งเซิร์ฟเวอร์เสมอ ห้ามอ่าน localStorage ตรงนี้
     // ไม่งั้น render แรกของไคลเอนต์จะได้ user ที่เซิร์ฟเวอร์ไม่มี หน้าที่แสดงต่างกัน
@@ -85,11 +98,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 localStorage.removeItem('cached_user');
             }
         }
-    };
-
-    const getToken = () => {
-        if (typeof window === 'undefined') return null;
-        return localStorage.getItem('access_token');
     };
 
     const fetchUser = async () => {
@@ -115,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 // Token invalid or expired
                 setUser(null);
                 localStorage.removeItem('access_token');
+                clearAuthCookie();
             }
         } catch (error) {
             console.warn('Auth server unavailable while fetching user:', error);
@@ -126,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const login = async (token: string, userData?: any) => {
         localStorage.setItem('access_token', token);
+        setAuthCookie(token);
         if (userData) {
             setUser(normalizeUserData(userData));
             setIsLoading(false);
@@ -155,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         // Clear all auth-related storage keys
         localStorage.removeItem('access_token');
+        clearAuthCookie();
         localStorage.removeItem('user'); // Remove old/stale user key if exists
         localStorage.removeItem('last_active_session_id'); // Clear chatbot session
         sessionStorage.removeItem('token'); // Remove old/stale session key if exists
@@ -177,6 +188,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useLayoutEffect(() => {
         try {
             const token = localStorage.getItem('access_token');
+            // ผู้ใช้ที่ล็อกอินไว้ก่อนมีคุกกี้ (หรือคุกกี้หมดอายุก่อน token) ได้คุกกี้ตอนเปิดหน้าใดก็ได้
+            if (token) setAuthCookie(token);
+            else clearAuthCookie();
             const cached = localStorage.getItem('cached_user');
             if (token && cached) {
                 setUserState(JSON.parse(cached));
