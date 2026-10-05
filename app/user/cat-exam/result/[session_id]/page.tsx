@@ -518,6 +518,32 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
     );
 }
 
+// ==================== PAGE HEADER ====================
+/**
+ * breadcrumb และหัวข้อหน้า ใช้ทั้งตอนโหลดและตอนได้ผลแล้ว
+ *
+ * เดิมสถานะโหลดมีแค่ spinner หน้าจึงไม่มีข้อความใหญ่จนกว่าผลสอบจะมาถึงหลัง hydrate
+ * หัวการ์ดกราฟที่โผล่ทีหลังกลายเป็นองค์ประกอบ LCP (3.3 วินาที) หัวข้อนี้อยู่ใน HTML แรก
+ * จึงเป็น LCP ตั้งแต่ FCP และหน้าไม่กระโดดตอนเปลี่ยนจากสถานะโหลด
+ */
+function PageHeader() {
+    return (
+        <>
+            <div className="flex items-center text-sm text-gray-500 mb-5">
+                <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
+                <span className="mx-2">›</span>
+                <Link href="/user/cat-exam" className="hover:text-green-600 cursor-pointer transition">สอบแบบปรับตัว (CAT)</Link>
+                <span className="mx-2">›</span>
+                <span className="text-gray-600 font-medium">ผลการสอบ</span>
+            </div>
+            <div className="mb-6">
+                <h1 className="text-2xl sm:text-3xl font-medium text-gray-900">ผลการสอบแบบปรับตัว (CAT)</h1>
+                <p className="text-gray-500 mt-1">สรุปผลและวิเคราะห์ระดับความสามารถจากการสอบครั้งนี้</p>
+            </div>
+        </>
+    );
+}
+
 // ==================== MAIN COMPONENT ====================
 export default function CATResultPage() {
     const params = useParams();
@@ -565,8 +591,13 @@ export default function CATResultPage() {
         return (
             <>
                 <Navbar_user />
-                <div className="min-h-screen flex items-start justify-center pt-24">
-                    <LoadingSpinner size="lg" text="กำลังโหลดผลการสอบ CAT..." />
+                <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+                    <div className="max-w-7xl mx-auto">
+                        <PageHeader />
+                        <div className="flex items-start justify-center pt-12">
+                            <LoadingSpinner size="lg" text="กำลังโหลดผลการสอบ CAT..." />
+                        </div>
+                    </div>
                 </div>
                 <Footer />
             </>
@@ -591,14 +622,7 @@ export default function CATResultPage() {
             <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
 
-                    {/* ── Breadcrumb ───────────────────────────────── */}
-                    <div className="flex items-center text-sm text-gray-500 mb-5">
-                        <Link href="/user" className="hover:text-green-600 cursor-pointer transition">หน้าหลัก</Link>
-                        <span className="mx-2">›</span>
-                        <Link href="/user/cat-exam" className="hover:text-green-600 cursor-pointer transition">สอบแบบปรับตัว (CAT)</Link>
-                        <span className="mx-2">›</span>
-                        <span className="text-gray-600 font-medium">ผลการสอบ</span>
-                    </div>
+                    <PageHeader />
 
                     {/* ── Result Header ───────────────────────────────── */}
                     <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
@@ -610,9 +634,9 @@ export default function CATResultPage() {
                             </div>
                             <div className="flex-1 min-w-0">
                                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                                    <h1 className="text-xl font-medium text-gray-900">
+                                    <h2 className="text-xl font-medium text-gray-900">
                                         {result.passed ? "ยินดีด้วย! คุณผ่านเกณฑ์การสอบ" : "การสอบเสร็จสิ้น"}
-                                    </h1>
+                                    </h2>
                                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${result.passed
                                             ? "bg-green-100 text-green-700"
                                             : "bg-red-100 text-red-700"

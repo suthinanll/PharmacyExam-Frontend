@@ -107,14 +107,28 @@ function Breadcrumb() {
  */
 function LoadingView() {
     return (
+        <StatusShell>
+            <div className="flex items-start justify-center pt-12">
+                <LoadingSpinner size="lg" text="กำลังโหลดเฉลยข้อสอบ..." />
+            </div>
+        </StatusShell>
+    );
+}
+
+/**
+ * โครงร่วมของสถานะโหลดและสถานะไม่พบเฉลย
+ * หัวข้อหน้าอยู่ใน HTML แรกและใหญ่กว่ากล่องแจ้งเตือนที่ตามมา จึงเป็น LCP ตั้งแต่ FCP
+ * ไม่ต้องรอกล่อง "ไม่พบข้อมูลเฉลย" ที่โผล่หลัง hydrate
+ */
+function StatusShell({ children }: { children: React.ReactNode }) {
+    return (
         <>
             <Navbar_user />
             <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
                     <Breadcrumb />
-                    <div className="flex items-start justify-center pt-12">
-                        <LoadingSpinner size="lg" text="กำลังโหลดเฉลยข้อสอบ..." />
-                    </div>
+                    <h1 className="text-3xl font-medium text-[#1C2033] mb-6">เฉลยข้อสอบ</h1>
+                    {children}
                 </div>
             </div>
             <Footer />
@@ -377,20 +391,16 @@ function AnswerPageContent() {
 
     // ── Error ──
     if (error || !examResult) return (
-        <>
-            <Navbar_user />
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center max-w-sm">
-                    <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                    <h2 className="text-lg font-semibold text-gray-800 mb-2">ไม่พบข้อมูลเฉลย</h2>
-                    <p className="text-gray-500 text-sm mb-6">{error}</p>
-                    <Link href="/user/examset" className="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors">
-                        กลับไปคลังข้อสอบ
-                    </Link>
-                </div>
+        <StatusShell>
+            <div className="text-center max-w-sm mx-auto pt-12">
+                <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+                <h2 className="text-lg font-semibold text-gray-800 mb-2">ไม่พบข้อมูลเฉลย</h2>
+                <p className="text-gray-500 text-sm mb-6">{error}</p>
+                <Link href="/user/examset" className="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                    กลับไปคลังข้อสอบ
+                </Link>
             </div>
-            <Footer />
-        </>
+        </StatusShell>
     );
 
     const groups = groupBySituation(examResult.responses);
