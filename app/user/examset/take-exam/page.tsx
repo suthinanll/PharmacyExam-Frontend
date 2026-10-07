@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import Swal from "@/utils/sweetalert";
 import { Loader2, BookOpen, Clock, AlertCircle, ListCheck, X, Bookmark } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { rememberExamResultSession } from "@/lib/resultSession";
 
 import ImagePreviewModal from '@/components/ImagePreviewModal';
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -411,6 +412,7 @@ function TakeExam() {
                 sessionStorage.setItem('summarize-exam_session', JSON.stringify({
                     session_id: result.session_id,
                 }));
+                rememberExamResultSession(result.session_id);
                 router.push('/user/examset/take-exam/summarize-exam');
 
                 // router.push(
@@ -445,6 +447,7 @@ function TakeExam() {
                         "summarize-exam_session",
                         JSON.stringify({ session_id: Number(sessionId) }),
                     );
+                    rememberExamResultSession(Number(sessionId));
                     router.push("/user/examset/take-exam/summarize-exam");
                     return;
                 }

@@ -10,7 +10,7 @@ import Swal from "@/utils/sweetalert";
 import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { formatScientificText } from "@/utils/formatText";
-import { sanitizeHtml } from "@/utils/sanitize";
+import RichText from "@/components/RichText";
 
 // ==================== TYPES ====================
 interface CATItem {
@@ -64,45 +64,6 @@ function formatTime(seconds: number): string {
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
   return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-}
-
-/** ข้อความ HTML เป็นข้อความล้วน ใช้แสดงระหว่างรอ hydrate เท่านั้น (React escape ให้แล้ว จึงไม่เปิดช่อง XSS) */
-function htmlToPlainText(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/p>\s*<p[^>]*>/gi, "\n")
-    .replace(/<[^>]*>/g, "")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, "&");
-}
-
-const noopSubscribe = () => () => {};
-/** false ตอนเรนเดอร์บนเซิร์ฟเวอร์และตอน hydrate, true หลังจากนั้น (ไม่ต้องรอ effect จึงไม่กะพริบ) */
-function useHydrated() {
-  return React.useSyncExternalStore(noopSubscribe, () => true, () => false);
-}
-
-/**
- * ข้อความโจทย์ สถานการณ์ และตัวเลือก ซึ่งเป็น HTML จาก editor
- *
- * sanitizeHtml (DOMPurify) ทำงานได้เฉพาะในเบราว์เซอร์ บนเซิร์ฟเวอร์คืนค่าว่าง
- * ถ้าใส่ dangerouslySetInnerHTML ตรง ๆ HTML แรกจะไม่มีข้อความโจทย์เลย
- * จึงส่งเป็นข้อความล้วนไปก่อน (ข้อความสถานการณ์คือองค์ประกอบ LCP ของหน้า)
- * แล้วสลับเป็น HTML ที่ผ่านการล้างแล้วทันทีที่ hydrate เสร็จ ทั้งสองฝั่งจึงเรนเดอร์ตรงกัน
- *
- * ข้อความส่วนใหญ่ไม่มีแท็กหรือ entity เลย กรณีนั้นแสดงเป็นข้อความธรรมดาตลอด ไม่ต้องสลับ
- * เพราะการแทนที่ด้วย innerHTML หลัง hydrate ทำให้เบราว์เซอร์วาดข้อความใหม่
- * และนับเป็น LCP รอบใหม่ (วัดได้ LCP เลื่อนจาก FCP ไปเป็น 2.8-3.1 วินาที)
- */
-function RichText({ html, as: Tag = "p", className }: { html: string; as?: "p" | "span"; className?: string }) {
-  const hydrated = useHydrated();
-  if (!/[<&]/.test(html)) return <Tag className={className}>{html}</Tag>;
-  if (!hydrated) return <Tag className={className}>{htmlToPlainText(html)}</Tag>;
-  return <Tag className={className} dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />;
 }
 
 function stripHTML(html: string): string {

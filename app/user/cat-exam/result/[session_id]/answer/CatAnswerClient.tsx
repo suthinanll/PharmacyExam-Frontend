@@ -14,7 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ImagePreviewModal from "@/components/ImagePreviewModal";
 import { formatScientificText } from "@/utils/formatText";
-import { sanitizeHtml } from "@/utils/sanitize";
+import RichText from "@/components/RichText";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface AnswerOption {
@@ -48,7 +48,7 @@ interface QuestionResponse {
     se_after?: number;
 }
 
-interface CatExamResult {
+export interface CatExamResult {
     session_id: number;
     item_bank_name?: string;
     status: string;
@@ -77,6 +77,31 @@ const API_URL = `${process.env.NEXT_PUBLIC_API_URL}`;
 const LABELS = ["ก", "ข", "ค", "ง", "จ", "ฉ", "ช", "ซ"];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+/** จัดกลุ่มข้อตามสถานการณ์ ข้อที่ใช้สถานการณ์เดียวกันอยู่กลุ่มเดียวกัน */
+function groupResponses(responses: QuestionResponse[]) {
+    const groups: { situation: Situation | null; questions: { q: QuestionResponse; idx: number }[] }[] = [];
+    responses.forEach((q, idx) => {
+        const sitText = q.situation?.situation_text;
+        const existing = groups.find(g => g.situation?.situation_text === sitText && sitText !== undefined);
+        if (existing && sitText) {
+            existing.questions.push({ q, idx });
+        } else {
+            groups.push({ situation: q.situation || null, questions: [{ q, idx }] });
+        }
+    });
+    return groups;
+}
+
+/**
+ * เปิดหน้ามาให้กางแค่กลุ่มแรก ที่เหลือพับไว้ก่อน (แบบเดียวกับหน้าเฉลยของชุดข้อสอบ)
+ * เดิมกางทุกข้อพร้อมตัวเลือกและคำอธิบาย HTML ที่เซิร์ฟเวอร์ส่งมาจึงใหญ่เกือบ 900 element
+ * เบราว์เซอร์ใช้เวลาแกะและจัดหน้านานจนวาดครั้งแรกช้า
+ */
+function initiallyCollapsed(result: CatExamResult | null): Set<number> {
+    if (!result) return new Set();
+    return new Set(groupResponses(result.responses ?? []).map((_, i) => i).slice(1));
+}
+
 function scrollToEl(id: string) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -134,9 +159,9 @@ function QuestionCard({
 
             <div className="p-5 space-y-5">
                 {/* Question text */}
-                <div
+                <RichText as="div"
                     className="text-gray-900 text-md sm:text-base leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(question.question_text)) }}
+                    html={formatScientificText(question.question_text)}
                 />
                 {question.question_image_url && (
                     <img
@@ -204,7 +229,7 @@ function QuestionCard({
                                 </span>
                                 <div className="flex-1 min-w-0">
                                     {opt.option_text?.replace(/<[^>]*>/g, "").trim() && (
-                                        <div className={`text-sm lg:text-[15px] leading-relaxed ${textClass}`} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(opt.option_text)) }} />
+                                        <RichText as="div" className={`text-sm lg:text-[15px] leading-relaxed ${textClass}`} html={formatScientificText(opt.option_text)} />
                                     )}
                                     {opt.option_image_url?.trim() && (
                                         <img
@@ -233,9 +258,9 @@ function QuestionCard({
                             <BookOpen className="w-3.5 h-3.5 text-blue-600" />
                             คำอธิบายเฉลย
                         </p>
-                        <div
+                        <RichText as="div"
                             className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap"
-                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(question.explanation) }}
+                            html={question.explanation}
                         />
                     </div>
                 )}
@@ -245,22 +270,28 @@ function QuestionCard({
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function CatAnswerPage() {
+/**
+ * initialResult = เฉลยที่เซิร์ฟเวอร์ดึงมาให้แล้ว (page.tsx) ถ้าเป็น null จะดึงฝั่งไคลเอนต์เหมือนเดิม
+ */
+export default function CatAnswerClient({ initialResult }: { initialResult: CatExamResult | null }) {
     const params = useParams();
     const sessionId = params?.session_id as string;
     const { getToken } = useAuth();
 
-    const [examResult, setExamResult] = useState<CatExamResult | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [examResult, setExamResult] = useState<CatExamResult | null>(initialResult);
+    const [loading, setLoading] = useState(initialResult === null);
     const [error, setError] = useState<string | null>(null);
     const [showTOC, setShowTOC] = useState(true);
-    const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
+    const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(() => initiallyCollapsed(initialResult));
+    const [pendingScroll, setPendingScroll] = useState<string | null>(null);
     const [tocExpanded, setTocExpanded] = useState<Set<number>>(new Set([0]));
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [statsModal, setStatsModal] = useState<{ open: boolean; data: MasteryData | null }>({ open: false, data: null });
     const [loadingStats, setLoadingStats] = useState(false);
 
     useEffect(() => {
+        // เซิร์ฟเวอร์ดึงเฉลยของ session ใน URL มาให้แล้ว
+        if (initialResult) return;
         if (sessionId) {
             fetchCatResult();
         } else {
@@ -278,6 +309,7 @@ export default function CatAnswerPage() {
             });
             if (res.ok) {
                 const data = await res.json();
+                setCollapsedGroups(initiallyCollapsed(data));
                 setExamResult(data);
             } else {
                 throw new Error("Failed to load result");
@@ -305,19 +337,19 @@ export default function CatAnswerPage() {
         }
     };
 
-    const groupBySituation = () => {
-        const groups: { situation: Situation | null; questions: { q: QuestionResponse; idx: number }[] }[] = [];
-        examResult?.responses.forEach((q, idx) => {
-            const sitText = q.situation?.situation_text;
-            const existing = groups.find(g => g.situation?.situation_text === sitText && sitText !== undefined);
-            if (existing && sitText) {
-                existing.questions.push({ q, idx });
-            } else {
-                groups.push({ situation: q.situation || null, questions: [{ q, idx }] });
-            }
-        });
-        return groups;
+    const groupBySituation = () => groupResponses(examResult?.responses ?? []);
+
+    const openAndScroll = (gIdx: number, id: string) => {
+        setCollapsedGroups(prev => { const s = new Set(prev); s.delete(gIdx); return s; });
+        setPendingScroll(id);
     };
+
+    // เลื่อนหลังกลุ่มที่เพิ่งกางถูกวาดลง DOM แล้ว ก่อนหน้านั้นยังไม่มีข้อให้เลื่อนไปหา
+    useEffect(() => {
+        if (!pendingScroll) return;
+        scrollToEl(pendingScroll);
+        setPendingScroll(null);
+    }, [pendingScroll]);
 
     const toggleCollapse = (idx: number) =>
         setCollapsedGroups(prev => {
@@ -499,9 +531,9 @@ export default function CatAnswerPage() {
                                                         <span className="text-sm font-medium text-blue-800">สถานการณ์</span>
                                                     </div>
                                                     {group.situation.situation_title && (
-                                                        <p className="font-medium text-gray-900 mb-2 text-base" dangerouslySetInnerHTML={{ __html: sanitizeHtml(group.situation.situation_title) }} />
+                                                        <RichText className="font-medium text-gray-900 mb-2 text-base" html={group.situation.situation_title} />
                                                     )}
-                                                    <p className="text-sm lg:text-[15px] text-gray-700 leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(group.situation.situation_text)) }} />
+                                                    <RichText className="text-sm lg:text-[15px] text-gray-700 leading-relaxed whitespace-pre-wrap" html={formatScientificText(group.situation.situation_text)} />
                                                     {group.situation.situation_image_url && (
                                                         <img
                                                             src={group.situation.situation_image_url}
@@ -598,7 +630,7 @@ export default function CatAnswerPage() {
                                                 {group.questions.map(({ q, idx }) => (
                                                     <button
                                                         key={idx}
-                                                        onClick={() => scrollToEl(`question-${idx}`)}
+                                                        onClick={() => openAndScroll(gIdx, `question-${idx}`)}
                                                         className={`w-full text-left flex items-center gap-1.5 py-1 px-1.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${q.is_correct ? "text-green-700 hover:bg-green-50" : "text-rose-600 hover:bg-rose-50"}`}
                                                     >
                                                         {q.is_correct

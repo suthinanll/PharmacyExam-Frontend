@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { rememberExamResultSession } from "@/lib/resultSession";
 import Navbar from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
 import Link from "next/link";
@@ -252,6 +253,8 @@ export default function ExamHistoryPage() {
             router.push("/user/cat-exam/result");
         } else {
             sessionStorage.setItem("summarize-exam_session", JSON.stringify({ session_id: exam.session_id }));
+            // ให้หน้าสรุปผลดึงผลสอบชุดนี้มาพร้อม HTML ได้ (lib/resultSession.ts)
+            rememberExamResultSession(exam.session_id);
             router.push("/user/examset/take-exam/summarize-exam");
         }
     };

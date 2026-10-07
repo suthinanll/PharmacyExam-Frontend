@@ -12,9 +12,10 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import SimpleRadar from "@/components/charts/SimpleRadar";
+import { rememberExamResultSession } from "@/lib/resultSession";
 
 // Types
-interface ExamResult {
+export interface ExamResult {
     session_id: number;
     item_bank_name: string;
     status: string;
@@ -93,14 +94,17 @@ function StatusShell({ children }: { children: React.ReactNode }) {
     );
 }
 
-function Summarize() {
+/**
+ * initialResult = ผลสอบที่เซิร์ฟเวอร์ดึงมาให้แล้ว (page.tsx) ถ้าเป็น null จะดึงฝั่งไคลเอนต์เหมือนเดิม
+ */
+function Summarize({ initialResult }: { initialResult: ExamResult | null }) {
     const searchParams = useSearchParams();
     const { getToken } = useAuth();
     const [sessionId, setSessionId] = useState<string | null>(null);
     // const sessionId = searchParams.get('session_id');
 
-    const [examResult, setExamResult] = useState<ExamResult | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [examResult, setExamResult] = useState<ExamResult | null>(initialResult);
+    const [loading, setLoading] = useState(initialResult === null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -118,8 +122,16 @@ function Summarize() {
             if (urlSession) sId = urlSession;
         }
         
+        // เซิร์ฟเวอร์ดึงผลสอบมาให้แล้ว ใช้ได้เลยถ้าเป็นชุดเดียวกับที่แท็บนี้เปิดอยู่
+        if (initialResult && (!sId || sId === String(initialResult.session_id))) {
+            setSessionId(String(initialResult.session_id));
+            rememberExamResultSession(initialResult.session_id);
+            return;
+        }
+
         if (sId) {
             setSessionId(sId);
+            rememberExamResultSession(sId);
             fetchExamResult(sId);
         } else {
             setError('ไม่พบรหัส session');
@@ -407,10 +419,10 @@ function Summarize() {
     );
 }
 
-export default function SummarizePage() {
+export default function SummarizeClient({ initialResult }: { initialResult: ExamResult | null }) {
     return (
         <Suspense fallback={<LoadingView />}>
-            <Summarize />
+            <Summarize initialResult={initialResult} />
         </Suspense>
     );
 }

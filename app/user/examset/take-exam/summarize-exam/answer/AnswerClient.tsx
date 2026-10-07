@@ -12,7 +12,8 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import { formatScientificText } from '@/utils/formatText';
-import { sanitizeHtml } from "@/utils/sanitize";
+import RichText from "@/components/RichText";
+import { rememberExamResultSession } from "@/lib/resultSession";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface AnswerOption {
@@ -41,7 +42,7 @@ interface QuestionResponse {
     question_image_url?: string;
 }
 
-interface ExamResult {
+export interface ExamResult {
     session_id: number;
     item_bank_name: string;
     status: string;
@@ -179,9 +180,9 @@ function QuestionCard({
 
             <div className="p-5 space-y-5">
                 {/* Question text */}
-                <div
+                <RichText as="div"
                     className="text-gray-900 text-md sm:text-base leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(question.question_text)) }}
+                    html={formatScientificText(question.question_text)}
                 />
                 {question.question_image_url && (
                     <img
@@ -249,7 +250,7 @@ function QuestionCard({
                                 </span>
                                 <div className="flex-1 min-w-0">
                                     {opt.option_text?.replace(/<[^>]*>/g, '').trim() && (
-                                        <div className={`text-sm lg:text-[15px] leading-relaxed ${textClass}`} dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(opt.option_text)) }} />
+                                        <RichText as="div" className={`text-sm lg:text-[15px] leading-relaxed ${textClass}`} html={formatScientificText(opt.option_text)} />
                                     )}
                                     {opt.option_image_url?.trim() && (
                                         <img
@@ -278,9 +279,9 @@ function QuestionCard({
                             <BookOpen className="w-3.5 h-3.5 text-blue-600" />
                             คำอธิบายเฉลย
                         </p>
-                        <div
+                        <RichText as="div"
                             className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap"
-                            dangerouslySetInnerHTML={{ __html: sanitizeHtml(question.explanation) }}
+                            html={question.explanation}
                         />
                     </div>
                 )}
@@ -290,16 +291,25 @@ function QuestionCard({
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-function AnswerPageContent() {
+/** หน้าเปิดมาให้กางแค่กลุ่มแรก ที่เหลือพับไว้ก่อน (ดูเหตุผลใน fetchExamResult) */
+function initiallyCollapsed(result: ExamResult | null): Set<number> {
+    if (!result) return new Set();
+    return new Set(groupBySituation(result.responses ?? []).map((_, i) => i).slice(1));
+}
+
+/**
+ * initialResult = เฉลยที่เซิร์ฟเวอร์ดึงมาให้แล้ว (page.tsx) ถ้าเป็น null จะดึงฝั่งไคลเอนต์เหมือนเดิม
+ */
+function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null }) {
     const searchParams = useSearchParams();
     const { getToken } = useAuth();
     const [sessionId, setSessionId] = useState<string | null>(null);
 
-    const [examResult, setExamResult] = useState<ExamResult | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [examResult, setExamResult] = useState<ExamResult | null>(initialResult);
+    const [loading, setLoading] = useState(initialResult === null);
     const [error, setError] = useState<string | null>(null);
     const [showTOC, setShowTOC] = useState(true);
-    const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(new Set());
+    const [collapsedGroups, setCollapsedGroups] = useState<Set<number>>(() => initiallyCollapsed(initialResult));
     const [pendingScroll, setPendingScroll] = useState<string | null>(null);
     const [tocExpanded, setTocExpanded] = useState<Set<number>>(new Set([0]));
     const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -321,8 +331,16 @@ function AnswerPageContent() {
             if (urlSession) sId = urlSession;
         }
 
+        // เซิร์ฟเวอร์ดึงเฉลยมาให้แล้ว ใช้ได้เลยถ้าเป็นชุดเดียวกับที่แท็บนี้เปิดอยู่
+        if (initialResult && (!sId || sId === String(initialResult.session_id))) {
+            setSessionId(String(initialResult.session_id));
+            rememberExamResultSession(initialResult.session_id);
+            return;
+        }
+
         if (sId) {
             setSessionId(sId);
+            rememberExamResultSession(sId);
             fetchExamResult(sId);
         } else {
             setError('ไม่พบรหัส session');
@@ -343,7 +361,7 @@ function AnswerPageContent() {
             // ทุกข้อต้องผ่าน DOMPurify และ formatScientificText ตอนเรนเดอร์ ถ้ากางทั้งหมด
             // ข้อสอบร้อยข้อจะกลายเป็นงานก้อนใหญ่ตอนเปิดหน้า (TBT บนมือถือราว 450ms)
             // ตั้งค่าพร้อมกับ setExamResult เพื่อไม่ให้เรนเดอร์แบบกางทั้งหมดก่อนแม้แต่รอบเดียว
-            setCollapsedGroups(new Set(groupBySituation(data.responses ?? []).map((_, i) => i).slice(1)));
+            setCollapsedGroups(initiallyCollapsed(data));
             setExamResult(data);
         } catch {
             setError('เกิดข้อผิดพลาดในการโหลดเฉลยคำตอบ');
@@ -520,9 +538,9 @@ function AnswerPageContent() {
                                                         <span className="text-sm font-medium text-blue-800">สถานการณ์</span>
                                                     </div>
                                                     {group.situation.situation_title && (
-                                                        <p className="font-medium text-gray-900 mb-2 text-base" dangerouslySetInnerHTML={{ __html: sanitizeHtml(group.situation.situation_title) }} />
+                                                        <RichText className="font-medium text-gray-900 mb-2 text-base" html={group.situation.situation_title} />
                                                     )}
-                                                    <p className="text-sm lg:text-[15px] text-gray-700 leading-relaxed whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(group.situation.situation_text)) }} />
+                                                    <RichText className="text-sm lg:text-[15px] text-gray-700 leading-relaxed whitespace-pre-wrap" html={formatScientificText(group.situation.situation_text)} />
                                                     {group.situation.situation_image_url && (
                                                         <img
                                                             src={group.situation.situation_image_url}
@@ -738,10 +756,10 @@ function AnswerPageContent() {
     );
 }
 
-export default function AnswerPage() {
+export default function AnswerClient({ initialResult }: { initialResult: ExamResult | null }) {
     return (
         <Suspense fallback={<LoadingView />}>
-            <AnswerPageContent />
+            <AnswerPageContent initialResult={initialResult} />
         </Suspense>
     );
 }
