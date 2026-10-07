@@ -169,15 +169,17 @@ const NewsDetailClient = ({ initialNews }: { initialNews: NewsDetail | null }) =
                             )}
 
                             <div className="mt-12 pt-8 border-t border-gray-100">
-                                <button
-                                    onClick={() => router.back()}
-                                    aria-label="ย้อนกลับไปหน้าก่อนหน้า"
-                                    className="flex items-center text-blue-600 font-medium hover:underline"
+                                {/* ใช้ลิงก์ตรงแทน router.back() เพราะถ้าเปิดข่าวจากแท็บใหม่/ลิงก์ที่แชร์มา
+                                    จะไม่มีประวัติให้ย้อน และถ้าเพิ่งล็อกอินมาจะย้อนไปหน้า /login */}
+                                <Link
+                                    href="/user"
+                                    className="inline-flex items-center text-blue-600 font-medium hover:underline"
                                 >
                                     <svg className="w-5 h-5 mr-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                                     </svg>
-                                </button>
+                                    กลับหน้าหลัก
+                                </Link>
                             </div>
                         </div>
                     </article>
