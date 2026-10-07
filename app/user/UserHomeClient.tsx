@@ -3,15 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar_user";
-import { CountdownHero, CountdownHeroSkeleton, type CountdownExam } from "@/components/home/CountdownHero";
+import { CountdownHero, CountdownHeroSkeleton } from "@/components/home/CountdownHero";
+import UpcomingExamCard from "@/components/home/UpcomingExamCard";
 import Footer from "@/components/Footer";
 import NewsCard from "@/components/News";
 import {
-  Calendar,
-  ChevronDown,
   LayoutGrid,
   Bookmark,
-  ExternalLink,
   Trophy,
   Medal,
   Users,
@@ -30,83 +28,6 @@ interface LeaderboardEntry {
   total_students: number;
   total_exams: number;
 }
-
-// การ์ดกำหนดการถัดไป — กล่องจำนวนวันชิดซ้าย สีตามความเร่งด่วน
-// ชื่อเรื่องและรายละเอียดย่อไว้ก่อน กด "ดูเพิ่มเติม" เพื่ออ่านข้อความเต็ม
-const UpcomingExamCard = ({ exam }: { exam: CountdownExam }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const examDate = new Date(exam.targetStamp);
-  const daysLeft = Math.floor((exam.targetStamp - Date.now()) / (1000 * 60 * 60 * 24));
-
-  // ใกล้ถึงกำหนด = แดง, ใกล้ ๆ = ส้ม, ยังอีกไกล = ฟ้า
-  const dayBoxColor =
-    daysLeft <= 1 ? "bg-red-600" : daysLeft <= 3 ? "bg-amber-700" : "bg-blue-600";
-
-  // ข้อความยาวพอที่จะถูกตัด จึงค่อยมีปุ่มให้กางอ่าน
-  const hasMore = Boolean(exam.description) || exam.title.length > 40;
-
-  return (
-    <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-shadow duration-200 hover:shadow-md">
-      <div
-        className={`flex h-14 w-14 flex-shrink-0 flex-col items-center justify-center rounded-lg text-white ${dayBoxColor}`}
-      >
-        <span className="text-xl font-medium leading-none tabular-nums">
-          {daysLeft > 0 ? daysLeft : "0"}
-        </span>
-        <span className="mt-1 text-[10px] font-medium leading-none">
-          {daysLeft > 0 ? "วัน" : "วันนี้"}
-        </span>
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <h3
-          className={`text-sm font-medium text-gray-800 break-words ${isExpanded ? "" : "line-clamp-2"}`}
-          title={exam.title}
-        >
-          {exam.title}
-        </h3>
-        <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500">
-          <Calendar size={12} />
-          {examDate.toLocaleDateString("th-TH", {
-            day: "numeric",
-            month: "short",
-            year: "numeric",
-          })}
-        </p>
-        {exam.description && isExpanded && (
-          <p className="mt-1.5 whitespace-pre-line text-xs leading-relaxed text-gray-600">
-            {exam.description}
-          </p>
-        )}
-        {hasMore && (
-          <button
-            type="button"
-            onClick={() => setIsExpanded((prev) => !prev)}
-            className="mt-1 inline-flex items-center gap-0.5 text-[11px] font-medium text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
-          >
-            {isExpanded ? "ย่อข้อความ" : "ดูเพิ่มเติม"}
-            <ChevronDown
-              size={12}
-              className={`transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}
-            />
-          </button>
-        )}
-        {exam.link_url && (
-          <a
-            href={exam.link_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="mt-1 inline-flex w-fit items-center gap-1 rounded border border-blue-100 bg-blue-50/80 px-2 py-0.5 text-[11px] font-medium text-blue-600 hover:text-blue-700 hover:underline"
-          >
-            <ExternalLink size={11} />
-            ลิงก์แนบ
-          </a>
-        )}
-      </div>
-    </div>
-  );
-};
 
 // ─── University Leaderboard Component ───────────────────
 const RANK_STYLES = [

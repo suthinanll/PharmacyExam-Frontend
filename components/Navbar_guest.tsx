@@ -136,18 +136,19 @@ const NavbarGuest = () => {
                                 }}
                                 className="flex items-start gap-3 w-full text-left p-3 rounded-xl transition-colors duration-150 text-gray-700 hover:bg-green-50/60 hover:text-green-800 cursor-pointer"
                               >
-                                <div className="p-2 rounded-lg mt-0.5 shrink-0 bg-green-100/80 text-green-700">
+                                {/* ใน <button> ใส่ได้แค่ phrasing content จึงใช้ <span> แทน <div> (เติม block ให้จัดวางเหมือนเดิม) */}
+                                <span className="block p-2 rounded-lg mt-0.5 shrink-0 bg-green-100/80 text-green-700">
                                   {isCAT ? <Zap className="w-4 h-4" /> : <BookOpen className="w-4 h-4" />}
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center justify-between gap-1">
+                                </span>
+                                <span className="block min-w-0 flex-1">
+                                  <span className="flex items-center justify-between gap-1">
                                     <span className="text-sm font-medium leading-tight">{subItem.label}</span>
                                     <Lock className="w-3 h-3 text-amber-500 shrink-0" />
-                                  </div>
-                                  <div className="text-xs text-gray-500 mt-1 leading-snug">
+                                  </span>
+                                  <span className="block text-xs text-gray-500 mt-1 leading-snug">
                                     {isCAT ? "ทดสอบแบบปรับเหมาะตามความสามารถ" : "ฝึกทำชุดข้อสอบตามหมวดหมู่วิชา"}
-                                  </div>
-                                </div>
+                                  </span>
+                                </span>
                               </button>
                             ) : (
                               <Link

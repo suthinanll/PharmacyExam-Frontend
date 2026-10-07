@@ -402,7 +402,8 @@ const Navbar = () => {
                 <span className="absolute -inset-1.5"></span>
                 <span className="sr-only">Open user menu</span>
                 {user?.profile_picture && !imgError ? (
-                  <div className="size-8 sm:size-9 md:size-10 rounded-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-200 ring-2 ring-green-400/30 relative">
+                  // ใน <button> ใส่ได้แค่ phrasing content (span, img ฯลฯ) ใช้ <div> ไม่ผ่าน HTML validator
+                  <span className="block size-8 sm:size-9 md:size-10 rounded-full overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-200 ring-2 ring-green-400/30 relative">
                     <Image
                       src={user.profile_picture}
                       alt="Profile"
@@ -413,11 +414,11 @@ const Navbar = () => {
                       unoptimized
                       onError={() => setImgError(true)}
                     />
-                  </div>
+                  </span>
                 ) : (
-                  <div className="size-8 sm:size-9 md:size-10 rounded-full bg-white flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 ring-2 ring-green-400/30">
+                  <span className="size-8 sm:size-9 md:size-10 rounded-full bg-white flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow duration-200 ring-2 ring-green-400/30">
                     <User className="w-4 sm:w-5 h-4 sm:h-5 text-green-600" />
-                  </div>
+                  </span>
                 )}
               </button>
 

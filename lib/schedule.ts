@@ -31,6 +31,15 @@ export const EMPTY_SCHEDULE: DerivedSchedule = {
   upcomingExams: [],
 };
 
+/**
+ * เอาเครื่องหมาย [ ] ที่ผู้ดูแลใช้ครอบชื่อประเภทการสอบออก (เก็บข้อความข้างในไว้)
+ * เช่น "การสอบครั้งที่ 5/2569 [การสอบสมรรถนะเฉพาะสาขา]" -> "การสอบครั้งที่ 5/2569 การสอบสมรรถนะเฉพาะสาขา"
+ * แก้ตอนแสดงผลในหน้าแรก ข้อมูลใน backend ไม่เปลี่ยน
+ */
+function stripBrackets(text: unknown): string {
+  return String(text ?? "").replace(/[[\]]/g, "").replace(/[ \t]{2,}/g, " ").trim();
+}
+
 /** แปลงข้อมูลดิบจาก /schedules เป็นรายการที่เผยแพร่แล้ว เรียงตามวันเริ่ม */
 export function normalizeSchedules(raw: unknown): ScheduleItem[] {
   if (!Array.isArray(raw)) return [];
@@ -48,6 +57,8 @@ export function normalizeSchedules(raw: unknown): ScheduleItem[] {
 
       return {
         ...item,
+        title: stripBrackets(item.title),
+        description: item.description ? stripBrackets(item.description) : item.description,
         targetStamp: startObj.getTime(),
         endStamp: endObj.getTime(),
       } as ScheduleItem;
