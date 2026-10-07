@@ -9,7 +9,7 @@ import React, {
     useCallback,
     ReactNode,
 } from 'react';
-import { io, Socket } from 'socket.io-client';
+import type { Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
 
 export interface AppNotification {
@@ -155,15 +155,33 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         // ✅ มี user → ดึง notifications + connect WebSocket
         fetchNotifications();
 
-        const socket = io(`${WS_URL}/notifications`, {
-            auth: { token },
-            transports: ['websocket', 'polling'],
-            reconnection: true,
-            reconnectionDelay: 2000,
-            reconnectionAttempts: 10,
+        // โหลด socket.io-client (ราว 40KB) แบบ dynamic import และรอให้หน้าว่างก่อนค่อยต่อ
+        // เดิม import ตรง ๆ ใน provider ที่ครอบทุกหน้า ทุกหน้าจึงต้องโหลดและรันไลบรารีนี้ตั้งแต่เปิด
+        // ทั้งที่การแจ้งเตือนแบบเรียลไทม์ไม่จำเป็นต้องพร้อมก่อนผู้ใช้เห็นเนื้อหา
+        // (รายการแจ้งเตือนตอนเปิดหน้ายังได้จาก fetchNotifications ด้านบนเหมือนเดิม)
+        let cancelled = false;
+        let socket: Socket | null = null;
+        const idle = (cb: () => void) =>
+            typeof window.requestIdleCallback === 'function'
+                ? window.requestIdleCallback(cb, { timeout: 5000 })
+                : setTimeout(cb, 2000);
+
+        idle(() => {
+            import('socket.io-client').then(({ io }) => {
+                if (cancelled) return;
+                socket = io(`${WS_URL}/notifications`, {
+                    auth: { token },
+                    transports: ['websocket', 'polling'],
+                    reconnection: true,
+                    reconnectionDelay: 2000,
+                    reconnectionAttempts: 10,
+                });
+                socketRef.current = socket;
+                attach(socket);
+            });
         });
 
-        socketRef.current = socket;
+        const attach = (socket: Socket) => {
 
         socket.on('connect', () => {
             setIsConnected(true);
@@ -186,10 +204,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
                 setUnreadCount((prev) => prev + 1);
             }
         });
+        };
 
         return () => {
             console.log('[Notifications WS] Cleanup');
-            socket.disconnect();
+            cancelled = true;
+            socket?.disconnect();
             socketRef.current = null;
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
