@@ -97,7 +97,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
   };
 
   type ChatSession = {
-    session_id: string;
+    session_id: string | number;
     title: string;
     created_at: string;
   };
@@ -475,7 +475,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
       }
 
       if (!currentSessionId && data.user?.chat_session_id) {
-        setCurrentSessionId(data.user.chat_session_id);
+        setCurrentSessionId(data.user.chat_session_id.toString());
         await fetchSessions();
       }
 
@@ -528,11 +528,26 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
       });
 
       if (response.ok) {
-        setSessions((prev) => prev.filter((s) => s.session_id !== sessionId));
-        setTotalCount((prev) => prev - 1);
-        if (currentSessionId === sessionId) {
+        // กรอง session ที่ถูกลบออกจาก state ใน Sidebar ทันที
+        setSessions((prev) => prev.filter((s) => String(s.session_id) !== String(sessionId)));
+        setTotalCount((prev) => Math.max(0, prev - 1));
+
+        // หาก session ที่ลบกำลังเปิดอยู่ ให้รีเซ็ตกลับเป็นแชตใหม่
+        if (String(currentSessionId) === String(sessionId)) {
           handleNewChat();
         }
+
+        // ล้าง last_active_session_id จาก localStorage ถ้าเป็น session เดียวกัน
+        if (typeof window !== "undefined") {
+          const savedSessionId = localStorage.getItem("last_active_session_id");
+          if (savedSessionId && String(savedSessionId) === String(sessionId)) {
+            localStorage.removeItem("last_active_session_id");
+          }
+        }
+
+        // ดึงรายการ session ล่าสุดจากหลังบ้านอีกครั้งเพื่อความถูกต้อง
+        await fetchSessions();
+
         Swal.fire(
           'ลบสำเร็จ!',
           'ประวัติการสนทนาถูกลบเรียบร้อยแล้ว',
