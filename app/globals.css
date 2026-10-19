@@ -1,8 +1,9 @@
 @import "tailwindcss";
-@import "sweetalert2/dist/sweetalert2.min.css";
+/* CSS ของ SweetAlert2 ไม่ import ที่นี่ จะมาพร้อมตัวไลบรารีตอนเปิด popup (utils/sweetalert-impl.ts)
+   ถ้า import ที่นี่จะถูกรวมเข้า CSS หลักที่ทุกหน้าต้องโหลดก่อนวาด */
 
+/* ฟอนต์ Kanit กำหนดด้วย class ของ next/font ที่ <html> (app/layout.tsx) body สืบทอดไปเอง */
 body {
-  font-family: var(--font-primary), sans-serif;
   --sidebar-width: 0px;
 }
 
@@ -201,7 +202,6 @@ sub, .prose sub, .tiptap sub {
 
 /* ─── Maintenance Page Styles ─── */
 .maintenance-body {
-  font-family: var(--font-primary, 'Kanit', 'Sarabun', sans-serif);
   min-height: 100vh;
   background-color: #76B25A;
   background-image:

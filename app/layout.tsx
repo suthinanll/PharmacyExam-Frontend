@@ -57,7 +57,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     // (รวมถึง description) ไปไว้ใน body ทำให้ Lighthouse มองว่าไม่มี meta description
     // ส่วน <link> ด้านล่าง React จะยกขึ้นไปไว้ใน head ให้เอง ไอคอนและ theme-color
     // ประกาศไว้ใน metadata/viewport ด้านบนแล้ว
-    <html lang="th" className={`${myFont.variable}`}>
+    // className ตั้ง font-family เป็น Kanit ให้ทั้งหน้าโดยตรง (globals.css จึงไม่ต้องใช้ var())
+    // variable ยังคงไว้ให้ --font-primary ใช้ได้ในที่ที่อ้างถึง เช่น not-found.tsx
+    <html lang="th" className={`${myFont.variable} ${myFont.className}`}>
       <head>
         {/* Next สตรีม meta ที่สร้างจาก metadata ไปไว้ท้าย body เพราะทุกหน้าเป็น dynamic
             (middleware ออก nonce ใหม่ทุก request) เครื่องมือตรวจ SEO จึงมองไม่เห็น
