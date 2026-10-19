@@ -230,14 +230,14 @@ export default function SubTopicSearchDropdown({
                     }`}
             >
                 <div className="flex items-center gap-2 text-sm text-gray-500 truncate min-w-0">
-                    <Search className="w-4 h-4 text-gray-400 shrink-0" />
+                    <Search className="w-4 h-4 text-gray-600 shrink-0" />
                     <span className="truncate">
                         {selectedIds.length === 0
                             ? 'ค้นหาและเลือกหัวข้อย่อย...'
                             : `เลือกแล้ว ${selectedIds.length} หัวข้อย่อย (คลิกเพื่อค้นหาเพิ่ม)`}
                     </span>
                 </div>
-                <ChevronDown className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-green-600' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-gray-600 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-green-600' : ''}`} />
             </div>
 
             {/* Floating Dropdown Menu rendered via Portal into body to break out on top of all stacking contexts */}
@@ -256,7 +256,7 @@ export default function SubTopicSearchDropdown({
                 >
                     {/* Search Input Bar */}
                     <div className="p-2.5 border-b border-slate-100 bg-slate-50/70 flex items-center gap-2 shrink-0">
-                        <Search className="w-4 h-4 text-gray-400 shrink-0 ml-1" />
+                        <Search className="w-4 h-4 text-gray-600 shrink-0 ml-1" />
                         <input
                             ref={searchInputRef}
                             type="text"
@@ -284,9 +284,9 @@ export default function SubTopicSearchDropdown({
                             groupedResults.map(({ topic, subTopics: groupSubs }) => (
                                 <div key={topic.topic_id} className="space-y-1">
                                     {/* Topic Header */}
-                                    <div className="px-2.5 py-1 text-sm font-medium text-gray-400  tracking-wider bg-slate-50/80 rounded-lg flex items-center justify-between">
+                                    <div className="px-2.5 py-1 text-sm font-medium text-gray-600  tracking-wider bg-slate-50/80 rounded-lg flex items-center justify-between">
                                         <span className="truncate">{topic.topic_name}</span>
-                                        <span className="text-sm text-gray-400 font-normal shrink-0">({groupSubs.length})</span>
+                                        <span className="text-sm text-gray-600 font-normal shrink-0">({groupSubs.length})</span>
                                     </div>
 
                                     {/* SubTopic Options */}
@@ -324,7 +324,7 @@ export default function SubTopicSearchDropdown({
                                 </div>
                             ))
                         ) : (
-                            <div className="text-center py-6 text-sm text-gray-400 space-y-2">
+                            <div className="text-center py-6 text-sm text-gray-600 space-y-2">
                                 <p>ไม่พบหัวข้อย่อยที่ตรงกับ "{searchTerm}"</p>
                                 {onOpenAddSubTopicModal && (
                                     <button

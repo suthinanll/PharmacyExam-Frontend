@@ -291,7 +291,7 @@ export default function ItemBankSettingsPage() {
                     {/* Header */}
                     <div className="flex justify-between items-start mb-8">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-2">ตั้งค่าชุดข้อสอบ</h1>
+                            <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">ตั้งค่าชุดข้อสอบ</h1>
                             <p className="text-gray-600">แก้ไขข้อมูลพื้นฐานของชุดข้อสอบ</p>
                         </div>
                         <button

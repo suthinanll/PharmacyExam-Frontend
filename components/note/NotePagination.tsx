@@ -43,9 +43,9 @@ export default function NotePagination({
     return (
         <div className={`flex flex-col items-center gap-2 mt-4 pt-3 border-t border-slate-100 ${className}`}>
             {/* Info Text */}
-            <div className="text-[11px] font-medium text-slate-500 flex items-center justify-between w-full px-1">
+            <div className="text-[0.6875rem] font-medium text-slate-500 flex items-center justify-between w-full px-1">
                 <span>หน้า <strong className="text-slate-700">{currentPage}</strong> จาก <strong className="text-slate-700">{totalPages}</strong></span>
-                <span>ทั้งหมด <strong className="text-indigo-600">{totalItems}</strong> รายการ</span>
+                <span>ทั้งหมด <strong className="text-blue-600">{totalItems}</strong> รายการ</span>
             </div>
 
             {/* Pagination Controls */}
@@ -66,7 +66,7 @@ export default function NotePagination({
                     {getCompactPaginationItems(currentPage, totalPages).map((p, idx) => {
                         if (typeof p === 'string') {
                             return (
-                                <span key={`dots-${idx}`} className="w-5 h-7 flex items-center justify-center text-[10px] text-slate-400">
+                                <span key={`dots-${idx}`} className="w-5 h-7 flex items-center justify-center text-[0.625rem] text-slate-400">
                                     ...
                                 </span>
                             );
@@ -79,8 +79,8 @@ export default function NotePagination({
                                 key={`page-${p}`}
                                 onClick={() => handlePageChange(p)}
                                 className={`w-7 h-7 text-xs font-medium rounded-lg transition-all cursor-pointer flex items-center justify-center ${isActive
-                                    ? 'bg-indigo-600 text-white shadow-xs font-semibold scale-105'
-                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-200'
+                                    ? 'bg-blue-600 text-white shadow-xs font-medium scale-105'
+                                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200'
                                     }`}
                             >
                                 {p}

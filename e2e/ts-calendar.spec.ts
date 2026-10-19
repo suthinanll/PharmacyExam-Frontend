@@ -73,7 +73,12 @@ async function openList(page: Page, search?: string) {
   await page.goto(LIST_URL);
   await expect(page.getByRole('heading', { name: 'จัดการกำหนดการปฏิทิน' })).toBeVisible();
   await page.getByRole('button', { name: 'รายการ', exact: true }).click();
-  if (search !== undefined) await page.getByLabel('ค้นหากำหนดการ').fill(search);
+  if (search !== undefined) {
+    const box = page.getByLabel('ค้นหากำหนดการ');
+    await box.fill(search);
+    // ช่องค้นหาแสดงคำแนะนำทับรายการด้านล่าง กด Esc ปิดก่อนทำขั้นถัดไป
+    await box.press('Escape');
+  }
 }
 
 /** แถวของกำหนดการในแท็บรายการ */

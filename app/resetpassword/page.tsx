@@ -32,7 +32,7 @@ export default function Page() {
                 title: "ส่งอีเมลสำเร็จ!",
                 text: "กรุณาตรวจสอบกล่องจดหมายของคุณ เพื่อตั้งรหัสผ่านใหม่",
                 icon: "success",
-                confirmButtonColor: "#22c55e", // สีเขียว green-500
+                confirmButtonColor: "#5EA500", // สีเขียว green-500
                 confirmButtonText: "รับทราบ",
                 customClass: {
                     popup: 'rounded-3xl',

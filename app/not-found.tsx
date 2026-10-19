@@ -11,7 +11,7 @@ export default function NotFound() {
     <div
       className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6"
       style={{
-        backgroundColor: "#76B25A",
+        backgroundColor: "#5EA500",
         backgroundImage: `
           radial-gradient(circle at 20% 30%, rgba(255,255,255,0.12) 0%, transparent 45%),
           radial-gradient(circle at 80% 75%, rgba(0,0,0,0.08) 0%, transparent 45%)
@@ -23,12 +23,12 @@ export default function NotFound() {
       <div className="bg-white rounded-3xl p-8 sm:p-10 w-full max-w-md shadow-2xl border border-white/60 backdrop-blur-sm text-center relative overflow-hidden">
         
         {/* Top Decorative 404 Watermark */}
-        <div className="text-7xl sm:text-8xl font-black text-green-600/10 tracking-widest select-none -mt-4 mb-2 leading-none">
+        <div className="text-7xl sm:text-8xl font-medium text-green-600/10 tracking-widest select-none -mt-4 mb-2 leading-none">
           404
         </div>
 
         {/* Brand Name */}
-        <h2 className="text-2xl font-bold text-green-600 mb-1 tracking-tight">
+        <h2 className="text-2xl font-medium text-green-600 mb-1 tracking-tight">
           เภสัชพร้อมสอบ
         </h2>
 
@@ -39,7 +39,7 @@ export default function NotFound() {
         </div>
 
         {/* Main Title */}
-        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+        <h1 className="text-xl sm:text-2xl font-medium text-gray-900 mb-2">
           ไม่พบหน้าที่คุณต้องการ
         </h1>
 

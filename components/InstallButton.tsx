@@ -59,7 +59,7 @@ export default function InstallButton() {
   return (
     <button
       onClick={handleInstall}
-      className="fixed bottom-6 right-6 z-40 bg-green-600 text-white px-5 py-3 rounded-full flex items-center gap-2 hover:bg-green-700 transition-all shadow-lg hover:shadow-xl animate-bounce-subtle"
+      className="fixed bottom-6 right-6 z-40 bg-primary text-white px-5 py-3 rounded-full flex items-center gap-2 hover:bg-primary-hover transition-all shadow-lg hover:shadow-xl animate-bounce-subtle"
       aria-label="ติดตั้งแอป"
     >
       <Download className="w-5 h-5" strokeWidth={2.5} />

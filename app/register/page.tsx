@@ -146,7 +146,7 @@ export default function RegisterPage() {
         icon: "warning",
         title: "กรุณากรอกข้อมูลให้ครบถ้วน",
         text: "กรุณากรอกข้อมูลทุกช่องให้ครบถ้วนก่อนขอรหัส OTP",
-        confirmButtonColor: "#16a34a",
+        confirmButtonColor: "#5EA500",
       });
       return;
     }
@@ -158,7 +158,7 @@ export default function RegisterPage() {
         icon: "warning",
         title: "รูปแบบอีเมลไม่ถูกต้อง",
         text: "กรุณากรอกรูปแบบอีเมลให้ถูกต้อง (เช่น name@gmail.com)",
-        confirmButtonColor: "#16a34a",
+        confirmButtonColor: "#5EA500",
       });
       return;
     }
@@ -176,7 +176,7 @@ export default function RegisterPage() {
         icon: "warning",
         title: "กรุณาตั้งรหัสผ่าน",
         text: "กรุณากรอกรหัสผ่านและยืนยันรหัสผ่าน",
-        confirmButtonColor: "#16a34a",
+        confirmButtonColor: "#5EA500",
       });
       return;
     }
@@ -186,7 +186,7 @@ export default function RegisterPage() {
         icon: "warning",
         title: "รหัสผ่านไม่ตรงกัน",
         text: "กรุณากรอกรหัสผ่านให้ตรงกันทั้งสองช่อง",
-        confirmButtonColor: "#16a34a",
+        confirmButtonColor: "#5EA500",
       });
       return;
     }
@@ -201,7 +201,7 @@ export default function RegisterPage() {
         showCancelButton: true,
         confirmButtonText: "ดำเนินการต่อ",
         cancelButtonText: "แก้ไขรหัสผ่าน",
-        confirmButtonColor: "#16a34a",
+        confirmButtonColor: "#5EA500",
         cancelButtonColor: "#6b7280",
         reverseButtons: true,
       });
@@ -263,7 +263,7 @@ export default function RegisterPage() {
         icon: "warning",
         title: "กรุณากรอกรหัส OTP ให้ครบถ้วน",
         text: "รหัส OTP ต้องเป็นตัวเลข 6 หลัก",
-        confirmButtonColor: "#16a34a",
+        confirmButtonColor: "#5EA500",
       });
       return;
     }
@@ -333,7 +333,7 @@ export default function RegisterPage() {
     >
       <div className="bg-white shadow-2xs rounded-2xl p-8 md:p-12 w-full max-w-4xl border border-white/60 backdrop-blur-sm">
         <div className="text-center mb-10">
-          <h1 className="text-4xl font-extrabold text-green-600 mb-2">
+          <h1 className="text-4xl font-medium text-green-600 mb-2">
             เภสัชพร้อมสอบ
           </h1>
           <p className="text-gray-500 font-medium">

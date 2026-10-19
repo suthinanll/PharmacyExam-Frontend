@@ -18,7 +18,7 @@ interface AdminPerformanceChartProps {
 export default function AdminPerformanceChart({ monthlyData }: AdminPerformanceChartProps) {
   if (monthlyData.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-400 font-medium text-sm">
+      <div className="flex items-center justify-center h-full text-gray-600 font-medium text-sm">
         ยังไม่มีการบันทึกข้อมูลคะแนนสะสมในช่วงนี้
       </div>
     );
@@ -57,7 +57,7 @@ export default function AdminPerformanceChart({ monthlyData }: AdminPerformanceC
             borderRadius: '12px',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)'
           }}
-          labelStyle={{ fontWeight: 'bold', color: '#1F2937' }}
+          labelStyle={{ fontWeight: 500, color: '#1F2937' }}
           formatter={(value: number) => [`${value}%`, "คะแนนเฉลี่ยรวม"]}
         />
         <Area

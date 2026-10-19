@@ -85,7 +85,7 @@ function StatusShell({ children }: { children: React.ReactNode }) {
             <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
                     <Breadcrumb />
-                    <h1 className="text-3xl font-medium text-[#1C2033] mb-6">สรุปผลการทำข้อสอบ</h1>
+                    <h1 className="text-3xl font-medium text-gray-900 mb-6">สรุปผลการทำข้อสอบ</h1>
                     {children}
                 </div>
             </div>
@@ -202,9 +202,9 @@ function Summarize({ initialResult }: { initialResult: ExamResult | null }) {
             <StatusShell>
                 <div className="text-center max-w-sm mx-auto pt-12">
                     <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                    <h2 className="text-xl font-semibold text-gray-800 mb-2">ไม่พบข้อมูลผลสอบ</h2>
+                    <h2 className="text-xl font-medium text-gray-800 mb-2">ไม่พบข้อมูลผลสอบ</h2>
                     <p className="text-gray-500 mb-6 text-sm">{error || 'ลองโหลดใหม่อีกครั้ง'}</p>
-                    <Link href="/user/examset" className="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                    <Link href="/user/examset" className="inline-block bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors">
                         กลับไปคลังข้อสอบ
                     </Link>
                 </div>
@@ -236,7 +236,7 @@ function Summarize({ initialResult }: { initialResult: ExamResult | null }) {
 
                     {/* Page Title */}
                     <div className="mb-6">
-                        <h1 className="text-3xl md:text-3xl font-medium text-[#1C2033]">{examResult.item_bank_name}</h1>
+                        <h1 className="text-3xl md:text-3xl font-medium text-gray-900">{examResult.item_bank_name}</h1>
                         <p className="text-md text-gray-500 mt-0.5">สรุปผลการทำข้อสอบ</p>
                     </div>
 
@@ -258,7 +258,7 @@ function Summarize({ initialResult }: { initialResult: ExamResult | null }) {
                                     />
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className={`text-3xl font-black ${scoreColor}`}>{percentage}%</span>
+                                    <span className={`text-3xl font-medium ${scoreColor}`}>{percentage}%</span>
                                     <span className={`text-sm font-medium px-2 py-0.5 rounded-full mt-1 ${scoreLabelColor}`}>{scoreLabel}</span>
                                 </div>
                             </div>
@@ -268,33 +268,33 @@ function Summarize({ initialResult }: { initialResult: ExamResult | null }) {
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                     {/* Total */}
                                     <div className="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
-                                        <FileText className="w-4 h-4 text-gray-400 mx-auto mb-1.5" />
-                                        <p className="text-2xl font-black text-gray-800">{examResult.total_questions}</p>
+                                        <FileText className="w-4 h-4 text-gray-600 mx-auto mb-1.5" />
+                                        <p className="text-2xl font-medium text-gray-800">{examResult.total_questions}</p>
                                         <p className="text-sm text-gray-500 mt-0.5">จำนวนข้อ</p>
                                     </div>
                                     {/* Correct */}
                                     <div className="bg-green-50 rounded-xl p-4 text-center border border-green-100">
                                         <CheckCircle className="w-4 h-4 text-green-500 mx-auto mb-1.5" />
-                                        <p className="text-2xl font-black text-green-600">{examResult.correct_count}</p>
+                                        <p className="text-2xl font-medium text-green-600">{examResult.correct_count}</p>
                                         <p className="text-sm text-green-600 mt-0.5">ตอบถูก</p>
                                     </div>
                                     {/* Wrong */}
                                     <div className="bg-red-50 rounded-xl p-4 text-center border border-red-100">
                                         <XCircle className="w-4 h-4 text-red-400 mx-auto mb-1.5" />
-                                        <p className="text-2xl font-black text-red-500">{wrong}</p>
+                                        <p className="text-2xl font-medium text-red-500">{wrong}</p>
                                         <p className="text-sm text-red-500 mt-0.5">ตอบผิด</p>
                                     </div>
                                     {/* Time */}
                                     <div className="bg-blue-50 rounded-xl p-4 text-center border border-blue-100">
                                         <Clock className="w-4 h-4 text-blue-500 mx-auto mb-1.5" />
-                                        <p className="text-xl font-black text-blue-600 leading-tight">{timeUsed}</p>
+                                        <p className="text-xl font-medium text-blue-600 leading-tight">{timeUsed}</p>
                                         <p className="text-sm text-blue-500 mt-0.5">เวลาที่ใช้</p>
                                     </div>
                                 </div>
 
                                 {/* Progress bar */}
                                 <div className="mt-4">
-                                    <div className="flex justify-between text-sm text-gray-400 mb-1.5">
+                                    <div className="flex justify-between text-sm text-gray-600 mb-1.5">
                                         <span>จำนวนข้อที่ถูกต้อง</span>
                                         <span>{examResult.correct_count} / {examResult.total_questions} ข้อ</span>
                                     </div>
@@ -316,8 +316,8 @@ function Summarize({ initialResult }: { initialResult: ExamResult | null }) {
                                 <BarChart2 className="w-4 h-4 text-green-600" />
                             </div>
                             <div className="text-left">
-                                <h2 className="text-base font-semibold text-gray-800">วิเคราะห์จุดแข็ง — จุดอ่อน</h2>
-                                <p className="text-sm text-gray-400">คะแนนแยกตามหัวข้อ</p>
+                                <h2 className="text-base font-medium text-gray-800">วิเคราะห์จุดแข็ง — จุดอ่อน</h2>
+                                <p className="text-sm text-gray-600">คะแนนแยกตามหัวข้อ</p>
                             </div>
                         </div>
 
@@ -350,7 +350,7 @@ function Summarize({ initialResult }: { initialResult: ExamResult | null }) {
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <p className="text-sm font-medium text-gray-800 truncate">{topic.topicName}</p>
-                                                            <p className="text-sm text-gray-400">{topic.correct}/{topic.total} ข้อ</p>
+                                                            <p className="text-sm text-gray-600">{topic.correct}/{topic.total} ข้อ</p>
                                                         </div>
                                                         <span className={`text-sm font-medium shrink-0 ${color}`}>{topic.percentage}%</span>
                                                     </div>
@@ -387,7 +387,7 @@ function Summarize({ initialResult }: { initialResult: ExamResult | null }) {
                             <div className="text-center py-10">
                                 <BookOpen className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                                 <p className="text-sm font-medium text-gray-500">ไม่มีข้อมูลหัวข้อ</p>
-                                <p className="text-sm text-gray-400 mt-1">ข้อสอบนี้ยังไม่ได้แท็กหัวข้อไว้</p>
+                                <p className="text-sm text-gray-600 mt-1">ข้อสอบนี้ยังไม่ได้แท็กหัวข้อไว้</p>
                             </div>
                         )}
                     </div>
@@ -399,7 +399,7 @@ function Summarize({ initialResult }: { initialResult: ExamResult | null }) {
                             // หน้าเฉลยเป็นก้อน JS แยก ถ้าปล่อยให้ prefetch เองจะถูกโหลดระหว่างเปิดหน้านี้
                             // และไปเพิ่ม TBT ทั้งที่ผู้ใช้ยังไม่ได้กด
                             prefetch={false}
-                            className="flex-1 sm:flex-none px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm text-center transition-colors shadow-sm"
+                            className="flex-1 sm:flex-none px-6 py-3 bg-primary hover:bg-primary-hover text-white font-medium rounded-xl text-sm text-center transition-colors shadow-sm"
                         >
                             ดูเฉลยคำตอบ
                         </Link>

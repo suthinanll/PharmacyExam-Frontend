@@ -66,7 +66,7 @@ const BotMessage = ({ content, animate = false }: { content: string, animate?: b
           className="absolute -top-6 right-0 p-1 text-neutral-400 hover:text-green-600 transition-all opacity-0 group-hover:opacity-100 flex items-center gap-1 bg-white/80 backdrop-blur rounded px-2 shadow-sm border border-neutral-100 cursor-pointer"
         >
           {isCopied ? <Check className="w-3 h-3" /> : <Clipboard className="w-3 h-3" />}
-          <span className="text-[10px]">คัดลอก</span>
+          <span className="text-[0.625rem]">คัดลอก</span>
         </button>
       </div>
     </div>
@@ -369,7 +369,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
         icon: 'warning',
         title: 'ข้อความยาวเกินกำหนด',
         text: `กรุณาลดความยาวข้อความให้อยู่ใน ${MAX_INPUT_LENGTH} ตัวอักษร (ปัจจุบัน ${input.length} ตัวอักษร)`,
-        confirmButtonColor: '#16a34a'
+        confirmButtonColor: '#5EA500'
       });
       return;
     }
@@ -379,7 +379,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
         icon: 'info',
         title: 'ความจุการใช้งานเต็ม 100%',
         text: `คุณใช้งานความจุแชตบอตประจำวันครบแล้ว ระบบจะรีเซ็ตความจุใหม่ในเวลา 00:00 น. (อีกประมาณ ${countdownText || 'สักครู่'})`,
-        confirmButtonColor: '#16a34a'
+        confirmButtonColor: '#5EA500'
       });
       return;
     }
@@ -437,7 +437,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
               icon: 'warning',
               title: 'โควตาความจุเต็ม 100%',
               text: errorData?.message || 'คุณใช้งานความจุแชตบอตครบ 100% สำหรับวันนี้แล้ว',
-              confirmButtonColor: '#16a34a'
+              confirmButtonColor: '#5EA500'
             });
             fetchQuota();
           }
@@ -624,7 +624,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
                 <div className="flex items-start gap-3">
                   <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-blue-800">
-                    <p className="font-semibold mb-1">ข้อมูลที่เราเก็บรวบรวม</p>
+                    <p className="font-medium mb-1">ข้อมูลที่เราเก็บรวบรวม</p>
                     <p>เพื่อปรับปรุงคุณภาพการให้บริการ เราจะเก็บบันทึกการสนทนาระหว่างคุณกับแชตบอต</p>
                   </div>
                 </div>
@@ -676,7 +676,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
                 <div className="flex items-start gap-3">
                   <Shield className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                   <div className="text-sm text-green-800">
-                    <p className="font-semibold mb-1">ความปลอดภัยของข้อมูล</p>
+                    <p className="font-medium mb-1">ความปลอดภัยของข้อมูล</p>
                     <p>เราให้ความสำคัญกับความเป็นส่วนตัวของคุณ ข้อมูลทั้งหมดจะถูกเก็บรักษาอย่างปลอดภัยและจะไม่ถูกนำไปเผยแพร่หรือขายให้กับบุคคลที่สาม</p>
                   </div>
                 </div>
@@ -692,7 +692,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleAcceptPrivacy}
-                  className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 px-6 py-3 bg-primary hover:bg-primary-hover text-white font-medium rounded-xl transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <Check className="w-5 h-5" />
                   ยอมรับและเริ่มใช้งาน
@@ -744,7 +744,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
                   <Zap className="w-3.5 h-3.5 text-green-700 shrink-0" />
                   <span className="text-sm font-medium text-gray-800 truncate">ความจุ AI วันนี้</span>
                 </div>
-                <span className={`text-sm font-black  px-2 py-0.5 rounded-full ${capacityPct >= 90
+                <span className={`text-sm font-medium  px-2 py-0.5 rounded-full ${capacityPct >= 90
                   ? 'bg-rose-100 text-rose-700'
                   : capacityPct >= 70
                     ? 'bg-amber-100 text-amber-700'
@@ -775,7 +775,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
             {/* New Chat Button */}
             <button
               onClick={handleNewChat}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 active:scale-98 transition-all shadow-xs font-semibold text-base cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 active:scale-98 transition-all shadow-xs font-medium text-base cursor-pointer"
             >
               <Plus size={18} />
               แชตใหม่
@@ -793,11 +793,11 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
                 key={session.session_id}
                 onClick={() => handleSelectSession(session.session_id?.toString())}
                 className={`w-full text-left px-3 py-2.5 rounded-xl transition-all flex items-start gap-2.5 group relative pr-9 cursor-pointer ${currentSessionId?.toString() === session.session_id?.toString()
-                  ? "bg-green-50 text-green-800 font-semibold border border-green-200/60 shadow-2xs"
+                  ? "bg-green-50 text-green-800 font-medium border border-green-200/60 shadow-2xs"
                   : "text-gray-600 hover:bg-gray-50 border border-transparent"
                   }`}
               >
-                <MessageSquare size={16} className={`mt-0.5 shrink-0 ${currentSessionId?.toString() === session.session_id?.toString() ? 'text-green-600' : 'text-gray-400'
+                <MessageSquare size={16} className={`mt-0.5 shrink-0 ${currentSessionId?.toString() === session.session_id?.toString() ? 'text-green-600' : 'text-gray-600'
                   }`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm truncate">
@@ -810,7 +810,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
 
                 <div
                   onClick={(e) => handleDeleteSession(e, session.session_id?.toString())}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1.5 text-gray-600 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   title="ลบแชต"
                 >
                   <Trash2 size={14} />
@@ -828,7 +828,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
             <button
               id="sidebar-toggle"
               onClick={() => setSidebarOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-semibold transition-colors cursor-pointer active:scale-95 border border-gray-200/80"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors cursor-pointer active:scale-95 border border-gray-200/80"
               title="เปิดประวัติการสนทนา"
             >
               <History size={15} className="text-green-600" />
@@ -838,7 +838,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
               <Bot size={17} className="text-green-600" />
               แชตบอตผู้ช่วย
             </span>
-            <div className="flex items-center gap-1 text-[11px] font-medium text-green-700 bg-green-50 border border-green-200/60 px-2 py-0.5 rounded-full">
+            <div className="flex items-center gap-1 text-[0.6875rem] font-medium text-green-700 bg-green-50 border border-green-200/60 px-2 py-0.5 rounded-full">
               <Zap size={12} /> {capacityPct}%
             </div>
           </div>
@@ -852,11 +852,11 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-rose-900 truncate">คุณใช้งานความจุแชตบอตครบ 100% สำหรับวันนี้แล้ว</p>
-                  <p className="text-[11px] text-rose-700">ระบบจะรีเซ็ตความจุใหม่ในเวลา 00:00 น.</p>
+                  <p className="text-[0.6875rem] text-rose-700">ระบบจะรีเซ็ตความจุใหม่ในเวลา 00:00 น.</p>
                 </div>
               </div>
               <div className="self-end sm:self-center bg-white/90 backdrop-blur px-2.5 py-1 rounded-lg border border-rose-200/60 text-right shrink-0">
-                <span className="text-[11px]  font-medium text-rose-600">{countdownText || '00:00:00'}</span>
+                <span className="text-[0.6875rem]  font-medium text-rose-600">{countdownText || '00:00:00'}</span>
               </div>
             </div>
           )}
@@ -888,7 +888,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
                   </div>
                 ) : (
                   messages.length === 0 && !fetchError ? (
-                    <div className="text-center py-10 text-gray-400 text-sm">
+                    <div className="text-center py-10 text-gray-600 text-sm">
                       ไม่พบข้อความในเซสชันนี้
                     </div>
                   ) : (
@@ -908,7 +908,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
                                 <Pencil size={12} />
                               </button>
                             </div>
-                            <span className="text-[10px] text-gray-400 mr-1">
+                            <span className="text-[0.625rem] text-gray-600 mr-1">
                               {msg.created_at ? new Date(msg.created_at).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : ''}
                             </span>
                           </div>
@@ -986,7 +986,7 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
                   <button
                     onClick={handleSendMessage}
                     disabled={!input.trim() || isLimited || input.length > MAX_INPUT_LENGTH}
-                    className="flex items-center justify-center w-9 h-9 bg-green-600 text-white rounded-xl hover:bg-green-700 disabled:opacity-40 transition-colors shadow-2xs shrink-0 cursor-pointer mb-1 mr-1 disabled:cursor-not-allowed"
+                    className="flex items-center justify-center w-9 h-9 bg-primary text-white rounded-xl hover:bg-primary-hover disabled:opacity-40 transition-colors shadow-2xs shrink-0 cursor-pointer mb-1 mr-1 disabled:cursor-not-allowed"
                     title="ส่งข้อความ"
                   >
                     <SendHorizonal size={16} />
@@ -995,13 +995,13 @@ export default function ChatbotClient({ initialShowPrivacy }: { initialShowPriva
               </div>
 
               {/* Character Counter & Limit text */}
-              <div className="flex justify-between items-center px-1.5 pt-1 text-[11px] text-gray-400">
+              <div className="flex justify-between items-center px-1.5 pt-1 text-[0.6875rem] text-gray-600">
                 <span>จำกัดสูงสุด {MAX_INPUT_LENGTH.toLocaleString()} ตัวอักษร</span>
                 <span className={` font-medium ${input.length >= 950
                   ? 'text-rose-500 font-medium'
                   : input.length >= 800
-                    ? 'text-amber-500 font-semibold'
-                    : 'text-gray-400'
+                    ? 'text-amber-500 font-medium'
+                    : 'text-gray-600'
                   }`}>
                   {input.length} / {MAX_INPUT_LENGTH.toLocaleString()}
                 </span>

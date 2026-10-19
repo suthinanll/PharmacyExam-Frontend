@@ -151,7 +151,7 @@ export default function ImportExcelModal({
                             <FileSpreadsheet className="w-5 h-5" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-gray-900">
+                            <h2 className="text-lg font-medium text-gray-900">
                                 นำเข้าข้อสอบจาก Excel
                             </h2>
                             <p className="text-xs text-gray-500">
@@ -263,7 +263,7 @@ export default function ImportExcelModal({
                         {/* Guide Panel */}
                         {showGuide && (
                             <div className="p-3.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl text-xs text-emerald-950 space-y-1.5">
-                                <p className="font-semibold text-emerald-900">โครงสร้างหัวตารางที่รองรับในไฟล์ Excel (.xlsx / .xls):</p>
+                                <p className="font-medium text-emerald-900">โครงสร้างหัวตารางที่รองรับในไฟล์ Excel (.xlsx / .xls):</p>
                                 <ul className="list-disc list-inside space-y-1 text-emerald-800">
                                     <li><b>ข้อที่</b> (No.) | <b>สถานการณ์</b> (เว้นว่างได้ถ้าไม่มีสถานการณ์)</li>
                                     <li><b>หัวข้อหลัก</b> (Main Topic) | <b>หัวข้อย่อย</b> (Sub Topic) *(ระบบสร้างให้อัตโนมัติหากไม่มีในระบบ)*</li>

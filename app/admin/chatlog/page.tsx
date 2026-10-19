@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import Swal from "@/utils/sweetalert";
+import SuggestInput from '@/components/SuggestInput';
 
 interface ChatbotDocument {
     id: number;
@@ -733,7 +734,7 @@ export default function ChatbotKnowledgePage() {
                     <div className="flex flex-col sm:flex-row items-center gap-4 p-6">
                         {!selectedFile ? (
                             <>
-                                <div className="w-12 h-12 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-center shrink-0 text-gray-400 shadow-sm">
+                                <div className="w-12 h-12 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-center shrink-0 text-gray-600 shadow-sm">
                                     <UploadCloud size={24} />
                                 </div>
                                 <div className="text-center sm:text-left">
@@ -756,7 +757,7 @@ export default function ChatbotKnowledgePage() {
                                         onClick={(e) => { e.stopPropagation(); removeSelectedFile(); }}
                                         disabled={isUploading}
                                         aria-label="ยกเลิกไฟล์ที่เลือกนี้"
-                                        className="pointer-events-auto p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+                                        className="pointer-events-auto p-2 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                                         title="ยกเลิกไฟล์นี้"
                                     >
                                         <X size={18} />
@@ -828,13 +829,13 @@ export default function ChatbotKnowledgePage() {
                     {/* Search & Bulk Action Banner */}
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                         <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                            <input
-                                type="text"
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-600" size={18} />
+                            <SuggestInput
                                 placeholder="ค้นหาชื่อเอกสาร..."
                                 aria-label="ค้นหาชื่อเอกสารในฐานความรู้"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onValueChange={setSearchTerm}
+                                suggestions={currentList.map((doc) => doc.file_name)}
                                 className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all shadow-xs"
                             />
                         </div>
@@ -879,7 +880,7 @@ export default function ChatbotKnowledgePage() {
                                     type="button"
                                     onClick={() => setSelectedIds([])}
                                     aria-label="ยกเลิกการเลือกเอกสารทั้งหมด"
-                                    className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+                                    className="p-1.5 text-gray-600 hover:text-gray-600 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
                                     title="ยกเลิกการเลือก"
                                 >
                                     <X size={16} />
@@ -1019,7 +1020,7 @@ export default function ChatbotKnowledgePage() {
                                                             type="button"
                                                             onClick={() => handleOpenPreview(doc)}
                                                             aria-label={`เปิดอ่านเอกสาร ${doc.file_name}`}
-                                                            className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
+                                                            className="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
                                                             title="เปิดอ่านเอกสาร"
                                                         >
                                                             <Eye size={16} />
@@ -1030,7 +1031,7 @@ export default function ChatbotKnowledgePage() {
                                                             type="button"
                                                             onClick={() => handleDownloadDocument(doc)}
                                                             aria-label={`ดาวน์โหลดไฟล์ ${doc.file_name}`}
-                                                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
+                                                            className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
                                                             title="ดาวน์โหลดไฟล์"
                                                         >
                                                             <Download size={16} />
@@ -1041,7 +1042,7 @@ export default function ChatbotKnowledgePage() {
                                                                 type="button"
                                                                 onClick={() => handleSoftDelete(doc.id, doc.file_name)}
                                                                 aria-label={`ย้ายเอกสาร ${doc.file_name} ไปถังขยะ`}
-                                                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
+                                                                className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
                                                                 title="ย้ายไปถังขยะ"
                                                             >
                                                                 <Trash2 size={16} />
@@ -1211,7 +1212,7 @@ export default function ChatbotKnowledgePage() {
                                     type="button"
                                     onClick={closePreview}
                                     aria-label="ปิดหน้าต่างแสดงตัวอย่าง"
-                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-200/60 rounded-xl transition-colors cursor-pointer"
+                                    className="p-2 text-gray-600 hover:text-gray-600 hover:bg-gray-200/60 rounded-xl transition-colors cursor-pointer"
                                     title="ปิดหน้าต่าง"
                                 >
                                     <X size={20} />

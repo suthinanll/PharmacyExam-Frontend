@@ -41,7 +41,7 @@ export default function Page() {
           title: "เข้าสู่ระบบสำเร็จ!",
           text: `ยินดีต้อนรับ ${data.user.first_name}`,
           confirmButtonText: "ตกลง",
-          confirmButtonColor: "#10b981",
+          confirmButtonColor: "#5EA500",
         });
 
         // ถ้ามาจากหน้าที่ค้างไว้ (เช่น กดจ่ายเงินที่ /upgrade-admin) ให้กลับไปที่นั่นต่อ
@@ -84,7 +84,7 @@ export default function Page() {
 
       <div className="bg-white shadow-2xs rounded-2xl p-10 w-full max-w-md border border-white/60 backdrop-blur-sm relative">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-extrabold text-green-700 mb-2 tracking-tight">
+          <h1 className="text-4xl font-medium text-green-700 mb-2 tracking-tight">
             เภสัชพร้อมสอบ
           </h1>
           <p className="text-gray-600 font-medium">กรอกข้อมูลเพื่อเข้าสู่ระบบ</p>
@@ -111,7 +111,7 @@ export default function Page() {
               <label htmlFor="login-password" className="text-sm font-medium text-gray-800 flex items-center gap-2">
                 รหัสผ่าน
               </label>
-              <a href="/resetpassword" className="text-xs font-semibold text-gray-600 hover:text-green-700 underline-offset-2 hover:underline transition-colors">
+              <a href="/resetpassword" className="text-xs font-medium text-gray-600 hover:text-green-700 underline-offset-2 hover:underline transition-colors">
                 ลืมรหัสผ่าน?
               </a>
             </div>
@@ -156,7 +156,7 @@ export default function Page() {
 
         <div className="flex items-center my-8">
           <div className="flex-grow border-t border-gray-300"></div>
-          <span className="mx-4 text-gray-600 text-xs font-semibold">หรือ</span>
+          <span className="mx-4 text-gray-600 text-xs font-medium">หรือ</span>
           <div className="flex-grow border-t border-gray-300"></div>
         </div>
 
@@ -168,14 +168,14 @@ export default function Page() {
             className="flex items-center gap-3 border-2 border-gray-200 hover:border-green-200 hover:bg-green-50 px-8 py-3 rounded-2xl transition-all duration-300 group cursor-pointer"
           >
             <FcGoogle className="text-2xl group-hover:scale-110 transition-transform" aria-hidden="true" />
-            <span className="text-sm font-semibold text-gray-700">เข้าสู่ระบบด้วย Google</span>
+            <span className="text-sm font-medium text-gray-700">เข้าสู่ระบบด้วย Google</span>
           </button>
         </div>
 
         {/* สมัครสมาชิก — ส่งปลายทางที่ค้างไว้ต่อไปด้วย จะได้ไม่หลุดตอนเปลี่ยนใจไปสมัครแทน */}
         <div className="text-center mt-10 text-sm font-medium text-gray-700">
           ยังไม่มีบัญชีผู้ใช้งาน?{" "}
-          <a href={registerHref} className="text-green-700 font-bold hover:underline underline-offset-4">
+          <a href={registerHref} className="text-green-700 font-medium hover:underline underline-offset-4">
             สมัครสมาชิก
           </a>
         </div>

@@ -304,7 +304,7 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
             text: "ระบบจะทำการส่งข้อสอบของคุณโดยอัตโนมัติ",
             icon: "warning",
             confirmButtonText: "ตกลง",
-            confirmButtonColor: "#16a34a",
+            confirmButtonColor: "#5EA500",
             allowOutsideClick: false,
         }).then(() => {
             submitExam();
@@ -426,7 +426,7 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
                     html: `คะแนนของคุณ: <strong>${result.correct_count}/${result.total_questions}</strong><br/>
                <span class="text-2xl font-medium">${result.percentage.toFixed(2)}%</span>`,
                     icon: "success",
-                    confirmButtonColor: "#22c55e",
+                    confirmButtonColor: "#5EA500",
                     confirmButtonText: "ดูผลสอบ",
                 });
                 sessionStorage.setItem('summarize-exam_session', JSON.stringify({
@@ -459,7 +459,7 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
                         title: "ข้อสอบชุดนี้ส่งไปแล้ว",
                         text: "ระบบจะพาคุณไปดูผลสอบของชุดนี้",
                         icon: "info",
-                        confirmButtonColor: "#16a34a",
+                        confirmButtonColor: "#5EA500",
                         confirmButtonText: "ดูผลสอบ",
                     });
 
@@ -508,7 +508,7 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
             text: "คุณได้ตอบครบทุกข้อแล้ว ต้องการส่งข้อสอบใช่หรือไม่?",
             icon: "question",
             showCancelButton: true,
-            confirmButtonColor: "#16a34a",
+            confirmButtonColor: "#5EA500",
             cancelButtonColor: "#6b7280",
             confirmButtonText: "ส่งข้อสอบ",
             cancelButtonText: "ยกเลิก",
@@ -755,7 +755,7 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
                                             {currentQuestion.sub_topics.map((st) => (
                                                 <span
                                                     key={st.sub_topic_id}
-                                                    className="text-xs sm:text-sm font-medium bg-[#e6f7ec] text-[#2e8555] border border-green-200/60 px-3 py-1 rounded-md"
+                                                    className="text-xs sm:text-sm font-medium bg-green-50 text-green-700 border border-green-200/60 px-3 py-1 rounded-md"
                                                 >
                                                     {st.sub_topic_name}
                                                 </span>
@@ -887,7 +887,7 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
                                                         {index + 1}
                                                     </button>
                                                     {flaggedQuestions[q.item_id] && (
-                                                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-white text-[9px] text-white font-black shadow-sm animate-in zoom-in-50 duration-200">
+                                                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-white text-[0.5625rem] text-white font-medium shadow-sm animate-in zoom-in-50 duration-200">
                                                             ★
                                                         </span>
                                                     )}
@@ -911,7 +911,7 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
                                         <span className="text-gray-600">ยังไม่ตอบ</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">
-                                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-amber-600/10 text-[9px] text-white font-medium">★</span>
+                                        <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-amber-600/10 text-[0.5625rem] text-white font-medium">★</span>
                                         <span className="text-gray-600">ทบทวน</span>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -959,7 +959,7 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
                                 <button
                                     onClick={handleSubmit}
                                     disabled={submitting}
-                                    className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    className="w-full py-3 bg-primary hover:bg-primary-hover text-white font-medium rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                 >
                                     {submitting ? (
                                         <>

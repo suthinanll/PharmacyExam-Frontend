@@ -195,7 +195,7 @@ export default function CATManagementPage() {
                     <div>
                         <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">
 
-                            CAT Management & Analytics
+                            จัดการและวิเคราะห์ข้อสอบ CAT
                         </h1>
                         <p className="text-sm text-gray-500 mt-1">
                             วิเคราะห์ผลการสอบแบบปรับเหมาะตามความสามารถ (Computerized Adaptive Testing) และประเมินความพร้อมของคลังข้อสอบ
@@ -223,7 +223,7 @@ export default function CATManagementPage() {
                         <div className="text-2xl sm:text-3xl font-medium text-gray-900 mt-2">
                             {analytics?.total_sessions ?? 0}
                         </div>
-                        <div className="text-sm text-gray-400 mt-1">ครั้ง</div>
+                        <div className="text-sm text-gray-600 mt-1">ครั้ง</div>
                     </div>
 
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
@@ -234,7 +234,7 @@ export default function CATManagementPage() {
                         <div className="text-2xl sm:text-3xl font-medium text-green-600 mt-2">
                             {analytics?.pass_rate ?? 0}%
                         </div>
-                        <div className="text-sm text-gray-400 mt-1">
+                        <div className="text-sm text-gray-600 mt-1">
                             ผ่าน {analytics?.passed ?? 0} / {analytics?.total_sessions ?? 0} คน
                         </div>
                     </div>
@@ -250,7 +250,7 @@ export default function CATManagementPage() {
                                         className="p-0.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
                                         aria-label="คำอธิบายค่าเฉลี่ยความสามารถ"
                                     >
-                                        <HelpCircle className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 transition-colors" />
+                                        <HelpCircle className="w-3.5 h-3.5 text-gray-600 hover:text-gray-600 transition-colors" />
                                     </button>
                                     <div className={`absolute bottom-full left-0 sm:left-1/2 sm:-translate-x-1/2 mb-2 w-64 max-w-[calc(100vw-2.5rem)] p-3 bg-white/98 backdrop-blur-md border border-slate-200 text-slate-700 text-sm rounded-xl shadow-xl z-50 transition-all ${activeTooltip === 'theta' ? 'block' : 'hidden group-hover/tooltip:block pointer-events-none'
                                         }`}>
@@ -267,7 +267,7 @@ export default function CATManagementPage() {
                         <div className="text-2xl sm:text-3xl font-medium text-purple-700 mt-2">
                             {analytics?.avg_theta !== undefined ? (analytics.avg_theta > 0 ? `+${analytics.avg_theta}` : analytics.avg_theta) : '-'}
                         </div>
-                        <div className="text-sm text-gray-400 mt-1">Average Ability Score</div>
+                        <div className="text-sm text-gray-600 mt-1">Average Ability Score</div>
                     </div>
 
                     <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs">
@@ -281,7 +281,7 @@ export default function CATManagementPage() {
                                         className="p-0.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
                                         aria-label="คำอธิบายความคลาดเคลื่อนมาตรฐาน"
                                     >
-                                        <HelpCircle className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 transition-colors" />
+                                        <HelpCircle className="w-3.5 h-3.5 text-gray-600 hover:text-gray-600 transition-colors" />
                                     </button>
                                     <div className={`absolute bottom-full right-0 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 mb-2 w-64 max-w-[calc(100vw-2.5rem)] p-3 bg-white/98 backdrop-blur-md border border-slate-200 text-slate-700 text-sm rounded-xl shadow-xl z-50 transition-all ${activeTooltip === 'se' ? 'block' : 'hidden group-hover/tooltip:block pointer-events-none'
                                         }`}>
@@ -298,7 +298,7 @@ export default function CATManagementPage() {
                         <div className="text-2xl sm:text-3xl font-medium text-blue-700 mt-2">
                             {analytics?.avg_se ?? '-'}
                         </div>
-                        <div className="text-sm text-gray-400 mt-1">Standard Error</div>
+                        <div className="text-sm text-gray-600 mt-1">Standard Error</div>
                     </div>
                 </div>
 
@@ -337,7 +337,7 @@ export default function CATManagementPage() {
                                         </option>
                                     ))}
                                 </select>
-                                <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                <ChevronDown className="w-4 h-4 text-gray-600 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                             </div>
 
                             {selectedBankId && (
@@ -408,7 +408,7 @@ export default function CATManagementPage() {
 
                         </div>
                     ) : (
-                        <div className="py-6 text-center text-sm text-gray-400">
+                        <div className="py-6 text-center text-sm text-gray-600">
                             กรุณาเลือกคลังข้อสอบด้านบนเพื่อตรวจสอบความพร้อม
                         </div>
                     )}
@@ -434,7 +434,7 @@ export default function CATManagementPage() {
                                             className="p-0.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
                                             aria-label="คำอธิบายเกณฑ์การสิ้นสุดการสอบ"
                                         >
-                                            <HelpCircle className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 transition-colors" />
+                                            <HelpCircle className="w-3.5 h-3.5 text-gray-600 hover:text-gray-600 transition-colors" />
                                         </button>
                                         <div className={`absolute bottom-full right-[-10px] sm:left-0 md:left-1/2 sm:right-auto md:-translate-x-1/2 mb-2 w-72 sm:w-80 max-w-[calc(100vw-2.5rem)] p-3.5 bg-white/98 backdrop-blur-md border border-slate-200 text-slate-700 text-sm rounded-xl shadow-xl z-50 transition-all ${activeTooltip === 'stopping' ? 'block' : 'hidden group-hover/tooltip:block pointer-events-none'
                                             }`}>
@@ -482,7 +482,7 @@ export default function CATManagementPage() {
                                                             <div className="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-100 text-xs space-y-1 z-50">
                                                                 <p className="font-medium text-gray-900">{data.name}</p>
                                                                 <p className="text-gray-600 font-medium">
-                                                                    จำนวน: <span className="font-bold text-gray-900">{data.value} คน</span> ({data.percentage}%)
+                                                                    จำนวน: <span className="font-medium text-gray-900">{data.value} คน</span> ({data.percentage}%)
                                                                 </p>
                                                             </div>
                                                         );
@@ -522,8 +522,8 @@ export default function CATManagementPage() {
                                         </PieChart>
                                     </ResponsiveContainer>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                        <span className="text-2xl font-bold text-gray-900 leading-tight">{analytics?.total_sessions ?? 0}</span>
-                                        <span className="text-xs text-gray-400">การสอบทั้งหมด</span>
+                                        <span className="text-2xl font-medium text-gray-900 leading-tight">{analytics?.total_sessions ?? 0}</span>
+                                        <span className="text-xs text-gray-600">การสอบทั้งหมด</span>
                                     </div>
                                 </div>
 
@@ -548,7 +548,7 @@ export default function CATManagementPage() {
                                                     </div>
                                                     <div className="flex items-center gap-1.5 shrink-0">
                                                         <span className="text-gray-900 font-medium">{count} คน</span>
-                                                        <span className="bg-white text-gray-600 px-1.5 py-0.5 rounded-md border border-slate-200 font-medium text-[11px]">
+                                                        <span className="bg-white text-gray-600 px-1.5 py-0.5 rounded-md border border-slate-200 font-medium text-[0.6875rem]">
                                                             {pct}%
                                                         </span>
                                                     </div>
@@ -566,7 +566,7 @@ export default function CATManagementPage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="text-center py-16 text-sm text-gray-400">
+                            <div className="text-center py-16 text-sm text-gray-600">
                                 ยังไม่มีข้อมูลเหตุผลการยุติการสอบจากการสอบที่เสร็จสมบูรณ์
                             </div>
                         )}
@@ -622,11 +622,11 @@ export default function CATManagementPage() {
                                                     return (
                                                         <div className="bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-100 text-xs space-y-1 z-50">
                                                             <p className="font-medium text-gray-900 border-b border-slate-100 pb-1">
-                                                                ช่วงความสามารถ (θ): <span className="font-bold">{entry.range}</span>
+                                                                ช่วงความสามารถ (θ): <span className="font-medium">{entry.range}</span>
                                                             </p>
                                                             <div className="flex justify-between gap-3 text-gray-600">
                                                                 <span>จำนวนผู้สอบ:</span>
-                                                                <span className="font-bold text-gray-900">{entry.count} คน</span>
+                                                                <span className="font-medium text-gray-900">{entry.count} คน</span>
                                                             </div>
                                                             <div className="flex justify-between gap-3 text-gray-500">
                                                                 <span>สัดส่วน:</span>
@@ -653,13 +653,13 @@ export default function CATManagementPage() {
                                                 dataKey="count"
                                                 position="top"
                                                 formatter={(val: any) => val > 0 ? `${val} คน` : ''}
-                                                style={{ fontSize: 10, fill: '#475569', fontWeight: 600 }}
+                                                style={{ fontSize: 10, fill: '#475569', fontWeight: 500 }}
                                             />
                                         </Bar>
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="h-full flex items-center justify-center text-sm text-gray-400">
+                                <div className="h-full flex items-center justify-center text-sm text-gray-600">
                                     กำลังโหลดข้อมูล...
                                 </div>
                             )}
@@ -742,7 +742,7 @@ export default function CATManagementPage() {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan={8} className="py-8 text-center text-sm text-gray-400">
+                                                <td colSpan={8} className="py-8 text-center text-sm text-gray-600">
                                                     ยังไม่มีประวัติการสอบ CAT ในระบบ
                                                 </td>
                                             </tr>
@@ -763,8 +763,8 @@ export default function CATManagementPage() {
                                             <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
                                                 <div className="min-w-0">
                                                     <div className="flex items-center gap-1.5">
-                                                        <span className="text-xs font-bold text-gray-400">#{s.session_id}</span>
-                                                        <span className="text-sm font-semibold text-gray-900 truncate">
+                                                        <span className="text-xs font-medium text-gray-600">#{s.session_id}</span>
+                                                        <span className="text-sm font-medium text-gray-900 truncate">
                                                             {s.user_name || `ผู้สอบ #${s.user_id}`}
                                                         </span>
                                                     </div>
@@ -785,41 +785,41 @@ export default function CATManagementPage() {
                                             {/* Metric Grid (3 cols) */}
                                             <div className="grid grid-cols-3 gap-1.5 bg-white p-2.5 rounded-lg border border-slate-100 text-center">
                                                 <div>
-                                                    <div className="text-[10px] text-gray-500 font-medium">จำนวนข้อ</div>
-                                                    <div className="text-xs font-semibold text-gray-800 mt-0.5">{s.num_items} ข้อ</div>
+                                                    <div className="text-[0.625rem] text-gray-500 font-medium">จำนวนข้อ</div>
+                                                    <div className="text-xs font-medium text-gray-800 mt-0.5">{s.num_items} ข้อ</div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-[10px] text-gray-500 font-medium">ความสามารถ (θ)</div>
+                                                    <div className="text-[0.625rem] text-gray-500 font-medium">ความสามารถ (θ)</div>
                                                     <div className="mt-0.5">
-                                                        <span className="font-semibold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded text-xs">
+                                                        <span className="font-medium text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded text-xs">
                                                             {s.final_theta !== null && s.final_theta !== undefined ? (s.final_theta > 0 ? `+${s.final_theta.toFixed(2)}` : s.final_theta.toFixed(2)) : '-'}
                                                         </span>
                                                     </div>
                                                 </div>
                                                 <div>
-                                                    <div className="text-[10px] text-gray-500 font-medium">ความคลาดเคลื่อน (SE)</div>
-                                                    <div className="text-xs font-semibold text-gray-700 mt-0.5">
+                                                    <div className="text-[0.625rem] text-gray-500 font-medium">ความคลาดเคลื่อน (SE)</div>
+                                                    <div className="text-xs font-medium text-gray-700 mt-0.5">
                                                         {s.final_se !== null && s.final_se !== undefined ? s.final_se.toFixed(3) : '-'}
                                                     </div>
                                                 </div>
                                             </div>
 
                                             {/* Footer: Reason & Date */}
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[11px] text-gray-500 pt-0.5">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[0.6875rem] text-gray-500 pt-0.5">
                                                 <div className="flex items-center gap-1 text-slate-700 truncate">
-                                                    <span className="text-gray-400">เหตุผล:</span>
+                                                    <span className="text-gray-600">เหตุผล:</span>
                                                     <span className="font-medium bg-white px-1.5 py-0.5 rounded border border-slate-200 truncate">
                                                         {formatStopReason(s.stop_reason)}
                                                     </span>
                                                 </div>
-                                                <div className="text-gray-400 text-right">
+                                                <div className="text-gray-600 text-right">
                                                     {s.end_time ? new Date(s.end_time).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : '-'}
                                                 </div>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="py-8 text-center text-sm text-gray-400">
+                                    <div className="py-8 text-center text-sm text-gray-600">
                                         ยังไม่มีประวัติการสอบ CAT ในระบบ
                                     </div>
                                 )}

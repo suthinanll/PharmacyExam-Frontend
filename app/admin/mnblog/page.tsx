@@ -6,6 +6,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Plus, Search, Clock, Loader2, ImageOff, Trash2, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
+import SuggestInput from '@/components/SuggestInput';
 
 interface BlogData {
   article_id: number;
@@ -101,11 +102,11 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
           ) : (
             <div className="h-full w-full flex flex-col items-center justify-center text-gray-300">
               <ImageOff className="w-12 h-12 mb-2 opacity-20" />
-              <span className="text-[10px]  font-medium tracking-widest">No Cover Image</span>
+              <span className="text-[0.625rem]  font-medium tracking-widest">No Cover Image</span>
             </div>
           )}
           <div className="absolute top-3 left-3 flex gap-2">
-            <span className={`text-[10px] font-black px-2.5 py-1 rounded-full  shadow-sm ${isPublished ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}`}>
+            <span className={`text-[0.625rem] font-medium px-2.5 py-1 rounded-full  shadow-sm ${isPublished ? 'bg-green-500 text-white' : 'bg-gray-400 text-white'}`}>
               {isPublished ? '• Live' : 'Draft'}
             </span>
           </div>
@@ -117,9 +118,9 @@ const BlogCard = ({ blog, onRefresh }: BlogCardProps) => {
           <p className="text-sm text-gray-500 mb-4 line-clamp-2 flex-grow">
             {stripHtml(blog.content)}
           </p>
-          <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between text-[11px] text-gray-500 font-medium">
+          <div className="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between text-[0.6875rem] text-gray-500 font-medium">
             <div className="flex items-center gap-1.5">
-              <Clock size={14} className="text-gray-400" />
+              <Clock size={14} className="text-gray-600" />
               {formatDate(blog.created_at)}
             </div>
             <span className="text-green-600 font-medium  tracking-tighter">Edit Details →</span>
@@ -223,12 +224,12 @@ function Page() {
         <div className="flex flex-col xl:flex-row gap-4 mb-6 justify-between items-start xl:items-center bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
           <div className="flex gap-3 flex-1 flex-wrap w-full xl:w-auto">
             <div className="relative max-w-sm w-full">
-              <input
-                type="text"
+              <SuggestInput
                 placeholder="ค้นหาข่าวสารของคุณ..."
                 aria-label="ค้นหาข่าวสารของคุณ"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onValueChange={setSearchTerm}
+                suggestions={blogs.map((blog) => blog.title)}
                 className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50"
               />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -261,7 +262,7 @@ function Page() {
         </div>
 
         {isLoading ? (
-          <div className="flex flex-col items-center py-32 text-gray-400">
+          <div className="flex flex-col items-center py-32 text-gray-600">
             <Loader2 className="w-12 h-12 animate-spin mb-4 text-green-600 opacity-60" />
             <p className="font-medium  text-xs">Synchronizing Data...</p>
           </div>
@@ -273,7 +274,7 @@ function Page() {
           </div>
         ) : (
           <div className="text-center py-32 bg-gray-50/50 border-2 border-dashed border-gray-200 rounded-[40px]">
-            <ImageOff className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <ImageOff className="w-12 h-12 mx-auto mb-4 text-gray-600" />
             <h2 className="text-gray-600 font-medium  tracking-tighter">No Articles Found</h2>
             <p className="text-gray-500 text-sm mt-1">ลองเปลี่ยนคำค้นหาหรือตัวกรองสถานะ</p>
           </div>

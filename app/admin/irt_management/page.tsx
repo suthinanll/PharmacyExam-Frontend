@@ -19,6 +19,7 @@ import Swal from "@/utils/sweetalert";
 import { useAuth } from "@/contexts/AuthContext";
 import Pagination from "@/components/Pagination";
 import { sanitizeHtml } from "@/utils/sanitize";
+import SuggestInput from '@/components/SuggestInput';
 
 // ======================== TYPES ========================
 interface AnswerOption { option_id: number; option_text: string; is_correct: boolean; }
@@ -797,7 +798,7 @@ export default function IRTManagementPage() {
                                         <option key={b.item_bank_id} value={b.item_bank_id}>{b.bank_name}</option>
                                     ))}
                                 </select>
-                                <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                <ChevronDown size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
                             </div>
                         </div>
 
@@ -805,24 +806,24 @@ export default function IRTManagementPage() {
                         <div className="flex gap-4 sm:gap-6 shrink-0 pt-1 sm:pt-5">
                             <div className="text-center">
                                 <p className="text-xl font-medium text-gray-900">{bankItems.length}</p>
-                                <p className="text-sm text-gray-400">ทั้งหมด</p>
+                                <p className="text-sm text-gray-600">ทั้งหมด</p>
                             </div>
                             <div className="w-px bg-gray-100" />
                             <div className="text-center">
                                 <p className="text-xl font-medium text-green-600">{calibratedCount}</p>
-                                <p className="text-sm text-gray-400">ระบุ IRT แล้ว</p>
+                                <p className="text-sm text-gray-600">ระบุ IRT แล้ว</p>
                             </div>
                             <div className="w-px bg-gray-100" />
                             <div className="text-center">
                                 <p className="text-xl font-medium text-amber-500">{uncalibratedCount}</p>
-                                <p className="text-sm text-gray-400">ยังไม่ระบุ</p>
+                                <p className="text-sm text-gray-600">ยังไม่ระบุ</p>
                             </div>
                             <div className="w-px bg-gray-100" />
                             <div className="text-center">
                                 {isReady
                                     ? <p className="text-sm font-medium text-green-600 bg-green-50 px-2 py-1 rounded-lg mt-0.5">พร้อมสอบ CAT</p>
                                     : <p className="text-sm font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-lg mt-0.5">ต้องการอีก {Math.max(0, 20 - calibratedCount)} ข้อ</p>}
-                                <p className="text-sm text-gray-400 mt-0.5">สถานะคลัง</p>
+                                <p className="text-sm text-gray-600 mt-0.5">สถานะคลัง</p>
                             </div>
                         </div>
 
@@ -835,7 +836,7 @@ export default function IRTManagementPage() {
                             >
                                 <SlidersHorizontal size={14} className="text-gray-600" />
                                 <span className='text-sm'>เครื่องมือจัดการ</span>
-                                <ChevronDown size={14} className={`text-gray-400 transition-transform duration-200 ${showActionMenu ? 'rotate-180' : ''}`} />
+                                <ChevronDown size={14} className={`text-gray-600 transition-transform duration-200 ${showActionMenu ? 'rotate-180' : ''}`} />
                             </button>
 
                             {/* Dropdown Menu */}
@@ -910,10 +911,14 @@ export default function IRTManagementPage() {
                         {/* Search */}
                         <div className="relative">
                             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                            <input
-                                type="text" placeholder="ค้นหาข้อสอบ..." value={searchTerm}
+                            <SuggestInput
+                                placeholder="ค้นหาข้อสอบ..." value={searchTerm}
                                 aria-label="ค้นหาข้อสอบ"
-                                onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                onValueChange={v => { setSearchTerm(v); setCurrentPage(1); }}
+                                suggestions={[
+                                    ...bankItems.map(item => item.item_bank?.bank_name),
+                                    ...bankItems.map(item => stripHTML(item.question_text).slice(0, 120)),
+                                ]}
                                 className="pl-8 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 w-52"
                             />
                         </div>
@@ -950,7 +955,7 @@ export default function IRTManagementPage() {
                                 <option value="hard">ยาก ({difficultyCounts.hard})</option>
                                 <option value="very_hard">ยากมาก ({difficultyCounts.very_hard})</option>
                             </select>
-                            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
                         </div>
 
                         {/* Sort */}
@@ -1007,7 +1012,7 @@ export default function IRTManagementPage() {
                                 <>
                                     <span className="text-gray-300 text-sm">|</span>
                                     <button onClick={() => setCheckedIds(new Set())}
-                                        className="text-sm text-gray-400 hover:text-gray-600 font-medium cursor-pointer">
+                                        className="text-sm text-gray-600 hover:text-gray-600 font-medium cursor-pointer">
                                         ล้าง
                                     </button>
                                 </>
@@ -1097,7 +1102,7 @@ export default function IRTManagementPage() {
                                 <tbody className="divide-y divide-gray-100">
                                     {currentItems.length === 0 ? (
                                         <tr>
-                                            <td colSpan={9} className="py-16 text-center text-gray-400 text-sm">
+                                            <td colSpan={9} className="py-16 text-center text-gray-600 text-sm">
                                                 ไม่พบข้อสอบ
                                             </td>
                                         </tr>
@@ -1161,7 +1166,7 @@ export default function IRTManagementPage() {
                                                                     type="button"
                                                                     onClick={() => handleResetSingleToNull(item)}
                                                                     aria-label={`ล้างค่า IRT ข้อสอบ #${item.item_id}`}
-                                                                    className="p-1.5 hover:bg-rose-50 rounded-lg text-gray-400 hover:text-rose-600 transition-colors cursor-pointer"
+                                                                    className="p-1.5 hover:bg-rose-50 rounded-lg text-gray-600 hover:text-rose-600 transition-colors cursor-pointer"
                                                                     title="ล้างค่า IRT (กลับเป็น null)"
                                                                 >
                                                                     <RotateCcw size={14} />
@@ -1198,7 +1203,7 @@ export default function IRTManagementPage() {
                                                     onChange={() => toggleCheck(item.item_id)}
                                                     className="w-4 h-4 rounded border-gray-300 text-blue-600 accent-blue-600"
                                                 />
-                                                <span className="text-sm text-gray-400">#{item.item_id}</span>
+                                                <span className="text-sm text-gray-600">#{item.item_id}</span>
                                                 <span className="text-sm font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-md truncate max-w-[120px]">
                                                     {item.item_bank?.bank_name}
                                                 </span>
@@ -1210,13 +1215,13 @@ export default function IRTManagementPage() {
                                         <div className="flex items-center justify-between">
                                             <div className="flex gap-3">
                                                 <div>
-                                                    <p className="text-sm text-gray-400 mb-0.5">อำนาจจำแนก a</p>
+                                                    <p className="text-sm text-gray-600 mb-0.5">อำนาจจำแนก a</p>
                                                     <p className="text-sm font-medium" style={{ color: '#3b82f6' }}>
                                                         {item.irt_a_discrimination !== null ? `${item.irt_a_discrimination > 0 ? '+' : ''}${item.irt_a_discrimination.toFixed(2)}` : '—'}
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm text-gray-400 mb-0.5">ความยาก b</p>
+                                                    <p className="text-sm text-gray-600 mb-0.5">ความยาก b</p>
                                                     <p className="text-sm font-medium" style={{ color: '#7c3aed' }}>
                                                         {item.irt_b_difficulty !== null ? `${item.irt_b_difficulty > 0 ? '+' : ''}${item.irt_b_difficulty.toFixed(2)}` : '—'}
                                                     </p>
@@ -1293,7 +1298,7 @@ export default function IRTManagementPage() {
                                     type="button"
                                     onClick={() => setShowEditModal(false)}
                                     aria-label="ปิดหน้าต่างแก้ไขพารามิเตอร์ IRT"
-                                    className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
+                                    className="text-gray-600 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
                                 >
                                     <X size={18} />
                                 </button>
@@ -1303,7 +1308,7 @@ export default function IRTManagementPage() {
                         <div className="px-6 py-5 space-y-6 flex-1">
                             {/* Question preview */}
                             <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                <p className="text-sm font-medium text-gray-400  mb-2">คำถาม</p>
+                                <p className="text-sm font-medium text-gray-600  mb-2">คำถาม</p>
                                 <div className="text-sm text-gray-700 leading-relaxed line-clamp-4"
                                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(editItem.question_text) }} />
                             </div>
@@ -1420,7 +1425,7 @@ export default function IRTManagementPage() {
                                 type="button"
                                 onClick={() => setShowBulkModal(false)}
                                 aria-label="ปิดหน้าต่างตั้งค่า IRT พร้อมกัน"
-                                className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
+                                className="text-gray-600 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
                             >
                                 <X size={18} />
                             </button>
@@ -1508,7 +1513,7 @@ export default function IRTManagementPage() {
                                 type="button"
                                 onClick={() => setShowTIF(false)}
                                 aria-label="ปิดหน้าต่าง TIF"
-                                className="text-gray-400 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
+                                className="text-gray-600 hover:text-gray-600 p-1 hover:bg-gray-100 rounded-lg transition-all cursor-pointer"
                             >
                                 <X size={18} />
                             </button>
@@ -1569,7 +1574,7 @@ export default function IRTManagementPage() {
                                 type="button"
                                 onClick={() => setShowAutoCalibModal(false)}
                                 aria-label="ปิดหน้าต่าง Auto-Calibrate"
-                                className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
+                                className="text-gray-600 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
                             >
                                 <X size={20} />
                             </button>
@@ -1587,14 +1592,14 @@ export default function IRTManagementPage() {
                                     {/* Stats & Guide banner */}
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 flex items-center gap-3">
-                                            <div className="text-2xl font-black text-amber-700">{autoCalibData.total_sessions}</div>
+                                            <div className="text-2xl font-medium text-amber-700">{autoCalibData.total_sessions}</div>
                                             <div className="text-sm text-amber-900">
                                                 <p className="font-medium">Sessions ที่นำมาวิเคราะห์</p>
                                                 <p className="text-amber-700/80">การสอบปกติที่มีการส่งคำตอบแล้ว</p>
                                             </div>
                                         </div>
                                         <div className="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-4 flex items-center gap-3">
-                                            <div className="text-2xl font-black text-blue-700">{autoCalibData.total_items}</div>
+                                            <div className="text-2xl font-medium text-blue-700">{autoCalibData.total_items}</div>
                                             <div className="text-sm text-blue-900">
                                                 <p className="font-medium">จำนวนข้อสอบทั้งหมด</p>
                                                 <p className="text-blue-700/80">
@@ -1603,7 +1608,7 @@ export default function IRTManagementPage() {
                                             </div>
                                         </div>
                                         <div className="bg-green-50/70 border border-green-200/80 rounded-2xl p-4 flex items-center gap-3">
-                                            <div className="text-2xl font-black text-green-700">
+                                            <div className="text-2xl font-medium text-green-700">
                                                 {autoCalibSelected.size}
                                             </div>
                                             <div className="text-sm text-green-900">
@@ -1622,17 +1627,17 @@ export default function IRTManagementPage() {
                                             <div className="bg-white p-2.5 rounded-xl border border-slate-200/60">
                                                 <span className="font-medium text-gray-800">1. ความยาก (b):</span><br />
                                                 <span className="text-gray-500  text-sm">b ≈ ln((1 - p) / p)</span><br />
-                                                <span className="text-sm text-gray-400">จากค่า p-value สัดส่วนคนตอบถูก</span>
+                                                <span className="text-sm text-gray-600">จากค่า p-value สัดส่วนคนตอบถูก</span>
                                             </div>
                                             <div className="bg-white p-2.5 rounded-xl border border-slate-200/60">
                                                 <span className="font-medium text-gray-800">2. อำนาจจำแนก (a):</span><br />
                                                 <span className="text-gray-500  text-sm">a ≈ 1.7 · r_pb / √(1 - r_pb²)</span><br />
-                                                <span className="text-sm text-gray-400">จาก Point-Biserial Correlation (r_pb)</span>
+                                                <span className="text-sm text-gray-600">จาก Point-Biserial Correlation (r_pb)</span>
                                             </div>
                                             <div className="bg-white p-2.5 rounded-xl border border-slate-200/60">
                                                 <span className="font-medium text-gray-800">3. การเดา (c):</span><br />
                                                 <span className="text-gray-500  text-sm">c = 0.20</span><br />
-                                                <span className="text-sm text-gray-400">ค่ามาตรฐานสำหรับ 5 ตัวเลือก</span>
+                                                <span className="text-sm text-gray-600">ค่ามาตรฐานสำหรับ 5 ตัวเลือก</span>
                                             </div>
                                         </div>
                                     </div>
@@ -1744,7 +1749,7 @@ export default function IRTManagementPage() {
                                                                         {stripHTML(item.question_text) || '—'}
                                                                     </td>
                                                                     <td className="p-3 text-center font-medium text-gray-700">
-                                                                        {item.attempts} <span className="text-sm text-gray-400 font-normal">({item.correct_count} ถูก)</span>
+                                                                        {item.attempts} <span className="text-sm text-gray-600 font-normal">({item.correct_count} ถูก)</span>
                                                                     </td>
                                                                     <td className="p-3 text-center">
                                                                         <span className={`px-2 py-0.5 rounded  font-medium ${item.p_value >= 0.8 ? 'bg-green-100 text-green-700' : item.p_value <= 0.3 ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'}`}>
@@ -1768,7 +1773,7 @@ export default function IRTManagementPage() {
                                                                                 a={item.estimated_a.toFixed(2)}, b={item.estimated_b > 0 ? `+${item.estimated_b.toFixed(2)}` : item.estimated_b.toFixed(2)}, c={item.estimated_c.toFixed(2)}
                                                                             </span>
                                                                         ) : (
-                                                                            <span className="text-gray-400 font-normal">ไม่มีข้อมูลสอบ</span>
+                                                                            <span className="text-gray-600 font-normal">ไม่มีข้อมูลสอบ</span>
                                                                         )}
                                                                     </td>
                                                                     <td className="p-3 text-center">
@@ -1845,7 +1850,7 @@ export default function IRTManagementPage() {
                                 type="button"
                                 onClick={() => setShowImportModal(false)}
                                 aria-label="ปิดหน้าต่างนำเข้าพารามิเตอร์ IRT"
-                                className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
+                                className="text-gray-600 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
                             >
                                 <X size={20} />
                             </button>

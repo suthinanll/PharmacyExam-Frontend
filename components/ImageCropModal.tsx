@@ -129,7 +129,7 @@ export default function ImageCropModal({ imageSrc, onCancel, onConfirm, isSaving
                         type="button"
                         onClick={onCancel}
                         disabled={isSaving}
-                        className="rounded-lg p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50 cursor-pointer"
+                        className="rounded-lg p-1 text-gray-600 transition hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50 cursor-pointer"
                         aria-label="ปิด"
                     >
                         <X className="h-5 w-5" />
@@ -138,7 +138,7 @@ export default function ImageCropModal({ imageSrc, onCancel, onConfirm, isSaving
 
                 <div className="flex flex-col items-center gap-4 px-5 py-5">
                     <div
-                        className="relative overflow-hidden rounded-xl bg-gray-900 select-none"
+                        className="relative overflow-hidden rounded-xl bg-gray-900 dark:bg-black select-none"
                         style={{ width: VIEWPORT, height: VIEWPORT, touchAction: "none", cursor: natural ? "grab" : "default" }}
                         onPointerDown={onPointerDown}
                         onPointerMove={onPointerMove}
@@ -206,7 +206,7 @@ export default function ImageCropModal({ imageSrc, onCancel, onConfirm, isSaving
                         type="button"
                         onClick={handleConfirm}
                         disabled={!natural || isSaving}
-                        className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-50 cursor-pointer"
+                        className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary-hover disabled:opacity-50 cursor-pointer"
                     >
                         {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
                         ใช้รูปนี้

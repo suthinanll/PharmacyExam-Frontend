@@ -64,7 +64,7 @@ function ItemDetailModal({
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                     <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold">
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium">
                             {item.display_order}
                         </span>
                         <h2 className="text-base font-medium text-gray-800">รายละเอียดข้อสอบ</h2>
@@ -72,7 +72,7 @@ function ItemDetailModal({
                     <button
                         onClick={onClose}
                         aria-label="ปิดหน้าต่างรายละเอียดข้อสอบ"
-                        className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                        className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition-colors"
                     >
                         <XCircle className="w-5 h-5" />
                     </button>
@@ -118,7 +118,7 @@ function ItemDetailModal({
                             }
                         ].map((s) => (
                             <div key={s.label} className={`rounded-xl border p-3 text-center ${s.color}`}>
-                                <div className="text-base font-bold">{s.value}</div>
+                                <div className="text-base font-medium">{s.value}</div>
                                 <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
                             </div>
                         ))}
@@ -134,7 +134,7 @@ function ItemDetailModal({
                             { label: 'เวลาเฉลี่ย/ข้อ', value: formatTimeSpent(item.avg_time_seconds), color: 'bg-amber-50 border-amber-200' },
                         ].map((s) => (
                             <div key={s.label} className={`rounded-xl border p-3 text-center ${s.color}`}>
-                                <div className="text-base font-bold text-gray-800">{s.value}</div>
+                                <div className="text-base font-medium text-gray-800">{s.value}</div>
                                 <div className="text-xs text-gray-500 mt-0.5">{s.label}</div>
                             </div>
                         ))}
@@ -147,7 +147,7 @@ function ItemDetailModal({
                             ผู้ที่ตอบข้อนี้ผิด ({item.wrong_users?.length ?? 0} คน)
                         </p>
                         {!item.wrong_users?.length ? (
-                            <p className="text-sm text-gray-400">ไม่มีข้อมูล</p>
+                            <p className="text-sm text-gray-600">ไม่มีข้อมูล</p>
                         ) : (
                             <div className="flex flex-wrap gap-2">
                                 {item.wrong_users.map((u) => (
@@ -450,7 +450,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
             </Link>
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div className="space-y-1">
-                    <h1 className="text-2xl md:text-3xl font-medium text-gray-900">
+                    <h1 className="text-2xl sm:text-3xl font-medium text-gray-900">
                         {item_bank.name}
                     </h1>
                     <p className="text-sm text-gray-500 leading-relaxed max-w-2xl">{item_bank.description || 'ไม่มีคำอธิบายชุดข้อสอบ'}</p>
@@ -469,7 +469,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                         >
                             <Settings className="w-4 h-4 text-gray-500" />
                             <span>ตั้งค่า</span>
-                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isSettingsMenuOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform duration-200 ${isSettingsMenuOpen ? 'rotate-180' : ''}`} />
                         </button>
 
                         {isSettingsMenuOpen && (
@@ -677,14 +677,14 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                             </span>
                                         ))
                                     ) : (
-                                        <span className="text-gray-400 text-sm italic">ไม่ได้ระบุประเภทข้อสอบ</span>
+                                        <span className="text-gray-600 text-sm italic">ไม่ได้ระบุประเภทข้อสอบ</span>
                                     )}
                                 </div>
                             </div>
                             <div className="flex justify-between items-center text-md pt-2 border-t border-gray-50 mt-2">
                                 <span className="text-gray-600 font-medium">สถานะ</span>
                                 <div className="flex items-center gap-2">
-                                    <span className={`text-xs font-medium ${item_bank.is_active ? 'text-green-600' : 'text-gray-400'}`}>
+                                    <span className={`text-xs font-medium ${item_bank.is_active ? 'text-green-600' : 'text-gray-600'}`}>
                                         {item_bank.is_active ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}
                                     </span>
                                     <button
@@ -732,9 +732,9 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                         </div>
 
                         {!hasAnalytics ? (
-                            <div className="py-8 text-center text-gray-400 text-sm bg-gray-50/60 rounded-xl border border-dashed border-gray-200">
+                            <div className="py-8 text-center text-gray-600 text-sm bg-gray-50/60 rounded-xl border border-dashed border-gray-200">
                                 <p>ยังไม่มีข้อมูลสถิติรายข้อ</p>
-                                <p className="text-xs text-gray-400 mt-1">จะแสดงผลอัตโนมัติเมื่อมีผู้เข้าสอบส่งข้อสอบเรียบร้อยแล้ว</p>
+                                <p className="text-xs text-gray-600 mt-1">จะแสดงผลอัตโนมัติเมื่อมีผู้เข้าสอบส่งข้อสอบเรียบร้อยแล้ว</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -771,7 +771,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                                     >
                                                         <div className="flex items-start justify-between gap-2">
                                                             <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                                                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-100 text-rose-700 text-sm font-bold shrink-0">
+                                                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-rose-100 text-rose-700 text-sm font-medium shrink-0">
                                                                     {globalRank}
                                                                 </span>
                                                                 <span className="text-xs font-medium text-gray-700 shrink-0">
@@ -781,7 +781,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                                                     {cleanQuestionText(item.question_text) || 'ไม่มีข้อความคำถาม'}
                                                                 </p>
                                                             </div>
-                                                            <span className="text-xs font-bold text-rose-600 shrink-0">
+                                                            <span className="text-xs font-medium text-rose-600 shrink-0">
                                                                 {item.error_rate}%
                                                             </span>
                                                         </div>
@@ -868,7 +868,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                                     >
                                                         <div className="flex items-start justify-between gap-2">
                                                             <div className="flex items-center gap-1.5 flex-1 min-w-0">
-                                                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-sm font-bold shrink-0">
+                                                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-100 text-amber-700 text-sm font-medium shrink-0">
                                                                     {globalRank}
                                                                 </span>
                                                                 <span className="text-xs font-medium text-gray-700 shrink-0">
@@ -878,7 +878,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                                                     {cleanQuestionText(item.question_text) || 'ไม่มีข้อความคำถาม'}
                                                                 </p>
                                                             </div>
-                                                            <span className="text-xs font-bold text-amber-700 shrink-0">
+                                                            <span className="text-xs font-medium text-amber-700 shrink-0">
                                                                 {formatTimeSpent(item.avg_time_seconds)}
                                                             </span>
                                                         </div>
@@ -956,7 +956,7 @@ export default function DashboardView({ itemBankId, onManageExams, onUpdate }: D
                                 if (completedActivities.length === 0) {
                                     return (
                                         <tr>
-                                            <td colSpan={4} className="py-8 text-center text-gray-400 text-sm">
+                                            <td colSpan={4} className="py-8 text-center text-gray-600 text-sm">
                                                 ไม่มีข้อมูลกิจกรรมล่าสุดในขณะนี้
                                             </td>
                                         </tr>

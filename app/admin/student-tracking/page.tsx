@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Pagination from "@/components/Pagination";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import SuggestInput from '@/components/SuggestInput';
 import {
   LineChart,
   Line,
@@ -292,15 +293,16 @@ export default function StudentTrackingPage() {
           <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-4 order-1">
             {/* Search bar */}
             <div className="relative">
-              <Search className="absolute left-3 top-3.5 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
+              <Search className="absolute left-3 top-3.5 w-4 h-4 text-gray-600" />
+              <SuggestInput
                 placeholder="ค้นหาชื่อหรืออีเมลนักเรียน..."
+                aria-label="ค้นหาชื่อหรืออีเมลนักเรียน"
                 value={searchQuery}
-                onChange={(event) => {
-                  setSearchQuery(event.target.value);
+                onValueChange={(v) => {
+                  setSearchQuery(v);
                   setPage(1);
                 }}
+                suggestions={students.flatMap((student) => [student.name, student.email])}
                 className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all"
               />
             </div>
@@ -309,7 +311,7 @@ export default function StudentTrackingPage() {
             <div className="space-y-3 pb-3 border-b border-gray-100">
               {/* Alphabet filter */}
               <div>
-                <label className="text-sm font-medium text-gray-400  mb-2 block">ตัวอักษร</label>
+                <label className="text-sm font-medium text-gray-600  mb-2 block">ตัวอักษร</label>
                 <div className="flex gap-1 flex-wrap">
                   <button
                     onClick={() => { setAlphabetFilter("all"); setPage(1); }}
@@ -337,7 +339,7 @@ export default function StudentTrackingPage() {
 
               {/* Date filter */}
               <div>
-                <label className="text-sm font-medium text-gray-400  mb-2 block">ทำข้อสอบล่าสุด</label>
+                <label className="text-sm font-medium text-gray-600  mb-2 block">ทำข้อสอบล่าสุด</label>
                 <div className="flex gap-2">
                   {[
                     { value: "all", label: "ทั้งหมด" },
@@ -362,7 +364,7 @@ export default function StudentTrackingPage() {
 
             {/* กล่องรายชื่อนักเรียนแบบเลื่อนได้ */}
             <div className="space-y-2 h-[320px] sm:h-[450px] lg:h-[480px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200">
-              <p className="text-sm font-medium text-gray-400  px-1 sticky top-0 bg-white pb-2 z-10">
+              <p className="text-sm font-medium text-gray-600  px-1 sticky top-0 bg-white pb-2 z-10">
                 รายชื่อนักเรียน ({meta.totalItems})
               </p>
 
@@ -371,7 +373,7 @@ export default function StudentTrackingPage() {
                   <LoadingSpinner size="md" text="กำลังโหลดรายชื่อนักเรียน..." />
                 </div>
               ) : students.length === 0 ? (
-                <p className="text-sm text-gray-400 text-center py-8">ไม่พบรายชื่อดังกล่าว</p>
+                <p className="text-sm text-gray-600 text-center py-8">ไม่พบรายชื่อดังกล่าว</p>
               ) : (
                 students.map((student) => (
                   <div
@@ -394,7 +396,7 @@ export default function StudentTrackingPage() {
                       </div>
                       <div className="min-w-0">
                         <h4 className="text-sm font-medium text-gray-800 truncate">{student.name}</h4>
-                        <p className="text-sm text-gray-400 truncate">{student.email}</p>
+                        <p className="text-sm text-gray-600 truncate">{student.email}</p>
                       </div>
                     </div>
                     <ChevronRight
@@ -437,25 +439,25 @@ export default function StudentTrackingPage() {
                 {/* แผงข้อมูลสถิติภาพรวม (สลับเป็น grid-cols-1 บนโมบายล์เพื่อไม่ให้บีบอัด) */}
                 <div className="bg-white p-4 sm:p-6 rounded-2xl border border-gray-100 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="pb-3 sm:pb-0 border-b sm:border-b-0 border-gray-100">
-                    <p className="text-sm font-medium text-gray-400">ผู้เรียนปัจจุบัน</p>
-                    <h3 className="text-base sm:text-lg font-black text-gray-800 mt-1 truncate">
+                    <p className="text-sm font-medium text-gray-600">ผู้เรียนปัจจุบัน</p>
+                    <h3 className="text-base sm:text-lg font-medium text-gray-800 mt-1 truncate">
                       {selectedStudent.name}
                     </h3>
                     <p className="text-sm text-gray-500 truncate">{selectedStudent.email}</p>
                   </div>
                   <div className="flex flex-col justify-center pb-3 sm:pb-0 border-b sm:border-b-0 sm:border-l sm:pl-4 border-gray-100">
-                    <p className="text-sm font-medium text-gray-400 flex items-center gap-1">
+                    <p className="text-sm font-medium text-gray-600 flex items-center gap-1">
                       <Award className="w-3.5 h-3.5 text-amber-500" /> ระดับความสามารถ CAT (θ)
                     </p>
-                    <h3 className={`text-xl sm:text-2xl font-black mt-1 ${activeData.currentTheta >= 0 ? "text-green-600" : "text-rose-600"}`}>
+                    <h3 className={`text-xl sm:text-2xl font-medium mt-1 ${activeData.currentTheta >= 0 ? "text-green-600" : "text-rose-600"}`}>
                       {activeData.currentTheta > 0 ? `+${activeData.currentTheta}` : activeData.currentTheta}
                     </h3>
                   </div>
                   <div className="flex flex-col justify-center sm:border-l sm:pl-4 border-gray-100">
-                    <p className="text-sm font-medium text-gray-400 flex items-center gap-1">
+                    <p className="text-sm font-medium text-gray-600 flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5 text-indigo-500" /> ประวัติทดสอบรวม
                     </p>
-                    <h3 className="text-xl sm:text-2xl font-black text-gray-800 mt-1">
+                    <h3 className="text-xl sm:text-2xl font-medium text-gray-800 mt-1">
                       {activeData.totalExams} <span className="text-sm font-normal text-gray-500">ครั้ง</span>
                     </h3>
                   </div>
@@ -493,7 +495,7 @@ export default function StudentTrackingPage() {
                       </h3>
                     </div>
                     {tabChartData.length > 0 && (
-                      <span className="text-xs text-gray-400">ประวัติสอบ {tabChartData.length} ครั้ง</span>
+                      <span className="text-xs text-gray-600">ประวัติสอบ {tabChartData.length} ครั้ง</span>
                     )}
                   </div>
 
@@ -560,7 +562,7 @@ export default function StudentTrackingPage() {
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-sm text-gray-400">
+                      <div className="h-full flex items-center justify-center text-sm text-gray-600">
                         {activeTab === "CAT" ? "ยังไม่มีประวัติการสอบ CAT ของผู้เรียนรายนี้" : "ยังไม่มีประวัติการสอบปกติของผู้เรียนรายนี้"}
                       </div>
                     )}
@@ -590,7 +592,7 @@ export default function StudentTrackingPage() {
                     {/* ─── เรนเดอร์ฝั่ง CAT Mode ─── */}
                     {activeTab === "CAT" && (
                       activeData.catExams.length === 0 ? (
-                        <p className="text-sm text-gray-400 text-center py-8">ไม่มีประวัติสอบ CAT ของผู้เรียนรายนี้</p>
+                        <p className="text-sm text-gray-600 text-center py-8">ไม่มีประวัติสอบ CAT ของผู้เรียนรายนี้</p>
                       ) : (
                         activeData.catExams.map((exam, index) => {
                           const isExpanded = expandedCatExam === exam.id;
@@ -609,9 +611,9 @@ export default function StudentTrackingPage() {
                               >
                                 <span className="font-medium text-gray-800 break-words flex items-center gap-2">
                                   {exam.name}
-                                  <span className="font-normal text-gray-400">({exam.correctCount}/{exam.totalQuestions} ข้อ • {accuracy}%)</span>
+                                  <span className="font-normal text-gray-600">({exam.correctCount}/{exam.totalQuestions} ข้อ • {accuracy}%)</span>
                                   <ChevronDown
-                                    className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                                    className={`w-4 h-4 text-gray-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                                   />
                                 </span>
                                 <span className={`font-medium px-2 py-0.5 rounded-md text-sm self-start sm:self-auto whitespace-nowrap mb-2 ${getStatusColor(exam.status)}`}>
@@ -626,12 +628,12 @@ export default function StudentTrackingPage() {
                                   style={{ width: `${calculateThetaProgress(exam.theta)}%` }}
                                 />
                               </div>
-                              <div className="flex justify-between text-sm text-gray-400 font-medium">
+                              <div className="flex justify-between text-sm text-gray-600 font-medium">
                                 <span>ต้องปรับปรุง (&lt; -1.0)</span>
                                 <span>ปานกลาง</span>
                                 <span>ระดับสูง (&gt; 1.0)</span>
                               </div>
-                              <p className="text-sm text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
+                              <p className="text-sm text-gray-600 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
 
                               {/* Expanded responses */}
                               {isExpanded && exam.responses && exam.responses.length > 0 && (
@@ -695,7 +697,7 @@ export default function StudentTrackingPage() {
                     {/* ─── เรนเดอร์ฝั่ง Classical Mode (สอบปกติ) ─── */}
                     {activeTab === "NORMAL" && (
                       activeData.normalExams.length === 0 ? (
-                        <p className="text-sm text-gray-400 text-center py-8">ไม่มีประวัติสอบปกติของผู้เรียนรายนี้</p>
+                        <p className="text-sm text-gray-600 text-center py-8">ไม่มีประวัติสอบปกติของผู้เรียนรายนี้</p>
                       ) : (
                         activeData.normalExams.map((exam, index) => (
                           <div key={exam.id} className="space-y-2">
@@ -704,12 +706,12 @@ export default function StudentTrackingPage() {
                               <span className="font-medium text-gray-800 break-words">
                                 {exam.name}{" "}
                                 {exam.totalQuestions > 0 && (
-                                  <span className="font-normal text-gray-400 block sm:inline">
+                                  <span className="font-normal text-gray-600 block sm:inline">
                                     ({exam.correctCount}/{exam.totalQuestions} ข้อ)
                                   </span>
                                 )}
                               </span>
-                              <span className="font-black text-indigo-600 text-right whitespace-nowrap shrink-0">
+                              <span className="font-medium text-indigo-600 text-right whitespace-nowrap shrink-0">
                                 {Number(exam.score).toFixed(2)} / {exam.total} คะแนน
                               </span>
                             </div>
@@ -719,7 +721,7 @@ export default function StudentTrackingPage() {
                                 style={{ width: `${(exam.score / exam.total) * 100}%` }}
                               />
                             </div>
-                            <p className="text-sm text-gray-400 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
+                            <p className="text-sm text-gray-600 text-right">วันที่ทำรายการล่าสุด: {exam.date}</p>
                           </div>
                         ))
                       )
@@ -729,7 +731,7 @@ export default function StudentTrackingPage() {
 
               </div>
             ) : (
-              <div className="bg-white p-8 sm:p-12 text-center rounded-2xl border border-gray-100 text-gray-400 text-sm sm:text-sm">
+              <div className="bg-white p-8 sm:p-12 text-center rounded-2xl border border-gray-100 text-gray-600 text-sm sm:text-sm">
                 {isProgressLoading ? (
                   <LoadingSpinner size="md" text="กำลังโหลดผลการเรียน..." />
                 ) : (

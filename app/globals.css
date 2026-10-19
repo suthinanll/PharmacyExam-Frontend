@@ -1,10 +1,273 @@
 @import "tailwindcss";
+/* สีโหมดมืดของคลาสสีเดิมในหน้าฝั่งผู้ใช้ (สร้างด้วย scripts/gen-dark-overrides.mjs) */
+@import "./styles/dark-overrides.css";
 /* CSS ของ SweetAlert2 ไม่ import ที่นี่ จะมาพร้อมตัวไลบรารีตอนเปิด popup (utils/sweetalert-impl.ts)
    ถ้า import ที่นี่จะถูกรวมเข้า CSS หลักที่ทุกหน้าต้องโหลดก่อนวาด */
+
+/* ════════════════════════════════════════════════════════════════════════════
+   ธีมและขนาดตัวอักษร (ฝั่งผู้ใช้)
+   class "dark" และ data-font-size ที่ <html> ถูกใส่เฉพาะตอนอยู่หน้า /user
+   (components/ThemeScript.tsx + contexts/ThemeContext.tsx) หน้าแอดมินจึงไม่ได้รับผล
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* dark:xxx ทำงานเมื่อมี .dark ครอบอยู่ — ใช้ :is() ให้เจาะจงกว่ากฎใน dark-overrides.css
+   คลาส dark: ที่เขียนเองในคอมโพเนนต์จึงชนะสีที่ระบบแปลงให้อัตโนมัติเสมอ */
+@custom-variant dark (&:is(.dark *));
+
+/* ชุดสีของระบบ — ใช้เป็นคลาสได้ เช่น bg-primary, text-fg-muted, border-line
+   ค่าด้านล่างคือโหมดสว่าง ส่วนโหมดมืดสลับค่าใน .dark ข้างล่าง */
+@theme {
+  /* สีหลัก เขียว lime-600 ตัวหนังสือขาว */
+  --color-primary: #5ea500;
+  --color-primary-hover: #497d00;
+  --color-on-primary: #ffffff;
+  --color-primary-soft: #f7fee7;
+  /* สีรอง น้ำเงิน blue-600 */
+  --color-secondary: #155dfc;
+  --color-secondary-hover: #1447e6;
+  --color-link: #155dfc;
+  /* แถบเมนูด้านบนและ footer */
+  --color-nav: #5ea500;
+  --color-nav-active: #497d00;
+  /* พื้นและตัวหนังสือ */
+  --color-page: #f9fafb;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f4f6;
+  --color-line: #e5e7eb;
+  --color-fg: #1f2937;
+  --color-fg-muted: #4b5563;
+  /* สถานะ: พื้นพาสเทล ตัวหนังสือเข้ม */
+  --color-success-bg: #b9f8cf;
+  --color-success-fg: #016630;
+  --color-danger-bg: #ffc9c9;
+  --color-danger-fg: #9f0712;
+  --color-warning-bg: #fef9c2;
+  --color-warning-fg: #894b00;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --color-primary-hover: #497d00;
+  --color-primary-soft: #192e03;
+  --color-secondary: #155dfc;
+  --color-link: #51a2ff;
+  --color-nav: #1e293b; /* แถบเมนูและ footer เป็นสีกรมเข้มเดียวกับการ์ด ไม่ใช้สีเขียว */
+  --color-nav-active: #334155;
+  --color-page: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-muted: #273449;
+  --color-line: #334155;
+  --color-fg: #e2e8f0;
+  --color-fg-muted: #94a3b8;
+  --color-success-bg: #0d542b;
+  --color-success-fg: #dcfce7;
+  --color-danger-bg: #82181a;
+  --color-danger-fg: #ffe2e2;
+  --color-warning-bg: #733e0a;
+  --color-warning-fg: #fefce8;
+
+  /* วิธี A: สลับเฉดสีเทาทั้งชุด (อ่อน ↔ เข้ม)
+     หน้าเดิมใช้ bg-gray-50 เป็นพื้น และ text-gray-800 เป็นตัวหนังสือ จึงกลับด้านให้อัตโนมัติ */
+  --dark-gray-50: #0f172a;
+  --dark-gray-100: #273449;
+  --dark-gray-200: #334155;
+  --dark-gray-300: #475569;
+  --dark-gray-400: #7c8aa0;
+  --dark-gray-500: #94a3b8;
+  --dark-gray-600: #a8b4c6;
+  --dark-gray-700: #cbd5e1;
+  --dark-gray-800: #e2e8f0;
+  --dark-gray-900: #f1f5f9;
+  --dark-gray-950: #f8fafc;
+
+  --color-gray-50: var(--dark-gray-50);
+  --color-gray-100: var(--dark-gray-100);
+  --color-gray-200: var(--dark-gray-200);
+  --color-gray-300: var(--dark-gray-300);
+  --color-gray-400: var(--dark-gray-400);
+  --color-gray-500: var(--dark-gray-500);
+  --color-gray-600: var(--dark-gray-600);
+  --color-gray-700: var(--dark-gray-700);
+  --color-gray-800: var(--dark-gray-800);
+  --color-gray-900: var(--dark-gray-900);
+  --color-gray-950: var(--dark-gray-950);
+
+  --color-slate-50: var(--dark-gray-50);
+  --color-slate-100: var(--dark-gray-100);
+  --color-slate-200: var(--dark-gray-200);
+  --color-slate-300: var(--dark-gray-300);
+  --color-slate-400: var(--dark-gray-400);
+  --color-slate-500: var(--dark-gray-500);
+  --color-slate-600: var(--dark-gray-600);
+  --color-slate-700: var(--dark-gray-700);
+  --color-slate-800: var(--dark-gray-800);
+  --color-slate-900: var(--dark-gray-900);
+  --color-slate-950: var(--dark-gray-950);
+
+  --color-zinc-50: var(--dark-gray-50);
+  --color-zinc-100: var(--dark-gray-100);
+  --color-zinc-200: var(--dark-gray-200);
+  --color-zinc-300: var(--dark-gray-300);
+  --color-zinc-400: var(--dark-gray-400);
+  --color-zinc-500: var(--dark-gray-500);
+  --color-zinc-600: var(--dark-gray-600);
+  --color-zinc-700: var(--dark-gray-700);
+  --color-zinc-800: var(--dark-gray-800);
+  --color-zinc-900: var(--dark-gray-900);
+
+  --color-neutral-50: var(--dark-gray-50);
+  --color-neutral-100: var(--dark-gray-100);
+  --color-neutral-200: var(--dark-gray-200);
+  --color-neutral-300: var(--dark-gray-300);
+  --color-neutral-400: var(--dark-gray-400);
+  --color-neutral-500: var(--dark-gray-500);
+  --color-neutral-600: var(--dark-gray-600);
+  --color-neutral-700: var(--dark-gray-700);
+  --color-neutral-800: var(--dark-gray-800);
+  --color-neutral-900: var(--dark-gray-900);
+
+  --color-stone-50: var(--dark-gray-50);
+  --color-stone-100: var(--dark-gray-100);
+  --color-stone-200: var(--dark-gray-200);
+  --color-stone-300: var(--dark-gray-300);
+  --color-stone-400: var(--dark-gray-400);
+  --color-stone-500: var(--dark-gray-500);
+  --color-stone-600: var(--dark-gray-600);
+  --color-stone-700: var(--dark-gray-700);
+  --color-stone-800: var(--dark-gray-800);
+  --color-stone-900: var(--dark-gray-900);
+}
+
+/* พื้นหลังของทั้งหน้า (เห็นตอนเลื่อนเกินขอบบนมือถือ) */
+.dark body {
+  background-color: var(--color-page);
+  color: var(--color-fg);
+}
+
+/* ขนาดตัวอักษร: เปลี่ยนขนาดฐานของ <html> ข้อความที่เป็น rem ทั้งหน้าจึงขยายตาม
+   ใช้ % แทน px เพื่อยังเคารพขนาดตัวอักษรที่ผู้ใช้ตั้งไว้ในเบราว์เซอร์ */
+html[data-font-size="sm"] {
+  font-size: 87.5%; /* 14px */
+}
+html[data-font-size="lg"] {
+  font-size: 112.5%; /* 18px */
+}
+
+/* วิธี A: สีขาว/ดำที่เขียนตรง ๆ ในหน้าเดิม
+   ไม่สลับตัวแปร --color-white เพราะ text-white บนปุ่มสีต้องเป็นสีขาวเหมือนเดิม
+   ส่วน bg-white/10–25 ไม่แตะ เพราะเป็นแสงบนพื้นสี (เช่นปุ่มในแถบเมนู) */
+@layer utilities {
+  :where(.dark) .bg-white,
+  :where(.dark) .bg-white\/80,
+  :where(.dark) .bg-white\/90,
+  :where(.dark) .bg-white\/95,
+  :where(.dark) .focus-within\:bg-white:focus-within {
+    background-color: var(--color-surface);
+  }
+  :where(.dark) .from-white {
+    --tw-gradient-from: var(--color-surface);
+  }
+  :where(.dark) .via-white {
+    --tw-gradient-via: var(--color-surface);
+  }
+  :where(.dark) .to-white {
+    --tw-gradient-to: var(--color-surface);
+  }
+  :where(.dark) .text-black {
+    color: var(--color-fg);
+  }
+  :where(.dark) .ring-black\/5,
+  :where(.dark) .ring-black\/10 {
+    --tw-ring-color: rgb(255 255 255 / 0.08);
+  }
+  :where(.dark) .placeholder\:text-gray-400::placeholder,
+  :where(.dark) ::placeholder {
+    color: var(--dark-gray-400);
+  }
+  @media (hover: hover) {
+    :where(.dark) .hover\:bg-white:hover {
+      background-color: var(--color-surface-muted);
+    }
+  }
+}
+
+/* ช่องกรอกข้อมูลที่ไม่ได้ใส่สีพื้นไว้ */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.dark textarea,
+.dark select {
+  border-color: var(--color-line);
+}
+
+/* กราฟ (recharts และ SVG ที่วาดเอง) — สีเส้นและตัวหนังสือเทาที่เขียนเป็น attribute */
+.dark .recharts-cartesian-grid line,
+.dark .recharts-polar-grid line,
+.dark .recharts-polar-grid polygon,
+.dark svg [stroke="#e5e7eb"],
+.dark svg [stroke="#E5E7EB"],
+.dark svg [stroke="#f1f5f9"],
+.dark svg [stroke="#e2e8f0"],
+.dark svg [stroke="#cbd5e1"],
+.dark svg [stroke="#ccc"] {
+  stroke: #334155;
+}
+.dark .recharts-text,
+.dark .recharts-cartesian-axis-tick-value,
+.dark .recharts-polar-angle-axis-tick-value,
+.dark .recharts-legend-item-text,
+.dark svg [fill="#6b7280"],
+.dark svg [fill="#64748b"],
+.dark svg [fill="#94a3b8"],
+.dark svg [fill="#9CA3AF"],
+.dark svg [fill="#666"],
+.dark svg [fill="#374151"] {
+  fill: #cbd5e1;
+}
+.dark svg [fill="#15803d"] {
+  fill: #86efac;
+}
+.dark .recharts-default-tooltip {
+  background-color: var(--color-surface) !important;
+  border-color: var(--color-line) !important;
+  color: var(--color-fg);
+}
+
+/* SweetAlert2 — popup ถูกเพิ่มไว้ท้าย body จึงรับ .dark จาก <html> ได้ */
+.dark .swal2-popup {
+  --swal2-background: var(--color-surface);
+  --swal2-color: var(--color-fg);
+  --swal2-input-background: var(--color-page);
+  --swal2-footer-border-color: var(--color-line);
+  --swal2-validation-message-background: var(--color-surface-muted);
+  --swal2-validation-message-color: var(--color-fg);
+}
+.dark .swal2-popup .swal2-title,
+.dark .swal2-popup .swal2-html-container {
+  color: var(--color-fg);
+}
+.dark .swal2-input,
+.dark .swal2-textarea,
+.dark .swal2-select {
+  color: var(--color-fg);
+  border-color: var(--color-line);
+}
 
 /* ฟอนต์ Kanit กำหนดด้วย class ของ next/font ที่ <html> (app/layout.tsx) body สืบทอดไปเอง */
 body {
   --sidebar-width: 0px;
+}
+
+/* น้ำหนักตัวอักษรหนาสุดของทั้งเว็บคือ medium (500) — ไม่ใช้ตัวหนา
+   ครอบคลุมตัวหนาที่มาจากแท็กเอง เช่น <strong> ในเนื้อหาข่าวจาก editor และหัวตาราง
+   (ฟอนต์ Kanit โหลดแค่ 400/500 ถ้าปล่อยให้เป็น bold เบราว์เซอร์จะวาดตัวหนาปลอมขึ้นมาเอง) */
+b,
+strong,
+th,
+.swal2-title,
+.swal2-confirm,
+.swal2-cancel,
+.swal2-deny {
+  font-weight: 500;
 }
 
 /* ─── Global Button & Interactive Cursors ─── */
@@ -45,11 +308,11 @@ input[type="reset"]:disabled {
 
 
 .buttonact {
-  background-color: rgb(97, 155, 71);
+  background-color: var(--color-nav-active);
 }
 
 .mobilenav {
-  background-color: rgba(118, 178, 90, 1);
+  background-color: var(--color-nav);
 }
 
 .navadmin {
@@ -100,9 +363,20 @@ input[type="reset"]:disabled {
   border-left: 4px solid #10b981 !important;
   padding-left: 1rem !important;
   font-style: italic !important;
-  color: #4b5563 !important;
+  color: var(--color-fg-muted) !important;
   margin-top: 0.5rem !important;
   margin-bottom: 0.5rem !important;
+}
+
+/* บทความข่าวและข้อความจาก editor ในโหมดมืด */
+.dark .prose {
+  color: var(--color-fg);
+}
+.dark .prose :where(h1, h2, h3, h4, h5, h6, strong, b) {
+  color: var(--dark-gray-900);
+}
+.dark .prose a {
+  color: var(--color-link);
 }
 
 /* ─── Superscript & Subscript (สมการ/ยกกำลัง/ตัวห้อย) ─── */
@@ -203,7 +477,7 @@ sub, .prose sub, .tiptap sub {
 /* ─── Maintenance Page Styles ─── */
 .maintenance-body {
   min-height: 100vh;
-  background-color: #76B25A;
+  background-color: var(--color-primary);
   background-image:
     radial-gradient(circle at 20% 30%, rgba(255,255,255,0.10) 0%, transparent 40%),
     radial-gradient(circle at 80% 70%, rgba(0,0,0,0.08) 0%, transparent 40%);
@@ -240,7 +514,7 @@ sub, .prose sub, .tiptap sub {
 
 .maintenance-gear-svg {
   animation: maintenance-spin 8s linear infinite;
-  color: #76B25A;
+  color: var(--color-primary);
 }
 
 @keyframes maintenance-spin {
@@ -256,7 +530,7 @@ sub, .prose sub, .tiptap sub {
   border: 1.5px solid #bbf7d0;
   color: #16a34a;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   padding: 0.3rem 0.85rem;
   border-radius: 9999px;
   margin-bottom: 1.25rem;
@@ -279,7 +553,7 @@ sub, .prose sub, .tiptap sub {
 .maintenance-progress-fill {
   height: 100%;
   width: 75%;
-  background: linear-gradient(90deg, #76B25A, #4ade80);
+  background: linear-gradient(90deg, var(--color-primary), #4ade80);
   border-radius: 9999px;
   animation: maintenance-grow 2s ease-out both;
 }

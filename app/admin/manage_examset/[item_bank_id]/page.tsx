@@ -1547,7 +1547,7 @@ export default function ItemBankEditPage() {
 
                         {situations.length === 0 ? (
                             <div className="bg-white border-2 border-dashed border-gray-300 rounded-2xl p-12 sm:p-16 text-center">
-                                <FileText className="w-16 h-16 sm:w-20 sm:h-20 text-gray-400 mx-auto mb-4" />
+                                <FileText className="w-16 h-16 sm:w-20 sm:h-20 text-gray-600 mx-auto mb-4" />
                                 <h2 className="text-lg sm:text-xl font-medium text-gray-700 mb-2">ยังไม่มีสถานการณ์</h2>
                                 <p className="text-gray-500 mb-6 text-sm sm:text-base">เริ่มต้นสร้างข้อสอบโดยการเพิ่มสถานการณ์ใหม่</p>
                             </div>
@@ -1611,7 +1611,7 @@ export default function ItemBankEditPage() {
                                                             onClick={() => moveSituation(sitIdx, 'up')}
                                                             disabled={sitIdx === 0}
                                                             aria-label="ย้ายสถานการณ์ขึ้น"
-                                                            className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                            className="p-1 text-gray-600 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                             title="ย้ายขึ้น"
                                                         >
                                                             <ArrowUp className="w-4 h-4" />
@@ -1622,7 +1622,7 @@ export default function ItemBankEditPage() {
                                                             onClick={() => moveSituation(sitIdx, 'down')}
                                                             disabled={sitIdx === situations.length - 1}
                                                             aria-label="ย้ายสถานการณ์ลง"
-                                                            className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                            className="p-1 text-gray-600 hover:text-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                             title="ย้ายลง"
                                                         >
                                                             <ArrowDown className="w-4 h-4" />
@@ -1632,7 +1632,7 @@ export default function ItemBankEditPage() {
                                                         type="button"
                                                         onClick={() => removeSituation(sitIdx)}
                                                         aria-label={isSituation ? "ลบสถานการณ์" : "ลบคำถามเดี่ยว"}
-                                                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                        className="p-2 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                                         title={isSituation ? "ลบสถานการณ์" : "ลบคำถามเดี่ยว"}
                                                     >
                                                         <Trash2 className="w-5 h-5" />
@@ -1688,7 +1688,7 @@ export default function ItemBankEditPage() {
                                                     {situation.questions.length === 0 ? (
                                                         <div className="bg-white border-2 border-dashed border-gray-200 rounded-xl p-8 text-center mx-5 my-4">
                                                             <AlertCircle className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                                                            <p className="text-gray-400 text-sm mb-3">ยังไม่มีคำถามในสถานการณ์นี้</p>
+                                                            <p className="text-gray-600 text-sm mb-3">ยังไม่มีคำถามในสถานการณ์นี้</p>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => addQuestion(sitIdx)}
@@ -1734,7 +1734,7 @@ export default function ItemBankEditPage() {
                                                                                             onClick={() => moveQuestion(sitIdx, qIdx, 'up')}
                                                                                             disabled={qIdx === 0}
                                                                                             aria-label="ย้ายคำถามขึ้น"
-                                                                                            className="p-1 text-gray-400 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                                                            className="p-1 text-gray-600 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                                             title="ย้ายขึ้น"
                                                                                         >
                                                                                             <ArrowUp className="w-3.5 h-3.5" />
@@ -1744,7 +1744,7 @@ export default function ItemBankEditPage() {
                                                                                             onClick={() => moveQuestion(sitIdx, qIdx, 'down')}
                                                                                             disabled={qIdx === situation.questions.length - 1}
                                                                                             aria-label="ย้ายคำถามลง"
-                                                                                            className="p-1 text-gray-400 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                                                                            className="p-1 text-gray-600 hover:text-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                                                                                             title="ย้ายลง"
                                                                                         >
                                                                                             <ArrowDown className="w-3.5 h-3.5" />
@@ -1754,7 +1754,7 @@ export default function ItemBankEditPage() {
                                                                                         type="button"
                                                                                         onClick={() => removeQuestion(sitIdx, qIdx)}
                                                                                         aria-label="ลบคำถาม"
-                                                                                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                                                        className="p-1.5 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                                                                         title="ลบคำถาม"
                                                                                     >
                                                                                         <Trash2 className="w-4 h-4" />
@@ -1763,7 +1763,7 @@ export default function ItemBankEditPage() {
                                                                                         type="button"
                                                                                         onClick={() => toggleQuestionCollapse(sitIdx, qIdx)}
                                                                                         aria-label={isQCollapsed ? "ขยายคำถาม" : "ยุบคำถาม"}
-                                                                                        className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
+                                                                                        className="p-1.5 text-gray-600 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all"
                                                                                     >
                                                                                         {isQCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
                                                                                     </button>
@@ -1808,10 +1808,10 @@ export default function ItemBankEditPage() {
                                                                                             </div>
                                                                                         ) : (
                                                                                             <label className="flex flex-col items-center justify-center w-48 h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-green-500 transition-all mt-2">
-                                                                                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-400">
-                                                                                                    <Plus className="w-6 h-6 mb-2 text-gray-400" />
+                                                                                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-600">
+                                                                                                    <Plus className="w-6 h-6 mb-2 text-gray-600" />
                                                                                                     <p className="text-sm font-medium text-gray-600">คลิกเพื่ออัปโหลดรูปภาพ</p>
-                                                                                                    <p className="text-sm text-gray-400 mt-1">PNG, JPG ไม่เกิน 5MB</p>
+                                                                                                    <p className="text-sm text-gray-600 mt-1">PNG, JPG ไม่เกิน 5MB</p>
                                                                                                 </div>
                                                                                                 <input
                                                                                                     type="file"
@@ -1917,7 +1917,7 @@ export default function ItemBankEditPage() {
                                                                                                 </div>
                                                                                                 {option.option_text && (option.option_text.includes('<') || option.option_text.includes('^') || option.option_text.includes('_') || /[A-Z][a-z]?[0-9]/.test(option.option_text) || /[+-]/.test(option.option_text)) && (
                                                                                                     <div className="pl-9 sm:pl-11 text-xs text-gray-500 flex items-center gap-1.5">
-                                                                                                        <span className="text-gray-400">แสดงผลจริง:</span>
+                                                                                                        <span className="text-gray-600">แสดงผลจริง:</span>
                                                                                                         <span className="font-medium text-gray-800 bg-white px-2 py-0.5 rounded border border-gray-200" dangerouslySetInnerHTML={{ __html: sanitizeHtml(formatScientificText(option.option_text)) }} />
                                                                                                     </div>
                                                                                                 )}

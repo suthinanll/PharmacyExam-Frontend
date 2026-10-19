@@ -26,7 +26,7 @@ export default function UpcomingExamCard({ exam }: { exam: CountdownExam }) {
         <span className="text-xl font-medium leading-none tabular-nums">
           {daysLeft > 0 ? daysLeft : "0"}
         </span>
-        <span className="mt-1 text-[10px] font-medium leading-none">
+        <span className="mt-1 text-[0.625rem] font-medium leading-none">
           {daysLeft > 0 ? "วัน" : "วันนี้"}
         </span>
       </div>
@@ -57,7 +57,7 @@ export default function UpcomingExamCard({ exam }: { exam: CountdownExam }) {
           <button
             type="button"
             onClick={() => setIsExpanded((prev) => !prev)}
-            className="mt-1 inline-flex items-center gap-0.5 text-[11px] font-medium text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
+            className="mt-1 inline-flex items-center gap-0.5 text-[0.6875rem] font-medium text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
           >
             {isExpanded ? "ย่อข้อความ" : "ดูเพิ่มเติม"}
             <ChevronDown
@@ -72,7 +72,7 @@ export default function UpcomingExamCard({ exam }: { exam: CountdownExam }) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className="mt-1 inline-flex w-fit items-center gap-1 rounded border border-blue-100 bg-blue-50/80 px-2 py-0.5 text-[11px] font-medium text-blue-600 hover:text-blue-700 hover:underline"
+            className="mt-1 inline-flex w-fit items-center gap-1 rounded border border-blue-100 bg-blue-50/80 px-2 py-0.5 text-[0.6875rem] font-medium text-blue-600 hover:text-blue-700 hover:underline"
           >
             <ExternalLink size={11} />
             ลิงก์แนบ

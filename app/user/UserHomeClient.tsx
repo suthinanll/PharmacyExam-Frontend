@@ -120,7 +120,7 @@ const UniversityLeaderboard = ({
                   {/* Rank */}
                   <div className="flex justify-center">
                     <span
-                      className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-bold
+                      className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-sm font-medium
                         ${isTop3 ? style!.badge : "bg-gray-100 text-gray-500"}
                       `}
                     >
@@ -150,7 +150,7 @@ const UniversityLeaderboard = ({
                       />
                     </div>
                     {/* Mobile stats */}
-                    <div className="sm:hidden flex items-center gap-3 mt-1 text-[11px] text-gray-500">
+                    <div className="sm:hidden flex items-center gap-3 mt-1 text-[0.6875rem] text-gray-500">
                       <span className="flex items-center gap-1"><Users size={10} />{entry.total_students} คน</span>
                       <span className="flex items-center gap-1"><ClipboardList size={10} />{entry.total_exams} ครั้ง</span>
                     </div>

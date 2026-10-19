@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import AdminAuthGuard from './components/AdminAuthGuard';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 export const metadata: Metadata = {
   title: {
@@ -15,5 +16,10 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <AdminAuthGuard>{children}</AdminAuthGuard>;
+  // ฝั่งแอดมินปรับได้แค่ขนาดตัวอักษร (หน้าตั้งค่า แท็บ "การแสดงผล") ไม่มีโหมดมืด
+  return (
+    <ThemeProvider allowDark={false}>
+      <AdminAuthGuard>{children}</AdminAuthGuard>
+    </ThemeProvider>
+  );
 }

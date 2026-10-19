@@ -131,7 +131,7 @@ export default function CompleteProfilePage() {
                         <div className="space-y-1.5">
                             <label htmlFor="tel" className="text-xs font-medium text-gray-600">เบอร์โทรศัพท์</label>
                             <div className="relative">
-                                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
                                 <input
                                     id="tel"
                                     type="tel"
@@ -152,7 +152,7 @@ export default function CompleteProfilePage() {
                         <div className="space-y-1.5">
                             <label htmlFor="university" className="text-xs font-medium text-gray-600">มหาวิทยาลัย</label>
                             <div className="relative">
-                                <School className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                <School className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
                                 <select
                                     id="university"
                                     value={universityId}
@@ -164,7 +164,7 @@ export default function CompleteProfilePage() {
                                         <option key={u.university_id} value={u.university_id}>{u.name}</option>
                                     ))}
                                 </select>
-                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
                             </div>
                             {errors.university && <p className="text-xs text-red-600">{errors.university}</p>}
                         </div>
@@ -175,7 +175,7 @@ export default function CompleteProfilePage() {
                             <div className="space-y-1.5">
                                 <label htmlFor="password" className="text-xs font-medium text-gray-600">ตั้งรหัสผ่าน</label>
                                 <div className="relative">
-                                    <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                    <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
                                     <input
                                         id="password"
                                         type="password"
@@ -191,7 +191,7 @@ export default function CompleteProfilePage() {
                             <div className="space-y-1.5">
                                 <label htmlFor="confirm_password" className="text-xs font-medium text-gray-600">ยืนยันรหัสผ่าน</label>
                                 <div className="relative">
-                                    <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                    <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600" />
                                     <input
                                         id="confirm_password"
                                         type="password"
@@ -210,7 +210,7 @@ export default function CompleteProfilePage() {
                     <button
                         type="submit"
                         disabled={isSaving}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-green-600 py-3 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-50 cursor-pointer"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-medium text-white transition hover:bg-primary-hover disabled:opacity-50 cursor-pointer"
                     >
                         {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
                         บันทึกและเริ่มใช้งาน

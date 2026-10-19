@@ -105,7 +105,7 @@ export default function SituationViewer({
                                     <div>
                                         <p className="text-sm font-medium text-gray-500  tracking-wider">สถานการณ์</p>
                                         <div className="flex items-baseline gap-1 mt-0.5">
-                                            <span className="text-2xl font-bold text-gray-900 tracking-tight">{situationCount}</span>
+                                            <span className="text-2xl font-medium text-gray-900 tracking-tight">{situationCount}</span>
                                             <span className="text-sm text-gray-500 font-medium">ชุด</span>
                                         </div>
                                     </div>
@@ -122,7 +122,7 @@ export default function SituationViewer({
                                             <div>
                                                 <p className="text-sm font-medium text-gray-500  tracking-wider">คำถามเดี่ยว</p>
                                                 <div className="flex items-baseline gap-1 mt-0.5">
-                                                    <span className="text-2xl font-bold text-gray-900 tracking-tight">{standaloneCount}</span>
+                                                    <span className="text-2xl font-medium text-gray-900 tracking-tight">{standaloneCount}</span>
                                                     <span className="text-sm text-gray-500 font-medium">ข้อ</span>
                                                 </div>
                                             </div>
@@ -140,7 +140,7 @@ export default function SituationViewer({
                                     <div>
                                         <p className="text-sm font-medium text-gray-500  tracking-wider">คำถามทั้งหมด</p>
                                         <div className="flex items-baseline gap-1 mt-0.5">
-                                            <span className="text-2xl font-bold text-gray-900 tracking-tight">{totalQCount}</span>
+                                            <span className="text-2xl font-medium text-gray-900 tracking-tight">{totalQCount}</span>
                                             <span className="text-sm text-gray-500 font-medium">ข้อ</span>
                                         </div>
                                     </div>
@@ -244,8 +244,8 @@ export default function SituationViewer({
                                             </div>
                                             <div className="w-7 h-7 rounded-lg bg-transparent group-hover:bg-gray-100 flex items-center justify-center transition-colors shrink-0">
                                                 {isQCollapsed
-                                                    ? <ChevronDown className="w-4 h-4 text-gray-400" />
-                                                    : <ChevronUp className="w-4 h-4 text-gray-400" />
+                                                    ? <ChevronDown className="w-4 h-4 text-gray-600" />
+                                                    : <ChevronUp className="w-4 h-4 text-gray-600" />
                                                 }
                                             </div>
                                         </div>
@@ -375,7 +375,7 @@ export default function SituationViewer({
                                         <div className="flex items-start gap-3">
                                             <div className="w-1 self-stretch rounded-full bg-gradient-to-b from-green-400 to-green-600 shrink-0" />
                                             <div
-                                                className="prose prose-sm max-w-none text-gray-700 leading-relaxed text-[15px]"
+                                                className="prose prose-sm max-w-none text-gray-700 leading-relaxed text-[0.9375rem]"
                                                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(situation.situation_text) }}
                                             />
                                         </div>
@@ -435,8 +435,8 @@ export default function SituationViewer({
 
                                                     <div className="w-7 h-7 rounded-lg bg-transparent group-hover:bg-gray-100 flex items-center justify-center transition-colors shrink-0">
                                                         {isQCollapsed
-                                                            ? <ChevronDown className="w-4 h-4 text-gray-400" />
-                                                            : <ChevronUp className="w-4 h-4 text-gray-400" />
+                                                            ? <ChevronDown className="w-4 h-4 text-gray-600" />
+                                                            : <ChevronUp className="w-4 h-4 text-gray-600" />
                                                         }
                                                     </div>
                                                 </div>

@@ -1,17 +1,61 @@
 "use client"
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
-import { User, Mail, Phone, Loader2, Edit3, Save, X, School, AlertCircle, Camera, ChevronDown, Trash2, KeyRound } from "lucide-react";
-import { useState, useEffect, useRef } from 'react';
+import {
+    User, Mail, Phone, Loader2, Edit3, Save, X, School, AlertCircle, Camera, ChevronDown, Trash2, KeyRound,
+    ShieldCheck, Palette, Cake, CalendarDays, LogIn,
+} from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Swal from "@/utils/sweetalert";
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
 import { clearAuthCookie } from '@/lib/authCookie';
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ImageCropModal from "@/components/ImageCropModal";
+import DisplaySettingsPanel from "@/components/settings/DisplaySettingsPanel";
+
+type ProfileTab = 'info' | 'security' | 'display';
+
+const PROFILE_TABS: { id: ProfileTab; label: string; icon: React.ElementType }[] = [
+    { id: 'info', label: 'ข้อมูลส่วนตัว', icon: User },
+    { id: 'security', label: 'ความปลอดภัย', icon: ShieldCheck },
+    { id: 'display', label: 'การแสดงผล', icon: Palette },
+];
+
+/** "2000-05-03" หรือ ISO timestamp → "3 พฤษภาคม 2543" */
+function formatThaiDate(value?: string | null): string | null {
+    if (!value) return null;
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' });
+}
+
+function formatThaiDateTime(value: string): string {
+    return new Date(value).toLocaleString('th-TH', {
+        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Bangkok',
+    });
+}
+
+const isProfileTab = (v: string): v is ProfileTab => PROFILE_TABS.some(t => t.id === v);
 
 const Profile = () => {
     const { getToken, refreshUser, user: cachedUser } = useAuth();
+
+    // แท็บที่เปิดอยู่ จำไว้ใน # ของ URL เพื่อให้ลิงก์ตรงไปแท็บได้ เช่น /user/profile#display
+    const [tab, setTab] = useState<ProfileTab>('info');
+    useEffect(() => {
+        const syncFromHash = () => {
+            const fromHash = window.location.hash.slice(1);
+            setTab(isProfileTab(fromHash) ? fromHash : 'info');
+        };
+        syncFromHash();
+        window.addEventListener('hashchange', syncFromHash);
+        return () => window.removeEventListener('hashchange', syncFromHash);
+    }, []);
+    const changeTab = useCallback((next: ProfileTab) => {
+        setTab(next);
+        window.history.replaceState(null, '', next === 'info' ? window.location.pathname : `#${next}`);
+    }, []);
     const [user, setUser] = useState<{
         first_name: string,
         last_name: string,
@@ -22,7 +66,10 @@ const Profile = () => {
         role?: { id: number, name: string },
         profile_picture?: string | null,
         provider?: 'local' | 'google',
-        has_password?: boolean
+        has_password?: boolean,
+        bod?: string | null,
+        created_at?: string | null,
+        last_login_at?: string | null
     } | null>(null);
 
     const [formData, setFormData] = useState({
@@ -127,7 +174,7 @@ const Profile = () => {
             text: "ข้อมูลโปรไฟล์ของคุณจะถูกอัปเดต",
             icon: "question",
             showCancelButton: true,
-            confirmButtonColor: "#16a34a",
+            confirmButtonColor: "#5EA500",
             cancelButtonColor: "#6b7280",
             confirmButtonText: "ตกลง",
             cancelButtonText: "ยกเลิก",
@@ -397,6 +444,294 @@ const Profile = () => {
     if (!user.university) missingFields.push('มหาวิทยาลัย');
     if (user.has_password === false) missingFields.push('รหัสผ่าน');
 
+    const inputClass = (editable: boolean) =>
+        `w-full px-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${editable ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-600"}`;
+
+    // ─── แท็บ 1: ข้อมูลส่วนตัว ───────────────────────────────────────────────
+    const infoTab = (
+        <>
+            <div className="flex flex-col sm:flex-row gap-3 justify-between items-start sm:items-center mb-6">
+                <div>
+                    <h2 className="text-lg font-medium text-gray-900">ข้อมูลส่วนตัว</h2>
+                    <p className="text-sm text-gray-500">ชื่อ เบอร์โทรศัพท์ และมหาวิทยาลัยของคุณ</p>
+                </div>
+                <div className="w-full sm:w-auto flex flex-row gap-2">
+                    {!isEditing ? (
+                        <button
+                            type="button"
+                            onClick={() => setIsEditing(true)}
+                            className="w-full sm:w-auto flex items-center cursor-pointer justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition shadow-sm"
+                        >
+                            <Edit3 className="w-4 h-4" /> แก้ไข
+                        </button>
+                    ) : (
+                        <>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsEditing(false);
+                                    // คืนค่า formData เป็นค่าล่าสุดจาก user state
+                                    setFormData({
+                                        first_name: user.first_name,
+                                        last_name: user.last_name,
+                                        email: user.email,
+                                        tel: user.tel,
+                                    });
+                                }}
+                                className="flex-1 sm:flex-none flex items-center cursor-pointer justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
+                            >
+                                <X className="w-4 h-4" /> ยกเลิก
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSaveProfile}
+                                disabled={isLoading}
+                                className="flex-1 sm:flex-none flex items-center cursor-pointer justify-center gap-2 px-4 py-2 bg-primary text-on-primary text-sm font-medium rounded-lg hover:bg-primary-hover transition shadow-sm disabled:opacity-50"
+                            >
+                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                บันทึก
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
+
+            <form className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6" onSubmit={(e) => e.preventDefault()}>
+                <div className="space-y-1.5">
+                    <label htmlFor="profile-first-name" className="text-xs md:text-sm font-medium text-gray-500">ชื่อจริง</label>
+                    <input
+                        id="profile-first-name"
+                        name="first_name"
+                        type="text"
+                        value={formData.first_name}
+                        readOnly={!isEditing}
+                        onChange={handleInputChange}
+                        placeholder={!formData.first_name ? "กรุณากรอกชื่อจริง" : ""}
+                        className={inputClass(isEditing)}
+                    />
+                    {!formData.first_name && !isEditing && (
+                        <p className="text-xs text-amber-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            ยังไม่ได้กรอกชื่อจริง
+                        </p>
+                    )}
+                </div>
+                <div className="space-y-1.5">
+                    <label htmlFor="profile-last-name" className="text-xs md:text-sm font-medium text-gray-500">นามสกุล</label>
+                    <input
+                        id="profile-last-name"
+                        name="last_name"
+                        type="text"
+                        value={formData.last_name}
+                        readOnly={!isEditing}
+                        onChange={handleInputChange}
+                        placeholder={!formData.last_name ? "กรุณากรอกนามสกุล" : ""}
+                        className={inputClass(isEditing)}
+                    />
+                    {!formData.last_name && !isEditing && (
+                        <p className="text-xs text-amber-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            ยังไม่ได้กรอกนามสกุล
+                        </p>
+                    )}
+                </div>
+                <div className="space-y-1.5 md:col-span-2">
+                    <label htmlFor="profile-email" className="text-xs md:text-sm font-medium text-gray-500">อีเมล (ไม่สามารถแก้ไขได้)</label>
+                    <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <input
+                            id="profile-email"
+                            type="email"
+                            value={formData.email}
+                            readOnly
+                            className="w-full pl-10 pr-4 py-3 md:py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-600 text-sm cursor-not-allowed overflow-hidden text-ellipsis"
+                        />
+                    </div>
+                </div>
+                <div className="space-y-1.5 md:col-span-2">
+                    <label htmlFor="profile-tel" className="text-xs md:text-sm font-medium text-gray-500">เบอร์โทรศัพท์</label>
+                    <div className="relative">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                        <input
+                            id="profile-tel"
+                            name="tel"
+                            type="tel"
+                            value={formData.tel}
+                            readOnly={!isEditing}
+                            onChange={handleInputChange}
+                            placeholder="08X-XXX-XXXX"
+                            className={`${inputClass(isEditing)} pl-10`}
+                        />
+                    </div>
+                    {!formData.tel && !isEditing && (
+                        <p className="text-xs text-amber-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" />
+                            ยังไม่ได้กรอกเบอร์โทรศัพท์
+                        </p>
+                    )}
+                </div>
+
+                {/* วันเกิดและวันที่สมัคร — แสดงอย่างเดียว */}
+                <div className="space-y-1.5">
+                    <span className="block text-xs md:text-sm font-medium text-gray-500">วันเกิด</span>
+                    <div className="flex items-center gap-3 px-4 py-3 md:py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-600">
+                        <Cake className="w-4 h-4 text-gray-500 shrink-0" />
+                        {formatThaiDate(user.bod) ?? "ไม่ระบุ"}
+                    </div>
+                </div>
+                <div className="space-y-1.5">
+                    <span className="block text-xs md:text-sm font-medium text-gray-500">เป็นสมาชิกตั้งแต่</span>
+                    <div className="flex items-center gap-3 px-4 py-3 md:py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-600">
+                        <CalendarDays className="w-4 h-4 text-gray-500 shrink-0" />
+                        {formatThaiDate(user.created_at) ?? "ไม่ระบุ"}
+                    </div>
+                </div>
+
+                <div className="md:col-span-2">
+                    <div className="space-y-1.5">
+                        <label htmlFor="profile-university" className="text-xs md:text-sm font-medium text-gray-500">มหาวิทยาลัย</label>
+                        {isEditing ? (
+                            <div className="relative">
+                                <School className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none z-10" />
+                                <select
+                                    id="profile-university"
+                                    value={selectedUniversityId || ''}
+                                    onChange={(e) => setSelectedUniversityId(Number(e.target.value))}
+                                    className="w-full pl-11 pr-10 py-3 md:py-2.5 rounded-xl border border-blue-500 ring-4 ring-blue-50 bg-white text-sm transition-all outline-none appearance-none cursor-pointer"
+                                >
+                                    <option value="">-- เลือกมหาวิทยาลัย --</option>
+                                    {universities.map((u) => (
+                                        <option key={u.university_id} value={u.university_id}>
+                                            {u.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
+                            </div>
+                        ) : (
+                            <div className="bg-gray-50 rounded-xl border border-gray-200 px-4 py-3 md:py-2.5 flex items-center gap-3 text-sm text-gray-600">
+                                <School className="w-5 h-5 text-blue-500" />
+                                <p>{user.university?.name || "ไม่ระบุ"}</p>
+                            </div>
+                        )}
+                        {!user.university && !isEditing && (
+                            <p className="text-xs text-amber-600 flex items-center gap-1 mt-2">
+                                <AlertCircle className="w-3 h-3" />
+                                ยังไม่ได้ระบุมหาวิทยาลัย
+                            </p>
+                        )}
+                    </div>
+                </div>
+            </form>
+        </>
+    );
+
+    // ─── แท็บ 2: ความปลอดภัย ────────────────────────────────────────────────
+    const isGoogle = user.provider === 'google';
+    const securityTab = (
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-lg font-medium text-gray-900">ความปลอดภัย</h2>
+                <p className="text-sm text-gray-500">วิธีเข้าสู่ระบบและรหัสผ่านของบัญชีนี้</p>
+            </div>
+
+            <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <dt className="text-xs md:text-sm font-medium text-gray-500 mb-1">บัญชีที่เชื่อมต่อ</dt>
+                    <dd className="flex items-center gap-2 text-sm text-gray-800">
+                        <LogIn className="w-4 h-4 text-gray-500" />
+                        {isGoogle ? "Google" : "อีเมลและรหัสผ่าน"}
+                    </dd>
+                    <dd className="text-xs text-gray-500 mt-1 break-all">{user.email}</dd>
+                </div>
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                    <dt className="text-xs md:text-sm font-medium text-gray-500 mb-1">รหัสผ่าน</dt>
+                    <dd className="flex items-center gap-2 text-sm text-gray-800">
+                        <KeyRound className="w-4 h-4 text-gray-500" />
+                        {user.has_password === false ? "ยังไม่ได้ตั้งรหัสผ่าน" : "ตั้งรหัสผ่านแล้ว"}
+                    </dd>
+                    {user.last_login_at && (
+                        <dd className="text-xs text-gray-500 mt-1">
+                            เข้าสู่ระบบล่าสุด {formatThaiDateTime(user.last_login_at)}
+                        </dd>
+                    )}
+                </div>
+            </dl>
+
+            {/* ตั้งรหัสผ่าน — เฉพาะบัญชีที่ยังไม่มีรหัสผ่าน (เข้าสู่ระบบด้วย Google) */}
+            {user.has_password === false ? (
+                <form onSubmit={handleSetPassword} className="border-t border-gray-100 pt-6">
+                    <div className="flex items-start gap-3 mb-4">
+                        <KeyRound className="w-5 h-5 text-blue-500 mt-0.5" />
+                        <div>
+                            <h3 className="text-sm font-medium text-gray-900">ตั้งรหัสผ่าน</h3>
+                            <p className="text-xs text-gray-500">
+                                บัญชีนี้เข้าสู่ระบบด้วย Google ตั้งรหัสผ่านไว้เพื่อให้เข้าสู่ระบบด้วยอีเมลได้ด้วย
+                            </p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
+                        <div className="space-y-1.5">
+                            <label htmlFor="new-password" className="text-xs md:text-sm font-medium text-gray-500">รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)</label>
+                            <input
+                                id="new-password"
+                                type="password"
+                                autoComplete="new-password"
+                                value={passwordForm.password}
+                                onChange={(e) => setPasswordForm(prev => ({ ...prev, password: e.target.value }))}
+                                className="w-full px-4 py-3 md:py-2.5 rounded-xl border border-gray-300 bg-white text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label htmlFor="confirm-password" className="text-xs md:text-sm font-medium text-gray-500">ยืนยันรหัสผ่าน</label>
+                            <input
+                                id="confirm-password"
+                                type="password"
+                                autoComplete="new-password"
+                                value={passwordForm.confirm_password}
+                                onChange={(e) => setPasswordForm(prev => ({ ...prev, confirm_password: e.target.value }))}
+                                className="w-full px-4 py-3 md:py-2.5 rounded-xl border border-gray-300 bg-white text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
+                            />
+                        </div>
+                    </div>
+                    <div className="mt-4 flex justify-end">
+                        <button
+                            type="submit"
+                            disabled={isSavingPassword || !passwordForm.password || !passwordForm.confirm_password}
+                            className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-on-primary text-sm font-medium rounded-lg hover:bg-primary-hover transition shadow-sm disabled:opacity-50 cursor-pointer"
+                        >
+                            {isSavingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                            บันทึกรหัสผ่าน
+                        </button>
+                    </div>
+                </form>
+            ) : (
+                // ยังไม่มี API เปลี่ยนรหัสผ่านโดยตรง จึงใช้ขั้นตอนลืมรหัสผ่าน (ส่งลิงก์ทางอีเมล) ที่มีอยู่แล้ว
+                <div className="border-t border-gray-100 pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 className="text-sm font-medium text-gray-900">เปลี่ยนรหัสผ่าน</h3>
+                        <p className="text-xs text-gray-500">ระบบจะส่งลิงก์สำหรับตั้งรหัสผ่านใหม่ไปที่อีเมลของคุณ</p>
+                    </div>
+                    <Link
+                        href="/resetpassword"
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition shadow-sm"
+                    >
+                        <KeyRound className="w-4 h-4" /> ขอลิงก์เปลี่ยนรหัสผ่าน
+                    </Link>
+                </div>
+            )}
+        </div>
+    );
+
+    // ─── แท็บ 3: การแสดงผล ─────────────────────────────────────────────────
+    const displayTab = <DisplaySettingsPanel scopeLabel="ทั้งเว็บฝั่งผู้ใช้" />;
+
+    const tabPanels: Record<ProfileTab, React.ReactNode> = {
+        info: infoTab,
+        security: securityTab,
+        display: displayTab,
+    };
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             <Navbar_user />
@@ -425,298 +760,123 @@ const Profile = () => {
 
                     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 
-                        <div className="px-5 py-6 md:px-8 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-white">
-                            <div className="flex items-center gap-4 w-full sm:w-auto">
-                                {/* รูปโปรไฟล์พร้อมปุ่มอัปโหลด */}
-                                <div className="relative group">
-                                    <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-indigo-100 flex-shrink-0">
-                                        {previewImage ? (
-                                            <img
-                                                src={previewImage}
-                                                alt="Preview"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : user.profile_picture && !imgError ? (
-                                            <img
-                                                src={user.profile_picture}
-                                                alt="Profile"
-                                                onError={() => setImgError(true)}
-                                                /* รูปนี้คือองค์ประกอบ LCP ของหน้า เดิมเบราว์เซอร์เพิ่งรู้จัก
-                                                   หลัง JS วาดเสร็จ (resourceLoadDelay 862ms)
-                                                   fetchPriority สั่งให้ดาวน์โหลดทันทีที่เจอ */
-                                                fetchPriority="high"
-                                                decoding="async"
-                                                className="w-full h-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full bg-indigo-50 flex items-center justify-center">
-                                                <User className="w-10 h-10 text-indigo-600" />
-                                            </div>
-                                        )}
-                                    </div>
+                        {/* รูปโปรไฟล์และชื่อ */}
+                        <div className="px-5 py-6 md:px-8 border-b border-gray-100 flex items-center gap-4">
+                            <div className="relative group">
+                                <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-blue-100 flex-shrink-0">
+                                    {previewImage ? (
+                                        <img
+                                            src={previewImage}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : user.profile_picture && !imgError ? (
+                                        <img
+                                            src={user.profile_picture}
+                                            alt="Profile"
+                                            onError={() => setImgError(true)}
+                                            /* รูปนี้คือองค์ประกอบ LCP ของหน้า เดิมเบราว์เซอร์เพิ่งรู้จัก
+                                               หลัง JS วาดเสร็จ (resourceLoadDelay 862ms)
+                                               fetchPriority สั่งให้ดาวน์โหลดทันทีที่เจอ */
+                                            fetchPriority="high"
+                                            decoding="async"
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-blue-50 flex items-center justify-center">
+                                            <User className="w-10 h-10 text-blue-600" />
+                                        </div>
+                                    )}
+                                </div>
 
-                                    {/* ปุ่มเปลี่ยนรูป */}
+                                {/* ปุ่มเปลี่ยนรูป */}
+                                <button
+                                    type="button"
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={isUploadingImage}
+                                    aria-label="เปลี่ยนรูปโปรไฟล์"
+                                    className="absolute bottom-0 right-0 bg-secondary hover:bg-secondary-hover text-white p-2 rounded-full shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isUploadingImage ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                        <Camera className="w-4 h-4" />
+                                    )}
+                                </button>
+
+                                {/* ปุ่มลบรูป — แสดงเมื่อมีรูปโปรไฟล์อยู่ */}
+                                {user.profile_picture && (
                                     <button
                                         type="button"
-                                        onClick={() => fileInputRef.current?.click()}
-                                        disabled={isUploadingImage}
-                                        aria-label="เปลี่ยนรูปโปรไฟล์"
-                                        className="absolute bottom-0 right-0 bg-indigo-600 hover:bg-indigo-700 text-white p-2 rounded-full shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        onClick={handleRemovePicture}
+                                        disabled={isRemovingImage || isUploadingImage}
+                                        title="ลบรูปโปรไฟล์"
+                                        aria-label="ลบรูปโปรไฟล์"
+                                        className="absolute bottom-0 left-0 bg-white hover:bg-red-50 text-red-600 border border-red-200 p-2 rounded-full shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                                     >
-                                        {isUploadingImage ? (
+                                        {isRemovingImage ? (
                                             <Loader2 className="w-4 h-4 animate-spin" />
                                         ) : (
-                                            <Camera className="w-4 h-4" />
+                                            <Trash2 className="w-4 h-4" />
                                         )}
                                     </button>
+                                )}
 
-                                    {/* ปุ่มลบรูป — แสดงเมื่อมีรูปโปรไฟล์อยู่ */}
-                                    {user.profile_picture && (
-                                        <button
-                                            type="button"
-                                            onClick={handleRemovePicture}
-                                            disabled={isRemovingImage || isUploadingImage}
-                                            title="ลบรูปโปรไฟล์"
-                                            aria-label="ลบรูปโปรไฟล์"
-                                            className="absolute bottom-0 left-0 bg-white hover:bg-red-50 text-red-600 border border-red-200 p-2 rounded-full shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                                        >
-                                            {isRemovingImage ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
-                                            ) : (
-                                                <Trash2 className="w-4 h-4" />
-                                            )}
-                                        </button>
-                                    )}
-
-                                    {/* Hidden file input */}
-                                    <input
-                                        ref={fileInputRef}
-                                        type="file"
-                                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-                                        onChange={handleImageChange}
-                                        className="hidden"
-                                    />
-                                </div>
-
-                                <div>
-                                    <h2 className="text-lg md:text-xl font-medium text-gray-900">โปรไฟล์ผู้ใช้งาน</h2>
-                                    <p className="text-xs md:text-sm text-gray-500">จัดการข้อมูลส่วนตัวของคุณ</p>
-                                    {isUploadingImage && (
-                                        <p className="text-xs text-indigo-600 mt-1 flex items-center gap-1">
-                                            <Loader2 className="w-3 h-3 animate-spin" />
-                                            กำลังอัปโหลด...
-                                        </p>
-                                    )}
-                                </div>
+                                {/* Hidden file input */}
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                                    onChange={handleImageChange}
+                                    className="hidden"
+                                />
                             </div>
 
-                            <div className="w-full sm:w-auto flex flex-row gap-2">
-                                {!isEditing ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsEditing(true)}
-                                        className="w-full sm:w-auto flex items-center cursor-pointer  justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition shadow-sm"
-                                    >
-                                        <Edit3 className="w-4 h-4" /> แก้ไข
-                                    </button>
-                                ) : (
-                                    <>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setIsEditing(false);
-                                                // คืนค่า formData เป็นค่าล่าสุดจาก user state
-                                                setFormData({
-                                                    first_name: user.first_name,
-                                                    last_name: user.last_name,
-                                                    email: user.email,
-                                                    tel: user.tel,
-                                                });
-                                            }}
-                                            className="flex-1 sm:flex-none flex items-center cursor-pointer  justify-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-50 transition"
-                                        >
-                                            <X className="w-4 h-4" /> ยกเลิก
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={handleSaveProfile}
-                                            disabled={isLoading}
-                                            className="flex-1 sm:flex-none flex items-center cursor-pointer justify-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition shadow-sm disabled:opacity-50"
-                                        >
-                                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                            บันทึก
-                                        </button>
-                                    </>
+                            <div className="min-w-0">
+                                <h2 className="text-lg md:text-xl font-medium text-gray-900 truncate">
+                                    {user.first_name || user.last_name ? `${user.first_name ?? ''} ${user.last_name ?? ''}` : 'โปรไฟล์ผู้ใช้งาน'}
+                                </h2>
+                                <p className="text-xs md:text-sm text-gray-500 truncate">{user.email}</p>
+                                {isUploadingImage && (
+                                    <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                        กำลังอัปโหลด...
+                                    </p>
                                 )}
                             </div>
                         </div>
 
-                        <div className="p-5 md:p-8">
-                            <form className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6" onSubmit={(e) => e.preventDefault()}>
-                                <div className="space-y-1.5">
-                                    <label htmlFor="profile-first-name" className="text-xs md:text-sm font-medium text-gray-500">ชื่อจริง</label>
-                                    <input
-                                        id="profile-first-name"
-                                        name="first_name"
-                                        type="text"
-                                        value={formData.first_name}
-                                        readOnly={!isEditing}
-                                        onChange={handleInputChange}
-                                        placeholder={!formData.first_name ? "กรุณากรอกชื่อจริง" : ""}
-                                        className={`w-full px-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
-                                            }`}
-                                    />
-                                    {!formData.first_name && !isEditing && (
-                                        <p className="text-xs text-amber-600 flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3" />
-                                            ยังไม่ได้กรอกชื่อจริง
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="space-y-1.5">
-                                    <label htmlFor="profile-last-name" className="text-xs md:text-sm font-medium text-gray-500">นามสกุล</label>
-                                    <input
-                                        id="profile-last-name"
-                                        name="last_name"
-                                        type="text"
-                                        value={formData.last_name}
-                                        readOnly={!isEditing}
-                                        onChange={handleInputChange}
-                                        placeholder={!formData.last_name ? "กรุณากรอกนามสกุล" : ""}
-                                        className={`w-full px-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
-                                            }`}
-                                    />
-                                    {!formData.last_name && !isEditing && (
-                                        <p className="text-xs text-amber-600 flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3" />
-                                            ยังไม่ได้กรอกนามสกุล
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="space-y-1.5 md:col-span-2">
-                                    <label htmlFor="profile-email" className="text-xs md:text-sm font-medium text-gray-500">อีเมล (ไม่สามารถแก้ไขได้)</label>
-                                    <div className="relative">
-                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input
-                                            id="profile-email"
-                                            type="email"
-                                            value={formData.email}
-                                            readOnly
-                                            className="w-full pl-10 pr-4 py-3 md:py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-gray-400 text-sm cursor-not-allowed overflow-hidden text-ellipsis"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-1.5 md:col-span-2">
-                                    <label htmlFor="profile-tel" className="text-xs md:text-sm font-medium text-gray-500">เบอร์โทรศัพท์</label>
-                                    <div className="relative">
-                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                        <input
-                                            id="profile-tel"
-                                            name="tel"
-                                            type="tel"
-                                            value={formData.tel}
-                                            readOnly={!isEditing}
-                                            onChange={handleInputChange}
-                                            placeholder="08X-XXX-XXXX"
-                                            className={`w-full pl-10 pr-4 py-3 md:py-2.5 rounded-xl border text-sm transition-all outline-none ${isEditing ? "border-blue-500 ring-4 ring-blue-50 bg-white" : "border-gray-200 bg-gray-50 text-gray-500"
-                                                }`}
-                                        />
-                                    </div>
-                                    {!formData.tel && !isEditing && (
-                                        <p className="text-xs text-amber-600 flex items-center gap-1">
-                                            <AlertCircle className="w-3 h-3" />
-                                            ยังไม่ได้กรอกเบอร์โทรศัพท์
-                                        </p>
-                                    )}
-                                </div>
+                        {/* แท็บ */}
+                        <div role="tablist" aria-label="ตั้งค่าโปรไฟล์" className="flex border-b border-gray-200 px-2 md:px-6 overflow-x-auto">
+                            {PROFILE_TABS.map(({ id, label, icon: Icon }) => {
+                                const selected = tab === id;
+                                return (
+                                    <button
+                                        key={id}
+                                        id={`profile-tab-${id}`}
+                                        type="button"
+                                        role="tab"
+                                        aria-selected={selected}
+                                        aria-controls={`profile-panel-${id}`}
+                                        onClick={() => changeTab(id)}
+                                        className={`flex items-center gap-2 whitespace-nowrap px-3 md:px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors cursor-pointer ${selected
+                                            ? "border-primary text-gray-900"
+                                            : "border-transparent text-gray-500 hover:text-gray-800"}`}
+                                    >
+                                        <Icon className={`w-4 h-4 ${selected ? "text-primary" : ""}`} />
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
 
-                                <div className="md:col-span-2 pt-4">
-                                    <div className="space-y-1.5">
-                                        <label htmlFor="profile-university" className="text-xs md:text-sm font-medium text-gray-500">มหาวิทยาลัย</label>
-                                        {isEditing ? (
-                                            <div className="relative">
-                                                <School className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10" />
-                                                <select
-                                                    id="profile-university"
-                                                    value={selectedUniversityId || ''}
-                                                    onChange={(e) => setSelectedUniversityId(Number(e.target.value))}
-                                                    className="w-full pl-11 pr-10 py-3 md:py-2.5 rounded-xl border border-blue-500 ring-4 ring-blue-50 bg-white text-sm transition-all outline-none appearance-none cursor-pointer"
-                                                >
-                                                    <option value="">-- เลือกมหาวิทยาลัย --</option>
-                                                    {universities.map((u) => (
-                                                        <option key={u.university_id} value={u.university_id}>
-                                                            {u.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                                            </div>
-                                        ) : (
-                                            <div className="bg-gray-50 rounded-2xl border border-gray-100 p-4 flex items-center gap-3 text-gray-600">
-                                                <School className="w-5 h-5 text-indigo-500" />
-                                                <div className="leading-tight">
-                                                    <p className="text-xs font-medium">{user.university?.name || "ไม่ระบุ"}</p>
-                                                </div>
-                                            </div>
-                                        )}
-                                        {!user.university && !isEditing && (
-                                            <p className="text-xs text-amber-600 flex items-center gap-1 mt-2">
-                                                <AlertCircle className="w-3 h-3" />
-                                                ยังไม่ได้ระบุมหาวิทยาลัย
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            </form>
-
-                            {/* ตั้งรหัสผ่าน — เฉพาะบัญชีที่ยังไม่มีรหัสผ่าน (เข้าสู่ระบบด้วย Google) */}
-                            {user.has_password === false && (
-                                <form onSubmit={handleSetPassword} className="mt-8 border-t border-gray-100 pt-6">
-                                    <div className="flex items-start gap-3 mb-4">
-                                        <KeyRound className="w-5 h-5 text-indigo-500 mt-0.5" />
-                                        <div>
-                                            <h2 className="text-sm font-medium text-gray-900">ตั้งรหัสผ่าน</h2>
-                                            <p className="text-xs text-gray-500">
-                                                บัญชีนี้เข้าสู่ระบบด้วย Google ตั้งรหัสผ่านไว้เพื่อให้เข้าสู่ระบบด้วยอีเมลได้ด้วย
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
-                                        <div className="space-y-1.5">
-                                            <label htmlFor="new-password" className="text-[10px] md:text-xs font-medium text-gray-400">รหัสผ่าน (อย่างน้อย 8 ตัวอักษร)</label>
-                                            <input
-                                                id="new-password"
-                                                type="password"
-                                                autoComplete="new-password"
-                                                value={passwordForm.password}
-                                                onChange={(e) => setPasswordForm(prev => ({ ...prev, password: e.target.value }))}
-                                                className="w-full px-4 py-3 md:py-2.5 rounded-xl border border-gray-300 bg-white text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label htmlFor="confirm-password" className="text-[10px] md:text-xs font-medium text-gray-400">ยืนยันรหัสผ่าน</label>
-                                            <input
-                                                id="confirm-password"
-                                                type="password"
-                                                autoComplete="new-password"
-                                                value={passwordForm.confirm_password}
-                                                onChange={(e) => setPasswordForm(prev => ({ ...prev, confirm_password: e.target.value }))}
-                                                className="w-full px-4 py-3 md:py-2.5 rounded-xl border border-gray-300 bg-white text-sm outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-50"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="mt-4 flex justify-end">
-                                        <button
-                                            type="submit"
-                                            disabled={isSavingPassword || !passwordForm.password || !passwordForm.confirm_password}
-                                            className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition shadow-sm disabled:opacity-50 cursor-pointer"
-                                        >
-                                            {isSavingPassword ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                            บันทึกรหัสผ่าน
-                                        </button>
-                                    </div>
-                                </form>
-                            )}
+                        <div
+                            id={`profile-panel-${tab}`}
+                            role="tabpanel"
+                            aria-labelledby={`profile-tab-${tab}`}
+                            className="p-5 md:p-8"
+                        >
+                            {tabPanels[tab]}
                         </div>
                     </div>
                 </div>

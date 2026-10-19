@@ -59,10 +59,10 @@ const TYPE_EVENT_STYLES: Record<
     dot: "bg-blue-400",
   },
   "PLE-CC2": {
-    bg: "bg-indigo-50",
-    text: "text-indigo-700",
-    border: "border-indigo-300",
-    dot: "bg-indigo-400",
+    bg: "bg-blue-50",
+    text: "text-blue-700",
+    border: "border-blue-300",
+    dot: "bg-blue-400",
   },
   "PLE-IP1, PC1, PHCP1": {
     bg: "bg-green-50",
@@ -292,7 +292,7 @@ const CalenderPage = () => {
             <span
               className={`text-xs sm:text-sm font-medium inline-flex items-center justify-center
                 ${today
-                  ? "w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-600 text-white shadow-xs text-[11px] sm:text-xs"
+                  ? "w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-600 text-white shadow-xs text-[0.6875rem] sm:text-xs"
                   : isSunday
                     ? "text-red-500"
                     : "text-gray-700"
@@ -301,7 +301,7 @@ const CalenderPage = () => {
               {date}
             </span>
             {today && (
-              <span className="hidden sm:inline-block text-[9px] bg-green-600 text-white px-1.5 py-0.5 rounded font-medium">
+              <span className="hidden sm:inline-block text-[0.5625rem] bg-green-600 text-white px-1.5 py-0.5 rounded font-medium">
                 วันนี้
               </span>
             )}
@@ -322,7 +322,7 @@ const CalenderPage = () => {
                 );
               })}
               {daySchedules.length > 3 && (
-                <span className="text-[8px] font-bold text-gray-500 leading-none">
+                <span className="text-[0.5rem] font-medium text-gray-500 leading-none">
                   +{daySchedules.length - 3}
                 </span>
               )}
@@ -344,7 +344,7 @@ const CalenderPage = () => {
                     setSelectedEvent(schedule);
                     setIsViewModalOpen(true);
                   }}
-                  className={`w-full text-left px-1.5 py-1 rounded-md border-l-2 text-[10px] font-medium truncate transition-all hover:opacity-85 shadow-2xs cursor-pointer
+                  className={`w-full text-left px-1.5 py-1 rounded-md border-l-2 text-[0.625rem] font-medium truncate transition-all hover:opacity-85 shadow-2xs cursor-pointer
                     ${style.bg} ${style.text} ${style.border}`}
                 >
                   {/* dot tags */}
@@ -519,7 +519,7 @@ const CalenderPage = () => {
                   {["อา", "จ", "อ", "พ", "พฤ", "ศ", "ส"].map((day, i) => (
                     <div
                       key={day}
-                      className={`py-2 sm:py-3 text-center text-[11px] sm:text-xs font-medium bg-gray-50 border-b border-gray-200
+                      className={`py-2 sm:py-3 text-center text-[0.6875rem] sm:text-xs font-medium bg-gray-50 border-b border-gray-200
                         ${i === 0 ? "text-red-500" : "text-gray-600"}`}
                     >
                       {day}
@@ -555,7 +555,7 @@ const CalenderPage = () => {
                       );
                     })}
                     {allTypes.length === 0 && (
-                      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                      <div className="flex items-center gap-1.5 text-xs text-gray-600">
                         <span className="w-2.5 h-2.5 rounded-full inline-block bg-gray-300" />
                         กำหนดการทั่วไป
                       </div>
@@ -578,8 +578,8 @@ const CalenderPage = () => {
               />
             ) : (
               <div className="bg-white rounded-xl shadow-xl p-6 border border-slate-100 flex flex-col items-center justify-center text-center h-fit lg:sticky lg:top-24">
-                <div className="w-16 h-16 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4">
-                  <Bookmark className="w-8 h-8 text-indigo-400" />
+                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4">
+                  <Bookmark className="w-8 h-8 text-blue-400" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-800 mb-1">บันทึกสรุป</h3>
                 <p className="text-sm text-gray-500 leading-relaxed mb-5">
@@ -587,7 +587,7 @@ const CalenderPage = () => {
                 </p>
                 <Link
                   href="/login"
-                  className="px-5 py-2.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition flex items-center gap-1.5"
+                  className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition flex items-center gap-1.5"
                 >
                   <LogIn className="w-4 h-4" /> เข้าสู่ระบบ
                 </Link>
@@ -762,7 +762,7 @@ const CalenderPage = () => {
 
               <button
                 onClick={() => setIsViewModalOpen(false)}
-                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition-all text-sm cursor-pointer"
+                className="w-full py-3 bg-primary hover:bg-primary-hover text-white font-medium rounded-xl transition-all text-sm cursor-pointer"
               >
                 ปิด
               </button>

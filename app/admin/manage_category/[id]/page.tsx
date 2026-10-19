@@ -184,7 +184,7 @@ export default function EditCategory() {
 
                     {/* Header */}
                     <div className="mb-8">
-                        <h1 className="text-3xl font-medium text-gray-900 mb-2">แก้ไขประเภทข้อสอบ</h1>
+                        <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">แก้ไขประเภทข้อสอบ</h1>
                         <p className="text-gray-600">แก้ไขข้อมูลประเภทข้อสอบ</p>
                     </div>
 

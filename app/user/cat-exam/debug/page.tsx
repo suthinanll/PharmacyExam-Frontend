@@ -267,7 +267,7 @@ export default function CATDebugPage() {
             <div className="bg-indigo-900 text-white p-6 shadow-md border-y-4 border-indigo-400">
                 <div className="container mx-auto flex flex-wrap gap-6 items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-black tracking-tight">🔬 CAT Algorithm Debugger</h1>
+                        <h1 className="text-3xl font-medium tracking-tight">🔬 CAT Algorithm Debugger</h1>
                         <p className="opacity-80 mt-1">
                             หน้าสำหรับ Demo และดูการทำงานของสมการเบื้องหลัง (EAP Estimation & Maximum Fisher Information)
                         </p>
@@ -304,7 +304,7 @@ export default function CATDebugPage() {
                     <div className="bg-white rounded-2xl p-6 shadow border border-slate-200">
                         <h2 className="text-sm font-medium text-slate-500  mb-4">สถานะปัจจุบัน</h2>
                         <div className="text-center">
-                            <div className="text-6xl font-black text-indigo-600 tracking-tighter mb-2">
+                            <div className="text-6xl font-medium text-indigo-600 tracking-tighter mb-2">
                                 {currentTheta.toFixed(3)}
                             </div>
                             <div className="text-xs font-medium text-indigo-400">ความสามารถประเมิน (Theta, θ)</div>
@@ -412,7 +412,7 @@ export default function CATDebugPage() {
 
                                     <div className="bg-blue-50 border border-blue-200 rounded p-3 text-center">
                                         <div className="text-sm font-medium text-blue-800">ได้คะแนน Information สูงสุดที่:</div>
-                                        <div className="text-3xl font-black text-blue-600 my-1">
+                                        <div className="text-3xl font-medium text-blue-600 my-1">
                                             {IRT.information(currentTheta, { a: nextItem.irt_a_discrimination, b: nextItem.irt_b_difficulty, c: nextItem.irt_c_guessing }).toFixed(4)}
                                         </div>
                                         <div className="text-[10px] text-blue-400 font-medium ">( ณ บริเวณ θ = {currentTheta.toFixed(2)} )</div>

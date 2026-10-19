@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import Swal from "@/utils/sweetalert";
 import { useAuth } from "@/contexts/AuthContext";
 import Pagination from "@/components/Pagination";
+import SuggestInput from '@/components/SuggestInput';
 
 // ─── Types ───────────────────────────────────────────
 interface LinkedBank {
@@ -51,7 +52,7 @@ function LinkedBanksDropdown({ banks }: { banks: LinkedBank[] }) {
     const [open, setOpen] = useState(false);
     const router = useRouter();
     if (!banks || banks.length === 0) {
-        return <span className="text-xs text-gray-400">ไม่มีชุดข้อสอบ</span>;
+        return <span className="text-xs text-gray-600">ไม่มีชุดข้อสอบ</span>;
     }
     return (
         <div className="relative">
@@ -75,7 +76,7 @@ function LinkedBanksDropdown({ banks }: { banks: LinkedBank[] }) {
                         >
                             <ExternalLink size={10} />
                             <span className="truncate max-w-[180px]">{b.bank_name}</span>
-                            {!b.is_active && <span className="text-gray-400">(ปิด)</span>}
+                            {!b.is_active && <span className="text-gray-600">(ปิด)</span>}
                         </button>
                     ))}
                 </div>
@@ -114,11 +115,11 @@ function CategoryCard({
                     <h3 className="text-base font-medium text-gray-900 leading-snug">{category.category_name}</h3>
                     <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => onEdit(category)}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer" title="แก้ไข">
+                            className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer" title="แก้ไข">
                             <Edit2 size={14} />
                         </button>
                         <button onClick={() => onDelete(category.category_id, category.category_name)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer" title="ลบ">
+                            className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer" title="ลบ">
                             <Trash2 size={14} />
                         </button>
                     </div>
@@ -132,7 +133,7 @@ function CategoryCard({
                     <button onClick={() => setExpanded(e => !e)}
                         className="w-full flex items-center justify-between text-xs font-medium text-gray-600 hover:text-gray-800 transition-colors">
                         <span className="flex items-center gap-1.5">
-                            <Tag size={13} className="text-gray-400" />
+                            <Tag size={13} className="text-gray-600" />
                             {banks.length > 0 ? `${banks.length} ชุดข้อสอบที่เชื่อมโยง` : 'ยังไม่มีชุดข้อสอบ'}
                         </span>
                         {banks.length > 0 && (expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />)}
@@ -150,10 +151,10 @@ function CategoryCard({
                                     }}
                                     className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg bg-gray-50 hover:bg-green-50 text-xs text-gray-700 hover:text-green-700 transition-colors group/bank cursor-pointer text-left"
                                 >
-                                    <ExternalLink size={11} className="shrink-0 text-gray-400 group-hover/bank:text-green-500" />
+                                    <ExternalLink size={11} className="shrink-0 text-gray-600 group-hover/bank:text-green-500" />
                                     <span className="truncate font-medium">{b.bank_name}</span>
                                     {!b.is_active && (
-                                        <span className="ml-auto shrink-0 text-gray-400 text-xs">ปิด</span>
+                                        <span className="ml-auto shrink-0 text-gray-600 text-xs">ปิด</span>
                                     )}
                                 </button>
                             ))}
@@ -161,7 +162,7 @@ function CategoryCard({
                     )}
                 </div>
                 {/* Date */}
-                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                <div className="flex items-center gap-1.5 text-xs text-gray-600">
                     <Calendar size={12} />
                     {formatDate(category.created_at)}
                 </div>
@@ -362,10 +363,12 @@ export default function CategoriesManagement() {
                 <div className="flex flex-col sm:flex-row gap-4 mb-6 justify-between items-center bg-white p-4  rounded-2xl border border-gray-200 shadow-sm">
                     <div className="flex gap-3 flex-1 flex-wrap">
                         <div className="relative max-w-sm w-full">
-                            <input type="text" placeholder="ค้นหาประเภทข้อสอบ..." value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
+                            <SuggestInput placeholder="ค้นหาประเภทข้อสอบ..." value={searchTerm}
+                                aria-label="ค้นหาประเภทข้อสอบ"
+                                onValueChange={setSearchTerm}
+                                suggestions={categories.map(c => c.category_name)}
                                 className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50" />
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                         </div>
                         <button onClick={() => setSortOrder(s => s === 'desc' ? 'asc' : 'desc')}
                             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-xl bg-white text-gray-700 hover:bg-gray-50 text-sm font-medium">
@@ -425,13 +428,13 @@ export default function CategoriesManagement() {
                                 <tbody className="divide-y divide-gray-100">
                                     {currentItems.length === 0 ? (
                                         <tr>
-                                            <td colSpan={6} className="py-16 text-center text-gray-400">
+                                            <td colSpan={6} className="py-16 text-center text-gray-600">
                                                 {searchTerm ? 'ไม่พบข้อมูลที่ค้นหา' : 'ยังไม่มีประเภทข้อสอบ'}
                                             </td>
                                         </tr>
                                     ) : currentItems.map((cat, idx) => (
                                         <tr key={cat.category_id} className="hover:bg-gray-50 transition-colors">
-                                            <td className="px-5 py-3.5 text-sm text-gray-400 text-center">
+                                            <td className="px-5 py-3.5 text-sm text-gray-600 text-center">
                                                 {(currentPage - 1) * perPage + idx + 1}
                                             </td>
                                             <td className="px-5 py-3.5">
@@ -443,15 +446,15 @@ export default function CategoriesManagement() {
                                             <td className="px-5 py-3.5">
                                                 <LinkedBanksDropdown banks={cat.item_banks ?? []} />
                                             </td>
-                                            <td className="px-5 py-3.5 text-xs text-gray-400 whitespace-nowrap">{formatDate(cat.created_at)}</td>
+                                            <td className="px-5 py-3.5 text-xs text-gray-600 whitespace-nowrap">{formatDate(cat.created_at)}</td>
                                             <td className="px-5 py-3.5">
                                                 <div className="flex items-center justify-center gap-1">
                                                     <button onClick={() => openEdit(cat)}
-                                                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer" title="แก้ไข">
+                                                        className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer" title="แก้ไข">
                                                         <Edit2 size={14} />
                                                     </button>
                                                     <button onClick={() => handleDelete(cat.category_id, cat.category_name)}
-                                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer" title="ลบ">
+                                                        className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer" title="ลบ">
                                                         <Trash2 size={14} />
                                                     </button>
                                                 </div>
@@ -479,7 +482,7 @@ export default function CategoriesManagement() {
                     /* ── CARD VIEW ── */
                     <>
                         {currentItems.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400">
+                            <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 rounded-2xl text-gray-600">
                                 <LayoutGrid size={40} className="mb-3 opacity-40" />
                                 <p>{searchTerm ? 'ไม่พบข้อมูลที่ค้นหา' : 'ยังไม่มีประเภทข้อสอบ'}</p>
                             </div>

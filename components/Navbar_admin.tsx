@@ -217,7 +217,7 @@ export default function Navbar_admin({
               className="block hover:opacity-80 transition-opacity truncate"
               aria-label="หน้าแรกผู้ดูแลระบบ เภสัชพร้อมสอบ"
             >
-              <span className="text-lg font-bold text-green-700 whitespace-nowrap">
+              <span className="text-lg font-medium text-green-700 whitespace-nowrap">
                 เภสัชพร้อมสอบ
               </span>
             </Link>
@@ -253,7 +253,7 @@ export default function Navbar_admin({
                   href={item.href}
                   className={`flex items-center gap-3 w-full px-3 py-2.5 transition-all duration-150 rounded-xl group text-sm ${
                     isActive(item.href)
-                      ? "bg-green-50 text-green-700 font-semibold"
+                      ? "bg-green-50 text-green-700 font-medium"
                       : "text-gray-600 hover:bg-gray-50 hover:text-green-700 font-medium"
                   } ${isCollapsed ? "justify-center" : ""}`}
                   aria-label={item.title}
@@ -283,7 +283,7 @@ export default function Navbar_admin({
                     href={item.href}
                     className={`flex items-center gap-3 w-full px-3 py-2.5 transition-all duration-150 rounded-xl group text-sm ${
                       isActive(item.href)
-                        ? "bg-green-50 text-green-700 font-semibold"
+                        ? "bg-green-50 text-green-700 font-medium"
                         : "text-gray-600 hover:bg-gray-50 hover:text-green-700 font-medium"
                     } ${isCollapsed ? "justify-center" : ""}`}
                     aria-label={item.title}
@@ -341,13 +341,13 @@ export default function Navbar_admin({
               {!isCollapsed && (
                 <div className="min-w-0">
                   <p
-                    className={`text-xs font-semibold truncate ${
+                    className={`text-xs font-medium truncate ${
                       subscription.daysRemaining! <= 30 ? "text-red-700" : "text-green-800"
                     }`}
                   >
                     สิทธิ์เหลืออีก {subscription.daysRemaining} วัน
                   </p>
-                  <p className="text-[11px] text-gray-600 truncate">
+                  <p className="text-[0.6875rem] text-gray-600 truncate">
                     หมดอายุ{" "}
                     {subscription.expiresAt &&
                       new Date(subscription.expiresAt).toLocaleDateString("th-TH", {
@@ -374,7 +374,7 @@ export default function Navbar_admin({
             </div>
             {!isCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate whitespace-nowrap">
+                <p className="text-sm font-medium text-gray-900 truncate whitespace-nowrap">
                   {user?.first_name} {user?.last_name}
                 </p>
                 <p className="text-xs text-gray-600 truncate whitespace-nowrap">{user?.email}</p>
@@ -397,7 +397,7 @@ export default function Navbar_admin({
               className="hover:opacity-80 transition-opacity"
               aria-label="หน้าแรกผู้ดูแลระบบ เภสัชพร้อมสอบ"
             >
-              <span className="text-base sm:text-lg md:text-xl font-bold text-green-700">
+              <span className="text-base sm:text-lg md:text-xl font-medium text-green-700">
                 เภสัชพร้อมสอบ
               </span>
             </Link>
@@ -432,7 +432,7 @@ export default function Navbar_admin({
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
                       isActive(item.href)
-                        ? "bg-green-50 text-green-700 font-semibold border-l-4 border-green-700"
+                        ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
                         : "text-gray-700 hover:bg-gray-50 hover:text-green-700 font-medium"
                     }`}
                   >
@@ -448,7 +448,7 @@ export default function Navbar_admin({
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
                         isActive(item.href)
-                          ? "bg-gray-100 text-green-700 font-semibold border-l-4 border-green-700"
+                          ? "bg-gray-100 text-green-700 font-medium border-l-4 border-green-700"
                           : "text-gray-700 hover:bg-gray-50 hover:text-green-700 font-medium"
                       }`}
                     >
@@ -478,7 +478,7 @@ export default function Navbar_admin({
                         <User className="w-6 h-6 text-green-700" aria-hidden="true" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-green-800 truncate">
+                        <p className="text-sm font-medium text-green-800 truncate">
                           {user?.first_name} {user?.last_name}
                         </p>
                         <p className="text-xs text-green-700 truncate">

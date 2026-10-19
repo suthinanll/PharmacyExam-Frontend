@@ -14,6 +14,7 @@ import CreateItemBankModal from "./components/CreateItemBankModal";
 import { useAuth } from "@/contexts/AuthContext";
 import Pagination from "@/components/Pagination";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import SuggestInput from '@/components/SuggestInput';
 
 // ─── Types ───────────────────────────────────────────
 interface Category {
@@ -116,14 +117,14 @@ function BankCard({
         {/* Meta */}
         <div className="mt-auto space-y-1.5">
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Clock size={13} className="shrink-0 text-gray-400" />
+            <Clock size={13} className="shrink-0 text-gray-600" />
             <span>{formatDuration(bank.duration)}</span>
           </div>
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <Tag size={13} className="shrink-0 text-gray-400" />
+            <Tag size={13} className="shrink-0 text-gray-600" />
             <span className="truncate">{cats}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-400">
+          <div className="flex items-center gap-2 text-sm text-gray-600">
             <Calendar size={13} className="shrink-0" />
             <span>สร้างเมื่อ: {formatDate(bank.created_at)}</span>
           </div>
@@ -164,7 +165,7 @@ function BankCard({
             <button
               onClick={() => onDelete?.(bank.item_bank_id, bank.bank_name)}
               title="ลบคลังข้อสอบ (ย้ายไปถังขยะ)"
-              className="p-2.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-gray-200 hover:border-red-200 cursor-pointer"
+              className="p-2.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors border border-gray-200 hover:border-red-200 cursor-pointer"
             >
               <Trash2 size={16} />
             </button>
@@ -435,14 +436,15 @@ function Page() {
           <div className="flex gap-2.5 flex-1 flex-wrap items-center">
             {/* Search */}
             <div className="relative max-w-sm w-full">
-              <input
-                type="text"
+              <SuggestInput
                 placeholder={tab === "deleted" ? "ค้นหาคลังที่ถูกลบ..." : "ค้นหาคลังข้อสอบ..."}
+                aria-label={tab === "deleted" ? "ค้นหาคลังที่ถูกลบ" : "ค้นหาคลังข้อสอบ"}
                 value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
+                onValueChange={setSearchTerm}
+                suggestions={activeList.map(b => b.bank_name)}
                 className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
               />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
             </div>
 
             {/* Sort */}
@@ -503,7 +505,7 @@ function Page() {
                 <tbody className="divide-y divide-gray-100">
                   {currentItems.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-16 text-center text-gray-400">
+                      <td colSpan={7} className="py-16 text-center text-gray-600">
                         {searchTerm ? "ไม่พบข้อมูลที่ค้นหา" : tab === "deleted" ? "ไม่มีคลังข้อสอบที่ถูกลบ" : "ยังไม่มีคลังข้อสอบ"}
                       </td>
                     </tr>
@@ -518,7 +520,7 @@ function Page() {
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="text-sm font-medium text-gray-900">{bank.bank_name}</div>
-                          <div className="text-sm text-gray-400 truncate max-w-xs" title={bank.description}>
+                          <div className="text-sm text-gray-600 truncate max-w-xs" title={bank.description}>
                             {bank.description?.substring(0, 50) || "—"}{bank.description?.length > 50 ? "…" : ""}
                           </div>
                         </td>
@@ -537,7 +539,7 @@ function Page() {
                             </span>
                           )}
                         </td>
-                        <td className="px-5 py-3.5 text-sm text-gray-400 whitespace-nowrap">{formatDate(bank.created_at)}</td>
+                        <td className="px-5 py-3.5 text-sm text-gray-600 whitespace-nowrap">{formatDate(bank.created_at)}</td>
                         <td className="px-5 py-3.5 text-sm text-gray-500 max-w-[160px] truncate">{cats}</td>
                         <td className="px-5 py-3.5">
                           {tab === "deleted" ? (
@@ -568,14 +570,14 @@ function Page() {
                                   router.push('/admin/manage_examset/detail');
                                 }}
                                 title="ดูรายละเอียดคลังข้อสอบ"
-                                className="p-1.5 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
+                                className="p-1.5 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
                               >
                                 <Eye size={16} />
                               </button>
                               <button
                                 onClick={() => handleDeleteBank(bank.item_bank_id, bank.bank_name)}
                                 title="ลบคลังข้อสอบ"
-                                className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
+                                className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer inline-flex items-center justify-center"
                               >
                                 <Trash2 size={16} />
                               </button>
@@ -607,7 +609,7 @@ function Page() {
           /* ── CARD VIEW ── */
           <>
             {currentItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400">
+              <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 rounded-2xl text-gray-600">
                 <LayoutGrid size={40} className="mb-3 opacity-40" />
                 <p>{searchTerm ? "ไม่พบข้อมูลที่ค้นหา" : tab === "deleted" ? "ไม่มีคลังข้อสอบที่ถูกลบ" : "ยังไม่มีคลังข้อสอบ"}</p>
               </div>

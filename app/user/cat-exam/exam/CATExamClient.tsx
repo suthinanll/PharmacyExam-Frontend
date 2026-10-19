@@ -261,7 +261,7 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
           </div>
           <div className="text-left">
             <h3 className="text-sm font-medium text-gray-800">ระดับความสามารถ</h3>
-            <p className="text-sm text-gray-400">ประเมินแบบเรียลไทม์ (CAT)</p>
+            <p className="text-sm text-gray-600">ประเมินแบบเรียลไทม์ (CAT)</p>
           </div>
         </div>
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${abilityBadge.color}`}>
@@ -438,7 +438,7 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
                 fontSize={isZero ? "9.5" : "9"}
                 fill={isZero ? "#1d4ed8" : "#64748b"}
                 fontFamily="sans-serif"
-                fontWeight={isZero ? "700" : "500"}
+                fontWeight="500"
               >
                 {val > 0 ? `+${val.toFixed(1)}` : val === 0 ? "0.0" : val.toFixed(1)}
               </text>
@@ -464,7 +464,7 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
             fontSize="11"
             fill="#1e40af"
             textAnchor="middle"
-            fontWeight="700"
+            fontWeight="500"
             fontFamily="sans-serif"
           >
             θ = {displayedTheta >= 0 ? `+${displayedTheta.toFixed(2)}` : displayedTheta.toFixed(2)}
@@ -512,7 +512,7 @@ function LabBeaker({ theta, dropTrigger, finalStatus = null }: {
       {/* Footer info bar */}
       <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
         <span>ค่าความสามารถ (Theta)</span>
-        <span className=" font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
+        <span className=" font-medium text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
           {displayedTheta >= 0 ? `+${displayedTheta.toFixed(2)}` : displayedTheta.toFixed(2)}
         </span>
       </div>
@@ -793,7 +793,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
 
   async function submitAnswer() {
     if (!selectedOptionId || !session) {
-      Swal.fire({ title: "กรุณาเลือกคำตอบ", icon: "warning", confirmButtonColor: "#22c55e", confirmButtonText: "ตกลง" });
+      Swal.fire({ title: "กรุณาเลือกคำตอบ", icon: "warning", confirmButtonColor: "#5EA500", confirmButtonText: "ตกลง" });
       return;
     }
     try {
@@ -938,7 +938,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                           }`}>
                             {session.current_theta >= 0 ? `+${session.current_theta.toFixed(3)}` : session.current_theta.toFixed(3)}
                           </div>
-                          <div className="text-[11px] text-gray-400 mt-0.5 font-normal">
+                          <div className="text-[0.6875rem] text-gray-600 mt-0.5 font-normal">
                             {session.current_theta >= 1.5 ? "ระดับสูง" : session.current_theta >= 0 ? "ระดับปานกลาง" : "ระดับเริ่มต้น"}
                           </div>
                         </div>
@@ -954,7 +954,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                           <div className="text-2xl font-medium text-gray-800">
                             {session.num_items}
                           </div>
-                          <div className="text-[11px] text-gray-400 mt-0.5 font-normal">
+                          <div className="text-[0.6875rem] text-gray-600 mt-0.5 font-normal">
                             จากสูงสุด {session.max_items} ข้อ
                           </div>
                         </div>
@@ -963,14 +963,14 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                       {/* 3. Time Elapsed */}
                       <div className="bg-gray-50/80 rounded-xl p-4 border border-gray-100 flex flex-col justify-between text-center transition-all hover:border-gray-200">
                         <div className="flex items-center justify-center gap-1.5 text-xs text-gray-500 mb-2">
-                          <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                          <Clock className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                           <span className="truncate">เวลาที่ใช้ทั้งหมด</span>
                         </div>
                         <div>
-                          <div className="text-2xl font-medium text-indigo-600 ">
+                          <div className="text-2xl font-medium text-blue-600 ">
                             {formatTime(elapsedTime)}
                           </div>
-                          <div className="text-[11px] text-gray-400 mt-0.5 font-normal">
+                          <div className="text-[0.6875rem] text-gray-600 mt-0.5 font-normal">
                             นาที : วินาที
                           </div>
                         </div>
@@ -986,7 +986,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                           <div className="text-2xl font-medium text-purple-600">
                             {session.current_se.toFixed(3)}
                           </div>
-                          <div className="text-[11px] text-gray-400 mt-0.5 font-normal">
+                          <div className="text-[0.6875rem] text-gray-600 mt-0.5 font-normal">
                             {session.current_se <= 0.35 ? "ความแม่นยำสูง" : "ความแม่นยำปานกลาง"}
                           </div>
                         </div>
@@ -995,7 +995,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
 
                     {/* Additional details */}
                     {finalStatus !== null && (
-                      <div className="text-center p-4 bg-gray-50/50 rounded-xl text-sm text-gray-400 leading-relaxed max-w-lg mx-auto border border-dashed border-gray-200">
+                      <div className="text-center p-4 bg-gray-50/50 rounded-xl text-sm text-gray-600 leading-relaxed max-w-lg mx-auto border border-dashed border-gray-200">
                         * ผลลัพธ์นี้คำนวณตามทฤษฎีการตอบสนองข้อสอบ (IRT) ความคลาดเคลื่อนมาตรฐานต่ำกว่าเกณฑ์ขั้นต่ำ (SE &le; 0.35) หรือทำข้อสอบถึงจำนวนข้อสูงสุดแล้ว
                       </div>
                     )}
@@ -1013,7 +1013,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                         }}
                         disabled={finalStatus === null || navigating}
                         className={`w-full max-w-sm py-4 px-6 rounded-2xl font-medium text-white shadow-sm hover:shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer ${finalStatus === "passed"
-                          ? "bg-green-500 hover:bg-green-600"
+                          ? "bg-primary hover:bg-primary-hover"
                           : finalStatus === "failed"
                             ? "bg-red-500 hover:bg-red-600"
                             : "bg-gray-400 cursor-not-allowed opacity-50"
@@ -1203,14 +1203,14 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-gray-50 rounded-lg p-3 text-center">
                       <div className="flex items-center justify-center gap-1 mb-0.5">
-                        <Hash className="w-3.5 h-3.5 text-gray-400" />
+                        <Hash className="w-3.5 h-3.5 text-gray-600" />
                         <span className="text-xs text-gray-500">ตอบแล้ว</span>
                       </div>
                       <p className="text-xl font-medium text-gray-800">{session.num_items}</p>
                     </div>
                     <div className="bg-gray-50 rounded-lg p-3 text-center">
                       <div className="flex items-center justify-center gap-1 mb-0.5">
-                        <Clock className="w-3.5 h-3.5 text-gray-400" />
+                        <Clock className="w-3.5 h-3.5 text-gray-600" />
                         <span className="text-xs text-gray-500">เวลา</span>
                       </div>
                       <p className="text-xl font-medium text-blue-600">{formatTime(elapsedTime)}</p>
@@ -1229,7 +1229,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                         style={{ width: `${progressPct}%` }}
                       />
                     </div>
-                    <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                    <div className="flex justify-between text-[0.625rem] text-gray-600 mt-1">
                       <span>เริ่ม</span>
                       <span>สูงสุด {session.max_items} ข้อ</span>
                     </div>
@@ -1242,7 +1242,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                     <button
                       onClick={submitAnswer}
                       disabled={!selectedOptionId || loading}
-                      className="w-full py-3.5 bg-green-500 hover:bg-green-600 text-white font-medium rounded-xl transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full py-3.5 bg-primary hover:bg-primary-hover text-white font-medium rounded-xl transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <>
@@ -1255,7 +1255,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                     </button>
 
                     {!selectedOptionId && !loading && (
-                      <p className="text-xs text-center text-gray-400">เลือกคำตอบก่อนกดส่ง</p>
+                      <p className="text-xs text-center text-gray-600">เลือกคำตอบก่อนกดส่ง</p>
                     )}
                   </>
                 )}

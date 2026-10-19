@@ -55,7 +55,7 @@ function NotificationItem({
 }) {
     const router = useRouter();
     const typeId = notification.notification_type_id ?? 4;
-    const icon = NOTIFICATION_TYPE_ICONS[typeId] ?? <Info className="w-4 h-4 text-gray-400" />;
+    const icon = NOTIFICATION_TYPE_ICONS[typeId] ?? <Info className="w-4 h-4 text-gray-600" />;
     const colorClass = TYPE_COLORS[typeId] ?? 'bg-gray-50 border-gray-200';
 
     const handleClick = () => {
@@ -100,12 +100,12 @@ function NotificationItem({
                 </p>
                 <div className="flex items-center gap-2 mt-1.5">
                     {notification.notification_type_id && (
-                        <span className="text-xs font-medium text-gray-400">
+                        <span className="text-xs font-medium text-gray-600">
                             {TYPE_LABEL[notification.notification_type_id]}
                         </span>
                     )}
-                    <span className="text-xs text-gray-400">·</span>
-                    <span className="text-xs text-gray-400">{timeAgo(notification.created_at)}</span>
+                    <span className="text-xs text-gray-600">·</span>
+                    <span className="text-xs text-gray-600">{timeAgo(notification.created_at)}</span>
                 </div>
             </div>
 
@@ -118,7 +118,7 @@ function NotificationItem({
                         onDelete(notification.notification_id);
                     }}
                     title="ลบ"
-                    className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-1.5 rounded hover:bg-red-50 text-gray-600 hover:text-red-500 transition-colors"
                 >
                     <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -159,7 +159,7 @@ export default function NotificationBell() {
                 <Bell className="w-5 h-5" />
                 {/* Badge */}
                 {unreadCount > 0 && (
-                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 text-white text-[10px] font-medium rounded-full leading-none animate-bounce">
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-red-500 text-white text-[0.625rem] font-medium rounded-full leading-none animate-bounce">
                         {unreadCount > 99 ? '99+' : unreadCount}
                     </span>
                 )}
@@ -178,7 +178,7 @@ export default function NotificationBell() {
                     <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-gray-50/50">
                         <div className="flex items-center gap-2">
                             <Bell className="w-4 h-4 text-green-700" />
-                            <h3 className="font-semibold text-gray-900 text-sm">การแจ้งเตือน</h3>
+                            <h3 className="font-medium text-gray-900 text-sm">การแจ้งเตือน</h3>
                             {unreadCount > 0 && (
                                 <span className="px-1.5 py-0.5 bg-red-100 text-red-600 text-xs font-medium rounded-full">
                                     {unreadCount} ใหม่
@@ -223,7 +223,7 @@ export default function NotificationBell() {
                             )}
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="p-1 rounded-lg hover:bg-gray-200 text-gray-400 hover:text-gray-600 transition-colors ml-1"
+                                className="p-1 rounded-lg hover:bg-gray-200 text-gray-600 hover:text-gray-600 transition-colors ml-1"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -243,7 +243,7 @@ export default function NotificationBell() {
                             >
                                 {tab === 'all' ? 'ทั้งหมด' : 'ยังไม่ได้อ่าน'}
                                 {tab === 'unread' && unreadCount > 0 && (
-                                    <span className="ml-1 px-1.5 py-0.5 bg-red-100 text-red-600 text-[10px] rounded-full font-medium">
+                                    <span className="ml-1 px-1.5 py-0.5 bg-red-100 text-red-600 text-[0.625rem] rounded-full font-medium">
                                         {unreadCount}
                                     </span>
                                 )}
@@ -261,7 +261,7 @@ export default function NotificationBell() {
                                 <p className="text-sm font-medium text-gray-500">
                                     {filter === 'unread' ? 'อ่านครบแล้ว!' : 'ยังไม่มีการแจ้งเตือน'}
                                 </p>
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="text-xs text-gray-600 mt-1">
                                     การแจ้งเตือนใหม่จะปรากฏที่นี่
                                 </p>
                             </div>
@@ -280,7 +280,7 @@ export default function NotificationBell() {
 
                     {/* Footer */}
                     <div className="flex items-center justify-center py-2 border-t border-gray-100 bg-gray-50/50">
-                        <span className={`flex items-center gap-1 text-xs ${isConnected ? 'text-green-500' : 'text-gray-400'}`}>
+                        <span className={`flex items-center gap-1 text-xs ${isConnected ? 'text-green-500' : 'text-gray-600'}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-400' : 'bg-gray-300'}`} />
                             {isConnected ? 'เชื่อมต่อแบบ Real-time' : 'ไม่ได้เชื่อมต่อ'}
                         </span>

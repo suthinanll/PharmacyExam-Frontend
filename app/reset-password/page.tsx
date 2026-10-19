@@ -78,7 +78,7 @@ function ResetPasswordContent() {
                 icon: "warning",
                 title: "รหัสผ่านไม่ตรงกัน",
                 text: "กรุณาตรวจสอบการกรอกรหัสผ่านทั้งสองช่องอีกครั้ง",
-                confirmButtonColor: "#10b981",
+                confirmButtonColor: "#5EA500",
             });
         }
 
@@ -98,7 +98,7 @@ function ResetPasswordContent() {
                     icon: "success",
                     title: "สำเร็จ!",
                     text: "รหัสผ่านของคุณถูกเปลี่ยนเรียบร้อยแล้ว",
-                    confirmButtonColor: "#10b981",
+                    confirmButtonColor: "#5EA500",
                 });
                 router.push("/login");
             } else {
@@ -130,7 +130,7 @@ function ResetPasswordContent() {
                         <LockKeyhole size={32} />
                     </div>
 
-                    <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-2">
+                    <h1 className="text-3xl font-medium text-center text-gray-800 mb-2">
                         ตั้งรหัสผ่านใหม่
                     </h1>
                     <p className="text-center text-gray-500 text-sm mb-8">

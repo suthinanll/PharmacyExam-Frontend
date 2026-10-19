@@ -50,7 +50,7 @@ function InfoTooltip({ text, position = "top" }: { text: string; position?: "top
                     e.stopPropagation();
                     setShow((prev) => !prev);
                 }}
-                className="text-gray-400 hover:text-green-600 transition-colors cursor-help inline-flex items-center p-0.5 rounded-full hover:bg-gray-100"
+                className="text-gray-600 hover:text-green-600 transition-colors cursor-help inline-flex items-center p-0.5 rounded-full hover:bg-gray-100"
             >
                 <Info className="w-4 h-4" />
             </span>
@@ -214,7 +214,7 @@ export default function CATSetupPage() {
                     icon: 'info',
                     showCancelButton: true,
                     showDenyButton: true,
-                    confirmButtonColor: '#16a34a',
+                    confirmButtonColor: '#5EA500',
                     denyButtonColor: '#ef4444',
                     cancelButtonColor: '#6b7280',
                     confirmButtonText: 'ทำต่อ',
@@ -329,7 +329,7 @@ export default function CATSetupPage() {
                                     <h2 className="text-base font-medium text-gray-800">ระดับความสามารถเริ่มต้น</h2>
                                     <InfoTooltip text="ระบบ CAT จะเริ่มส่งข้อสอบที่ระดับความยากนี้ก่อน แล้วปรับขึ้นหรือลงตามคำตอบของคุณโดยอัตโนมัติ" />
                                 </div>
-                                <p className="text-sm text-gray-400 mb-5 ml-7">กำหนดจุดเริ่มต้นของการประเมิน — ระบบจะปรับระดับเองตลอดการสอบ</p>
+                                <p className="text-sm text-gray-600 mb-5 ml-7">กำหนดจุดเริ่มต้นของการประเมิน — ระบบจะปรับระดับเองตลอดการสอบ</p>
 
                                 <div className="space-y-3 ml-7">
                                     {/* Option A: Use history */}
@@ -350,7 +350,7 @@ export default function CATSetupPage() {
                                                 <div className="flex items-center gap-2 mb-0.5">
                                                     <History className="w-4 h-4 text-green-600" />
                                                     <span className="text-sm font-medium text-gray-800">ใช้ระดับจากประวัติการสอบ</span>
-                                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-full  bg-green-100 text-green-700">แนะนำ</span>
+                                                    <span className="text-[0.625rem] font-medium px-2 py-0.5 rounded-full  bg-green-100 text-green-700">แนะนำ</span>
                                                 </div>
                                                 <p className="text-sm text-gray-500">
                                                     ระดับปัจจุบันของคุณ:{' '}
@@ -414,19 +414,19 @@ export default function CATSetupPage() {
                             {/* 2. Topic Focus */}
                             <section className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <PieChart className="w-5 h-5 text-indigo-500" />
+                                    <PieChart className="w-5 h-5 text-blue-500" />
                                     <h2 className="text-base font-medium text-gray-800">เน้นหมวดหมู่ (ไม่บังคับ)</h2>
                                     <InfoTooltip text="เลือกวิชาที่ต้องการฝึกเพิ่มเป็นพิเศษ ระบบจะดึงข้อสอบหมวดนั้นมาให้บ่อยขึ้น โดยไม่ต้องกำหนดเปอร์เซ็นต์เอง หากไม่เลือก ระบบจะสุ่มจากคลังทั้งหมด" />
                                 </div>
-                                <p className="text-sm text-gray-400 mb-5 ml-7">
+                                <p className="text-sm text-gray-600 mb-5 ml-7">
                                     คลิกวิชาที่ต้องการฝึก — ระบบจะเพิ่มสัดส่วนให้อัตโนมัติ{' '}
                                     {focusedTopics.length > 0 && (
-                                        <span className="text-indigo-600 font-medium">({focusedTopics.length} วิชาที่เลือก)</span>
+                                        <span className="text-blue-600 font-medium">({focusedTopics.length} วิชาที่เลือก)</span>
                                     )}
                                 </p>
 
                                 {topics.length === 0 ? (
-                                    <p className="text-sm text-gray-400 text-center py-4">ไม่พบหมวดหมู่</p>
+                                    <p className="text-sm text-gray-600 text-center py-4">ไม่พบหมวดหมู่</p>
                                 ) : (
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 ml-7">
                                         {topics.map(topic => {
@@ -437,12 +437,12 @@ export default function CATSetupPage() {
                                                     type="button"
                                                     onClick={() => handleTopicToggle(topic.topic_id)}
                                                     className={`flex items-center justify-between gap-2 p-3 rounded-lg border-2 text-left transition-all text-sm font-medium group ${isSelected
-                                                        ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
-                                                        : 'border-gray-200 bg-white text-gray-700 hover:border-indigo-300 hover:bg-indigo-50/50'
+                                                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                                        : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50/50'
                                                         }`}
                                                 >
                                                     <span className="truncate">{topic.topic_name}</span>
-                                                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${isSelected ? 'border-indigo-500 bg-indigo-500' : 'border-gray-300'}`}>
+                                                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${isSelected ? 'border-blue-500 bg-blue-500' : 'border-gray-300'}`}>
                                                         {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                                     </div>
                                                 </button>
@@ -455,7 +455,7 @@ export default function CATSetupPage() {
                                     <button
                                         type="button"
                                         onClick={() => setFocusedTopics([])}
-                                        className="mt-4 ml-7 text-xs text-gray-400 hover:text-red-500 transition-colors underline"
+                                        className="mt-4 ml-7 text-xs text-gray-600 hover:text-red-500 transition-colors underline"
                                     >
                                         ล้างการเลือกทั้งหมด
                                     </button>
@@ -471,7 +471,7 @@ export default function CATSetupPage() {
                                         }`}
                                 >
                                     <div className="flex items-center gap-2">
-                                        <Target className="w-5 h-5 text-gray-400" />
+                                        <Target className="w-5 h-5 text-gray-600" />
                                         <span className="text-base font-medium text-gray-800">การตั้งค่าขั้นสูง</span>
                                         <InfoTooltip
                                             text="ปรับจำนวนข้อสอบขั้นต่ำและสูงสุด สำหรับผู้ใช้ที่ต้องการควบคุมความยาวของการสอบ"
@@ -479,9 +479,9 @@ export default function CATSetupPage() {
                                         />
                                     </div>
                                     {showAdvanced ? (
-                                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                                        <ChevronUp className="w-4 h-4 text-gray-600" />
                                     ) : (
-                                        <ChevronDown className="w-4 h-4 text-gray-400" />
+                                        <ChevronDown className="w-4 h-4 text-gray-600" />
                                     )}
                                 </button>
 
@@ -580,7 +580,7 @@ export default function CATSetupPage() {
                                     <button
                                         onClick={startExam}
                                         disabled={starting}
-                                        className="w-full py-3 bg-green-500 hover:bg-green-600 disabled:bg-green-400 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                                        className="w-full py-3 bg-primary hover:bg-primary-hover disabled:bg-green-400 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                                     >
                                         {starting ? (
                                             <>

@@ -42,7 +42,7 @@ export default function NoteItem({
       html: `
         <div class="text-center py-1">
           <p class="text-sm text-gray-600 mb-1">คุณต้องการลบบันทึกนี้ใช่หรือไม่?</p>
-          <p class="text-base font-semibold text-gray-800 bg-gray-50 py-2 px-3 rounded-xl border border-gray-100 mb-2 truncate">"${note.title || 'ไม่มีหัวข้อ'}"</p>
+          <p class="text-base font-medium text-gray-800 bg-gray-50 py-2 px-3 rounded-xl border border-gray-100 mb-2 truncate">"${note.title || 'ไม่มีหัวข้อ'}"</p>
           <p class="text-sm text-red-500">⚠️ ข้อมูลและไฟล์แนบจะถูกลบถาวร ไม่สามารถกู้คืนได้</p>
         </div>
       `,
@@ -98,7 +98,7 @@ export default function NoteItem({
         {isLongContent && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="mt-2 text-indigo-600 hover:text-indigo-800 font-medium text-xs flex items-center gap-0.5"
+            className="mt-2 text-blue-600 hover:text-blue-800 font-medium text-xs flex items-center gap-0.5"
           >
             {isExpanded ? (
               <>แสดงน้อยลง <ChevronUp className="w-3 h-3" /></>
@@ -128,7 +128,7 @@ export default function NoteItem({
       {/* Files Section: แก้ไขการดึง storage_path จาก Object */}
       {note.files && note.files.length > 0 && (
         <div className="mb-4 pt-3 border-t border-dashed border-gray-100">
-          <p className="text-[10px] font-medium text-gray-400  mb-2 flex items-center gap-1">
+          <p className="text-[0.625rem] font-medium text-gray-600  mb-2 flex items-center gap-1">
             <FileText className="w-3 h-3" /> ไฟล์แนบ ({note.files.length})
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -150,7 +150,7 @@ export default function NoteItem({
                   href={fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block relative rounded-lg overflow-hidden border border-slate-200 w-16 h-16 hover:opacity-90 hover:ring-2 hover:ring-indigo-500 transition-all shadow-sm"
+                  className="block relative rounded-lg overflow-hidden border border-slate-200 w-16 h-16 hover:opacity-90 hover:ring-2 hover:ring-blue-500 transition-all shadow-sm"
                   title={displayLabel}
                 >
                   <img
@@ -169,7 +169,7 @@ export default function NoteItem({
                   href={fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="group flex items-center gap-1.5 text-[11px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1.5 rounded-lg hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all max-w-full"
+                  className="group flex items-center gap-1.5 text-[0.6875rem] text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-1.5 rounded-lg hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all max-w-full"
                 >
                   <LinkIcon className="w-3 h-3 flex-shrink-0" />
                   <span className="truncate max-w-[150px] font-medium">{displayLabel}</span>
@@ -191,7 +191,7 @@ export default function NoteItem({
             return (
               <span
                 key={tagId}
-                className="flex items-center text-[10px] font-medium text-indigo-600 bg-indigo-50/50 px-2 py-0.5 rounded-full cursor-pointer hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                className="flex items-center text-[0.625rem] font-medium text-blue-600 bg-blue-50/50 px-2 py-0.5 rounded-full cursor-pointer hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                 onClick={() => setTagFilterAction(tagName)}
               >
                 <Tag className="w-2.5 h-2.5 mr-1" /> {tagName}
@@ -199,7 +199,7 @@ export default function NoteItem({
             );
           })}
         </div>
-        <span className="text-[10px] font-medium text-gray-400 italic">
+        <span className="text-[0.625rem] font-medium text-gray-600 italic">
           {formattedDate}
         </span>
       </div>

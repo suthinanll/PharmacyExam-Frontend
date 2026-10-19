@@ -69,7 +69,7 @@ const NavbarGuest = () => {
   // (ไม่ redirect เพื่อให้กลับมาดูหน้าแรกได้ แต่ปุ่มกดจะพาไปหน้า user)
 
   return (
-    <nav className="shadow-lg bg-[rgba(118,178,90,1)] sticky top-0 z-50">
+    <nav className="shadow-lg bg-nav sticky top-0 z-50">
       <div className="mx-auto max-w-7xl px-2 sm:px-4 md:px-6 lg:px-8">
         <div className="relative flex h-14 sm:h-16 items-center justify-between">
 
@@ -206,7 +206,7 @@ const NavbarGuest = () => {
             {isAuthenticated ? (
               <Link
                 href={user?.role_id === 2 || user?.role_id === 3 ? "/admin" : "/user"}
-                className="inline-flex items-center gap-1.5 whitespace-nowrap px-4 sm:px-5 py-2 text-sm font-semibold text-green-700 bg-white rounded-xl shadow-md hover:shadow-lg hover:bg-green-50 transition-all duration-200"
+                className="inline-flex items-center gap-1.5 whitespace-nowrap px-4 sm:px-5 py-2 text-sm font-medium text-green-700 bg-white rounded-xl shadow-md hover:shadow-lg hover:bg-green-50 transition-all duration-200"
               >
                 <LogIn size={16} />
                 ไปยังหน้าผู้ใช้
@@ -282,7 +282,7 @@ const NavbarGuest = () => {
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={`block w-full text-left rounded-md px-3 py-2 text-sm font-medium transition-colors duration-200 ${
                             isActive(subItem.href)
-                              ? "bg-white/20 text-white font-semibold"
+                              ? "bg-white/20 text-white font-medium"
                               : "text-white hover:bg-white/10"
                           } cursor-pointer`}
                         >
@@ -316,7 +316,7 @@ const NavbarGuest = () => {
               <Link
                 href={user?.role_id === 2 || user?.role_id === 3 ? "/admin" : "/user"}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-semibold text-green-700 bg-white rounded-xl shadow-md"
+                className="flex items-center justify-center gap-1.5 px-4 py-2.5 text-sm font-medium text-green-700 bg-white rounded-xl shadow-md"
               >
                 <LogIn size={16} />
                 ไปยังหน้าผู้ใช้

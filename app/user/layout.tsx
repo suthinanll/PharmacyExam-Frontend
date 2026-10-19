@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import Swal from "@/utils/sweetalert";
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 // หน้าให้ guest เข้าดูได้ (ดูข้อมูลได้ แต่ทำข้อสอบ/เพิ่มโน้ตต้อง login ก่อน)
 const GUEST_VIEWABLE_PATHS = ['/user/examset', '/user/calendar'];
@@ -12,7 +13,16 @@ const GUEST_VIEWABLE_PATHS = ['/user/examset', '/user/calendar'];
 // หน้าที่บัญชี Google ต้องกรอกเบอร์ มหาวิทยาลัย และรหัสผ่านให้ครบก่อนใช้งานหน้าอื่น
 const COMPLETE_PROFILE_PATH = '/user/complete-profile';
 
+// ธีมมืดและขนาดตัวอักษรมีผลเฉพาะหน้าใต้ /user จึงครอบ ThemeProvider ไว้ที่ layout นี้
 export default function UserLayout({ children }: { children: React.ReactNode }) {
+    return (
+        <ThemeProvider>
+            <UserGuard>{children}</UserGuard>
+        </ThemeProvider>
+    );
+}
+
+function UserGuard({ children }: { children: React.ReactNode }) {
     const { user, isAuthenticated, isLoading } = useAuth();
     const router = useRouter();
     const pathname = usePathname();

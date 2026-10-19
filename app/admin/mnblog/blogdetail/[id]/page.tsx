@@ -372,7 +372,7 @@ export default function EditBlogDetail() {
                         {/* Content */}
                         <div className="lg:col-span-8 space-y-6">
                             <div>
-                                <label className="block text-xs font-black  text-gray-400 mb-2">หัวข้อข่าวสาร</label>
+                                <label className="block text-xs font-medium  text-gray-600 mb-2">หัวข้อข่าวสาร</label>
                                 <input
                                     type="text"
                                     className="w-full text-2xl font-medium border-none p-0 focus:ring-0 text-gray-800"
@@ -383,7 +383,7 @@ export default function EditBlogDetail() {
                             </div>
 
                             <div className="border-t pt-6">
-                                <label className="block text-xs font-black  text-gray-400 mb-3">เนื้อหาข่าวสาร</label>
+                                <label className="block text-xs font-medium  text-gray-600 mb-3">เนื้อหาข่าวสาร</label>
                                 <TiptapToolbar
                                     editor={editor}
                                     onAddLink={() => setLinkModalOpen(true)}
@@ -395,7 +395,7 @@ export default function EditBlogDetail() {
                             </div>
                             
                             <div className="flex items-center gap-2 pt-4 border-t border-gray-100">
-                                <Link2 className="w-4 h-4 text-gray-400" />
+                                <Link2 className="w-4 h-4 text-gray-600" />
                                 <input
                                     type="text"
                                     value={formData.source_url}
@@ -408,7 +408,7 @@ export default function EditBlogDetail() {
 
                         {/* Sidebar */}
                         <div className="lg:col-span-4 space-y-6">
-                            <label className="block text-xs font-black  text-gray-400 mb-4">ภาพหน้าปก</label>
+                            <label className="block text-xs font-medium  text-gray-600 mb-4">ภาพหน้าปก</label>
 
                             {/* Toggle: Upload vs URL */}
                             <div className="flex gap-2 mb-4">
@@ -461,7 +461,7 @@ export default function EditBlogDetail() {
                                         ) : (
                                             <div className="text-center">
                                                 <Upload className="text-gray-300 w-8 h-8 mx-auto mb-2" />
-                                                <p className="text-xs text-gray-400">คลิกเพื่ออัปโหลด</p>
+                                                <p className="text-xs text-gray-600">คลิกเพื่ออัปโหลด</p>
                                             </div>
                                         )}
                                         {isUploading && (

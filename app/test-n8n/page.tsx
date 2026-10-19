@@ -59,7 +59,7 @@ export default function TestN8nPage() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">Test n8n Workflow</h1>
+      <h1 className="text-2xl font-medium">Test n8n Workflow</h1>
       <p className="text-gray-600 dark:text-gray-400">
         ทดสอบการทำงานของ Webhook n8n (https://cpkku.app.n8n.cloud/webhook-test/exam-analysis)
       </p>
@@ -82,7 +82,7 @@ export default function TestN8nPage() {
       </div>
       
       <div className="mt-6 border rounded-lg p-4 bg-gray-50 dark:bg-gray-900 dark:border-gray-700 min-h-[300px]">
-        <h2 className="text-xl font-semibold mb-2">Result:</h2>
+        <h2 className="text-xl font-medium mb-2">Result:</h2>
         <pre className="whitespace-pre-wrap break-all text-sm font-mono">
           {result || "ผลลัพธ์จะแสดงที่นี่..."}
         </pre>

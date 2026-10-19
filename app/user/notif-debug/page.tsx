@@ -105,7 +105,7 @@ export default function NotificationDebugPage() {
                             alignItems: 'center'
                         }}>
                             <div>
-                                <div style={{ fontWeight: 'bold' }}>{n.title}</div>
+                                <div style={{ fontWeight: 500 }}>{n.title}</div>
                                 <div style={{ fontSize: 14, color: '#4b5563' }}>{n.message}</div>
                                 <small style={{ color: '#9ca3af' }}>ID: {n.notification_id} | Type: {n.notification_type_id} | Date: {new Date(n.created_at).toLocaleString()}</small>
                             </div>

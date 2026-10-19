@@ -79,7 +79,7 @@ const StatCard: React.FC<StatCardProps> = ({
   >
     <div className="flex justify-between items-start">
       <div className="space-y-2">
-        <p className="text-sm font-semibold text-gray-600">{title}</p>
+        <p className="text-sm font-medium text-gray-600">{title}</p>
         <div className="flex items-baseline space-x-1.5">
           <h2 className="text-3xl font-medium text-gray-900 tracking-tight">{value}</h2>
           <span className="text-sm font-medium text-gray-600">{description}</span>
@@ -250,7 +250,7 @@ function AdminDashboardPage() {
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">ภาพรวมระบบและสถิติ</h1>
+              <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">ภาพรวมระบบและสถิติ</h1>
               <p className="text-sm font-medium text-gray-600">วิเคราะห์และติดตามผลประสิทธิภาพภาพรวมการทดสอบความรู้</p>
             </div>
             <button
@@ -313,7 +313,7 @@ function AdminDashboardPage() {
               <TrendingUp className="w-5 h-5" aria-hidden="true" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-lg font-medium text-gray-800">
                 แนวโน้มประสิทธิภาพของผู้เรียน
               </h2>
               <p className="text-sm font-medium text-gray-600">สรุปดัชนีคะแนนเฉลี่ยจำแนกตามรายเดือน</p>
@@ -333,7 +333,7 @@ function AdminDashboardPage() {
                 <Bot className="w-5 h-5" aria-hidden="true" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                <h2 className="text-lg font-medium text-gray-800 flex items-center gap-2">
                   การวิเคราะห์แนวโน้มและข้อเสนอแนะโดย AI
                 </h2>
                 <p className="text-sm font-medium text-gray-600">
@@ -375,7 +375,7 @@ function AdminDashboardPage() {
               <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto animate-pulse">
                 <Brain className="w-6 h-6 animate-bounce" aria-hidden="true" />
               </div>
-              <p className="text-sm font-semibold text-gray-800">ระบบ AI กำลังวิเคราะห์สถิติภาพรวมของผู้สอบ...</p>
+              <p className="text-sm font-medium text-gray-800">ระบบ AI กำลังวิเคราะห์สถิติภาพรวมของผู้สอบ...</p>
               <p className="text-sm font-medium text-gray-600">กำลังประมวลผลข้อมูลคะแนนเฉลี่ย สถิติรายเดือน และจัดทำข้อเสนอแนะเชิงนโยบาย</p>
             </div>
           ) : !aiAnalysis ? (
@@ -383,7 +383,7 @@ function AdminDashboardPage() {
               <div className="w-16 h-16 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center mx-auto">
                 <Lightbulb className="w-10 h-10" aria-hidden="true" />
               </div>
-              <p className="text-base font-semibold text-gray-700">ยังไม่มีการประมวลผลการวิเคราะห์แนวโน้ม</p>
+              <p className="text-base font-medium text-gray-700">ยังไม่มีการประมวลผลการวิเคราะห์แนวโน้ม</p>
               <p className="text-sm font-medium text-gray-600 max-w-lg mx-auto">
                 กดปุ่ม &quot;วิเคราะห์แนวโน้มด้วย AI&quot; ด้านบนเพื่อส่งข้อมูลสถิติไปยัง n8n AI Agent เพื่อรับบทวิเคราะห์และข้อเสนอแนะเชิงลึก
               </p>
@@ -393,7 +393,7 @@ function AdminDashboardPage() {
               {/* Trend Summary */}
               {(aiAnalysis.trend_summary || aiAnalysis.summary || aiAnalysis.overall_feedback) && (
                 <div className="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100 space-y-1.5">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-indigo-800">
+                  <div className="flex items-center gap-2 text-sm font-medium text-indigo-800">
                     <TrendingUp className="w-4 h-4" aria-hidden="true" />
                     <span>สรุปแนวโน้มภาพรวมของผู้สอบ</span>
                   </div>
@@ -408,7 +408,7 @@ function AdminDashboardPage() {
               {/* Key Insights & High Risk Areas */}
               {(Array.isArray(aiAnalysis.key_insights) || Array.isArray(aiAnalysis.analysis_points)) && (
                 <div className="space-y-2.5">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
                     <ShieldAlert className="w-4 h-4 text-amber-600" aria-hidden="true" />
                     <span>ประเด็นสำคัญและจุดที่ควรให้ความสนใจ</span>
                   </div>
@@ -424,12 +424,12 @@ function AdminDashboardPage() {
                       return (
                         <div key={i} className="p-3.5 bg-gray-50 rounded-xl border border-gray-100 space-y-1.5">
                           <div className="flex items-center justify-between gap-2">
-                            <span className="text-sm font-semibold text-gray-900">
+                            <span className="text-sm font-medium text-gray-900">
                               {titleText}
                             </span>
                             {item?.severity && (
                               <span
-                                className={`text-[10px] px-2 py-0.5 rounded font-semibold ${item.severity === "high"
+                                className={`text-[0.625rem] px-2 py-0.5 rounded font-medium ${item.severity === "high"
                                     ? "bg-red-50 text-red-700 border border-red-200"
                                     : item.severity === "medium"
                                       ? "bg-amber-50 text-amber-700 border border-amber-200"
@@ -466,7 +466,7 @@ function AdminDashboardPage() {
                 if (isStructured) {
                   return (
                     <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 space-y-4">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-teal-800">
+                      <div className="flex items-center gap-2 text-sm font-medium text-teal-800">
                         <CheckCircle2 className="w-4 h-4 text-teal-600" aria-hidden="true" />
                         <span>ข้อเสนอแนะเชิงกลยุทธ์สำหรับผู้ดูแลระบบ</span>
                       </div>
@@ -476,7 +476,7 @@ function AdminDashboardPage() {
                         <ul className="space-y-2">
                           {raw.general_strategies.map((s: string, idx: number) => (
                             <li key={idx} className="flex items-start gap-2.5">
-                              <span className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold">
+                              <span className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[0.625rem] font-medium">
                                 {idx + 1}
                               </span>
                               <span className="text-sm text-gray-700 font-medium leading-relaxed">{s}</span>
@@ -492,14 +492,14 @@ function AdminDashboardPage() {
                 if (Array.isArray(raw)) {
                   return (
                     <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 space-y-2">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-teal-800">
+                      <div className="flex items-center gap-2 text-sm font-medium text-teal-800">
                         <CheckCircle2 className="w-4 h-4 text-teal-600" aria-hidden="true" />
                         <span>ข้อเสนอแนะเชิงกลยุทธ์สำหรับผู้ดูแลระบบ</span>
                       </div>
                       <ul className="space-y-2">
                         {raw.map((item: any, idx: number) => (
                           <li key={idx} className="flex items-start gap-2.5">
-                            <span className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-[10px] font-bold">
+                            <span className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-[0.625rem] font-medium">
                               {idx + 1}
                             </span>
                             <span className="text-sm text-gray-700 font-medium leading-relaxed">
@@ -515,7 +515,7 @@ function AdminDashboardPage() {
                 // Fallback: plain string
                 return (
                   <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-teal-800">
+                    <div className="flex items-center gap-2 text-sm font-medium text-teal-800">
                       <CheckCircle2 className="w-4 h-4 text-teal-600" aria-hidden="true" />
                       <span>ข้อเสนอแนะเชิงกลยุทธ์สำหรับผู้ดูแลระบบ</span>
                     </div>

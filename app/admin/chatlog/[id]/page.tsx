@@ -133,7 +133,7 @@ function ChatDetailPage() {
                     {/* Chat Messages Area */}
                     <div className="flex flex-col space-y-6 flex-grow">
                         {messages.length === 0 ? (
-                            <p className="text-center text-gray-400 my-auto">ไม่มีข้อความในบทสนทนานี้</p>
+                            <p className="text-center text-gray-600 my-auto">ไม่มีข้อความในบทสนทนานี้</p>
                         ) : (
                             messages.map((message) => {
                                 const { time } = formatDateTime(message.sent_at);
@@ -158,7 +158,7 @@ function ChatDetailPage() {
                                             >
                                                 {message.message_text}
                                             </div>
-                                            <span className="text-xs text-gray-400 mt-1 px-1">
+                                            <span className="text-xs text-gray-600 mt-1 px-1">
                                                 {time}
                                             </span>
                                         </div>

@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import Navbar from '@/components/Navbar_user';
 import Footer from '@/components/Footer';
 import Search from '@/components/SearchBar';
@@ -7,6 +7,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
+import Swal from '@/utils/sweetalert';
+import { SWAL_COLORS } from '@/utils/swal';
 
 export interface BookmarkItem {
   bookmark_id: number;
@@ -58,6 +60,15 @@ function BookmarkCover({ src, alt, priority }: { src: string; alt: string; prior
 function SaveBlog({ initialBookmarks }: { initialBookmarks: BookmarkItem[] | null }) {
   const { getToken } = useAuth();
   const [savedNews, setSavedNews] = useState<BookmarkItem[]>(initialBookmarks ?? []);
+  const [query, setQuery] = useState('');
+  // กรองข่าวที่บันทึกไว้ตามคำค้น (หัวข่าว หมวด หรือเนื้อหา) ทันทีระหว่างพิมพ์
+  const filteredNews = useMemo(() => {
+    const q = query.trim().toLocaleLowerCase('th');
+    if (!q) return savedNews;
+    return savedNews.filter(({ news }) =>
+      [news.title, news.category, news.content].some((v) => (v ?? '').toLocaleLowerCase('th').includes(q)),
+    );
+  }, [savedNews, query]);
   const [loading, setLoading] = useState(initialBookmarks === null);
   const fetchBookmarks = useCallback(async () => {
     const token = getToken();
@@ -72,7 +83,7 @@ function SaveBlog({ initialBookmarks }: { initialBookmarks: BookmarkItem[] | nul
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.status === 401) {
-        alert("เซสชั่นหมดอายุ กรุณาเข้าสู่ระบบใหม่");
+        Swal.fire({ icon: "warning", title: "เซสชันหมดอายุ", text: "กรุณาเข้าสู่ระบบใหม่" });
         return;
       }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -90,7 +101,10 @@ function SaveBlog({ initialBookmarks }: { initialBookmarks: BookmarkItem[] | nul
   }, [fetchBookmarks, initialBookmarks]);
   const removeNews = async (articleId: number) => {
     const token = getToken();
-    if (!token) return alert("กรุณาเข้าสู่ระบบก่อน");
+    if (!token) {
+      Swal.fire({ icon: "warning", title: "กรุณาเข้าสู่ระบบก่อน" });
+      return;
+    }
     try {
       const numericId = Number(articleId);
       const res = await fetch(`${API_BASE_URL}/bookmark/toggle`, {
@@ -102,17 +116,28 @@ function SaveBlog({ initialBookmarks }: { initialBookmarks: BookmarkItem[] | nul
         const body = await res.json().catch(() => null);
         console.error("Debug Error 400:", body);
         const backendMessage = body?.message;
-        alert("ลบไม่สำเร็จ: " + (Array.isArray(backendMessage) ? backendMessage[0] : backendMessage || "ข้อมูลไม่ถูกต้อง"));
+        Swal.fire({ icon: "error", title: "ลบไม่สำเร็จ", text: Array.isArray(backendMessage) ? backendMessage[0] : backendMessage || "ข้อมูลไม่ถูกต้อง" });
         return;
       }
       setSavedNews(prev => prev.filter(item => item.news.article_id !== articleId));
     } catch (error: any) {
       console.error("Remove bookmark error:", error.message);
-      alert("ลบไม่สำเร็จ: ข้อมูลไม่ถูกต้อง");
+      Swal.fire({ icon: "error", title: "ลบไม่สำเร็จ", text: "ข้อมูลไม่ถูกต้อง" });
     }
   };
   const clearAll = async () => {
-    if (confirm('คุณต้องการลบข่าวที่บันทึกทั้งหมดหรือไม่?')) {
+    const result = await Swal.fire({
+      icon: 'warning',
+      title: 'ลบข่าวที่บันทึกทั้งหมด?',
+      text: 'คุณต้องการลบข่าวที่บันทึกทั้งหมดหรือไม่?',
+      showCancelButton: true,
+      confirmButtonText: 'ลบทั้งหมด',
+      cancelButtonText: 'ยกเลิก',
+      confirmButtonColor: SWAL_COLORS.danger,
+      cancelButtonColor: SWAL_COLORS.cancel,
+      reverseButtons: true,
+    });
+    if (result.isConfirmed) {
       for (const item of savedNews) {
         await removeNews(item.news.article_id);
       }
@@ -130,7 +155,13 @@ function SaveBlog({ initialBookmarks }: { initialBookmarks: BookmarkItem[] | nul
             <span className="text-gray-600 font-medium">ข่าวที่บันทึกไว้</span>
           </div>
 
-          <Search onSearch={(q) => console.log(q)} /><br />
+          <Search
+            placeholder="ค้นหาข่าวที่บันทึกไว้"
+            onSearch={setQuery}
+            onQueryChange={setQuery}
+            suggestions={savedNews.flatMap((item) => [item.news.title, item.news.category])}
+          />
+          <br />
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
@@ -151,9 +182,14 @@ function SaveBlog({ initialBookmarks }: { initialBookmarks: BookmarkItem[] | nul
               <div key="loading-state" className="py-12">
                 <LoadingSpinner text="กำลังโหลดข่าวที่บันทึกไว้..." size="md" />
               </div>
+            ) : savedNews.length > 0 && filteredNews.length === 0 ? (
+              <div key="no-match" className="py-16 text-center">
+                <p className="text-lg font-medium text-gray-700">ไม่พบข่าวที่ตรงกับ “{query.trim()}”</p>
+                <p className="text-sm text-gray-500 mt-1">ลองค้นหาด้วยคำอื่น หรือลบคำค้นเพื่อดูข่าวทั้งหมด</p>
+              </div>
             ) : savedNews.length > 0 ? (
               <div key="grid-container" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {savedNews.map((item, index) => (
+                {filteredNews.map((item, index) => (
                   <div
                     key={`bookmark-${item.bookmark_id || index}`}
                     className="bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 flex flex-col h-full group hover:shadow-2xl transition-all duration-300"
@@ -210,7 +246,7 @@ function SaveBlog({ initialBookmarks }: { initialBookmarks: BookmarkItem[] | nul
               </div>
             ) : (
               <div key="empty-state" className="bg-white rounded-2xl shadow-lg p-12 text-center border-2 border-dashed border-gray-200">
-                <h3 className="text-2xl font-medium text-gray-900 mb-2">ยังไม่มีข่าวที่บันทึกไว้</h3>
+                <h2 className="text-2xl font-medium text-gray-900 mb-2">ยังไม่มีข่าวที่บันทึกไว้</h2>
                 <p className="text-gray-500 mb-6">เริ่มบันทึกข่าวสารที่คุณสนใจ เพื่อกลับมาอ่านภายหลังได้ที่นี่</p>
                 <a href="/user" className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-blue-700 transition">
                   สำรวจข่าวสาร

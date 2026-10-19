@@ -86,7 +86,7 @@ export default function SimpleRadar({ data }: { data: RadarPoint[] }) {
                         <circle cx={p.x} cy={p.y} r={3} fill={COLOR} />
                         <text x={l.x} y={l.y} textAnchor={anchor} fontSize={12}>
                             <tspan x={l.x} dy={dy1} fill="#6b7280">{label}</tspan>
-                            <tspan x={l.x} dy={14} fill="#15803d" fontWeight={600}>{d.value}%</tspan>
+                            <tspan x={l.x} dy={14} fill="#15803d" fontWeight={500}>{d.value}%</tspan>
                         </text>
                     </g>
                 );

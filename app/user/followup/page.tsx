@@ -161,8 +161,9 @@ const StatRow = ({
 }: StatRowProps) => (
   <div className="flex items-center gap-4 px-5 py-4">
     <div
-      className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs"
-      style={{ backgroundColor: accentSoft, color: accent }}
+      // โหมดมืดใช้สีหลักของการ์ดแบบโปร่งแทนพื้นพาสเทล (พื้นพาสเทลบนพื้นมืดจะสว่างจ้า)
+      className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs bg-[var(--soft)] dark:bg-[color-mix(in_oklab,currentColor_16%,transparent)]"
+      style={{ '--soft': accentSoft, color: accent } as React.CSSProperties}
     >
       {icon}
     </div>
@@ -185,8 +186,8 @@ const StatRow = ({
 
     {sublabel && !loading && (
       <span
-        className="text-xs sm:text-sm font-medium px-3 py-1 rounded-full shrink-0"
-        style={{ backgroundColor: accentSoft, color: accent }}
+        className="text-xs sm:text-sm font-medium px-3 py-1 rounded-full shrink-0 bg-[var(--soft)] dark:bg-[color-mix(in_oklab,currentColor_16%,transparent)]"
+        style={{ '--soft': accentSoft, color: accent } as React.CSSProperties}
       >
         {sublabel}
       </span>
@@ -208,7 +209,7 @@ function PageHeader() {
             <div className="flex items-center text-sm text-gray-500 mb-2">
                 <Link
                     href="/user"
-                    className="hover:text-indigo-600 cursor-pointer transition"
+                    className="hover:text-blue-600 cursor-pointer transition"
                 >
                     หน้าหลัก
                 </Link>
@@ -229,6 +230,8 @@ function PageHeader() {
 }
 const PharmacistDashboard = () => {
   const { getToken, user } = useAuth();
+  // หัวข้อที่เลือกแสดงบนกราฟเรดาร์ จำไว้ในเบราว์เซอร์แยกตามผู้ใช้
+  const subjectsKey = user ? `followup-subjects-${user.user_id}` : null;
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -236,6 +239,8 @@ const PharmacistDashboard = () => {
   // ── Topic Selection States ────────────────────────────────────────────────
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  // ร่างการเลือกในหน้าต่าง — กราฟเปลี่ยนเมื่อกด "บันทึกและนำไปแสดงผล" เท่านั้น ปิดหน้าต่างเฉย ๆ = ยกเลิก
+  const [draftSubjects, setDraftSubjects] = useState<string[]>([]);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [showAllWeak, setShowAllWeak] = useState(false);
   const [showComparisonSummary, setShowComparisonSummary] = useState(true);
@@ -340,9 +345,38 @@ const PharmacistDashboard = () => {
     fetchDashboard();
   }, [getToken]);
 
+  // ใช้หัวข้อที่บันทึกไว้ครั้งก่อนแทนค่าเริ่มต้น (เฉพาะหัวข้อที่ยังมีอยู่)
+  useEffect(() => {
+    if (!data?.radar_data?.length || !subjectsKey) return;
+    try {
+      const saved: unknown = JSON.parse(localStorage.getItem(subjectsKey) ?? "[]");
+      const available = data.radar_data.map((d) => d.subject);
+      const restored = Array.isArray(saved) ? saved.filter((name) => available.includes(name)) : [];
+      if (restored.length > 0) setSelectedSubjects(restored);
+    } catch {
+      // ค่าที่บันทึกเสียหรืออ่านไม่ได้ — ใช้ค่าเริ่มต้น
+    }
+  }, [data?.radar_data, subjectsKey]);
+
+  // ── หน้าต่างเลือกหัวข้อแสดงผล ─────────────────────────────────────────────
+  const openFilterModal = () => {
+    setDraftSubjects(selectedSubjects);
+    setIsFilterModalOpen(true);
+  };
+
+  const saveFilter = () => {
+    setSelectedSubjects(draftSubjects);
+    try {
+      if (subjectsKey) localStorage.setItem(subjectsKey, JSON.stringify(draftSubjects));
+    } catch {
+      // บันทึกในเบราว์เซอร์ไม่ได้ก็ยังแสดงผลตามที่เลือกในหน้านี้
+    }
+    setIsFilterModalOpen(false);
+  };
+
   // ── Toggle / Preset Helpers ───────────────────────────────────────────────
   const toggleSubject = (subjectName: string) => {
-    setSelectedSubjects((prev) =>
+    setDraftSubjects((prev) =>
       prev.includes(subjectName)
         ? prev.filter((s) => s !== subjectName)
         : [...prev, subjectName],
@@ -352,22 +386,22 @@ const PharmacistDashboard = () => {
   const selectTopStrengths = (count: number = 3) => {
     if (!data?.radar_data) return;
     const sorted = [...data.radar_data].sort((a, b) => b.score - a.score);
-    setSelectedSubjects(sorted.slice(0, count).map((d) => d.subject));
+    setDraftSubjects(sorted.slice(0, count).map((d) => d.subject));
   };
 
   const selectTopWeaknesses = (count: number = 3) => {
     if (!data?.radar_data) return;
     const sorted = [...data.radar_data].sort((a, b) => a.score - b.score);
-    setSelectedSubjects(sorted.slice(0, count).map((d) => d.subject));
+    setDraftSubjects(sorted.slice(0, count).map((d) => d.subject));
   };
 
   const selectAllSubjects = () => {
     if (!data?.radar_data) return;
-    setSelectedSubjects(data.radar_data.map((d) => d.subject));
+    setDraftSubjects(data.radar_data.map((d) => d.subject));
   };
 
   const clearSelection = () => {
-    setSelectedSubjects([]);
+    setDraftSubjects([]);
   };
 
   // ── Filtered Radar Data & Ranking Comparison ──────────────────────────────
@@ -416,7 +450,7 @@ const PharmacistDashboard = () => {
             <p className="text-sm text-gray-600 mb-6">{error}</p>
             <button
               onClick={() => window.location.reload()}
-              className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-3 rounded-xl hover:bg-indigo-700 transition-colors font-medium text-sm shadow-sm cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 transition-colors font-medium text-sm shadow-sm cursor-pointer"
             >
               <RefreshCcw className="w-4 h-4" />
               ลองอีกครั้ง
@@ -454,7 +488,7 @@ const PharmacistDashboard = () => {
           {/* ── Ranking card ────────────────────────────────────────────────── */}
           <div className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-2xs">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-2xs">
                 <TrendingUp className="w-5 h-5" />
               </div>
               <div>
@@ -475,7 +509,7 @@ const PharmacistDashboard = () => {
                 ) : (
                   <>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-4xl sm:text-5xl font-medium text-indigo-600 tracking-tight">
+                      <span className="text-4xl sm:text-5xl font-medium text-blue-600 tracking-tight">
                         #{data?.ranking?.current_rank ?? "-"}
                       </span>
                       <span className="text-base sm:text-lg font-medium text-gray-500">
@@ -496,7 +530,7 @@ const PharmacistDashboard = () => {
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
-                            <Minus className="w-4 h-4 text-gray-400" />
+                            <Minus className="w-4 h-4 text-gray-600" />
                             อันดับคงที่
                           </span>
                         )}
@@ -526,7 +560,7 @@ const PharmacistDashboard = () => {
                       {
                         label: "คะแนนของคุณ",
                         value: data?.ranking.score_range.user_score ?? 0,
-                        color: "#4F46E5",
+                        color: "#155DFC",
                       },
                     ].map(({ label, value, color }) => (
                       <div key={label}>
@@ -559,7 +593,7 @@ const PharmacistDashboard = () => {
             <div className="sm:border-b sm:border-gray-100">
               <StatRow
                 icon={<FileText className="w-6 h-6" />}
-                accent="#4F46E5"
+                accent="#155DFC"
                 accentSoft="#EEF2FF"
                 value={data?.stats.total_exams ?? "—"}
                 unit="ชุด"
@@ -645,7 +679,7 @@ const PharmacistDashboard = () => {
               <div className="flex flex-col">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-2xs">
+                    <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-2xs">
                       <Sparkles className="w-5 h-5" />
                     </div>
                     <div>
@@ -661,12 +695,12 @@ const PharmacistDashboard = () => {
                   {totalRadarCount > 0 && (
                     <button
                       type="button"
-                      onClick={() => setIsFilterModalOpen(true)}
-                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-700 text-xs sm:text-sm font-medium transition cursor-pointer self-start sm:self-auto shadow-2xs"
+                      onClick={openFilterModal}
+                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-blue-200 bg-blue-50/70 hover:bg-blue-100 text-blue-700 text-xs sm:text-sm font-medium transition cursor-pointer self-start sm:self-auto shadow-2xs"
                     >
-                      <SlidersHorizontal className="w-4 h-4 text-indigo-600" />
+                      <SlidersHorizontal className="w-4 h-4 text-blue-600" />
                       <span>เลือกหัวข้อแสดงผล</span>
-                      <span className="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+                      <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full font-medium">
                         {selectedSubjects.length}
                       </span>
                     </button>
@@ -677,19 +711,19 @@ const PharmacistDashboard = () => {
                 {loading ? (
                   <Skeleton className="h-[360px] w-full" />
                 ) : totalRadarCount === 0 ? (
-                  <div className="h-[360px] flex flex-col items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-100 rounded-2xl">
+                  <div className="h-[360px] flex flex-col items-center justify-center text-gray-600 text-sm border-2 border-dashed border-gray-100 rounded-2xl">
                     <Sparkles className="w-8 h-8 text-gray-300 mb-2" />
                     ยังไม่มีข้อมูลเพียงพอสำหรับแสดงผลกราฟ
                   </div>
                 ) : selectedSubjects.length === 0 ? (
-                  <div className="h-[320px] flex flex-col items-center justify-center text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center">
-                    <Layers className="w-8 h-8 text-indigo-400 mb-2" />
+                  <div className="h-[320px] flex flex-col items-center justify-center text-gray-600 text-sm border-2 border-dashed border-gray-200 rounded-2xl p-6 text-center">
+                    <Layers className="w-8 h-8 text-blue-400 mb-2" />
                     <p className="font-medium text-gray-700">ยังไม่ได้เลือกหัวข้อแสดงผล</p>
-                    <p className="text-xs text-gray-400 mt-1 mb-3">กดปุ่ม "เลือกหัวข้อแสดงผล" เพื่อเลือกหัวข้อที่ต้องการ</p>
+                    <p className="text-xs text-gray-600 mt-1 mb-3">กดปุ่ม "เลือกหัวข้อแสดงผล" เพื่อเลือกหัวข้อที่ต้องการ</p>
                     <button
                       type="button"
-                      onClick={() => setIsFilterModalOpen(true)}
-                      className="px-4 py-2 bg-indigo-600 text-white text-xs font-medium rounded-xl hover:bg-indigo-700 transition cursor-pointer shadow-xs"
+                      onClick={openFilterModal}
+                      className="px-4 py-2 bg-blue-600 text-white text-xs font-medium rounded-xl hover:bg-blue-700 transition cursor-pointer shadow-xs"
                     >
                       เลือกหัวข้อ
                     </button>
@@ -720,7 +754,7 @@ const PharmacistDashboard = () => {
                               <R.Radar
                                 name="คะแนนของคุณ"
                                 dataKey="score"
-                                stroke="#4F46E5"
+                                stroke="#155DFC"
                                 fill="#6366F1"
                                 fillOpacity={0.35}
                                 strokeWidth={2.5}
@@ -752,14 +786,14 @@ const PharmacistDashboard = () => {
 
                 {/* Comparison Insight Box (เปรียบเทียบในหัวข้อที่เลือก อันไหนเยอะ/น้อยสุด - ซ่อน/แสดงได้) */}
                 {sortedSelectedTopics.length > 0 && (
-                  <div className="bg-indigo-50/40 rounded-2xl border border-indigo-100 p-4 mt-4 transition-all">
+                  <div className="bg-blue-50/40 rounded-2xl border border-blue-100 p-4 mt-4 transition-all">
                     <div
                       onClick={() => setShowComparisonSummary(!showComparisonSummary)}
                       className="flex items-center justify-between gap-2 cursor-pointer select-none"
                     >
                       <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm">
                         <span className="font-medium text-gray-700">
-                          สรุปเปรียบเทียบ <span className="text-indigo-600 font-medium">{sortedSelectedTopics.length}</span> หัวข้อที่เลือก:
+                          สรุปเปรียบเทียบ <span className="text-blue-600 font-medium">{sortedSelectedTopics.length}</span> หัวข้อที่เลือก:
                         </span>
                         {highestTopic && (
                           <span className="inline-flex items-center gap-1.5 text-teal-800 bg-teal-100/70 px-2.5 py-0.5 rounded-full font-medium text-xs">
@@ -771,7 +805,7 @@ const PharmacistDashboard = () => {
 
                       <button
                         type="button"
-                        className="flex items-center gap-1 text-xs text-indigo-600 font-medium hover:text-indigo-800 transition shrink-0 p-1 cursor-pointer"
+                        className="flex items-center gap-1 text-xs text-blue-600 font-medium hover:text-blue-800 transition shrink-0 p-1 cursor-pointer"
                       >
                         <span>{showComparisonSummary ? "ซ่อน" : "แสดงรายละเอียด"}</span>
                         <ChevronUp
@@ -784,25 +818,25 @@ const PharmacistDashboard = () => {
 
                     {/* Progress bars for each selected topic sorted highest to lowest */}
                     {showComparisonSummary && (
-                      <div className="space-y-2 pt-3 border-t border-indigo-100/60 mt-3 animate-in fade-in duration-200">
+                      <div className="space-y-2 pt-3 border-t border-blue-100/60 mt-3 animate-in fade-in duration-200">
                         {sortedSelectedTopics.map((topic, index) => {
                           const isHighest = index === 0 && sortedSelectedTopics.length > 1;
                           const isLowest = index === sortedSelectedTopics.length - 1 && sortedSelectedTopics.length > 1;
                           return (
-                            <div key={topic.subject} className="bg-white/90 rounded-xl p-2.5 border border-indigo-100/80">
+                            <div key={topic.subject} className="bg-white/90 rounded-xl p-2.5 border border-blue-100/80">
                               <div className="flex justify-between items-center text-xs sm:text-sm font-medium mb-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[11px] text-gray-600 font-medium shrink-0">
+                                  <span className="w-5 h-5 rounded-full bg-gray-100 flex items-center justify-center text-[0.6875rem] text-gray-600 font-medium shrink-0">
                                     {index + 1}
                                   </span>
                                   <span className="text-gray-800">{topic.subject}</span>
                                   {isHighest && (
-                                    <span className="text-[10px] bg-teal-50 text-teal-700 border border-teal-200 px-1.5 py-0.2 rounded font-medium">
+                                    <span className="text-[0.625rem] bg-teal-50 text-teal-700 border border-teal-200 px-1.5 py-0.2 rounded font-medium">
                                       เยอะสุด
                                     </span>
                                   )}
                                   {isLowest && (
-                                    <span className="text-[10px] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-medium">
+                                    <span className="text-[0.625rem] bg-amber-50 text-amber-700 border border-amber-200 px-1.5 py-0.2 rounded font-medium">
                                       น้อยสุด
                                     </span>
                                   )}
@@ -814,7 +848,7 @@ const PharmacistDashboard = () => {
                               <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
                                 <div
                                   className={`h-2 rounded-full transition-all duration-500 ${
-                                    isHighest ? "bg-teal-500" : isLowest ? "bg-amber-500" : "bg-indigo-500"
+                                    isHighest ? "bg-teal-500" : isLowest ? "bg-amber-500" : "bg-blue-500"
                                   }`}
                                   style={{ width: `${Math.min(topic.score, 100)}%` }}
                                 />
@@ -854,7 +888,7 @@ const PharmacistDashboard = () => {
                       }
                     }}
                     disabled={aiLoading}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white rounded-xl font-medium text-xs transition-all shadow-sm hover:shadow cursor-pointer self-start sm:self-auto shrink-0 active:scale-95"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-xl font-medium text-xs transition-all shadow-sm hover:shadow cursor-pointer self-start sm:self-auto shrink-0 active:scale-95"
                   >
                     {aiLoading ? (
                       <>
@@ -864,7 +898,7 @@ const PharmacistDashboard = () => {
                     ) : (
                       <>
                         <Sparkles
-                          className={`w-3.5 h-3.5 ${aiAnalysis ? "text-indigo-200" : "text-indigo-200"}`}
+                          className={`w-3.5 h-3.5 ${aiAnalysis ? "text-blue-200" : "text-blue-200"}`}
                         />
                         <span>
                           {aiAnalysis ? "ดูรายงาน AI & แผนอ่านหนังสือ" : "วิเคราะห์ด้วย AI"}
@@ -884,7 +918,7 @@ const PharmacistDashboard = () => {
                     <button
                       type="button"
                       onClick={() => handleRunAIAnalysis()}
-                      className="text-xs text-red-700 font-semibold underline hover:text-red-900 cursor-pointer shrink-0"
+                      className="text-xs text-red-700 font-medium underline hover:text-red-900 cursor-pointer shrink-0"
                     >
                       ลองใหม่
                     </button>
@@ -893,9 +927,9 @@ const PharmacistDashboard = () => {
 
                 {/* Sleek AI Active Notification Banner (Single compact line) */}
                 {aiAnalysis && !aiLoading && (
-                  <div className="p-3 bg-gradient-to-r from-indigo-50/90 to-teal-50/80 rounded-2xl border border-indigo-100 mb-4 flex items-center justify-between gap-3 shadow-2xs">
+                  <div className="p-3 bg-gradient-to-r from-blue-50/90 to-teal-50/80 rounded-2xl border border-blue-100 mb-4 flex items-center justify-between gap-3 shadow-2xs">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                      <div className="w-7 h-7 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
                         <Brain className="w-4 h-4" />
                       </div>
                       <p className="text-xs text-gray-700 font-medium truncate">
@@ -905,10 +939,10 @@ const PharmacistDashboard = () => {
                     <button
                       type="button"
                       onClick={() => setIsAiModalOpen(true)}
-                      className="px-4 py-2 bg-white hover:bg-gray-50   active:scale-95 text-indigo-700 rounded-xl font-medium text-xs transition-all shadow-sm hover:shadow cursor-pointer shrink-0 flex items-center gap-1.5"
+                      className="px-4 py-2 bg-white hover:bg-gray-50   active:scale-95 text-blue-700 rounded-xl font-medium text-xs transition-all shadow-sm hover:shadow cursor-pointer shrink-0 flex items-center gap-1.5"
                     >
                       <span>เปิดดูรายงาน AI</span>
-                      <Sparkles className="w-3.5 h-3.5 text-indigo-700" />
+                      <Sparkles className="w-3.5 h-3.5 text-blue-700" />
                     </button>
                   </div>
                 )}
@@ -920,14 +954,14 @@ const PharmacistDashboard = () => {
                     ))}
                   </div>
                 ) : weakTopicsList.length === 0 ? (
-                  <div className="text-gray-400 text-sm text-center py-16 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center">
+                  <div className="text-gray-600 text-sm text-center py-16 border-2 border-dashed border-gray-100 rounded-2xl flex flex-col items-center justify-center">
                     <CheckCircle2 className="w-10 h-10 text-teal-500 mb-2" />
                     <p className="font-medium text-gray-600">
                       {data?.stats?.total_exams === 0
                         ? "ยังไม่มีประวัติการทำข้อสอบ"
                         : "ยินดีด้วย! คุณทำผลงานได้ดีเยี่ยม"}
                     </p>
-                    <p className="text-xs text-gray-400 mt-0.5 max-w-sm px-4">
+                    <p className="text-xs text-gray-600 mt-0.5 max-w-sm px-4">
                       {data?.stats?.total_exams === 0
                         ? "กรุณาเข้าไปฝึกทำข้อสอบก่อน เพื่อให้ระบบนำผลคะแนนมาวิเคราะห์จุดแข็ง-จุดอ่อนรายวิชา"
                         : "ยังไม่มีหัวข้อที่คะแนนต่ำกว่าเกณฑ์ในขณะนี้ หรือกดปุ่ม 'วิเคราะห์ด้วย AI' เพื่อประเมินเชิงลึก"}
@@ -983,10 +1017,10 @@ const PharmacistDashboard = () => {
 
                             {/* Topic Name (2 lines max) & Subject */}
                             <div className="min-w-0 flex-1 space-y-0.5">
-                              <h3 className="font-semibold text-gray-800 text-xs sm:text-sm leading-snug line-clamp-2">
+                              <h3 className="font-medium text-gray-800 text-xs sm:text-sm leading-snug line-clamp-2">
                                 {topic.topic}
                               </h3>
-                              <p className="text-[11px] text-gray-400 font-medium">
+                              <p className="text-[0.6875rem] text-gray-600 font-medium">
                                 {topic.subject}
                               </p>
                             </div>
@@ -995,12 +1029,12 @@ const PharmacistDashboard = () => {
                           {/* Right: Review Status Tag & Score Pill */}
                           <div className="flex items-center gap-2 shrink-0 mt-0.5 sm:mt-0">
                             <span
-                              className={`text-[11px] font-medium px-2.5 py-0.5 rounded-full border whitespace-nowrap ${status.tagClass}`}
+                              className={`text-[0.6875rem] font-medium px-2.5 py-0.5 rounded-full border whitespace-nowrap ${status.tagClass}`}
                             >
                               {status.tagText}
                             </span>
                             <span
-                              className={`text-[11px] font-semibold px-2 py-0.5 rounded-md border whitespace-nowrap ${status.scoreClass}`}
+                              className={`text-[0.6875rem] font-medium px-2 py-0.5 rounded-md border whitespace-nowrap ${status.scoreClass}`}
                             >
                               คะแนน {topic.score}%
                             </span>
@@ -1042,7 +1076,7 @@ const PharmacistDashboard = () => {
             {/* Modal Header */}
             <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
                   <SlidersHorizontal className="w-5 h-5" />
                 </div>
                 <div>
@@ -1057,7 +1091,7 @@ const PharmacistDashboard = () => {
               <button
                 type="button"
                 onClick={() => setIsFilterModalOpen(false)}
-                className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition cursor-pointer"
+                className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-600 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1088,11 +1122,11 @@ const PharmacistDashboard = () => {
               >
                 เลือกทั้งหมด
               </button>
-              {selectedSubjects.length > 0 && (
+              {draftSubjects.length > 0 && (
                 <button
                   type="button"
                   onClick={clearSelection}
-                  className="px-2.5 py-1.5 rounded-xl text-xs font-medium text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                  className="px-2.5 py-1.5 rounded-xl text-xs font-medium text-gray-600 hover:text-red-500 transition-colors cursor-pointer"
                 >
                   ล้างการเลือก
                 </button>
@@ -1102,7 +1136,7 @@ const PharmacistDashboard = () => {
             {/* Topic Checklist List */}
             <div className="space-y-2 overflow-y-auto pr-1 flex-1 py-1">
               {data?.radar_data?.map((item) => {
-                const isChecked = selectedSubjects.includes(item.subject);
+                const isChecked = draftSubjects.includes(item.subject);
                 return (
                   <button
                     key={item.subject}
@@ -1110,7 +1144,7 @@ const PharmacistDashboard = () => {
                     onClick={() => toggleSubject(item.subject)}
                     className={`w-full flex items-center justify-between p-3 rounded-xl border text-sm font-medium transition-all cursor-pointer text-left
                       ${isChecked
-                        ? "bg-indigo-50/70 border-indigo-300 text-indigo-900 shadow-2xs"
+                        ? "bg-blue-50/70 border-blue-300 text-blue-900 shadow-2xs"
                         : "bg-gray-50/50 border-gray-200 text-gray-600 hover:bg-gray-100/70"
                       }`}
                   >
@@ -1118,7 +1152,7 @@ const PharmacistDashboard = () => {
                       <div
                         className={`w-5 h-5 rounded-md border flex items-center justify-center transition-colors
                           ${isChecked
-                            ? "bg-indigo-600 border-indigo-600 text-white"
+                            ? "bg-blue-600 border-blue-600 text-white"
                             : "border-gray-300 bg-white"
                           }`}
                       >
@@ -1130,7 +1164,7 @@ const PharmacistDashboard = () => {
                     <span
                       className={`text-xs px-2.5 py-1 rounded-lg font-medium
                         ${isChecked
-                          ? "bg-indigo-100 text-indigo-700"
+                          ? "bg-blue-100 text-blue-700"
                           : "bg-gray-200/70 text-gray-600"
                         }`}
                     >
@@ -1144,12 +1178,12 @@ const PharmacistDashboard = () => {
             {/* Modal Footer */}
             <div className="pt-4 mt-3 border-t border-gray-100 flex items-center justify-between">
               <span className="text-xs text-gray-500 font-medium">
-                เลือกแล้ว {selectedSubjects.length} จาก {totalRadarCount} หัวข้อ
+                เลือกแล้ว {draftSubjects.length} จาก {totalRadarCount} หัวข้อ
               </span>
               <button
                 type="button"
-                onClick={() => setIsFilterModalOpen(false)}
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition cursor-pointer shadow-sm"
+                onClick={saveFilter}
+                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl transition cursor-pointer shadow-sm"
               >
                 บันทึกและนำไปแสดงผล
               </button>
@@ -1165,11 +1199,11 @@ const PharmacistDashboard = () => {
             {/* Modal Header */}
             <div className="flex items-start sm:items-center justify-between pb-4 border-b border-gray-100 mb-4 gap-3">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-2xs shrink-0">
+                <div className="w-11 h-11 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-2xs shrink-0">
                   <Brain className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-800 flex items-center gap-2">
                     รายงานผลการวิเคราะห์ และ แผนการเตรียมตัวจาก AI
                   </h3>
                   <p className="text-sm text-gray-500 font-medium">
@@ -1183,16 +1217,16 @@ const PharmacistDashboard = () => {
                   <button
                     type="button"
                     onClick={() => handleRunAIAnalysis()}
-                    className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 hover:border-indigo-200 text-sm font-medium text-gray-600 hover:text-indigo-600 bg-white hover:bg-indigo-50 transition cursor-pointer"
+                    className="hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-xl border border-gray-200 hover:border-blue-200 text-sm font-medium text-gray-600 hover:text-blue-600 bg-white hover:bg-blue-50 transition cursor-pointer"
                   >
-                    <RefreshCcw className="w-3.5 h-3.5 text-indigo-500" />
+                    <RefreshCcw className="w-3.5 h-3.5 text-blue-500" />
                     <span>วิเคราะห์ใหม่</span>
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => setIsAiModalOpen(false)}
-                  className="w-9 h-9 rounded-xl hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition cursor-pointer"
+                  className="w-9 h-9 rounded-xl hover:bg-gray-100 flex items-center justify-center text-gray-600 hover:text-gray-700 transition cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1204,11 +1238,11 @@ const PharmacistDashboard = () => {
               {/* ⏳ Loading State */}
               {aiLoading && (
                 <div className="py-12 px-4 text-center space-y-6">
-                  <div className="w-16 h-16 rounded-3xl bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center mx-auto shadow-sm animate-pulse">
+                  <div className="w-16 h-16 rounded-3xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center mx-auto shadow-sm animate-pulse">
                     <Brain className="w-8 h-8 animate-bounce" />
                   </div>
                   <div className="space-y-2 max-w-md mx-auto">
-                    <h4 className="text-base font-semibold text-gray-800">
+                    <h4 className="text-base font-medium text-gray-800">
                       ระบบ AI กำลังประมวลผลข้อมูลและจัดทำแผนส่วนบุคคล...
                     </h4>
                     <p className="text-sm text-gray-500 leading-relaxed">
@@ -1216,15 +1250,15 @@ const PharmacistDashboard = () => {
                     </p>
                   </div>
                   <div className="max-w-xs mx-auto space-y-2 text-left bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                    <div className="flex items-center gap-2 text-sm text-indigo-700 font-medium">
+                    <div className="flex items-center gap-2 text-sm text-blue-700 font-medium">
                       <Check className="w-4 h-4 text-teal-600" />
                       <span>รวบรวมประวัติคะแนนสอบ 6 ครั้งล่าสุด</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-indigo-700 font-medium">
-                      <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+                    <div className="flex items-center gap-2 text-sm text-blue-700 font-medium">
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
                       <span>วิเคราะห์สาเหตุข้อผิดพลาด & แนวทางรักษา</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-400 font-medium">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
                       <span className="w-4 h-4 rounded-full border border-gray-300 inline-block text-center text-sm leading-3.5">3</span>
                       <span>จัดตารางอ่านหนังสือและสูตรช่วยจำ</span>
                     </div>
@@ -1239,13 +1273,13 @@ const PharmacistDashboard = () => {
                     <AlertCircle className="w-6 h-6" />
                   </div>
                   <div className="space-y-1">
-                    <h4 className="text-sm font-semibold text-gray-800">เกิดข้อผิดพลาดในการวิเคราะห์</h4>
+                    <h4 className="text-sm font-medium text-gray-800">เกิดข้อผิดพลาดในการวิเคราะห์</h4>
                     <p className="text-sm text-rose-600 max-w-md mx-auto font-medium">{aiError}</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleRunAIAnalysis()}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-medium transition cursor-pointer shadow-sm"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium transition cursor-pointer shadow-sm"
                   >
                     ลองใหม่อีกครั้ง
                   </button>
@@ -1257,9 +1291,9 @@ const PharmacistDashboard = () => {
                 <div className="space-y-4">
                   {/* 1. สรุปภาพรวม AI */}
                   {(aiAnalysis.summary || aiAnalysis.analysis_summary || aiAnalysis.overall_feedback) && (
-                    <div className="p-4 sm:p-5 bg-indigo-50/60 rounded-2xl border border-indigo-100/90 space-y-2">
-                      <div className="flex items-center gap-2 text-base font-bold text-indigo-900">
-                        <Brain className="w-4 h-4 text-indigo-600" />
+                    <div className="p-4 sm:p-5 bg-blue-50/60 rounded-2xl border border-blue-100/90 space-y-2">
+                      <div className="flex items-center gap-2 text-base font-medium text-blue-900">
+                        <Brain className="w-4 h-4 text-blue-600" />
                         <span>สรุปผลการประเมินภาพรวม</span>
                       </div>
                       {(() => {
@@ -1275,8 +1309,8 @@ const PharmacistDashboard = () => {
                           return (
                             <div className="space-y-2 mt-1.5">
                               {Object.entries(content).map(([k, v], i) => (
-                                <div key={i} className="text-sm text-gray-700 leading-relaxed bg-white p-3 rounded-xl border border-indigo-100 shadow-2xs">
-                                  <span className="font-semibold text-indigo-950 block mb-0.5">
+                                <div key={i} className="text-sm text-gray-700 leading-relaxed bg-white p-3 rounded-xl border border-blue-100 shadow-2xs">
+                                  <span className="font-medium text-blue-950 block mb-0.5">
                                     {k.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}:
                                   </span>
                                   <span>{typeof v === "string" ? v : JSON.stringify(v)}</span>
@@ -1286,7 +1320,7 @@ const PharmacistDashboard = () => {
                           );
                         }
                         return (
-                          <div className="bg-white p-3.5 rounded-xl border border-indigo-100/80 shadow-2xs">
+                          <div className="bg-white p-3.5 rounded-xl border border-blue-100/80 shadow-2xs">
                             <p className="text-sm text-gray-700 font-medium leading-relaxed whitespace-pre-wrap">
                               {String(content)}
                             </p>
@@ -1297,7 +1331,7 @@ const PharmacistDashboard = () => {
                   )}
                   {Array.isArray(aiAnalysis.memory_techniques) && aiAnalysis.memory_techniques.length > 0 && (
                     <div className="p-4 sm:p-5 bg-amber-50/60 rounded-2xl border border-amber-200/80 space-y-2.5">
-                      <div className="flex items-center gap-2 text-base font-bold text-amber-900">
+                      <div className="flex items-center gap-2 text-base font-medium text-amber-900">
                         <Lightbulb className="w-4 h-4 text-amber-600" />
                         <span>สูตรลับและเทคนิคช่วยจำพิเศษ</span>
                       </div>
@@ -1305,7 +1339,7 @@ const PharmacistDashboard = () => {
                         {aiAnalysis.memory_techniques.map((item, idx) => (
                           <div key={idx} className="bg-white p-3.5 rounded-xl border border-amber-100 shadow-2xs space-y-1.5">
                             <div className="flex items-center justify-between gap-2 flex-wrap">
-                              <span className="font-bold text-sm text-amber-900">
+                              <span className="font-medium text-sm text-amber-900">
                                 {item.mnemonic_name || item.topic || `เทคนิคที่ ${idx + 1}`}
                               </span>
                               {item.topic && (
@@ -1325,7 +1359,7 @@ const PharmacistDashboard = () => {
 
                   {aiAnalysis.action_plan && (
                     <div className="p-4 sm:p-5 bg-teal-50/60 rounded-2xl border border-teal-100/90 space-y-3">
-                      <div className="flex items-center gap-2 text-base font-bold text-teal-900">
+                      <div className="flex items-center gap-2 text-base font-medium text-teal-900">
                         <Calendar className="w-4 h-4 text-teal-600" />
                         <span>แผนการอ่านหนังสือและการเตรียมตัวรายบุคคล (Action Plan):</span>
                       </div>
@@ -1397,10 +1431,10 @@ const PharmacistDashboard = () => {
                                   >
                                     <div className="flex items-center justify-between gap-2 flex-wrap">
                                       <div className="flex items-center gap-2">
-                                        <span className="w-6 h-6 rounded-lg bg-teal-600 text-white text-sm font-semibold flex items-center justify-center shrink-0">
+                                        <span className="w-6 h-6 rounded-lg bg-teal-600 text-white text-sm font-medium flex items-center justify-center shrink-0">
                                           {item.day ?? idx + 1}
                                         </span>
-                                        <span className="font-semibold text-sm text-gray-800">
+                                        <span className="font-medium text-sm text-gray-800">
                                           {item.focus_area || "ทบทวนเนื้อหา"}
                                         </span>
                                       </div>
@@ -1432,7 +1466,7 @@ const PharmacistDashboard = () => {
                                     key={sIdx}
                                     className="flex items-start gap-3 p-3 bg-white rounded-xl border border-teal-100/90 text-sm text-gray-700 font-medium shadow-2xs"
                                   >
-                                    <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-800 text-sm font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                    <span className="w-5 h-5 rounded-full bg-teal-100 text-teal-800 text-sm font-medium flex items-center justify-center shrink-0 mt-0.5">
                                       {sIdx + 1}
                                     </span>
                                     <p className="leading-relaxed flex-1">{stepText}</p>
@@ -1454,12 +1488,12 @@ const PharmacistDashboard = () => {
                             <div className="space-y-4">
                               {schedule.length > 0 && (
                                 <div className="space-y-2">
-                                  <span className="text-sm font-semibold text-teal-800 block">ตารางอ่านหนังสือรายวัน:</span>
+                                  <span className="text-sm font-medium text-teal-800 block">ตารางอ่านหนังสือรายวัน:</span>
                                   <div className="space-y-2">
                                     {schedule.map((item: any, idx: number) => (
                                       <div key={idx} className="bg-white p-3.5 rounded-xl border border-teal-100 shadow-2xs space-y-1.5">
                                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                                          <span className="font-semibold text-sm text-teal-900">
+                                          <span className="font-medium text-sm text-teal-900">
                                             วันที่ {item.day ?? idx + 1}: {item.focus_area || "ทบทวนเนื้อหา"}
                                           </span>
                                           {item.study_hours && (
@@ -1482,7 +1516,7 @@ const PharmacistDashboard = () => {
                               )}
                               {strategies.length > 0 && (
                                 <div className="space-y-2">
-                                  <span className="text-sm font-semibold text-indigo-900 block">กลยุทธ์สำคัญ:</span>
+                                  <span className="text-sm font-medium text-blue-900 block">กลยุทธ์สำคัญ:</span>
                                   <div className="space-y-1.5">
                                     {strategies.map((strat: any, sIdx: number) => (
                                       <div key={sIdx} className="flex items-start gap-2.5 p-2.5 bg-white rounded-xl border border-teal-100 text-sm text-gray-700 shadow-2xs font-medium">
@@ -1515,13 +1549,13 @@ const PharmacistDashboard = () => {
 
             {/* Modal Footer */}
             <div className="pt-4 mt-3 border-t border-gray-100 flex items-center justify-between">
-              <span className="text-base text-gray-400 font-medium hidden sm:inline">
+              <span className="text-base text-gray-600 font-medium hidden sm:inline">
                 ผลการประเมินนี้บันทึกอัตโนมัติในเบราว์เซอร์ของคุณ
               </span>
               <button
                 type="button"
                 onClick={() => setIsAiModalOpen(false)}
-                className="w-full sm:w-auto px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium rounded-xl transition cursor-pointer shadow-sm"
+                className="w-full sm:w-auto px-6 py-2.5 bg-gray-900 hover:bg-gray-800 text-white dark:text-[#0f172a] text-sm font-medium rounded-xl transition cursor-pointer shadow-sm"
               >
                 ปิดหน้าต่าง
               </button>

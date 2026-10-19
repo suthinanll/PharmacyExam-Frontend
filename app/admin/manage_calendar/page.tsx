@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Swal from "@/utils/sweetalert";
+import SuggestInput from '@/components/SuggestInput';
 
 const CATEGORY_STYLES: Record<string, string> = {
   "PLE-CC1": "bg-blue-50 text-blue-700 border-blue-200",
@@ -335,7 +336,7 @@ function Page() {
 
       days.push(
         <div key={day} className="p-1.5 border border-gray-100 min-h-[90px] bg-white hover:bg-green-50/30 transition-colors flex flex-col">
-          <div className="text-xs font-medium text-gray-400 text-right mb-1">{day}</div>
+          <div className="text-xs font-medium text-gray-600 text-right mb-1">{day}</div>
           <div className="flex flex-col gap-0.5 overflow-y-auto max-h-[68px]">
             {dayEvents.map((event, idx) => (
               <div
@@ -344,7 +345,7 @@ function Page() {
                 className={`px-1.5 py-0.5 rounded text-xs font-medium cursor-pointer truncate border
                   ${event.is_published
                     ? "bg-green-50 text-green-700 border-green-200"
-                    : "bg-gray-50 text-gray-400 border-gray-200 italic"}`}
+                    : "bg-gray-50 text-gray-600 border-gray-200 italic"}`}
               >
                 <div className="flex gap-0.5 mb-0.5">
                   {event.type_event.map((type, tIdx) => (
@@ -396,12 +397,12 @@ function Page() {
         <div className="flex flex-col xl:flex-row gap-4 mb-6 justify-between items-start xl:items-center bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
           <div className="flex gap-3 flex-1 flex-wrap w-full xl:w-auto">
             <div className="relative max-w-sm w-full">
-              <input
-                type="text"
+              <SuggestInput
                 placeholder="ค้นหากำหนดการ..."
                 aria-label="ค้นหากำหนดการ"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onValueChange={setSearchTerm}
+                suggestions={events.map((event) => event.title)}
                 className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-green-500 focus:border-green-500 bg-gray-50"
               />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
@@ -441,21 +442,21 @@ function Page() {
                 <>
                   <button
                     onClick={() => handleBulkAction("publish")}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-white border border-green-200 text-green-700 rounded-xl text-xs font-semibold hover:bg-green-600 hover:text-white hover:border-green-600 transition-all"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-white border border-green-200 text-green-700 rounded-xl text-xs font-medium hover:bg-green-600 hover:text-white hover:border-green-600 transition-all"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     {someSelected ? `เผยแพร่ (${selectedIds.length})` : "เผยแพร่ทั้งหมด"}
                   </button>
                   <button
                     onClick={() => handleBulkAction("unpublish")}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-white border border-amber-200 text-amber-600 rounded-xl text-xs font-semibold hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-white border border-amber-200 text-amber-600 rounded-xl text-xs font-medium hover:bg-amber-500 hover:text-white hover:border-amber-500 transition-all"
                   >
                     <EyeOff className="w-3.5 h-3.5" />
                     {someSelected ? `งดเผยแพร่ (${selectedIds.length})` : "งดเผยแพร่ทั้งหมด"}
                   </button>
                   <button
                     onClick={() => handleBulkAction("delete")}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-white border border-red-200 text-red-500 rounded-xl text-xs font-semibold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
+                    className="flex items-center gap-1.5 px-3 py-2 bg-white border border-red-200 text-red-500 rounded-xl text-xs font-medium hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     {someSelected ? `ลบ (${selectedIds.length})` : "ลบทั้งหมด"}
@@ -507,7 +508,7 @@ function Page() {
               {daysOfWeek.map((day, i) => (
                 <div
                   key={i}
-                  className={`py-3 text-center text-xs font-semibold bg-gray-50 border-b border-gray-200 ${i === 0 ? "text-red-500" : "text-gray-500"}`}
+                  className={`py-3 text-center text-xs font-medium bg-gray-50 border-b border-gray-200 ${i === 0 ? "text-red-500" : "text-gray-500"}`}
                 >
                   {day}
                 </div>
@@ -524,10 +525,10 @@ function Page() {
                 <button onClick={toggleSelectAll} className="flex items-center gap-2 text-sm text-gray-600 hover:text-green-700 transition-colors">
                   {allSelected
                     ? <CheckSquare className="w-4 h-4 text-green-600" />
-                    : <Square className="w-4 h-4 text-gray-400" />}
+                    : <Square className="w-4 h-4 text-gray-600" />}
                   <span className="font-medium">{allSelected ? "ยกเลิกทั้งหมด" : "เลือกทั้งหมด"}</span>
                 </button>
-                <span className="text-xs text-gray-400">{filteredEvents.length} รายการ</span>
+                <span className="text-xs text-gray-600">{filteredEvents.length} รายการ</span>
               </div>
             )}
 
@@ -545,7 +546,7 @@ function Page() {
                       type="button"
                       onClick={() => toggleSelect(event.id)}
                       aria-label={`เลือกกำหนดการ ${event.title}`}
-                      className="shrink-0 text-gray-400 hover:text-green-600 transition-colors cursor-pointer"
+                      className="shrink-0 text-gray-600 hover:text-green-600 transition-colors cursor-pointer"
                     >
                       {isChecked
                         ? <CheckSquare className="w-5 h-5 text-green-600" />
@@ -623,7 +624,7 @@ function Page() {
               <div className="text-center py-20">
                 <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500 font-medium">ไม่พบข้อมูลกำหนดการ</p>
-                <p className="text-gray-400 text-sm mt-1">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
+                <p className="text-gray-600 text-sm mt-1">ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>
               </div>
             )}
           </div>
@@ -641,7 +642,7 @@ function Page() {
                   type="button"
                   onClick={() => setIsEditModalOpen(false)}
                   aria-label="ปิดหน้าต่างแก้ไขกำหนดการ"
-                  className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+                  className="p-2 hover:bg-gray-100 rounded-lg text-gray-600 hover:text-gray-600 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>

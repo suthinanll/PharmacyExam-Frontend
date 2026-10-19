@@ -180,7 +180,7 @@ function CreateItemBank() {
 
                     {/* Header */}
                     <div className="mb-8">
-                        <h1 className="text-3xl font-medium text-gray-900 mb-2">สร้างชุดข้อสอบใหม่</h1>
+                        <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">สร้างชุดข้อสอบใหม่</h1>
                         <p className="text-gray-600">กรอกข้อมูลเพื่อสร้างชุดข้อสอบใหม่</p>
                     </div>
 

@@ -229,7 +229,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                         </span>
                         <button
                             onClick={onClose}
-                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-gray-600 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                             title="ปิดพรีวิว (Esc)"
                         >
                             <X className="w-5 h-5" />
@@ -259,7 +259,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                 ) : questions.length === 0 ? (
                     <div className="flex-1 flex items-center justify-center p-6 bg-gray-50">
                         <div className="text-center max-w-sm">
-                            <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                            <BookOpen className="w-12 h-12 text-gray-600 mx-auto mb-3" />
                             <p className="text-gray-500 text-sm">ยังไม่มีคำถามในชุดข้อสอบนี้</p>
                         </div>
                     </div>
@@ -445,14 +445,14 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                 {/* Stats Box */}
                                 <div className="flex justify-between items-center pb-5 border-b border-gray-100">
                                     <div className="text-center flex-1">
-                                        <p className="text-2xl font-bold text-gray-800 tracking-tight">
+                                        <p className="text-2xl font-medium text-gray-800 tracking-tight">
                                             {questions.length}
                                         </p>
                                         <p className="text-sm font-medium text-gray-500 mt-0.5">ข้อทั้งหมด</p>
                                     </div>
                                     <div className="w-px h-8 bg-gray-200" />
                                     <div className="text-center flex-1">
-                                        <p className="text-2xl font-bold tracking-tight text-blue-600 flex items-center justify-center gap-1">
+                                        <p className="text-2xl font-medium tracking-tight text-blue-600 flex items-center justify-center gap-1">
                                             <Clock className="w-5 h-5 text-blue-500 inline" />
                                             <span>{formattedDuration}</span>
                                         </p>
@@ -496,7 +496,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                                 q.situation?.situation_id === currentSituationId;
 
                                             const bgClass = isActive
-                                                ? "bg-green-500 text-white font-bold"
+                                                ? "bg-green-500 text-white font-medium"
                                                 : isAnswered
                                                     ? "bg-green-100 text-green-700 hover:bg-green-200"
                                                     : "bg-gray-100 text-gray-700 hover:bg-gray-200";
@@ -518,7 +518,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                                         {index + 1}
                                                     </button>
                                                     {flaggedQuestions[q.item_id] && (
-                                                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-white text-[9px] text-white font-black shadow-sm pointer-events-none">
+                                                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 border border-white text-[0.5625rem] text-white font-medium shadow-sm pointer-events-none">
                                                             ★
                                                         </span>
                                                     )}
@@ -529,7 +529,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                 </div>
 
                                 {/* Legend (คำอธิบายสัญลักษณ์เหมือนหน้าจริง) */}
-                                <div className="text-[11px] flex flex-wrap items-center gap-x-3.5 gap-y-2 justify-center pt-2 border-t border-gray-100">
+                                <div className="text-[0.6875rem] flex flex-wrap items-center gap-x-3.5 gap-y-2 justify-center pt-2 border-t border-gray-100">
                                     <div className="flex items-center gap-1.5">
                                         <div className="w-3.5 h-3.5 bg-green-500 rounded"></div>
                                         <span className="text-gray-600">ข้อปัจจุบัน</span>
@@ -543,7 +543,7 @@ export default function ExamPreviewModal({ isOpen, onClose, itemBankId }: ExamPr
                                         <span className="text-gray-600">ยังไม่ตอบ</span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500 text-[8px] text-white font-bold">★</span>
+                                        <span className="flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500 text-[0.5rem] text-white font-medium">★</span>
                                         <span className="text-gray-600">ทบทวน</span>
                                     </div>
                                     <div className="flex items-center gap-1.5">

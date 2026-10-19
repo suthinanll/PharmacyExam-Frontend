@@ -264,7 +264,7 @@ export default function UpgradeAdminPage() {
       if (!res.ok) throw new Error(data.message || "ไม่สามารถสร้างรายการชำระเงินได้");
 
       setSubscriptionId(data.subscriptionId);
-      setSecondsRemaining(data.secondsRemaining ?? 5 * 60);
+      setSecondsRemaining(data.secondsRemaining ?? 15 * 60);
       if (typeof data.amount === "number") {
         setSettings((prev) => (prev ? { ...prev, annualPrice: data.amount } : prev));
       }

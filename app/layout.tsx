@@ -9,6 +9,7 @@ import { NotificationProvider } from '@/contexts/NotificationContext';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import ScrollToTopButton from '@/components/ScrollToTopButton';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
+import ThemeScript from '@/components/ThemeScript';
 
 
 // ใช้ Kanit ผ่าน next/font/google — Next ดาวน์โหลดมาเก็บไว้ในโปรเจกต์ตอน build
@@ -16,7 +17,8 @@ import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
 // เล็กกว่าไฟล์ .ttf เดิมที่หนักไฟล์ละ 67KB ทำให้ตัวหนังสือขึ้นเร็วขึ้นและ LCP ดีขึ้น
 const myFont = Kanit({
   subsets: ['thai', 'latin'],
-  weight: ['400', '500', '700'],
+  // หนาสุดแค่ medium (500) ทั้งเว็บ จึงไม่ต้องโหลดไฟล์ฟอนต์ตัวหนา 700
+  weight: ['400', '500'],
   display: 'swap',
   variable: '--font-primary',
 });
@@ -43,8 +45,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  // เฉดเดียวกับแถบเมนูและ footer (ปรับให้เข้มขึ้นเพื่อให้ตัวหนังสือขาวผ่านเกณฑ์ contrast)
-  themeColor: '#76B25A',
+  // เฉดเดียวกับแถบเมนูและ footer (สีหลัก lime-600)
+  themeColor: '#5EA500',
 };
 
 
@@ -59,8 +61,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     // ประกาศไว้ใน metadata/viewport ด้านบนแล้ว
     // className ตั้ง font-family เป็น Kanit ให้ทั้งหน้าโดยตรง (globals.css จึงไม่ต้องใช้ var())
     // variable ยังคงไว้ให้ --font-primary ใช้ได้ในที่ที่อ้างถึง เช่น not-found.tsx
-    <html lang="th" className={`${myFont.variable} ${myFont.className}`}>
+    // suppressHydrationWarning: ThemeScript ใส่ class dark และ data-font-size ที่ <html> ก่อน React hydrate
+    <html lang="th" className={`${myFont.variable} ${myFont.className}`} suppressHydrationWarning>
       <head>
+        {/* ตั้งธีมมืดและขนาดตัวอักษรของหน้า /user ก่อนวาดหน้าแรก กันหน้ากะพริบ */}
+        <ThemeScript />
         {/* Next สตรีม meta ที่สร้างจาก metadata ไปไว้ท้าย body เพราะทุกหน้าเป็น dynamic
             (middleware ออก nonce ใหม่ทุก request) เครื่องมือตรวจ SEO จึงมองไม่เห็น
             จึงประกาศ description ตรงนี้เองเพื่อให้อยู่ใน head แน่นอน */}

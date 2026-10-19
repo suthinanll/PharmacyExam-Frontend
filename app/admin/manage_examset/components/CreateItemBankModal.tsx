@@ -391,7 +391,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                         <button
                             onClick={handleClose}
                             disabled={loading}
-                            className="text-gray-400 hover:text-gray-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors disabled:opacity-50 cursor-pointer"
+                            className="text-gray-600 hover:text-gray-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors disabled:opacity-50 cursor-pointer"
                         >
                             <X size={20} />
                         </button>
@@ -444,7 +444,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                                     ระยะเวลาในการทำข้อสอบ (นาที) <span className="text-red-500">*</span>
                                 </label>
                                 <div className="relative">
-                                    <Clock className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                    <Clock className="w-4 h-4 text-gray-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
                                     <input
                                         type="number"
                                         value={formData.duration / 60}
@@ -512,7 +512,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                                                         {category.category_name}
                                                     </span>
                                                     {category.description && (
-                                                        <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">{category.description}</p>
+                                                        <p className="text-[0.6875rem] text-gray-500 line-clamp-1 mt-0.5">{category.description}</p>
                                                     )}
                                                 </div>
                                             </label>
@@ -531,10 +531,10 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                                 </div>
                             ) : (
                                 <div className="text-center py-6 px-4 bg-slate-50 rounded-xl border border-dashed border-slate-200 space-y-2.5">
-                                    <Tag className="w-6 h-6 text-gray-400 mx-auto" />
+                                    <Tag className="w-6 h-6 text-gray-600 mx-auto" />
                                     <div>
                                         <p className="text-sm font-medium text-gray-700">ยังไม่มีประเภทข้อสอบในระบบ</p>
-                                        <p className="text-xs text-gray-400 mt-0.5">คุณสามารถสร้างประเภทข้อสอบใหม่เพื่อเชื่อมโยงกับชุดข้อสอบนี้ได้ทันที</p>
+                                        <p className="text-xs text-gray-600 mt-0.5">คุณสามารถสร้างประเภทข้อสอบใหม่เพื่อเชื่อมโยงกับชุดข้อสอบนี้ได้ทันที</p>
                                     </div>
                                     <button
                                         type="button"
@@ -599,7 +599,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                                     <p className="text-sm font-medium text-gray-800">
                                         คลิกเพื่อเลือกไฟล์ Excel หรือลากไฟล์มาวางที่นี่
                                     </p>
-                                    <p className="text-sm text-gray-400">
+                                    <p className="text-sm text-gray-600">
                                         รองรับเฉพาะไฟล์ .xlsx และ .xls (ขนาดไม่เกิน 50MB)
                                     </p>
                                 </div>
@@ -622,7 +622,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                                     <button
                                         type="button"
                                         onClick={handleRemoveFile}
-                                        className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-2 shrink-0 cursor-pointer"
+                                        className="p-1.5 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors ml-2 shrink-0 cursor-pointer"
                                         title="ยกเลิกไฟล์"
                                     >
                                         <X className="w-4 h-4" />
@@ -677,7 +677,7 @@ export default function CreateItemBankModal({ isOpen, onClose, onSuccess }: Crea
                             <button
                                 onClick={() => setShowCreateCatModal(false)}
                                 disabled={creatingCat}
-                                className="text-gray-400 hover:text-gray-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
+                                className="text-gray-600 hover:text-gray-600 p-1.5 rounded-xl hover:bg-slate-100 transition-colors cursor-pointer"
                             >
                                 <X size={18} />
                             </button>

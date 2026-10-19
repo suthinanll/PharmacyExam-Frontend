@@ -128,7 +128,7 @@ function StatusShell({ children }: { children: React.ReactNode }) {
             <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
                 <div className="max-w-7xl mx-auto">
                     <Breadcrumb />
-                    <h1 className="text-3xl font-medium text-[#1C2033] mb-6">เฉลยข้อสอบ</h1>
+                    <h1 className="text-3xl font-medium text-gray-900 mb-6">เฉลยข้อสอบ</h1>
                     {children}
                 </div>
             </div>
@@ -160,11 +160,11 @@ function QuestionCard({
                         ข้อ {index + 1}
                     </span>
                     {correct ? (
-                        <span className="text-xs sm:text-sm font-semibold text-green-700 flex items-center gap-1.5">
+                        <span className="text-xs sm:text-sm font-medium text-green-700 flex items-center gap-1.5">
                             <CheckCircle2 className="w-4 h-4 text-green-600" /> ตอบถูกต้อง
                         </span>
                     ) : (
-                        <span className="text-xs sm:text-sm font-semibold text-rose-600 flex items-center gap-1.5">
+                        <span className="text-xs sm:text-sm font-medium text-rose-600 flex items-center gap-1.5">
                             <XCircle className="w-4 h-4 text-rose-500" /> ตอบไม่ถูกต้อง
                         </span>
                     )}
@@ -206,7 +206,7 @@ function QuestionCard({
                         const isCorrect = opt.is_correct;
 
                         let borderClass = 'border-gray-100 bg-gray-50/50';
-                        let labelClass = 'bg-gray-100 text-gray-600 font-semibold';
+                        let labelClass = 'bg-gray-100 text-gray-600 font-medium';
                         let textClass = 'text-gray-700';
                         let badge = null;
                         let trailingIcon = null;
@@ -214,20 +214,20 @@ function QuestionCard({
                         if (isSelected && isCorrect) {
                             borderClass = 'border-green-400 bg-green-50/60 shadow-2xs';
                             labelClass = 'bg-green-600 text-white font-medium';
-                            textClass = 'text-green-950 font-semibold';
+                            textClass = 'text-green-950 font-medium';
                             trailingIcon = <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />;
                             badge = (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-green-100 text-green-800 border border-green-200">
+                                <span className="inline-flex items-center gap-1 text-[0.6875rem] font-medium px-2 py-0.5 rounded-md bg-green-100 text-green-800 border border-green-200">
                                     คำตอบของคุณ (ถูกต้อง)
                                 </span>
                             );
                         } else if (isSelected && !isCorrect) {
                             borderClass = 'border-rose-300 bg-rose-50/60 shadow-2xs';
                             labelClass = 'bg-rose-500 text-white font-medium';
-                            textClass = 'text-rose-950 font-semibold';
+                            textClass = 'text-rose-950 font-medium';
                             trailingIcon = <XCircle className="w-4 h-4 text-rose-500 shrink-0" />;
                             badge = (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 border border-rose-200">
+                                <span className="inline-flex items-center gap-1 text-[0.6875rem] font-medium px-2 py-0.5 rounded-md bg-rose-100 text-rose-700 border border-rose-200">
                                     คำตอบของคุณ
                                 </span>
                             );
@@ -237,7 +237,7 @@ function QuestionCard({
                             textClass = 'text-green-900 font-medium';
                             trailingIcon = <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />;
                             badge = (
-                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-green-100 text-green-800 border border-green-200">
+                                <span className="inline-flex items-center gap-1 text-[0.6875rem] font-medium px-2 py-0.5 rounded-md bg-green-100 text-green-800 border border-green-200">
                                     คำตอบที่ถูกต้อง
                                 </span>
                             );
@@ -250,7 +250,7 @@ function QuestionCard({
                                 </span>
                                 <div className="flex-1 min-w-0">
                                     {opt.option_text?.replace(/<[^>]*>/g, '').trim() && (
-                                        <RichText as="div" className={`text-sm lg:text-[15px] leading-relaxed ${textClass}`} html={formatScientificText(opt.option_text)} />
+                                        <RichText as="div" className={`text-sm lg:text-[0.9375rem] leading-relaxed ${textClass}`} html={formatScientificText(opt.option_text)} />
                                     )}
                                     {opt.option_image_url?.trim() && (
                                         <img
@@ -412,9 +412,9 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
         <StatusShell>
             <div className="text-center max-w-sm mx-auto pt-12">
                 <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-                <h2 className="text-lg font-semibold text-gray-800 mb-2">ไม่พบข้อมูลเฉลย</h2>
+                <h2 className="text-lg font-medium text-gray-800 mb-2">ไม่พบข้อมูลเฉลย</h2>
                 <p className="text-gray-500 text-sm mb-6">{error}</p>
-                <Link href="/user/examset" className="inline-block bg-green-600 hover:bg-green-700 text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors">
+                <Link href="/user/examset" className="inline-block bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded-lg text-sm font-medium transition-colors">
                     กลับไปคลังข้อสอบ
                 </Link>
             </div>
@@ -435,7 +435,7 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
 
                     {/* Page title */}
                     <div className="mb-6">
-                        <h1 className="text-3xl font-medium text-[#1C2033]">{examResult.item_bank_name}</h1>
+                        <h1 className="text-3xl font-medium text-gray-900">{examResult.item_bank_name}</h1>
                         <p className="text-sm text-gray-500 mt-1">เฉลยคำตอบและคำอธิบายโดยละเอียด</p>
                     </div>
 
@@ -445,23 +445,23 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                             {/* Stats */}
                             <div className="flex items-center gap-5 sm:gap-6 flex-wrap">
                                 <div className="text-center">
-                                    <p className="text-2xl font-black text-gray-800">{examResult.total_questions}</p>
-                                    <p className="text-xs font-medium text-gray-400 mt-0.5">ข้อ</p>
+                                    <p className="text-2xl font-medium text-gray-800">{examResult.total_questions}</p>
+                                    <p className="text-xs font-medium text-gray-600 mt-0.5">ข้อ</p>
                                 </div>
                                 <div className="w-px h-8 bg-gray-100 hidden sm:block" />
                                 <div className="text-center">
-                                    <p className="text-2xl font-black text-green-600">{examResult.correct_count}</p>
+                                    <p className="text-2xl font-medium text-green-600">{examResult.correct_count}</p>
                                     <p className="text-xs font-medium text-green-600 mt-0.5">ตอบถูก</p>
                                 </div>
                                 <div className="w-px h-8 bg-gray-100 hidden sm:block" />
                                 <div className="text-center">
-                                    <p className="text-2xl font-black text-rose-500">{wrong}</p>
+                                    <p className="text-2xl font-medium text-rose-500">{wrong}</p>
                                     <p className="text-xs font-medium text-rose-500 mt-0.5">ตอบผิด</p>
                                 </div>
                                 <div className="w-px h-8 bg-gray-100 hidden sm:block" />
                                 <div className="text-center">
-                                    <p className={`text-2xl font-black ${pct >= 70 ? 'text-green-600' : pct >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>{pct}%</p>
-                                    <p className="text-xs font-medium text-gray-400 mt-0.5">คะแนน</p>
+                                    <p className={`text-2xl font-medium ${pct >= 70 ? 'text-green-600' : pct >= 50 ? 'text-amber-500' : 'text-rose-500'}`}>{pct}%</p>
+                                    <p className="text-xs font-medium text-gray-600 mt-0.5">คะแนน</p>
                                 </div>
                             </div>
 
@@ -509,7 +509,7 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                                                 </div>
                                             }
                                             <div>
-                                                <p className="text-base font-semibold text-gray-800">
+                                                <p className="text-base font-medium text-gray-800">
                                                     {hasSituation ? `สถานการณ์ที่ ${gIdx + 1}` : 'คำถามทั่วไป'}
                                                 </p>
                                                 <p className="text-sm text-gray-500 mt-0.5">{group.questions.length} ข้อ</p>
@@ -520,7 +520,7 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                                             <span className="text-md px-2.5 py-1 rounded-full bg-gray-100 text-gray-600">
                                                 ถูก {correctInGroup}/{group.questions.length}
                                             </span>
-                                            <div className="p-1 text-gray-400 hover:text-gray-600">
+                                            <div className="p-1 text-gray-600 hover:text-gray-600">
                                                 {isCollapsed
                                                     ? <ChevronDown className="w-4 h-4" />
                                                     : <ChevronUp className="w-4 h-4" />}
@@ -540,7 +540,7 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                                                     {group.situation.situation_title && (
                                                         <RichText className="font-medium text-gray-900 mb-2 text-base" html={group.situation.situation_title} />
                                                     )}
-                                                    <RichText className="text-sm lg:text-[15px] text-gray-700 leading-relaxed whitespace-pre-wrap" html={formatScientificText(group.situation.situation_text)} />
+                                                    <RichText className="text-sm lg:text-[0.9375rem] text-gray-700 leading-relaxed whitespace-pre-wrap" html={formatScientificText(group.situation.situation_text)} />
                                                     {group.situation.situation_image_url && (
                                                         <img
                                                             src={group.situation.situation_image_url}
@@ -575,7 +575,7 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                     <div className="mt-8 flex items-center justify-center gap-3">
                         <Link
                             href="/user/examset/take-exam/summarize-exam"
-                            className="inline-flex items-center gap-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm transition-all shadow-xs"
+                            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary hover:bg-primary-hover text-white font-medium rounded-xl text-sm transition-all shadow-xs"
                         >
                             <ArrowLeft className="w-4 h-4" /> กลับไปหน้าสรุปผล
                         </Link>
@@ -602,8 +602,8 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                 {showTOC && (
                     <div className="bg-white rounded-2xl shadow-xl border border-gray-100 w-64 overflow-hidden">
                         <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-                            <List className="w-3.5 h-3.5 text-gray-400" />
-                            <span className="text-sm font-semibold text-gray-700">สารบัญข้อสอบ</span>
+                            <List className="w-3.5 h-3.5 text-gray-600" />
+                            <span className="text-sm font-medium text-gray-700">สารบัญข้อสอบ</span>
                         </div>
                         <div className="max-h-[55vh] overflow-y-auto p-2 space-y-0.5">
                             {groups.map((group, gIdx) => {
@@ -622,7 +622,7 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                                                 className="flex-1 text-left py-2 text-xs font-medium text-gray-700 hover:text-green-700 transition-colors flex items-center justify-between cursor-pointer pr-2"
                                             >
                                                 <span className="truncate">{label}</span>
-                                                <span className="ml-2 text-[10px] text-gray-400 shrink-0">{correct}/{group.questions.length}</span>
+                                                <span className="ml-2 text-[0.625rem] text-gray-600 shrink-0">{correct}/{group.questions.length}</span>
                                             </button>
                                         </div>
 
@@ -632,7 +632,7 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                                                     <button
                                                         key={idx}
                                                         onClick={() => openAndScroll(gIdx, `question-${idx}`)}
-                                                        className={`w-full text-left flex items-center gap-1.5 py-1 px-1.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer ${q.is_correct ? 'text-green-700 hover:bg-green-50' : 'text-rose-600 hover:bg-rose-50'}`}
+                                                        className={`w-full text-left flex items-center gap-1.5 py-1 px-1.5 rounded-md text-[0.6875rem] font-medium transition-colors cursor-pointer ${q.is_correct ? 'text-green-700 hover:bg-green-50' : 'text-rose-600 hover:bg-rose-50'}`}
                                                     >
                                                         {q.is_correct
                                                             ? <CheckCircle2 className="w-3 h-3 shrink-0 text-green-600" />
@@ -657,10 +657,10 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                         <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                             <div className="flex items-center gap-2">
                                 <BarChart2 className="w-4 h-4 text-gray-500" />
-                                <h3 className="text-sm font-semibold text-gray-800">สถิติการตอบข้อนี้</h3>
+                                <h3 className="text-sm font-medium text-gray-800">สถิติการตอบข้อนี้</h3>
                             </div>
                             <button onClick={() => setStatsModal({ open: false, data: null })} className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer">
-                                <X className="w-4 h-4 text-gray-400" />
+                                <X className="w-4 h-4 text-gray-600" />
                             </button>
                         </div>
 
@@ -673,15 +673,15 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-3 gap-3">
                                         <div className="bg-gray-50 rounded-xl p-3 text-center border border-gray-100">
-                                            <p className="text-xl font-black text-gray-800">{statsModal.data.total_attempts}</p>
-                                            <p className="text-xs text-gray-400 mt-0.5">ครั้งทั้งหมด</p>
+                                            <p className="text-xl font-medium text-gray-800">{statsModal.data.total_attempts}</p>
+                                            <p className="text-xs text-gray-600 mt-0.5">ครั้งทั้งหมด</p>
                                         </div>
                                         <div className="bg-green-50 rounded-xl p-3 text-center border border-green-100">
-                                            <p className="text-xl font-black text-green-600">{statsModal.data.total_correct}</p>
+                                            <p className="text-xl font-medium text-green-600">{statsModal.data.total_correct}</p>
                                             <p className="text-xs text-green-600 mt-0.5">ตอบถูก</p>
                                         </div>
                                         <div className="bg-rose-50 rounded-xl p-3 text-center border border-rose-100">
-                                            <p className="text-xl font-black text-rose-500">{statsModal.data.total_incorrect}</p>
+                                            <p className="text-xl font-medium text-rose-500">{statsModal.data.total_incorrect}</p>
                                             <p className="text-xs text-rose-500 mt-0.5">ตอบผิด</p>
                                         </div>
                                     </div>
@@ -709,11 +709,11 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                                             <TrendingUp className="w-4 h-4 text-orange-500" />
                                             <span className="text-sm text-orange-700 font-medium">ถูกติดกัน</span>
                                         </div>
-                                        <span className="text-xl font-black text-orange-600">{statsModal.data.correct_streak}</span>
+                                        <span className="text-xl font-medium text-orange-600">{statsModal.data.correct_streak}</span>
                                     </div>
 
                                     {/* Last attempt */}
-                                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                                    <div className="flex items-center gap-2 text-xs text-gray-600">
                                         <Clock className="w-3.5 h-3.5" />
                                         <span>ทำล่าสุด {new Date(statsModal.data.last_answered_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                                     </div>
@@ -722,7 +722,7 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                                 <div className="text-center py-8">
                                     <AlertCircle className="w-10 h-10 text-gray-200 mx-auto mb-3" />
                                     <p className="text-sm font-medium text-gray-500">ยังไม่มีสถิติ</p>
-                                    <p className="text-xs text-gray-400 mt-1">นี่เป็นครั้งแรกที่ทำข้อนี้</p>
+                                    <p className="text-xs text-gray-600 mt-1">นี่เป็นครั้งแรกที่ทำข้อนี้</p>
                                 </div>
                             )}
                         </div>

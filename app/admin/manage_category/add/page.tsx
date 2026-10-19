@@ -100,7 +100,7 @@ export default function AddCategory() {
             <div className="max-w-7xl mx-auto w-full space-y-6">
                     {/* Header */}
                     <div className="mb-8">
-                        <h1 className="text-3xl font-medium text-gray-900 mb-2">เพิ่มประเภทข้อสอบใหม่</h1>
+                        <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">เพิ่มประเภทข้อสอบใหม่</h1>
                         <p className="text-gray-600">กรอกข้อมูลเพื่อสร้างประเภทข้อสอบใหม่</p>
                     </div>
 

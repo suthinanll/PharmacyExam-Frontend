@@ -115,7 +115,7 @@ const TimeUnit = ({ label, value }: { label: string; value: number }) => (
         {String(value).padStart(2, "0")}
       </span>
     </div>
-    <span className="mt-2 text-[11px] sm:text-sm font-medium uppercase tracking-wide text-gray-500">
+    <span className="mt-2 text-[0.6875rem] sm:text-sm font-medium uppercase tracking-wide text-gray-500">
       {label}
     </span>
   </div>
@@ -145,7 +145,7 @@ const AttachmentLink = ({ href, label }: { href: string; label: string }) => (
     href={href}
     target="_blank"
     rel="noopener noreferrer"
-    className="group mt-2 inline-flex w-fit items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-medium text-blue-700 transition-colors hover:bg-blue-100"
+    className="group mt-2 inline-flex w-fit items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-[0.6875rem] font-medium text-blue-700 transition-colors hover:bg-blue-100"
   >
     <ExternalLink size={12} className="text-blue-600 transition-transform group-hover:scale-110" />
     {label}

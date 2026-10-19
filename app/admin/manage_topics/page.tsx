@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { SWAL_COLORS } from "@/utils/swal";
 import Pagination from "@/components/Pagination";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import SuggestInput from '@/components/SuggestInput';
 import {
     PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
     BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList
@@ -429,7 +430,7 @@ export default function ManageTopicsPage() {
                 {/* ── Page Header ── */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
                     <div>
-                        <h1 className="text-xl sm:text-3xl font-medium text-gray-900 mb-1">จัดการหัวข้อข้อสอบ</h1>
+                        <h1 className="text-2xl sm:text-3xl font-medium text-gray-900 mb-1">จัดการหัวข้อข้อสอบ</h1>
                         <p className="text-xs sm:text-sm text-gray-500">โครงสร้างหมวดหมู่ข้อสอบ Topic & Sub-Topic ทั้งหมดในระบบ</p>
                     </div>
                     <div className="flex items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
@@ -509,12 +510,12 @@ export default function ManageTopicsPage() {
                 <div className="bg-white p-3 sm:p-3.5 rounded-2xl border border-gray-200 shadow-xs mb-4 sm:mb-6 flex flex-col sm:flex-row gap-2.5 sm:gap-3 items-stretch sm:items-center justify-between">
                     {/* Search Input */}
                     <div className="relative flex-1 min-w-0">
-                        <input
-                            type="text"
+                        <SuggestInput
                             placeholder="ค้นหาหัวข้อหลัก / ย่อย..."
                             aria-label="ค้นหาหัวข้อหลัก หรือหัวข้อย่อย"
                             value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
+                            onValueChange={setSearchTerm}
+                            suggestions={(stats?.by_topic ?? []).flatMap(t => [t.topic_name, ...t.sub_topics.map(st => st.sub_topic_name)])}
                             className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
                         />
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-3.5 h-3.5" />
@@ -590,7 +591,7 @@ export default function ManageTopicsPage() {
                     </div>
                 ) : processedTopics.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-gray-200 p-8 sm:p-12 text-center">
-                        <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-400 mx-auto flex items-center justify-center mb-3">
+                        <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-600 mx-auto flex items-center justify-center mb-3">
                             <Search size={22} />
                         </div>
                         <h2 className="text-base font-medium text-gray-900 mb-1">ไม่พบหัวข้อข้อสอบ</h2>
@@ -637,7 +638,7 @@ export default function ManageTopicsPage() {
                                                 className="p-3.5 sm:p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50/80 transition-colors select-none gap-2"
                                             >
                                                 <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
-                                                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${isExpanded ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-400"}`}>
+                                                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors ${isExpanded ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
                                                         {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                                                     </div>
                                                     <div className="min-w-0 flex-1">
@@ -646,7 +647,7 @@ export default function ManageTopicsPage() {
                                                             <span className="text-xs sm:text-sm font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-100 shrink-0">
                                                                 {itemCount} ข้อ
                                                             </span>
-                                                            <span className="text-xs sm:text-sm text-gray-400 shrink-0">
+                                                            <span className="text-xs sm:text-sm text-gray-600 shrink-0">
                                                                 ({subCount} ย่อย)
                                                             </span>
                                                         </div>
@@ -668,7 +669,7 @@ export default function ManageTopicsPage() {
                                                         type="button"
                                                         onClick={() => handleEditTopic(t)}
                                                         aria-label={`แก้ไขหัวข้อหลัก ${t.topic_name}`}
-                                                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
+                                                        className="p-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all cursor-pointer"
                                                         title="แก้ไขหัวข้อหลัก"
                                                     >
                                                         <Edit2 size={14} />
@@ -677,7 +678,7 @@ export default function ManageTopicsPage() {
                                                         type="button"
                                                         onClick={() => handleDeleteTopic(t)}
                                                         aria-label={`ลบหัวข้อหลัก ${t.topic_name}`}
-                                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                                                        className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
                                                         title="ลบหัวข้อหลัก"
                                                     >
                                                         <Trash2 size={14} />
@@ -689,7 +690,7 @@ export default function ManageTopicsPage() {
                                             {isExpanded && (
                                                 <div className="border-t border-gray-100 bg-gray-50/50 p-2.5 sm:p-4">
                                                     {subCount === 0 ? (
-                                                        <div className="text-center py-5 sm:py-6 text-xs sm:text-sm text-gray-400 bg-white rounded-xl border border-dashed border-gray-200">
+                                                        <div className="text-center py-5 sm:py-6 text-xs sm:text-sm text-gray-600 bg-white rounded-xl border border-dashed border-gray-200">
                                                             ยังไม่มีหัวข้อย่อยในหมวดนี้ —{" "}
                                                             <button
                                                                 onClick={() => handleCreateSubTopic(t.topic_id)}
@@ -727,7 +728,7 @@ export default function ManageTopicsPage() {
                                                                                         type="button"
                                                                                         onClick={() => handleEditSubTopic(st)}
                                                                                         aria-label={`แก้ไขหัวข้อย่อย ${st.sub_topic_name}`}
-                                                                                        className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-all cursor-pointer"
+                                                                                        className="p-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-all cursor-pointer"
                                                                                         title="แก้ไขหัวข้อย่อย"
                                                                                     >
                                                                                         <Edit2 size={13} />
@@ -736,7 +737,7 @@ export default function ManageTopicsPage() {
                                                                                         type="button"
                                                                                         onClick={() => handleDeleteSubTopic(st)}
                                                                                         aria-label={`ลบหัวข้อย่อย ${st.sub_topic_name}`}
-                                                                                        className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-all cursor-pointer"
+                                                                                        className="p-1 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded transition-all cursor-pointer"
                                                                                         title="ลบหัวข้อย่อย"
                                                                                     >
                                                                                         <Trash2 size={13} />
@@ -1024,7 +1025,7 @@ export default function ManageTopicsPage() {
                                                     จำนวนข้อสอบรายหัวข้อ (Top 8 Topics)
                                                 </h3>
                                             </div>
-                                            <span className="text-[10px] sm:text-[11px] font-medium bg-green-50 text-green-700 px-2 sm:px-2.5 py-0.5 rounded-full border border-green-200 shrink-0">
+                                            <span className="text-[0.625rem] sm:text-[0.6875rem] font-medium bg-green-50 text-green-700 px-2 sm:px-2.5 py-0.5 rounded-full border border-green-200 shrink-0">
                                                 Top 8
                                             </span>
                                         </div>
@@ -1061,7 +1062,7 @@ export default function ManageTopicsPage() {
                                                                         <p className="font-medium text-gray-900 border-b border-gray-100 pb-1">{data.name}</p>
                                                                         <div className="flex justify-between gap-3 text-gray-600">
                                                                             <span>จำนวนข้อสอบ:</span>
-                                                                            <span className="font-bold text-green-600">{data.count} ข้อ</span>
+                                                                            <span className="font-medium text-green-600">{data.count} ข้อ</span>
                                                                         </div>
                                                                         <div className="flex justify-between gap-3 text-gray-500">
                                                                             <span>หัวข้อย่อย:</span>
@@ -1085,7 +1086,7 @@ export default function ManageTopicsPage() {
                                                             dataKey="count"
                                                             position="right"
                                                             formatter={(val: any) => `${val ?? 0} ข้อ`}
-                                                            style={{ fontSize: 10, fill: "#475569", fontWeight: 600 }}
+                                                            style={{ fontSize: 10, fill: "#475569", fontWeight: 500 }}
                                                         />
                                                     </Bar>
                                                 </BarChart>
@@ -1102,7 +1103,7 @@ export default function ManageTopicsPage() {
                                                     สัดส่วนร้อยละตามหัวข้อหลัก
                                                 </h3>
                                             </div>
-                                            <span className="text-[10px] sm:text-[11px] font-medium bg-blue-50 text-blue-700 px-2 sm:px-2.5 py-0.5 rounded-full border border-blue-200 shrink-0">
+                                            <span className="text-[0.625rem] sm:text-[0.6875rem] font-medium bg-blue-50 text-blue-700 px-2 sm:px-2.5 py-0.5 rounded-full border border-blue-200 shrink-0">
                                                 ภาพรวม
                                             </span>
                                         </div>
@@ -1141,7 +1142,7 @@ export default function ManageTopicsPage() {
                                                     </PieChart>
                                                 </ResponsiveContainer>
                                                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                                    <span className="text-lg sm:text-xl font-bold text-gray-900 leading-tight">{totalItemsCount}</span>
+                                                    <span className="text-lg sm:text-xl font-medium text-gray-900 leading-tight">{totalItemsCount}</span>
                                                     <span className="text-sm text-gray-500 ">ข้อสอบรวม</span>
                                                 </div>
                                             </div>
@@ -1158,11 +1159,11 @@ export default function ManageTopicsPage() {
                                                                 className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
                                                                 style={{ backgroundColor: entry.color }}
                                                             />
-                                                            <span className="text-gray-700 font-medium truncate text-[10px] sm:text-[11px]" title={entry.name}>
+                                                            <span className="text-gray-700 font-medium truncate text-[0.625rem] sm:text-[0.6875rem]" title={entry.name}>
                                                                 {entry.name}
                                                             </span>
                                                         </div>
-                                                        <div className="flex items-center gap-1 shrink-0 text-[10px]">
+                                                        <div className="flex items-center gap-1 shrink-0 text-[0.625rem]">
                                                             <span className="text-gray-500 font-medium">{entry.count} ข้อ</span>
                                                             <span className="bg-white text-gray-600 px-1 py-0.5 rounded border border-gray-200 font-medium">
                                                                 {entry.percentage}%
@@ -1201,10 +1202,10 @@ export default function ManageTopicsPage() {
                                                     const pct = totalItemsCount > 0 ? (((t.item_count || 0) / totalItemsCount) * 100).toFixed(1) : "0";
                                                     return (
                                                         <tr key={t.topic_id} className="hover:bg-gray-50/80 transition-colors">
-                                                            <td className="px-3 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-400 font-medium">{idx + 1}</td>
+                                                            <td className="px-3 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-600 font-medium">{idx + 1}</td>
                                                             <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-medium text-gray-900">{t.topic_name}</td>
                                                             <td className="px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm text-gray-500 text-center">
-                                                                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md font-medium text-[11px]">
+                                                                <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-md font-medium text-[0.6875rem]">
                                                                     {t.sub_topics?.length || 0} หมวด
                                                                 </span>
                                                             </td>

@@ -5,6 +5,7 @@ import NoteItem from "./NoteItem";
 import NoteModal from "./NoteModal";
 import AddNoteButton from "./AddNoteButton";
 import NotePagination from "./NotePagination";
+import SuggestInput from "@/components/SuggestInput";
 
 export interface UserNote {
   id: string;
@@ -134,22 +135,29 @@ export default function NoteList({
   return (
     <div className="bg-white rounded-xl shadow-xl p-4 border border-slate-100">
       <h2 className="text-2xl font-medium text-gray-800 mb-4 flex items-center gap-2">
-        <Bookmark className="w-6 h-6 text-indigo-600" /> บันทึกสรุป
+        <Bookmark className="w-6 h-6 text-blue-600" /> บันทึกสรุป
       </h2>
 
       {/* Search / Filter */}
       <div className="mb-4 flex items-center relative">
-        <Search className="w-5 h-5 text-gray-400 absolute left-3" />
-        <input
-          value={tagFilter || ""} 
-          onChange={(e) => setTagFilterAction(e.target.value)}
+        <Search className="w-5 h-5 text-gray-600 absolute left-3" />
+        <SuggestInput
+          value={tagFilter || ""}
+          onValueChange={setTagFilterAction}
+          aria-label="ค้นหาบันทึกด้วยหัวข้อ, Tags หรือเนื้อหา"
+          suggestions={notes.flatMap((note) => [
+            note.title,
+            ...(note.tags ?? []).map((t) =>
+              typeof t === "object" ? (t.tag?.tag_name || t.tag_name || t.name) : t,
+            ),
+          ])}
           placeholder="ค้นหาด้วยหัวข้อ, Tags หรือเนื้อหา..."
-          className="w-full p-2.5 pl-10 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none text-sm transition-all"
+          className="w-full p-2.5 pl-10 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none text-sm transition-all"
         />
         {tagFilter && (
           <button
             onClick={() => setTagFilterAction("")}
-            className="absolute right-3 p-1 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-3 p-1 text-gray-600 hover:text-gray-600 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>

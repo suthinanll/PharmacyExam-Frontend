@@ -174,7 +174,7 @@ export default function TableOfContents({
                                                     }`}
                                                     title={plainText || 'คำถามเดี่ยว'}
                                                 >
-                                                    <span className="shrink-0 w-5 h-5 rounded-md bg-blue-100 text-blue-700 font-medium text-[11px] flex items-center justify-center">
+                                                    <span className="shrink-0 w-5 h-5 rounded-md bg-blue-100 text-blue-700 font-medium text-[0.6875rem] flex items-center justify-center">
                                                         {globalNum}
                                                     </span>
                                                     <span className="truncate">{displayText}</span>
@@ -239,7 +239,7 @@ export default function TableOfContents({
                                                         className="w-full text-left px-2 py-1.5 rounded-lg text-sm text-gray-700 hover:bg-gray-50 hover:text-green-700 transition-all flex items-center gap-2 truncate cursor-pointer group"
                                                         title={plainText || '(ไม่มีโจทย์)'}
                                                     >
-                                                        <span className="shrink-0 w-5 h-5 rounded-md bg-gray-100 text-gray-700 group-hover:bg-green-100 group-hover:text-green-700 font-medium text-[11px] flex items-center justify-center transition-colors">
+                                                        <span className="shrink-0 w-5 h-5 rounded-md bg-gray-100 text-gray-700 group-hover:bg-green-100 group-hover:text-green-700 font-medium text-[0.6875rem] flex items-center justify-center transition-colors">
                                                             {globalNum}
                                                         </span>
                                                         <span className="truncate">{displayText}</span>

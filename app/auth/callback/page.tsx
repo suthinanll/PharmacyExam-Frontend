@@ -68,7 +68,7 @@ function AuthCallbackContent() {
           title: "เข้าสู่ระบบสำเร็จ!",
           text: `ยินดีต้อนรับ ${userData.first_name}`,
           confirmButtonText: "ตกลง",
-          confirmButtonColor: "#10b981",
+          confirmButtonColor: "#5EA500",
           timer: 2000,
         });
 

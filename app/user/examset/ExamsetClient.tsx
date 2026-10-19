@@ -249,7 +249,7 @@ const ExamsetClient = ({
           icon: 'info',
           showCancelButton: true,
           showDenyButton: true,
-          confirmButtonColor: '#16a34a',
+          confirmButtonColor: '#5EA500',
           denyButtonColor: '#ef4444',
           cancelButtonColor: '#6b7280',
           confirmButtonText: 'ทำต่อ',
@@ -375,7 +375,10 @@ const ExamsetClient = ({
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
               <div className="flex-1">
-                <SearchBar onSearch={handleSearch} />
+                <SearchBar
+                  onSearch={handleSearch}
+                  suggestions={[...itemBanks.map((b) => b.bank_name), ...categories.map((c) => c.category_name)]}
+                />
               </div>
               {/* Sort Selector */}
               <div className="relative min-w-[170px]">
@@ -530,7 +533,7 @@ const ExamsetClient = ({
                         perPage={perPage}
                         onPageChange={setCurrentPage}
                         itemLabel="ชุดข้อสอบ"
-                        activeColor="bg-[#76B25A] text-white shadow-xs"
+                        activeColor="bg-primary text-white shadow-xs"
                       />
                     )}
                   </>
@@ -544,7 +547,7 @@ const ExamsetClient = ({
             <div className="text-center py-16 bg-white rounded-xl shadow-sm">
               <div className="max-w-md mx-auto">
                 <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <BookOpen className="w-12 h-12 text-gray-400" />
+                  <BookOpen className="w-12 h-12 text-gray-600" />
                 </div>
                 <h2 className="text-xl font-medium text-gray-700 mb-2">
                   {searchQuery ? 'ไม่พบข้อสอบที่ค้นหา' : 'ไม่มีข้อสอบในหมวดนี้'}

@@ -240,7 +240,7 @@ function Page() {
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-medium text-gray-900">เพิ่มกำหนดการใหม่</h1>
+              <h1 className="text-2xl sm:text-3xl font-medium text-gray-900">เพิ่มกำหนดการใหม่</h1>
               <p className="text-gray-500 mt-1 text-sm">ดึงข้อมูลด้วย AI หรือเพิ่มด้วยตนเอง</p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
@@ -288,7 +288,7 @@ function Page() {
               className={`sm:w-44 py-3 rounded-xl text-sm font-medium transition-all
                 ${pdfFile
                   ? "bg-green-600 text-white hover:bg-green-700 shadow-md shadow-green-600/10"
-                  : "bg-gray-100 text-gray-400 cursor-not-allowed"}`}
+                  : "bg-gray-100 text-gray-600 cursor-not-allowed"}`}
             >
               ประมวลผลด้วย AI
             </button>
@@ -311,7 +311,7 @@ function Page() {
                   <button
                     onClick={() => removeEvent(event.id)}
                     aria-label={`ลบกำหนดการรายการที่ ${index + 1}`}
-                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    className="p-1.5 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>

@@ -63,7 +63,12 @@ async function openList(page: Page, search?: string) {
   await page.goto(LIST_URL);
   await expect(page.getByRole('heading', { name: 'จัดการข่าวสาร', exact: true })).toBeVisible();
   await expect(page.getByText('Synchronizing Data...')).toHaveCount(0);
-  if (search !== undefined) await page.getByLabel('ค้นหาข่าวสารของคุณ').fill(search);
+  if (search !== undefined) {
+    const box = page.getByLabel('ค้นหาข่าวสารของคุณ');
+    await box.fill(search);
+    // ช่องค้นหาแสดงคำแนะนำทับรายการด้านล่าง กด Esc ปิดก่อนทำขั้นถัดไป
+    await box.press('Escape');
+  }
 }
 
 /** การ์ดข่าวในหน้ารายการ */

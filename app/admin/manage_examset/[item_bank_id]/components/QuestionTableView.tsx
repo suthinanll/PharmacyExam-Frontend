@@ -18,6 +18,7 @@ import {
     FileText,
 } from 'lucide-react';
 import { sanitizeHtml } from "@/utils/sanitize";
+import SuggestInput from '@/components/SuggestInput';
 
 // ─── Types ──────────────────────────────────────────────────
 interface AnswerOption {
@@ -84,7 +85,7 @@ type SortDir = 'asc' | 'desc';
 
 // ─── Difficulty label ────────────────────────────────────────
 function difficultyLabel(b?: number): { label: string; color: string } {
-    if (b === undefined || b === null) return { label: '-', color: 'text-gray-400' };
+    if (b === undefined || b === null) return { label: '-', color: 'text-gray-600' };
     if (b <= -1.5) return { label: 'ง่ายมาก', color: 'text-blue-600' };
     if (b <= -0.5) return { label: 'ง่าย', color: 'text-cyan-600' };
     if (b <= 0.5) return { label: 'ปานกลาง', color: 'text-green-600' };
@@ -124,7 +125,7 @@ function QuestionDetailModal({ row, situationSeqMap, onClose }: { row: FlatRow; 
                     <button
                         onClick={onClose}
                         aria-label="ปิดหน้าต่างรายละเอียดคำถาม"
-                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-600 transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -177,7 +178,7 @@ function QuestionDetailModal({ row, situationSeqMap, onClose }: { row: FlatRow; 
 
                     {/* Options */}
                     <div>
-                        <p className="text-xs font-medium text-gray-400  mb-2">ตัวเลือกคำตอบ</p>
+                        <p className="text-xs font-medium text-gray-600  mb-2">ตัวเลือกคำตอบ</p>
                         <div className="space-y-2">
                             {question.answer_options.map((opt, idx) => (
                                 <div
@@ -400,11 +401,11 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
             <div className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm flex flex-wrap gap-3 items-center">
                 {/* Search */}
                 <div className="relative flex-1 min-w-[200px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                        type="text"
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
+                    <SuggestInput
                         value={search}
-                        onChange={e => setSearch(e.target.value)}
+                        onValueChange={setSearch}
+                        suggestions={allRows.map(r => r.question.question_text.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').slice(0, 120))}
                         placeholder="ค้นหาโจทย์คำถาม..."
                         aria-label="ค้นหาโจทย์คำถาม"
                         className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
@@ -523,7 +524,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                                                     dangerouslySetInnerHTML={{ __html: sanitizeHtml(question.question_text) }}
                                                 />
                                             ) : (
-                                                <span className="text-gray-400 italic">ไม่มีโจทย์</span>
+                                                <span className="text-gray-600 italic">ไม่มีโจทย์</span>
                                             )}
                                         </td>
 
@@ -585,7 +586,7 @@ export default function QuestionTableView({ situations, subTopics, topics }: Que
                 </div>
 
                 {rows.length === 0 && (
-                    <div className="py-16 text-center text-gray-400 text-sm">
+                    <div className="py-16 text-center text-gray-600 text-sm">
                         ไม่พบคำถามที่ตรงกับเงื่อนไขการค้นหา
                     </div>
                 )}

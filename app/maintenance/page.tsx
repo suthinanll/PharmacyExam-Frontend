@@ -31,7 +31,7 @@ export default function MaintenancePage() {
         </div>
 
         {/* Brand */}
-        <p className="text-2xl font-bold text-[#76B25A] mb-1.5 tracking-wide">เภสัชพร้อมสอบ</p>
+        <p className="text-2xl font-medium text-primary mb-1.5 tracking-wide">เภสัชพร้อมสอบ</p>
 
         {/* Badge */}
         <div className="maintenance-badge">
@@ -39,7 +39,7 @@ export default function MaintenancePage() {
           กำลังดำเนินการปรับปรุง
         </div>
 
-        <h1 className="text-2xl font-bold text-gray-900 leading-tight mb-2.5">
+        <h1 className="text-2xl font-medium text-gray-900 leading-tight mb-2.5">
           เว็บไซต์ปิดปรับปรุง<br />ชั่วคราว
         </h1>
 
@@ -53,7 +53,7 @@ export default function MaintenancePage() {
         {/* Progress */}
         <div className="flex justify-between items-center text-xs text-gray-500 font-medium mb-2.5">
           <span>ความคืบหน้า</span>
-          <span className="text-green-600 font-bold">75%</span>
+          <span className="text-green-600 font-medium">75%</span>
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-5">
           <div className="maintenance-progress-fill" />
@@ -84,7 +84,7 @@ export default function MaintenancePage() {
                 <polyline points="12 6 12 12 16 14" />
               </svg>
             </div>
-            <span className="text-gray-700 font-semibold">
+            <span className="text-gray-700 font-medium">
               ทดสอบและตรวจสอบระบบ <span className="font-normal text-amber-600">(กำลังดำเนินการ)</span>
             </span>
           </div>
@@ -97,7 +97,7 @@ export default function MaintenancePage() {
             <polyline points="22,6 12,13 2,6" />
           </svg>
           ติดต่อแอดมิน:&nbsp;
-          <a href="mailto:admin@pharmexam.com" className="text-[#76B25A] font-semibold hover:underline">
+          <a href="mailto:admin@pharmexam.com" className="text-primary-hover font-medium hover:underline">
             admin@pharmexam.com
           </a>
         </p>

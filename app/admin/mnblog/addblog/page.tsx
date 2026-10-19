@@ -183,7 +183,7 @@ const DraftCard = ({
 
     return (
         <div className="group relative bg-white p-6 rounded-3xl border border-gray-200 hover:border-green-300 transition-all shadow-sm">
-            <div className="absolute -left-3 top-6 w-8 h-8 bg-white border-2 border-green-500 text-green-600 rounded-full flex items-center justify-center font-black text-sm z-10 shadow-sm">
+            <div className="absolute -left-3 top-6 w-8 h-8 bg-white border-2 border-green-500 text-green-600 rounded-full flex items-center justify-center font-medium text-sm z-10 shadow-sm">
                 {index + 1}
             </div>
 
@@ -266,7 +266,7 @@ const DraftCard = ({
                             >
                                 <div className="text-center text-gray-500">
                                     <Upload className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                                    <p className="text-[10px] font-medium ">Upload Cover</p>
+                                    <p className="text-[0.625rem] font-medium ">Upload Cover</p>
                                 </div>
                             </button>
                         )}
@@ -286,13 +286,13 @@ const DraftCard = ({
                         value={draft.imageUrl.startsWith('blob:') ? '' : draft.imageUrl}
                         onChange={(e) => onUpdate(draft.tempId, "imageUrl", e.target.value)}
                         aria-label={`หรือวาง URL รูปภาพหน้าปก รายการที่ ${index + 1}`}
-                        className="w-full text-[10px] border-gray-200 rounded-lg focus:ring-green-500 py-1"
+                        className="w-full text-[0.625rem] border-gray-200 rounded-lg focus:ring-green-500 py-1"
                     />
 
                     {/* คำแนะนำการอัปโหลด */}
                     <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
                         <p className="text-xs font-medium text-blue-900 mb-1.5">คำแนะนำ</p>
-                        <ul className="text-[10px] text-blue-700 space-y-0.5">
+                        <ul className="text-[0.625rem] text-blue-700 space-y-0.5">
                             <li>• แนะนำขนาดภาพ 1200 x 800 px</li>
                             <li>• ไฟล์ภาพต้องไม่เกิน 5MB</li>
                             <li>• รองรับไฟล์: JPG, PNG, WebP</li>
@@ -613,7 +613,7 @@ function AddBlogPage() {
                             <button
                                 onClick={handleSaveDraft}
                                 disabled={isSaving || drafts.length === 0}
-                                className={`flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium rounded-xl transition-all shadow-sm border border-gray-200 ${isSaving ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+                                className={`flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium rounded-xl transition-all shadow-sm border border-gray-200 ${isSaving ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
                             >
                                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                 <span>{isSaving ? 'กำลังบันทึก...' : 'บันทึกร่าง'}</span>

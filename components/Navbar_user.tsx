@@ -21,11 +21,15 @@ import {
   Newspaper,
   Zap,
   Smartphone,
+  Moon,
+  Sun,
+  ClipboardList,
 } from 'lucide-react';
 import Swal from "@/utils/sweetalert";
 import { isRunningStandalone, openInstallGuide } from '@/utils/pwaInstall';
 import { useNotifications, AppNotification } from '@/contexts/NotificationContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // ---- Notification type helpers ----
 const TYPE_ICON_MAP: Record<number, React.ElementType> = {
@@ -77,7 +81,23 @@ const Navbar = () => {
   const [imgError, setImgError] = useState(false);
 
   // ดึงข้อมูลผู้ใช้จาก AuthContext
-  const { user, logout } = useAuth();
+  const { user, logout, getToken } = useAuth();
+
+  // เมนูแบบประเมิน: แสดงเฉพาะตอนแอดมินเปิดแบบประเมินอยู่
+  // ถามสถานะตอนเปิดเมนูรูปโปรไฟล์เท่านั้น ไม่ยิง request เพิ่มทุกครั้งที่โหลดหน้า
+  const [survey, setSurvey] = useState<{ isOpen: boolean; hasResponded: boolean } | null>(null);
+  useEffect(() => {
+    if (!isProfileDropdownOpen) return;
+    const token = getToken();
+    if (!token) return;
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/survey/status`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setSurvey(data))
+      .catch(() => {});
+  }, [isProfileDropdownOpen, getToken]);
+
+  // ปุ่มลัดสลับธีม (ตั้งค่าละเอียดได้ที่หน้าโปรไฟล์ แท็บ "การแสดงผล")
+  const theme = useTheme();
 
   useEffect(() => {
     setImgError(false);
@@ -142,7 +162,7 @@ const Navbar = () => {
   }, [isMobileMenuOpen]);
 
   return (
-    <nav className="bg-[rgba(118,178,90,1)] sticky top-0 z-50 backdrop-blur-sm">
+    <nav className="bg-nav sticky top-0 z-50 backdrop-blur-sm">
       <div className="mx-auto max-w-7xl px-3 sm:px-5 md:px-6 lg:px-8">
         <div className="relative flex h-14 sm:h-15 md:h-17 items-center justify-between">
 
@@ -275,7 +295,7 @@ const Navbar = () => {
                 <span className="sr-only">View notifications</span>
                 <Bell className="size-5 sm:size-5 transition-colors duration-200" />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[1.125rem] sm:min-w-[1.25rem] h-4.5 sm:h-5 bg-red-500 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center px-1 animate-pulse font-medium shadow-lg">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[1.125rem] sm:min-w-[1.25rem] h-4.5 sm:h-5 bg-red-500 text-white text-[0.625rem] sm:text-xs rounded-full flex items-center justify-center px-1 animate-pulse font-medium shadow-lg">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
                 )}
@@ -293,7 +313,7 @@ const Navbar = () => {
                         <Bell className="w-4 h-4 text-green-600" />
                         การแจ้งเตือน
                         {unreadCount > 0 && (
-                          <span className="bg-red-100 text-red-600 text-[10px] px-1.5 py-0.5 rounded-full font-medium">{unreadCount} ใหม่</span>
+                          <span className="bg-red-100 text-red-600 text-[0.625rem] px-1.5 py-0.5 rounded-full font-medium">{unreadCount} ใหม่</span>
                         )}
                       </h3>
                       <div className="flex items-center gap-1">
@@ -357,7 +377,7 @@ const Navbar = () => {
                             <div className="flex-1 min-w-0 pr-4">
                               <p className={`text-sm font-medium leading-tight ${n.is_read ? 'text-gray-600' : 'text-gray-900'}`}>{n.title}</p>
                               <p className="text-xs text-gray-500 mt-1 line-clamp-2">{n.message}</p>
-                              <p className="text-[11px] text-gray-400 mt-1.5 flex items-center gap-1">
+                              <p className="text-[0.6875rem] text-gray-600 mt-1.5 flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
                                 {timeAgo(n.created_at)}
                               </p>
@@ -378,7 +398,7 @@ const Navbar = () => {
                       <div className="px-4 py-12 text-center text-gray-500">
                         <Bell className="w-12 sm:w-14 h-12 sm:h-14 mx-auto text-gray-300 mb-3" />
                         <p className="text-base font-medium">ไม่มีการแจ้งเตือน</p>
-                        <p className="text-sm text-gray-400 mt-1">การแจ้งเตือนใหม่จะปรากฏที่นี่</p>
+                        <p className="text-sm text-gray-600 mt-1">การแจ้งเตือนใหม่จะปรากฏที่นี่</p>
                       </div>
                     )}
                   </div>
@@ -442,6 +462,17 @@ const Navbar = () => {
                     <Link href="/user/examhis" className="flex items-center px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200" onClick={() => setIsProfileDropdownOpen(false)}>
                       <History className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />ประวัติการทำข้อสอบ
                     </Link>
+                    {survey?.isOpen && (
+                      <Link href="/user/survey" className="flex items-center px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200" onClick={() => setIsProfileDropdownOpen(false)}>
+                        <ClipboardList className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />
+                        <span className="flex-1">แบบประเมินความพึงพอใจ</span>
+                        {survey.hasResponded ? (
+                          <span className="text-[0.6875rem] font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">ตอบแล้ว</span>
+                        ) : (
+                          <span className="w-2 h-2 rounded-full bg-red-500" aria-label="ยังไม่ได้ตอบ" />
+                        )}
+                      </Link>
+                    )}
                     {/* เปิดอยู่ในแอปที่ติดตั้งแล้ว ไม่ต้องชวนติดตั้งซ้ำ */}
                     {!isInstalledApp && (
                       <button
@@ -453,6 +484,31 @@ const Navbar = () => {
                         }}
                       >
                         <Smartphone className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />วิธีติดตั้งแอป
+                      </button>
+                    )}
+                    {theme && (
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={theme.isDark}
+                        className="flex items-center w-full px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200 cursor-pointer"
+                        onClick={theme.toggleTheme}
+                      >
+                        {theme.isDark ? (
+                          <Sun className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />
+                        ) : (
+                          <Moon className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />
+                        )}
+                        <span className="flex-1 text-left">โหมดมืด</span>
+                        {/* สวิตช์เปิด/ปิด */}
+                        <span
+                          aria-hidden="true"
+                          className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${theme.isDark ? 'bg-primary' : 'bg-gray-300'}`}
+                        >
+                          <span
+                            className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white dark:bg-white shadow transition-transform duration-200 ${theme.isDark ? 'translate-x-4' : ''}`}
+                          />
+                        </span>
                       </button>
                     )}
                   </div>

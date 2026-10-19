@@ -42,6 +42,7 @@ import {
 import { FcGoogle } from "react-icons/fc";
 import Swal from "@/utils/sweetalert";
 import { useAuth } from "@/contexts/AuthContext";
+import SuggestInput from '@/components/SuggestInput';
 
 interface UserItem {
   user_id: number;
@@ -136,7 +137,7 @@ function UserAvatar({
 
   return (
     <div
-      className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-white shrink-0 shadow-2xs ${
+      className={`w-9 h-9 rounded-full flex items-center justify-center font-medium text-white shrink-0 shadow-2xs ${
         isAdmin ? "bg-purple-600" : "bg-emerald-600"
       }`}
     >
@@ -791,9 +792,9 @@ export default function ManageUsersPage() {
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-600 font-semibold">ผู้ใช้งานทั้งหมด</p>
-              <h3 className="text-2xl font-bold text-gray-900 mt-0.5">{stats.total}</h3>
-              <p className="text-[11px] text-indigo-700 font-semibold">บัญชีทั้งหมดในระบบ</p>
+              <p className="text-xs text-gray-600 font-medium">ผู้ใช้งานทั้งหมด</p>
+              <h3 className="text-2xl font-medium text-gray-900 mt-0.5">{stats.total}</h3>
+              <p className="text-[0.6875rem] text-indigo-700 font-medium">บัญชีทั้งหมดในระบบ</p>
             </div>
           </div>
 
@@ -802,9 +803,9 @@ export default function ManageUsersPage() {
               <GraduationCap className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-600 font-semibold">ผู้ใช้งาน</p>
-              <h3 className="text-2xl font-bold text-gray-900 mt-0.5">{stats.students}</h3>
-              <p className="text-[11px] text-emerald-700 font-semibold">บัญชีผู้ใช้งานทั่วไป</p>
+              <p className="text-xs text-gray-600 font-medium">ผู้ใช้งาน</p>
+              <h3 className="text-2xl font-medium text-gray-900 mt-0.5">{stats.students}</h3>
+              <p className="text-[0.6875rem] text-emerald-700 font-medium">บัญชีผู้ใช้งานทั่วไป</p>
             </div>
           </div>
 
@@ -813,9 +814,9 @@ export default function ManageUsersPage() {
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-600 font-semibold">ผู้ดูแลระบบ</p>
-              <h3 className="text-2xl font-bold text-gray-900 mt-0.5">{stats.admins}</h3>
-              <p className="text-[11px] text-purple-700 font-semibold">บัญชีผู้ดูแลระบบ</p>
+              <p className="text-xs text-gray-600 font-medium">ผู้ดูแลระบบ</p>
+              <h3 className="text-2xl font-medium text-gray-900 mt-0.5">{stats.admins}</h3>
+              <p className="text-[0.6875rem] text-purple-700 font-medium">บัญชีผู้ดูแลระบบ</p>
             </div>
           </div>
 
@@ -824,9 +825,9 @@ export default function ManageUsersPage() {
               <FcGoogle className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs text-gray-600 font-semibold">ล็อกอินด้วย Google</p>
-              <h3 className="text-2xl font-bold text-gray-900 mt-0.5">{stats.googleUsers}</h3>
-              <p className="text-[11px] text-amber-700 font-semibold">Google OAuth Users</p>
+              <p className="text-xs text-gray-600 font-medium">ล็อกอินด้วย Google</p>
+              <h3 className="text-2xl font-medium text-gray-900 mt-0.5">{stats.googleUsers}</h3>
+              <p className="text-[0.6875rem] text-amber-700 font-medium">Google OAuth Users</p>
             </div>
           </div>
         </div>
@@ -837,15 +838,20 @@ export default function ManageUsersPage() {
             {/* Search Input */}
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-1/2 -translate-y-1/2" aria-hidden="true" />
-              <input
+              <SuggestInput
                 id="user-search-query"
                 type="search"
                 aria-label="ค้นหาชื่อ นามสกุล อีเมล เบอร์โทร หรือมหาวิทยาลัย"
                 value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
+                onValueChange={(v) => {
+                  setSearchQuery(v);
                   setCurrentPage(1);
                 }}
+                suggestions={[...users, ...deletedUsers].flatMap((u) => [
+                  `${u.first_name || ""} ${u.last_name || ""}`.trim(),
+                  u.email,
+                  u.university?.name,
+                ])}
                 placeholder="ค้นหาชื่อ, นามสกุล, อีเมล, เบอร์โทร หรือมหาวิทยาลัย..."
                 className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all placeholder:text-gray-500"
               />
@@ -945,7 +951,7 @@ export default function ManageUsersPage() {
                 <Archive className="w-3.5 h-3.5" />
                 ถังขยะ
                 {deletedUsers.length > 0 && (
-                  <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-semibold">
+                  <span className="ml-0.5 px-1.5 py-0.5 rounded-full bg-rose-100 text-rose-700 text-[0.625rem] font-medium">
                     {deletedUsers.length}
                   </span>
                 )}
@@ -992,13 +998,13 @@ export default function ManageUsersPage() {
             </div>
           ) : filteredUsers.length === 0 ? (
             <div className="p-16 text-center space-y-2">
-              <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center mx-auto">
                 <Users className="w-6 h-6" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-800">
+              <h3 className="text-sm font-medium text-gray-800">
                 {viewMode === "deleted" ? "ถังขยะว่าง" : "ไม่พบรายชื่อผู้ใช้งาน"}
               </h3>
-              <p className="text-xs text-gray-400 max-w-sm mx-auto">
+              <p className="text-xs text-gray-600 max-w-sm mx-auto">
                 {viewMode === "deleted"
                   ? "ยังไม่มีผู้ใช้งานที่ถูกลบ ผู้ใช้ที่ลบแล้วจะมาแสดงที่นี่และกู้คืนได้"
                   : "ไม่พบข้อมูลที่ตรงกับเงื่อนไขการค้นหา ลองเปลี่ยนคำค้นหาหรือรีเซ็ตตัวกรอง"}
@@ -1009,16 +1015,16 @@ export default function ManageUsersPage() {
               <table className="w-full text-left border-collapse" aria-label="ตารางรายชื่อผู้ใช้งานระบบเภสัชพร้อมสอบ">
                 <caption className="sr-only">ตารางข้อมูลผู้ใช้งานในระบบทั้งหมด</caption>
                 <thead>
-                  <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">ผู้ใช้งาน</th>
-                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">ข้อมูลติดต่อ</th>
-                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">มหาวิทยาลัย</th>
-                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">จำนวนข้อสอบที่ทำ</th>
-                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">สิทธิ์การใช้งาน</th>
-                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">เข้าใช้งานล่าสุด</th>
-                    <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700">วันที่สมัคร</th>
+                  <tr className="bg-gray-50/80 border-b border-gray-100 text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    <th scope="col" className="py-3.5 px-4 font-medium text-gray-700">ผู้ใช้งาน</th>
+                    <th scope="col" className="py-3.5 px-4 font-medium text-gray-700">ข้อมูลติดต่อ</th>
+                    <th scope="col" className="py-3.5 px-4 font-medium text-gray-700">มหาวิทยาลัย</th>
+                    <th scope="col" className="py-3.5 px-4 font-medium text-gray-700">จำนวนข้อสอบที่ทำ</th>
+                    <th scope="col" className="py-3.5 px-4 font-medium text-gray-700">สิทธิ์การใช้งาน</th>
+                    <th scope="col" className="py-3.5 px-4 font-medium text-gray-700">เข้าใช้งานล่าสุด</th>
+                    <th scope="col" className="py-3.5 px-4 font-medium text-gray-700">วันที่สมัคร</th>
                     {isSuperAdmin && (
-                      <th scope="col" className="py-3.5 px-4 font-semibold text-gray-700 text-right">จัดการ</th>
+                      <th scope="col" className="py-3.5 px-4 font-medium text-gray-700 text-right">จัดการ</th>
                     )}
                   </tr>
                 </thead>
@@ -1051,7 +1057,7 @@ export default function ManageUsersPage() {
                                   </span>
                                 )}
                               </div>
-                              <span className="text-[11px] text-gray-400 font-medium">
+                              <span className="text-[0.6875rem] text-gray-600 font-medium">
                                 ID: #{item.user_id}
                               </span>
                             </div>
@@ -1062,13 +1068,13 @@ export default function ManageUsersPage() {
                         <td className="py-3.5 px-4">
                           <div className="space-y-1">
                             <div className="flex items-center gap-1.5 text-gray-700 font-medium">
-                              <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                              <Mail className="w-3.5 h-3.5 text-gray-600 shrink-0" />
                               <span className="truncate max-w-[200px]" title={item.email}>
                                 {item.email}
                               </span>
                             </div>
                             <div className="flex items-center gap-1.5 text-gray-500 font-medium">
-                              <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                              <Phone className="w-3.5 h-3.5 text-gray-600 shrink-0" />
                               <span>{formatPhone(item.tel)}</span>
                             </div>
                           </div>
@@ -1084,16 +1090,16 @@ export default function ManageUsersPage() {
                               </span>
                             </div>
                           ) : isAdmin ? (
-                            <span className="text-gray-400 text-xs italic font-medium">ส่วนกลาง / ระบบ</span>
+                            <span className="text-gray-600 text-xs italic font-medium">ส่วนกลาง / ระบบ</span>
                           ) : (
-                            <span className="text-gray-400 italic text-xs font-medium">- ไม่ได้ระบุ -</span>
+                            <span className="text-gray-600 italic text-xs font-medium">- ไม่ได้ระบุ -</span>
                           )}
                         </td>
 
                         {/* 3.5 Exam Count */}
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-1.5 text-gray-700 font-medium">
-                            <FileText className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                            <FileText className="w-3.5 h-3.5 text-gray-600 shrink-0" />
                             <span>{item.exam_count ?? 0} ชุด</span>
                           </div>
                         </td>
@@ -1119,7 +1125,7 @@ export default function ManageUsersPage() {
                           {item.anonymized_at && (
                             <span
                               title="ข้อมูลส่วนตัวถูกล้างถาวรแล้ว — ประวัติการสอบและใบเสร็จยังอยู่"
-                              className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200"
+                              className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-medium bg-rose-50 text-rose-700 border border-rose-200"
                             >
                               <Eraser className="w-3 h-3" />
                               ล้างข้อมูลแล้ว
@@ -1128,7 +1134,7 @@ export default function ManageUsersPage() {
                           {item.manual_role_id != null && (
                             <span
                               title="สิทธิ์ถูกกำหนดด้วยมือ ไม่เปลี่ยนอัตโนมัติตามการชำระเงิน"
-                              className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200"
+                              className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.625rem] font-medium bg-indigo-50 text-indigo-700 border border-indigo-200"
                             >
                               <Wand2 className="w-3 h-3" />
                               กำหนดเอง
@@ -1149,7 +1155,7 @@ export default function ManageUsersPage() {
                         {/* 6. Created Date */}
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-1.5 text-gray-500">
-                            <Calendar className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                            <Calendar className="w-3.5 h-3.5 text-gray-600 shrink-0" />
                             <span className="whitespace-nowrap">
                               {formatThaiDateTime(item.created_at)}
                             </span>
@@ -1161,7 +1167,7 @@ export default function ManageUsersPage() {
                           <td className="py-3.5 px-4">
                             <div className="flex items-center justify-end gap-1">
                               {busyId === item.user_id ? (
-                                <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                                <Loader2 className="w-4 h-4 text-gray-600 animate-spin" />
                               ) : viewMode === "deleted" ? (
                                 <>
                                   <button
@@ -1205,7 +1211,7 @@ export default function ManageUsersPage() {
                                 </>
                               ) : isSuperAdminRow ? (
                                 // ไม่แสดงปุ่มจัดการกับ Super Admin — backend ก็ปฏิเสธอยู่แล้ว
-                                <span className="text-[11px] text-gray-300">—</span>
+                                <span className="text-[0.6875rem] text-gray-300">—</span>
                               ) : (
                                 <>
                                   <button
@@ -1296,7 +1302,7 @@ export default function ManageUsersPage() {
 
                     return (
                       <React.Fragment key={pageNum}>
-                        {isGap && <span className="px-1 text-gray-400">...</span>}
+                        {isGap && <span className="px-1 text-gray-600">...</span>}
                         <button
                           type="button"
                           onClick={() => setCurrentPage(pageNum)}
@@ -1341,7 +1347,7 @@ export default function ManageUsersPage() {
               onClick={(e) => e.stopPropagation()}
             >
               {detailLoading || !detail ? (
-                <div className="p-12 flex flex-col items-center gap-3 text-gray-400">
+                <div className="p-12 flex flex-col items-center gap-3 text-gray-600">
                   <Loader2 className="w-6 h-6 animate-spin" />
                   <span className="text-xs">กำลังโหลดข้อมูลผู้ใช้...</span>
                 </div>
@@ -1351,16 +1357,16 @@ export default function ManageUsersPage() {
                     <div className="flex items-center gap-3 min-w-0">
                       <UserAvatar user={detail} isAdmin={getUserRoleId(detail) >= 2} />
                       <div className="min-w-0">
-                        <h3 className="text-sm font-semibold text-gray-900 truncate">
+                        <h3 className="text-sm font-medium text-gray-900 truncate">
                           {detail.first_name} {detail.last_name}
                         </h3>
-                        <p className="text-xs text-gray-400 truncate">{detail.email}</p>
+                        <p className="text-xs text-gray-600 truncate">{detail.email}</p>
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={() => setDetail(null)}
-                      className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 cursor-pointer transition-colors shrink-0"
+                      className="p-1.5 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-600 cursor-pointer transition-colors shrink-0"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -1388,7 +1394,7 @@ export default function ManageUsersPage() {
                     )}
 
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2.5">
+                      <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2.5">
                         ข้อมูลทั่วไป
                       </h4>
                       <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-xs">
@@ -1428,39 +1434,39 @@ export default function ManageUsersPage() {
                     </div>
 
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2.5">
+                      <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2.5">
                         สถิติการสอบ
                       </h4>
                       <div className="grid grid-cols-3 gap-2">
                         <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3 text-center">
-                          <FileText className="w-4 h-4 text-gray-400 mx-auto mb-1" />
-                          <div className="text-base font-semibold text-gray-900">
+                          <FileText className="w-4 h-4 text-gray-600 mx-auto mb-1" />
+                          <div className="text-base font-medium text-gray-900">
                             {detail.exam_stats.total}
                           </div>
-                          <div className="text-[10px] text-gray-500">ครั้งที่สอบ</div>
+                          <div className="text-[0.625rem] text-gray-500">ครั้งที่สอบ</div>
                         </div>
                         <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3 text-center">
                           <Target className="w-4 h-4 text-indigo-400 mx-auto mb-1" />
-                          <div className="text-base font-semibold text-gray-900">
+                          <div className="text-base font-medium text-gray-900">
                             {detail.exam_stats.avg_score ?? "—"}
                           </div>
-                          <div className="text-[10px] text-gray-500">คะแนนเฉลี่ย</div>
+                          <div className="text-[0.625rem] text-gray-500">คะแนนเฉลี่ย</div>
                         </div>
                         <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3 text-center">
                           <Trophy className="w-4 h-4 text-amber-400 mx-auto mb-1" />
-                          <div className="text-base font-semibold text-gray-900">
+                          <div className="text-base font-medium text-gray-900">
                             {detail.exam_stats.best_score ?? "—"}
                           </div>
-                          <div className="text-[10px] text-gray-500">คะแนนสูงสุด</div>
+                          <div className="text-[0.625rem] text-gray-500">คะแนนสูงสุด</div>
                         </div>
                       </div>
-                      <p className="mt-2 text-[11px] text-gray-400">
+                      <p className="mt-2 text-[0.6875rem] text-gray-600">
                         สอบล่าสุด: {formatThaiDateTime(detail.exam_stats.last_exam_at)}
                       </p>
                     </div>
 
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2.5">
+                      <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2.5">
                         สิทธิ์ผู้ดูแลระบบรายปี
                       </h4>
                       <div className="rounded-xl border border-gray-100 bg-gray-50/60 p-3.5 space-y-2 text-xs">
@@ -1521,7 +1527,7 @@ export default function ManageUsersPage() {
                     <ShieldCheck className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 id="add-admin-dialog-title" className="text-base font-semibold text-gray-900">
+                    <h2 id="add-admin-dialog-title" className="text-base font-medium text-gray-900">
                       เพิ่มบัญชีผู้ดูแลระบบ
                     </h2>
                     <p className="text-xs text-gray-600 font-medium">
@@ -1584,7 +1590,7 @@ export default function ManageUsersPage() {
                       อีเมล <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Mail className="w-4 h-4 text-gray-600 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="email"
                         value={formData.email}
@@ -1603,7 +1609,7 @@ export default function ManageUsersPage() {
                       เบอร์โทรศัพท์ (10 หลัก) <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <Phone className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Phone className="w-4 h-4 text-gray-600 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="tel"
                         maxLength={10}
@@ -1629,7 +1635,7 @@ export default function ManageUsersPage() {
                       วันเดือนปีเกิด <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <Calendar className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Calendar className="w-4 h-4 text-gray-600 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="date"
                         value={formData.bod}
@@ -1644,10 +1650,10 @@ export default function ManageUsersPage() {
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-gray-700">
-                      สังกัดมหาวิทยาลัย <span className="text-gray-400 font-normal">(ไม่บังคับ)</span>
+                      สังกัดมหาวิทยาลัย <span className="text-gray-600 font-normal">(ไม่บังคับ)</span>
                     </label>
                     <div className="relative">
-                      <Building2 className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Building2 className="w-4 h-4 text-gray-600 absolute left-3 top-1/2 -translate-y-1/2" />
                       <select
                         value={formData.university_id}
                         onChange={(e) =>
@@ -1673,7 +1679,7 @@ export default function ManageUsersPage() {
                       รหัสผ่าน (อย่างน้อย 8 ตัวอักษร) <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Lock className="w-4 h-4 text-gray-600 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type={showPassword ? "text" : "password"}
                         value={formData.password}
@@ -1689,7 +1695,7 @@ export default function ManageUsersPage() {
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         aria-label={showPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-600 cursor-pointer"
                       >
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
@@ -1701,7 +1707,7 @@ export default function ManageUsersPage() {
                       ยืนยันรหัสผ่าน <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Lock className="w-4 h-4 text-gray-600 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
                         type={showConfirmPassword ? "text" : "password"}
                         value={formData.confirm_password}
@@ -1720,7 +1726,7 @@ export default function ManageUsersPage() {
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         aria-label={showConfirmPassword ? "ซ่อนรหัสผ่าน" : "แสดงรหัสผ่าน"}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-600 cursor-pointer"
                       >
                         {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>

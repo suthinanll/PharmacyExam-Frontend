@@ -184,7 +184,7 @@ export default function PWAInstallPrompt() {
   const steps = stepsByPlatform[platform];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-900/55">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-900/55 dark:bg-black/60">
       <div className="relative w-full max-w-md rounded-3xl bg-white shadow-2xl border border-slate-100 overflow-hidden animate-fade-in">
         {/* Accent bar */}
         <div className="h-1.5 bg-green-600" />
@@ -234,7 +234,7 @@ export default function PWAInstallPrompt() {
               return (
                 <li key={i} className="flex items-start gap-3">
                   <div className="flex flex-col items-center">
-                    <span className="w-8 h-8 rounded-full bg-slate-900 text-white text-xs font-semibold flex items-center justify-center shrink-0">
+                    <span className="w-8 h-8 rounded-full bg-slate-900 text-white dark:text-[#0f172a] text-xs font-medium flex items-center justify-center shrink-0">
                       {i + 1}
                     </span>
                     {!isLast && <span className="w-px flex-1 bg-slate-200 my-1" />}

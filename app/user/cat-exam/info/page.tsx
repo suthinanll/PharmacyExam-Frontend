@@ -40,7 +40,7 @@ export default function CATInfoBlogPage() {
                 {/* Header Title */}
                 <header className="text-center mb-16">
 
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-slate-800 mb-6 tracking-tight leading-tight">
+                    <h1 className="text-4xl md:text-5xl font-medium text-slate-800 mb-6 tracking-tight leading-tight">
                         การทดสอบแบบปรับตัว <br />
                         <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-green-600">
                             (Computerized Adaptive Testing - CAT)
@@ -87,7 +87,7 @@ export default function CATInfoBlogPage() {
                         </div>
 
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center relative">
-                            <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 font-medium text-xl">2</div>
+                            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 font-medium text-xl">2</div>
                             <h3 className="font-medium text-slate-800 mb-2">เลือกข้อสอบ</h3>
                             <p className="text-sm text-slate-500">หาข้อสอบจากคลังที่ "ตรงระดับความสามารถของคุณ"</p>
 
@@ -134,7 +134,7 @@ export default function CATInfoBlogPage() {
                 {/* Section 4: Comparison Table */}
                 <section className="bg-white rounded-[2rem] p-8 md:p-12 shadow-sm border border-slate-100 mb-16 overflow-x-auto">
                     <h2 className="text-2xl font-medium text-slate-800 mb-8 text-center flex items-center justify-center gap-3">
-                        <Layers className="w-8 h-8 text-indigo-600 bg-indigo-50 p-1.5 rounded-xl" />
+                        <Layers className="w-8 h-8 text-blue-600 bg-blue-50 p-1.5 rounded-xl" />
                         เปรียบเทียบการสอบ
                     </h2>
 
@@ -143,29 +143,29 @@ export default function CATInfoBlogPage() {
                             <tr>
                                 <th className="p-4 border-b-2 border-slate-200 text-slate-500 font-medium w-1/3">คุณสมบัติ</th>
                                 <th className="p-4 border-b-2 border-slate-200 text-slate-800 font-medium w-1/3">การสอบปกติ (Linear Test)</th>
-                                <th className="p-4 border-b-2 border-indigo-500 text-indigo-700 font-medium bg-indigo-50/50 rounded-t-xl w-1/3">การสอบแบบปรับตัว (CAT)</th>
+                                <th className="p-4 border-b-2 border-blue-500 text-blue-700 font-medium bg-blue-50/50 rounded-t-xl w-1/3">การสอบแบบปรับตัว (CAT)</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                             <tr>
                                 <td className="p-4 font-medium text-slate-600 border-r border-slate-100">จำนวนข้อสอบ</td>
                                 <td className="p-4 text-slate-600 border-r border-slate-100">คงที่ (ทุกคนทำข้อสอบชุดเดียวกัน จำนวนเท่ากัน)</td>
-                                <td className="p-4 bg-indigo-50/30 text-indigo-800 font-medium">ยืดหยุ่น (จบได้เมื่อวัดผลแม่นยำแล้ว มักใช้จำนวนข้อลดลงได้ถึง 50%)</td>
+                                <td className="p-4 bg-blue-50/30 text-blue-800 font-medium">ยืดหยุ่น (จบได้เมื่อวัดผลแม่นยำแล้ว มักใช้จำนวนข้อลดลงได้ถึง 50%)</td>
                             </tr>
                             <tr>
                                 <td className="p-4 font-medium text-slate-600 border-r border-slate-100">ระดับความยาก</td>
                                 <td className="p-4 text-slate-600 border-r border-slate-100">เหมือนเดิมตั้งแต่ต้นจนจบ (มีทั้งข้อง่ายสลับยาก)</td>
-                                <td className="p-4 bg-indigo-50/30 text-indigo-800 font-medium">ปรับเปลี่ยนตามความสามารถของผู้สอบได้แบบข้อต่อข้อ</td>
+                                <td className="p-4 bg-blue-50/30 text-blue-800 font-medium">ปรับเปลี่ยนตามความสามารถของผู้สอบได้แบบข้อต่อข้อ</td>
                             </tr>
                             <tr>
                                 <td className="p-4 font-medium text-slate-600 border-r border-slate-100">ความกดดันทางจิตใจ</td>
                                 <td className="p-4 text-slate-600 border-r border-slate-100">คนเก่งเบื่อข้อสอบง่าย / คนอ่อนท้อกับข้อสอบยาก</td>
-                                <td className="p-4 bg-indigo-50/30 text-indigo-800 font-medium">ท้าทายกำลังพอดีตลอดเวลา (ลบจุดบอดเรื่องความท้อแท้)</td>
+                                <td className="p-4 bg-blue-50/30 text-blue-800 font-medium">ท้าทายกำลังพอดีตลอดเวลา (ลบจุดบอดเรื่องความท้อแท้)</td>
                             </tr>
                             <tr>
                                 <td className="p-4 font-medium text-slate-600 border-r border-slate-100">ความแม่นยำ (Precision)</td>
                                 <td className="p-4 text-slate-600 border-r border-slate-100">ปานกลาง (อาจมีข้อคำถามที่ไม่จำเป็นต่อการวัดผลเยอะ)</td>
-                                <td className="p-4 bg-indigo-50/30 text-indigo-800 font-medium shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">สูงมาก (ขับเคลื่อนประเมินผลผ่านสมการทางสถิติ - IRT)</td>
+                                <td className="p-4 bg-blue-50/30 text-blue-800 font-medium shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]">สูงมาก (ขับเคลื่อนประเมินผลผ่านสมการทางสถิติ - IRT)</td>
                             </tr>
                         </tbody>
                     </table>

@@ -7,6 +7,7 @@ import Navbar_admin from "@/components/Navbar_admin";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import Pagination from "@/components/Pagination";
 import { useAuth } from "@/contexts/AuthContext";
+import SuggestInput from '@/components/SuggestInput';
 import {
   Receipt,
   Search,
@@ -203,7 +204,7 @@ export default function SuperSubscriptionsPage() {
                 <s.icon className="w-4.5 h-4.5" />
               </div>
               <p className="text-xs text-gray-500">{s.label}</p>
-              <p className="text-lg font-semibold text-gray-900 mt-0.5">{s.value}</p>
+              <p className="text-lg font-medium text-gray-900 mt-0.5">{s.value}</p>
             </div>
           ))}
         </div>
@@ -218,14 +219,15 @@ export default function SuperSubscriptionsPage() {
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
+              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-600" />
+              <SuggestInput
                 value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
+                aria-label="ค้นหาชื่อ อีเมล หรือรหัสอ้างอิงธุรกรรม"
+                onValueChange={(v) => {
+                  setQuery(v);
                   setPage(1);
                 }}
+                suggestions={rows.flatMap((r) => [r.user?.name, r.user?.email, r.transactionRef])}
                 placeholder="ค้นหาชื่อ อีเมล หรือรหัสอ้างอิงธุรกรรม..."
                 className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
               />
@@ -263,7 +265,7 @@ export default function SuperSubscriptionsPage() {
               <LoadingSpinner size="md" text="กำลังโหลดข้อมูล..." />
             </div>
           ) : filtered.length === 0 ? (
-            <div className="py-16 text-center text-sm text-gray-400">
+            <div className="py-16 text-center text-sm text-gray-600">
               ไม่พบรายการที่ตรงกับเงื่อนไข
             </div>
           ) : (
@@ -289,13 +291,13 @@ export default function SuperSubscriptionsPage() {
                         <tr key={row.id} className="hover:bg-gray-50/60 transition-colors">
                           <td className="py-3.5 px-4">
                             <p className="font-medium text-gray-900">{row.user?.name || "-"}</p>
-                            <p className="text-xs text-gray-400">{row.user?.email || "-"}</p>
+                            <p className="text-xs text-gray-600">{row.user?.email || "-"}</p>
                           </td>
                           <td className="py-3.5 px-4">
                             <p className="font-medium text-gray-900">
                               {Number(row.amount).toLocaleString()} ฿
                             </p>
-                            <p className="text-xs text-gray-400 flex items-center gap-1">
+                            <p className="text-xs text-gray-600 flex items-center gap-1">
                               <MethodIcon className="w-3 h-3" /> {row.methodLabel}
                             </p>
                           </td>
@@ -307,7 +309,7 @@ export default function SuperSubscriptionsPage() {
                               {status.label}
                             </span>
                             {row.isActive && (
-                              <span className="block text-[11px] text-emerald-600 mt-1">
+                              <span className="block text-[0.6875rem] text-emerald-600 mt-1">
                                 กำลังใช้งานอยู่
                               </span>
                             )}

@@ -1,5 +1,6 @@
 "use client";
 
+import Swal from "@/utils/sweetalert";
 import React, { useState, useEffect, Suspense } from "react";
 import Navbar_user from "@/components/Navbar_user";
 import Footer from "@/components/Footer";
@@ -108,20 +109,20 @@ const CustomThetaTooltip = ({ active, payload }: any) => {
         return (
             <div className="bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 text-xs space-y-1.5 min-w-[170px]">
                 <div className="flex items-center justify-between border-b border-gray-100 pb-1.5">
-                    <span className="font-semibold text-gray-800">ข้อที่ {data.item}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${data.is_correct ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700"
+                    <span className="font-medium text-gray-800">ข้อที่ {data.item}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ${data.is_correct ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700"
                         }`}>
                         {data.is_correct ? "✓ ตอบถูก" : "✗ ตอบผิด"}
                     </span>
                 </div>
                 <div className="flex justify-between items-center text-gray-600 pt-0.5">
                     <span>ระดับความสามารถ (θ):</span>
-                    <span className="font-bold text-blue-600 text-sm">
+                    <span className="font-medium text-blue-600 text-sm">
                         {data.theta >= 0 ? `+${data.theta.toFixed(3)}` : data.theta.toFixed(3)}
                     </span>
                 </div>
                 {data.se != null && (
-                    <div className="flex justify-between items-center text-gray-400 text-[11px]">
+                    <div className="flex justify-between items-center text-gray-600 text-[0.6875rem]">
                         <span>ความคลาดเคลื่อน (SE):</span>
                         <span>{data.se.toFixed(3)}</span>
                     </div>
@@ -150,7 +151,7 @@ function ThetaProgressChart({ responses, cutScore }: { responses: Response[]; cu
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
                     <h3 className="text-base font-medium text-gray-800">ระดับความสามารถ (θ) ตลอดการสอบ</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">เส้นทางการประเมินความสามารถตามคำตอบในแต่ละข้อ</p>
+                    <p className="text-xs text-gray-600 mt-0.5">เส้นทางการประเมินความสามารถตามคำตอบในแต่ละข้อ</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
                     <span className="flex items-center gap-1.5">
@@ -226,7 +227,7 @@ function SEConvergenceChart({ responses, targetSE }: { responses: Response[]; ta
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
                     <h3 className="text-base font-medium text-gray-800">ความแม่นยำของการวัด (SE)</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">ค่าความคลาดเคลื่อนมาตรฐานลดลงเรื่อยๆ — ยิ่งต่ำยิ่งแม่นยำ</p>
+                    <p className="text-xs text-gray-600 mt-0.5">ค่าความคลาดเคลื่อนมาตรฐานลดลงเรื่อยๆ — ยิ่งต่ำยิ่งแม่นยำ</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500">
                     <span className="flex items-center gap-1.5">
@@ -267,7 +268,7 @@ function SEConvergenceChart({ responses, targetSE }: { responses: Response[]; ta
                                   const d = payload[0].payload;
                                   return (
                                       <div className="bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 text-xs space-y-1">
-                                          <p className="font-semibold text-gray-800">ข้อที่ {d.item}</p>
+                                          <p className="font-medium text-gray-800">ข้อที่ {d.item}</p>
                                           <p className="text-purple-600 font-medium">SE: {d.se?.toFixed(3)}</p>
                                       </div>
                                   );
@@ -317,7 +318,7 @@ function PosteriorChart({ finalTheta, finalSE, cutScore }: { finalTheta: number;
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
                 <div>
                     <h3 className="text-base font-medium text-gray-800">การกระจายความสามารถ (Posterior Distribution)</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-gray-600 mt-0.5">
                         การแจกแจงระดับความสามารถของคุณ (θ = {finalTheta >= 0 ? `+${finalTheta.toFixed(2)}` : finalTheta.toFixed(2)}, SE = {finalSE.toFixed(3)})
                     </p>
                 </div>
@@ -359,7 +360,7 @@ function PosteriorChart({ finalTheta, finalSE, cutScore }: { finalTheta: number;
                                   const d = payload[0].payload;
                                   return (
                                       <div className="bg-white/95 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 text-xs space-y-1">
-                                          <p className="font-semibold text-gray-800">θ = {d.x > 0 ? `+${d.x.toFixed(2)}` : d.x.toFixed(2)}</p>
+                                          <p className="font-medium text-gray-800">θ = {d.x > 0 ? `+${d.x.toFixed(2)}` : d.x.toFixed(2)}</p>
                                           <p className="text-blue-600">ความน่าจะเป็นสัมพัทธ์: {d.y.toFixed(3)}</p>
                                       </div>
                                   );
@@ -382,7 +383,7 @@ function PosteriorChart({ finalTheta, finalSE, cutScore }: { finalTheta: number;
                               value: `θ = ${finalTheta >= 0 ? `+${finalTheta.toFixed(2)}` : finalTheta.toFixed(2)}`,
                               fill: "#1d4ed8",
                               fontSize: 11,
-                              fontWeight: 600,
+                              fontWeight: 500,
                               position: "insideTopLeft",
                           }}
                       />
@@ -416,7 +417,7 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
     return (
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6 mb-6">
             <h2 className="text-base font-medium text-gray-800 mb-1">วิเคราะห์ตามหัวข้อ</h2>
-            <p className="text-xs text-gray-400 mb-5">เปอร์เซ็นต์ความถูกต้องในแต่ละหัวข้อหลักและหัวข้อย่อย</p>
+            <p className="text-xs text-gray-600 mb-5">เปอร์เซ็นต์ความถูกต้องในแต่ละหัวข้อหลักและหัวข้อย่อย</p>
 
             <div className="flex flex-col lg:flex-row gap-8 items-stretch mb-2">
                 {/* Radar Chart */}
@@ -495,7 +496,7 @@ function TopicAnalysisSection({ topicAnalysis }: { topicAnalysis: TopicStat[] })
                                             {topic.sub_topics.map(st => (
                                                 <div
                                                     key={st.sub_topic_id}
-                                                    className={`text-[10px] px-2 py-0.5 rounded-md border flex items-center gap-1 ${st.accuracy >= 70
+                                                    className={`text-[0.625rem] px-2 py-0.5 rounded-md border flex items-center gap-1 ${st.accuracy >= 70
                                                             ? 'bg-green-50 border-green-200 text-green-700'
                                                             : st.accuracy >= 50
                                                                 ? 'bg-amber-50 border-amber-200 text-amber-700'
@@ -577,7 +578,7 @@ function CATResultContent() {
             if (!res.ok) throw new Error("Failed to fetch result");
             setResult(await res.json());
         } catch {
-            alert("ไม่สามารถโหลดผลการสอบได้");
+            Swal.fire({ icon: "error", title: "ไม่สามารถโหลดผลการสอบได้" });
             router.push("/user");
         } finally {
             setLoading(false);
@@ -703,7 +704,7 @@ function CATResultContent() {
                                         </div>
                                     ))}
                                     <div className="pt-2">
-                                        <p className="text-xs text-gray-400">เหตุผลที่จบการสอบ:</p>
+                                        <p className="text-xs text-gray-600">เหตุผลที่จบการสอบ:</p>
                                         <p className="text-sm font-medium text-gray-700 mt-1">{result.stop_reason}</p>
                                     </div>
                                 </div>
@@ -715,7 +716,7 @@ function CATResultContent() {
                     <div className="flex flex-wrap items-center justify-center gap-3 mb-10">
                         <Link
                             href="/user/cat-exam/result/answer"
-                            className="flex-1 sm:flex-none px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl text-sm text-center transition-colors shadow-sm"
+                            className="flex-1 sm:flex-none px-6 py-3 bg-primary hover:bg-primary-hover text-white font-medium rounded-xl text-sm text-center transition-colors shadow-sm"
                         >
                             ดูเฉลยคำตอบ
                         </Link>
