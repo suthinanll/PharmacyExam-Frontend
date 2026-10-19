@@ -135,7 +135,7 @@ export default function NoteList({
   return (
     <div className="bg-white rounded-xl shadow-xl p-4 border border-slate-100">
       <h2 className="text-2xl font-medium text-gray-800 mb-4 flex items-center gap-2">
-        <Bookmark className="w-6 h-6 text-blue-600" /> บันทึกสรุป
+        <Bookmark className="w-6 h-6 text-primary" /> บันทึกสรุป
       </h2>
 
       {/* Search / Filter */}
