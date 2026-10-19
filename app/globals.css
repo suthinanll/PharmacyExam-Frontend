@@ -281,6 +281,12 @@ select {
   cursor: pointer;
 }
 
+/* Edge/IE ใส่ปุ่มรูปตาและปุ่มล้างข้อความให้ช่องรหัสผ่านเอง ซ้อนกับปุ่มดูรหัสผ่านของเว็บ จึงซ่อนของเบราว์เซอร์ */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
 button:disabled,
 [role="button"][aria-disabled="true"],
 input[type="button"]:disabled,
