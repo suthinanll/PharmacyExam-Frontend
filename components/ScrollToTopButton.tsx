@@ -40,13 +40,13 @@ export default function ScrollToTopButton() {
       title="เลื่อนขึ้นด้านบนสุด"
       tabIndex={visible ? 0 : -1}
       aria-hidden={!visible}
-      className={`fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full
-        bg-green-700 text-white shadow-lg ring-1 ring-black/5 transition-all duration-300
-        hover:bg-green-800 hover:shadow-xl focus:outline-none focus-visible:ring-4 focus-visible:ring-green-300
+      className={`fixed bottom-6 right-4 sm:right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full
+        bg-green-600 text-white shadow-lg ring-1 ring-black/5 transition-all duration-300
+        hover:bg-green-700 hover:shadow-xl hover:scale-105 focus:outline-none focus-visible:ring-4 focus-visible:ring-green-300
         cursor-pointer
         ${visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-4 opacity-0"}`}
     >
-      <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
+      <ArrowUp className="h-6 w-6" />
     </button>
   );
 }

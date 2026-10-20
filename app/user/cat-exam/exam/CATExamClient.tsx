@@ -563,6 +563,8 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
   const [isFinished, setIsFinished] = useState(false);
   const [finishedSessionId, setFinishedSessionId] = useState<number | null>(null);
   const [finalStatus, setFinalStatus] = useState<"passed" | "failed" | null>(null);
+  // เหตุผลที่ระบบหยุดข้อสอบ (ส่งมากับ response ตอน finished) ใช้แสดงในคำอธิบายผลลัพธ์
+  const [stopReason, setStopReason] = useState<string | null>(null);
   const [navigating, setNavigating] = useState(false);
   const sessionIdRef = useRef<number | null>(null);
   const submittedRef = useRef(false);
@@ -824,6 +826,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
       if (data.finished) {
         setIsFinished(true);
         setFinishedSessionId(session.session_id);
+        setStopReason(data.stop_reason ?? null);
         setTimeout(() => {
           setFinalStatus(data.passed ? "passed" : "failed");
         }, 650);
@@ -884,7 +887,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-xl overflow-hidden transition-all duration-500">
                   {/* Header/Title Banner */}
                   <div className="p-6 text-center border-b border-gray-100  ">
-                    <h2 className="text-2xl font-medium text-gray-800">การประเมินผลการสอบเสร็จสิ้น</h2>
+                    <h2 className="text-2xl font-medium text-gray-800 mt-3">การประเมินผลการสอบเสร็จสิ้น</h2>
                     <p className="text-gray-500 text-sm mt-1">ระบบได้ทำการประเมินระดับความสามารถเชิงปรับตัวของคุณเรียบร้อยแล้ว</p>
                   </div>
 
@@ -996,8 +999,47 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
 
                     {/* Additional details */}
                     {finalStatus !== null && (
-                      <div className="text-center p-4 bg-gray-50/50 rounded-xl text-sm text-gray-600 leading-relaxed max-w-lg mx-auto border border-dashed border-gray-200">
-                        * ผลลัพธ์นี้คำนวณตามทฤษฎีการตอบสนองข้อสอบ (IRT) ความคลาดเคลื่อนมาตรฐานต่ำกว่าเกณฑ์ขั้นต่ำ (SE &le; 0.35) หรือทำข้อสอบถึงจำนวนข้อสูงสุดแล้ว
+                      <div className="p-4 bg-gray-50/50 rounded-xl text-sm text-gray-600 leading-relaxed max-w-xl mx-auto border border-dashed border-gray-200">
+                        <p className="text-center">
+                          * ผลลัพธ์นี้คำนวณตามทฤษฎีการตอบสนองข้อสอบ (IRT) ระบบจะหยุดข้อสอบเมื่อเข้าเงื่อนไขข้อใดข้อหนึ่งต่อไปนี้
+                          (ข้อ 1–3 ตรวจหลังตอบครบ {session.min_items} ข้อแรก)
+                        </p>
+                        <ul className="mt-2.5 space-y-1.5 pl-5 list-disc text-[0.8125rem]">
+                          <li>
+                            <span className="font-medium text-gray-700">ความแม่นยำถึงเป้าหมาย</span> —
+                            ค่าความคลาดเคลื่อนมาตรฐาน (SE) ลดต่ำกว่า {(session.target_se ?? 0.35).toFixed(2)}
+                            แล้ว จึงถือว่าระดับความสามารถที่ประเมินได้แม่นยำเพียงพอ
+                          </li>
+                          <li>
+                            <span className="font-medium text-gray-700">ตอบครบจำนวนข้อสูงสุด</span> —
+                            ทำครบ {session.max_items} ข้อแล้วระบบจึงหยุด แม้ค่า SE ยังไม่ถึงเป้าหมาย
+                            ผลลัพธ์จึงอาจมีความแม่นยำปานกลาง
+                          </li>
+                          <li>
+                            <span className="font-medium text-gray-700">
+                              ช่วงความเชื่อมั่น 95% (CI) อยู่ฝั่งเดียวกันของคะแนนตัดสินทั้งหมด
+                            </span>{" "}
+                            — คำนวณจาก CI = θ ± 1.96 × SE
+                            <ul className="mt-1 space-y-1 pl-4 list-[circle]">
+                              <li>ขอบล่างของ CI สูงกว่าคะแนนตัดสิน → มั่นใจว่าสอบ<b>ผ่าน</b> (แม้ SE ยังไม่ถึงเป้าหมาย)</li>
+                              <li>ขอบบนของ CI ต่ำกว่าคะแนนตัดสิน → มั่นใจว่าสอบ<b>ไม่ผ่าน</b> (แม้ SE ยังไม่ถึงเป้าหมาย)</li>
+                            </ul>
+                            <span className="block mt-1">
+                              กรณีนี้เป็นสาเหตุที่พบบ่อยที่สุดเมื่อคลังข้อสอบมีจำนวนเพียงพอ เพราะระบบไม่ต้องรอให้ SE
+                              ลดถึงเป้าหมายก่อน ข้อสอบจึงจบเร็วขึ้นโดยที่ผลยังเชื่อถือได้
+                            </span>
+                          </li>
+                          <li>
+                            <span className="font-medium text-gray-700">ข้อสอบในคลังไม่เพียงพอ</span> —
+                            ไม่เหลือข้อที่ยังไม่ได้ใช้และมีค่าพารามิเตอร์ IRT ครบให้เลือกต่อ ระบบจึงหยุดก่อนถึงเกณฑ์ข้างต้น
+                            (กรณีนี้ผลลัพธ์อาจยังไม่แม่นยำตามเป้าหมาย)
+                          </li>
+                        </ul>
+                        {stopReason && (
+                          <p className="mt-3 text-center text-[0.8125rem] text-gray-700">
+                            เหตุผลที่ระบบหยุดในครั้งนี้: <span className="font-medium">{stopReason}</span>
+                          </p>
+                        )}
                       </div>
                     )}
 

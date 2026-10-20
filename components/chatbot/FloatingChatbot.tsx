@@ -24,37 +24,8 @@ import {
   hasAcceptedPrivacy,
 } from './privacy';
 
-const useTypewriter = (text: string, speed: number = 10) => {
-  const [displayText, setDisplayText] = useState('');
-
-  useEffect(() => {
-    setDisplayText('');
-    let i = 0;
-    const typingInterval = setInterval(() => {
-      i++;
-      if (i <= text.length) {
-        setDisplayText(text.substring(0, i));
-      } else {
-        clearInterval(typingInterval);
-      }
-    }, speed);
-
-    return () => clearInterval(typingInterval);
-  }, [text, speed]);
-
-  return displayText;
-};
-
-const BotMessage = ({
-  content,
-  animate = false,
-}: {
-  content: string;
-  animate?: boolean;
-}) => {
+const BotMessage = ({ content }: { content: string }) => {
   const [isCopied, setIsCopied] = useState(false);
-  const typedContent = useTypewriter(content, 10);
-  const displayContent = animate ? typedContent : content;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content);
@@ -73,7 +44,7 @@ const BotMessage = ({
             className="prose prose-sm max-w-none text-gray-700 text-sm"
             dangerouslySetInnerHTML={{
               __html: sanitizeHtml(
-                displayContent
+                content
                   .replace(/\n/g, '<br>')
                   .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'),
               ),
@@ -113,7 +84,6 @@ type Message = {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  animate?: boolean;
 };
 
 const MAX_INPUT_LENGTH = 1000;
@@ -128,6 +98,7 @@ export default function FloatingChatbot() {
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [quota, setQuota] = useState<QuotaData | null>(null);
   const [countdownText, setCountdownText] = useState('');
+  const [thinkingSeconds, setThinkingSeconds] = useState(0);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -181,10 +152,27 @@ export default function FloatingChatbot() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
+  // นับเวลาที่แชตบอตใช้คิดคำตอบ — คำนวณจากเวลาจริงเพื่อไม่ให้ตัวเลขคลาดเคลื่อน
+  useEffect(() => {
+    if (!isLoading) {
+      setThinkingSeconds(0);
+      return;
+    }
+
+    const startedAt = Date.now();
+    setThinkingSeconds(0);
+    const interval = setInterval(() => {
+      setThinkingSeconds(Math.floor((Date.now() - startedAt) / 1000));
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       const scrollHeight = textareaRef.current.scrollHeight;
+      // ความสูงเริ่มต้นเท่าปุ่มส่ง (h-11 = 44px) เพื่อให้จัดกึ่งกลางพอดี
       textareaRef.current.style.height = `${Math.min(Math.max(scrollHeight, 44), 120)}px`;
     }
   }, [input]);
@@ -360,8 +348,7 @@ export default function FloatingChatbot() {
         content:
           data.reply ||
           data.message ||
-          'ขออภัยเกิดข้อผิดพลาดจากระบบ',
-        animate: true,
+          'ขออภัยเกิดข้อผิดพลาดจากระบบในขณะนี้ โปรดลองอีกครั้งในภายหลัง',
       };
 
       setMessages([...nextMessages, botResponse]);
@@ -487,17 +474,17 @@ export default function FloatingChatbot() {
       {/* Chat Panel */}
       {isOpen && (
         <div
-          className="fixed z-[100] bottom-20 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[380px] h-[min(560px,calc(100dvh-6.5rem))] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+          className="fixed z-[100] bottom-40 right-4 sm:right-6 w-[calc(100vw-2rem)] sm:w-[380px] h-[min(560px,calc(100dvh-8.5rem))] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
           role="dialog"
           aria-label="แชตบอตผู้ช่วย"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-green-600 to-green-700 px-4 py-3 text-white flex items-center justify-between shrink-0">
+          <div className="bg-green-600 px-4 py-3 text-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2 min-w-0">
               <Bot className="w-5 h-5 shrink-0" />
               <div className="min-w-0">
-                <h2 className="font-medium text-sm truncate">แชตบอตผู้ช่วย</h2>
-                <p className="text-[0.65rem] text-green-100 truncate">
+                <h2 className="font-medium text-md truncate">แชตบอตผู้ช่วย</h2>
+                <p className="text-sm text-green-100 truncate">
                   สนทนาชั่วคราว · ไม่เก็บประวัติ
                 </p>
               </div>
@@ -569,11 +556,11 @@ export default function FloatingChatbot() {
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center mb-3">
                   <Sparkles className="w-6 h-6 text-green-600" />
                 </div>
-                <p className="text-sm font-medium text-gray-700">
+                <p className="text-md font-medium text-gray-700">
                   สวัสดี! มีอะไรให้ช่วยไหม?
                 </p>
-                <p className="text-xs mt-1 text-gray-500">
-                  ถามเรื่องเภสัชกรรมหรือการเตรียมสอบได้เลย
+                <p className="text-sm mt-1 text-gray-500">
+                  ผู้ช่วยแนะนำกำหนดการสอบและแนวทางการเตรียมตัวสอบ (ไม่รวมเนื้อหาบทเรียน)
                 </p>
               </div>
             )}
@@ -589,7 +576,6 @@ export default function FloatingChatbot() {
                 <BotMessage
                   key={msg.id}
                   content={msg.content}
-                  animate={msg.animate}
                 />
               ),
             )}
@@ -600,10 +586,19 @@ export default function FloatingChatbot() {
                   <Sparkles className="w-3.5 h-3.5 text-white animate-pulse" />
                 </div>
                 <div className="bg-white px-4 py-3 rounded-2xl border border-neutral-200 shadow-sm">
-                  <div className="flex gap-1">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce [animation-delay:0ms]" />
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce [animation-delay:150ms]" />
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce [animation-delay:300ms]" />
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce [animation-delay:0ms]" />
+                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce [animation-delay:150ms]" />
+                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-bounce [animation-delay:300ms]" />
+                    </div>
+                    {/* ตัวเลขเวลานับไม่ต้องประกาศซ้ำทุกวินาทีให้ screen reader */}
+                    <span className="text-xs text-gray-500">
+                      กำลังคิด…{" "}
+                      <span aria-hidden="true" className="tabular-nums">
+                        {thinkingSeconds} วิ
+                      </span>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -613,28 +608,33 @@ export default function FloatingChatbot() {
 
           {/* Input */}
           <div className="p-3 border-t border-gray-100 bg-white shrink-0">
-            <div className="flex items-end gap-2">
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyPress}
-                placeholder={
-                  isLimited
-                    ? 'ความจุเต็มแล้ว...'
-                    : 'พิมพ์คำถาม...'
-                }
-                disabled={isLimited || showPrivacyModal}
-                rows={1}
-                maxLength={MAX_INPUT_LENGTH}
-                className="flex-1 resize-none rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 disabled:bg-gray-50 disabled:text-gray-400"
-              />
+            <div className="flex items-between gap-2">
+              <div className="relative flex-1 min-w-0">
+                <textarea
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder={
+                    isLimited
+                      ? 'ความจุเต็มแล้ว...'
+                      : 'พิมพ์คำถาม...'
+                  }
+                  disabled={isLimited || showPrivacyModal}
+                  rows={1}
+                  maxLength={MAX_INPUT_LENGTH}
+                  className="w-full h-11 resize-none rounded-xl border border-gray-200 px-3 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-green-500/40 focus:border-green-500 disabled:bg-gray-50 disabled:text-gray-400"
+                />
+                <p className="pointer-events-none absolute bottom-1.5 right-2.5 text-[0.6rem] text-gray-400">
+                  {input.length}/{MAX_INPUT_LENGTH}
+                </p>
+              </div>
               {isLoading ? (
                 <button
                   type="button"
                   onClick={handleCancelRequest}
                   aria-label="หยุดการตอบ"
-                  className="p-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white transition-colors cursor-pointer shrink-0"
+                  className="h-11 w-11 rounded-xl bg-rose-500 hover:bg-rose-600 text-white transition-colors cursor-pointer shrink-0 inline-flex items-center justify-center"
                 >
                   <Square className="w-4 h-4 fill-current" />
                 </button>
@@ -644,15 +644,12 @@ export default function FloatingChatbot() {
                   onClick={handleSendMessage}
                   disabled={!input.trim() || isLimited || showPrivacyModal}
                   aria-label="ส่งข้อความ"
-                  className="p-2.5 rounded-xl bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white transition-colors cursor-pointer shrink-0"
+                  className="h-11 w-11 rounded-xl bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white transition-colors cursor-pointer shrink-0 inline-flex items-center justify-center"
                 >
                   <SendHorizonal className="w-4 h-4" />
                 </button>
               )}
             </div>
-            <p className="text-[0.6rem] text-gray-400 mt-1.5 text-right">
-              {input.length}/{MAX_INPUT_LENGTH}
-            </p>
           </div>
         </div>
       )}
@@ -663,7 +660,7 @@ export default function FloatingChatbot() {
         onClick={() => setIsOpen((v) => !v)}
         aria-label={isOpen ? 'ปิดแชตบอต' : 'เปิดแชตบอต'}
         aria-expanded={isOpen}
-        className={`fixed z-[100] bottom-4 right-4 sm:right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${
+        className={`fixed z-[100] bottom-[5.5rem] right-4 sm:right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center transition-all duration-200 cursor-pointer ${
           isOpen
             ? 'bg-gray-700 hover:bg-gray-800 text-white rotate-0'
             : 'bg-green-600 hover:bg-green-700 text-white hover:scale-105'
