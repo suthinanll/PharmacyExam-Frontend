@@ -107,14 +107,6 @@ const Footer = () => {
                                 <ul className="space-y-2 text-sm sm:text-base lg:text-lg">
                                     <li>
                                         <Link
-                                            href="/user/chatbot"
-                                            className="hover:text-green-200 transition-colors duration-200 font-medium"
-                                        >
-                                            แชตบอตผู้ช่วย
-                                        </Link>
-                                    </li>
-                                    <li>
-                                        <Link
                                             href="/user/followup"
                                             className="hover:text-green-200 transition-colors duration-200 font-medium"
                                         >

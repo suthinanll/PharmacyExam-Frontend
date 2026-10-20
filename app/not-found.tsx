@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Home, ArrowLeft, Search, BookOpen, Calendar, Bot, LogIn } from "lucide-react";
+import { Home, ArrowLeft, Search, BookOpen, Calendar, LogIn } from "lucide-react";
 
 export default function NotFound() {
   const router = useRouter();
@@ -90,13 +90,6 @@ export default function NotFound() {
             >
               <Calendar className="w-3.5 h-3.5" />
               <span>ปฏิทินสอบ</span>
-            </Link>
-            <Link
-              href="/user/chatbot"
-              className="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-50 hover:bg-green-50 hover:text-green-700 hover:border-green-300 text-gray-600 text-xs font-medium rounded-lg border border-gray-200 transition-all cursor-pointer"
-            >
-              <Bot className="w-3.5 h-3.5" />
-              <span>แชทบอท</span>
             </Link>
             <Link
               href="/login"

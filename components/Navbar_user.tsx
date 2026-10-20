@@ -138,7 +138,6 @@ const Navbar = () => {
       ]
     },
     { href: '/user/calendar', label: 'ปฏิทินการสอบ' },
-    { href: '/user/chatbot', label: 'แชตบอตผู้ช่วย' },
     { href: '/user/followup', label: 'ติดตามความคืบหน้า' },
   ];
 

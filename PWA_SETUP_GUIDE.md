@@ -105,7 +105,6 @@ const urlsToCache = [
   '/user/examset',
   '/user/followup',
   '/user/calendar',
-  '/user/chatbot',
   '/user/cat-exam',  // ← เพิ่มหน้าใหม่
 ];
 ```

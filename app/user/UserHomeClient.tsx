@@ -7,6 +7,7 @@ import { CountdownHero, CountdownHeroSkeleton } from "@/components/home/Countdow
 import UpcomingExamCard from "@/components/home/UpcomingExamCard";
 import Footer from "@/components/Footer";
 import NewsCard from "@/components/News";
+import FloatingChatbot from "@/components/chatbot/FloatingChatbot";
 import {
   LayoutGrid,
   Bookmark,
@@ -506,6 +507,7 @@ const UserHomeClient = ({ initialSchedules }: { initialSchedules: unknown | null
         </div>
       </div>
       <Footer />
+      <FloatingChatbot />
     </>
   );
 };

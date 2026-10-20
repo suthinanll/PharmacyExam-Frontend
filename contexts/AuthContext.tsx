@@ -167,7 +167,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('access_token');
         clearAuthCookie();
         localStorage.removeItem('user'); // Remove old/stale user key if exists
-        localStorage.removeItem('last_active_session_id'); // Clear chatbot session
         sessionStorage.removeItem('token'); // Remove old/stale session key if exists
 
         setUser(null);
