@@ -28,6 +28,8 @@ import Swal from "@/utils/sweetalert";
 import { SWAL_COLORS } from "@/utils/swal";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRequireLogin } from "@/utils/requireAuth";
+import { matchesTrack, readSavedTrack, saveTrack, type TrackFilter } from "@/lib/schedule";
+import TrackFilterChips from "@/components/TrackFilterChips";
 
 /**
  * กำหนดการในปฏิทินมี 2 แบบ
@@ -129,6 +131,16 @@ const CalenderPage = () => {
   const [personalEvents, setPersonalEvents] = useState<PersonalEventApi[]>([]);
   const [markedIds, setMarkedIds] = useState<Set<number>>(new Set());
   const [viewFilter, setViewFilter] = useState<ViewFilter>("all");
+  const [trackFilter, setTrackFilter] = useState<TrackFilter>("all");
+
+  // จำสายที่เลือกไว้ในเครื่อง ใช้ค่าเดียวกับการ์ดนับถอยหลังหน้าแรก
+  useEffect(() => {
+    setTrackFilter(readSavedTrack());
+  }, []);
+  const changeTrackFilter = (value: TrackFilter) => {
+    setTrackFilter(value);
+    saveTrack(value);
+  };
   const [userNotes, setUserNotes] = useState<UserNote[]>([]);
   const [isNotesLoading, setIsNotesLoading] = useState(true);
   const [tagFilter, setTagFilter] = useState("");
@@ -238,7 +250,9 @@ const CalenderPage = () => {
 
   /** รวมกำหนดการทั้งสองแบบ แล้วกรองตามมุมมองที่เลือก */
   const allItems = useMemo<CalendarItem[]>(() => {
-    const admin = adminSchedules.map((s) => ({ ...s, marked: markedIds.has(s.sourceId) }));
+    const admin = adminSchedules
+      .filter((s) => matchesTrack(s.type_event, trackFilter))
+      .map((s) => ({ ...s, marked: markedIds.has(s.sourceId) }));
     const personal: CalendarItem[] = personalEvents.map((e) => ({
       id: `personal-${e.id}`,
       kind: "personal",
@@ -254,7 +268,7 @@ const CalenderPage = () => {
     if (viewFilter === "marked") return merged.filter((i) => i.marked);
     if (viewFilter === "personal") return merged.filter((i) => i.kind === "personal");
     return merged;
-  }, [adminSchedules, personalEvents, markedIds, viewFilter]);
+  }, [adminSchedules, personalEvents, markedIds, viewFilter, trackFilter]);
 
   const handlePreviousMonth = () => setViewDate(new Date(selectedYear, selectedMonth - 1, 1));
   const handleNextMonth = () => setViewDate(new Date(selectedYear, selectedMonth + 1, 1));
@@ -672,6 +686,9 @@ const CalenderPage = () => {
                     ))}
                   </div>
                 )}
+
+                {/* ตัวกรองสายการสอบ PLE — CC ทุกคนต้องสอบ จึงแสดงคู่กับสายที่เลือกเสมอ */}
+                <TrackFilterChips value={trackFilter} onChange={changeTrackFilter} className="mb-4" />
 
                 {/* Grid */}
                 <div className="grid grid-cols-7 rounded-xl overflow-hidden border border-gray-200">

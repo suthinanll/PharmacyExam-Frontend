@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import Swal from "@/utils/sweetalert";
 import { FcGoogle } from "react-icons/fc";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, ShieldCheck, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck, ArrowRight, Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getSafeRedirect, withRedirect } from "@/utils/redirect";
 
@@ -89,6 +89,19 @@ export default function Page() {
           </h1>
           <p className="text-gray-600 font-medium">กรอกข้อมูลเพื่อเข้าสู่ระบบ</p>
         </div>
+
+        {/* ประกาศช่วงทดสอบระบบ — ปิดได้ด้วย NEXT_PUBLIC_TESTING_NOTICE=false เมื่อเปิดใช้งานจริง */}
+        {process.env.NEXT_PUBLIC_TESTING_NOTICE !== "false" && (
+          <div role="note" className="mb-6 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+            <Info className="w-5 h-5 shrink-0 text-amber-700 mt-0.5" aria-hidden="true" />
+            <div>
+              <p className="font-medium text-amber-800">ระบบอยู่ในช่วงทดสอบ</p>
+              <p className="text-amber-700 mt-0.5 leading-relaxed">
+                คะแนนและผลการทำข้อสอบในระบบนี้ใช้เพื่อฝึกฝนและทดสอบระบบเท่านั้น ไม่มีผลต่อคะแนนสอบจริง
+              </p>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-1.5">

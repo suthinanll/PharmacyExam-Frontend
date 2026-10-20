@@ -72,8 +72,14 @@ export function normalizeSchedules(raw: unknown): ScheduleItem[] {
  * 2) กำหนดการของวันนี้
  * 3) กำหนดการถัดไปในอนาคต (รวมทุกรายการที่อยู่วันเดียวกัน)
  */
-export function deriveSchedule(raw: unknown, now: number): DerivedSchedule {
-  const allExams = normalizeSchedules(raw);
+export function deriveSchedule(
+  raw: unknown,
+  now: number,
+  track: TrackFilter = "all",
+): DerivedSchedule {
+  const allExams = normalizeSchedules(raw).filter((exam) =>
+    matchesTrack(exam.type_event as TypeEvent, track),
+  );
   if (allExams.length === 0) return EMPTY_SCHEDULE;
 
   const todayStr = new Date(now).toDateString();
@@ -148,4 +154,60 @@ export async function fetchPublicSchedules(): Promise<unknown | null> {
   } catch {
     return null;
   }
+}
+
+// ─── สายการสอบ PLE ───────────────────────────────────────
+// type_event ของแอดมินเขียนเป็นรหัส PLE เช่น "PLE-CC1", "PLE-IP2" หรือรวมกันใน string เดียว
+// "PLE-IP1, PC1, PHCP1" — CC คือส่วนกลางที่ทุกคนต้องสอบ ส่วน IP / PC / PHCP แยกตามสาย
+export type ExamTrack = "CC" | "IP" | "PC" | "PHCP";
+export type TrackFilter = ExamTrack | "all";
+/** type_event มาจาก API เป็น array แต่บางที่ได้เป็น string รูปแบบ postgres "{a,b}" */
+type TypeEvent = string[] | string | null | undefined;
+
+export const TRACK_FILTERS: { value: TrackFilter; label: string; hint: string }[] = [
+  { value: "all", label: "ทุกสาย", hint: "แสดงกำหนดการทั้งหมด" },
+  { value: "CC", label: "CC", hint: "ส่วนกลาง (ทุกคนต้องสอบ)" },
+  { value: "IP", label: "IP", hint: "สายอุตสาหการ + CC" },
+  { value: "PC", label: "PC", hint: "สายบริบาล + CC" },
+  { value: "PHCP", label: "PHCP", hint: "สายคุ้มครองผู้บริโภค + CC" },
+];
+
+/** สายที่ผู้ใช้เลือกจำไว้ในเครื่อง ใช้ร่วมกันระหว่างหน้าแรกและหน้าปฏิทิน */
+const TRACK_FILTER_KEY = "calendar-track-filter";
+
+export function readSavedTrack(): TrackFilter {
+  try {
+    const saved = localStorage.getItem(TRACK_FILTER_KEY);
+    if (saved && TRACK_FILTERS.some((t) => t.value === saved)) return saved as TrackFilter;
+  } catch {}
+  return "all";
+}
+
+export function saveTrack(value: TrackFilter) {
+  try {
+    localStorage.setItem(TRACK_FILTER_KEY, value);
+  } catch {}
+}
+
+/** ดึงสายการสอบจาก type_event — ถ้าไม่มีรหัส PLE เลยคืน set ว่าง (ถือเป็นกำหนดการทั่วไป) */
+export function scheduleTracks(typeEvent: TypeEvent): Set<ExamTrack> {
+  const tracks = new Set<ExamTrack>();
+  const list = Array.isArray(typeEvent) ? typeEvent : typeEvent ? [typeEvent] : [];
+  for (const t of list) {
+    for (const m of t.toUpperCase().matchAll(/\b(PHCP|CC|IP|PC)\d*\b/g)) {
+      tracks.add(m[1] as ExamTrack);
+    }
+  }
+  return tracks;
+}
+
+/**
+ * กรองตามสายที่เลือก: "all" แสดงทั้งหมด, "CC" แสดงเฉพาะส่วนกลาง,
+ * สายอื่นแสดงส่วนกลางด้วยเพราะทุกคนต้องสอบ CC — กำหนดการทั่วไปที่ไม่มีรหัส PLE แสดงเสมอ
+ */
+export function matchesTrack(typeEvent: TypeEvent, filter: TrackFilter): boolean {
+  if (filter === "all") return true;
+  const tracks = scheduleTracks(typeEvent);
+  if (tracks.size === 0) return true;
+  return tracks.has(filter) || tracks.has("CC");
 }

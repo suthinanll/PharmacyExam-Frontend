@@ -10,6 +10,7 @@ import Swal from "@/utils/sweetalert";
 import Link from "next/link";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { formatScientificText } from "@/utils/formatText";
+import { resolveImageUrl } from "@/utils/imageUrl";
 import RichText from "@/components/RichText";
 
 // ==================== TYPES ====================
@@ -1053,18 +1054,14 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                         />
                         {session.current_item.situation.situation_image_url && (
                           <img
-                            src={session.current_item.situation.situation_image_url.startsWith("http")
-                              ? session.current_item.situation.situation_image_url
-                              : `${process.env.NEXT_PUBLIC_API_URL}${session.current_item.situation.situation_image_url}`}
+                            src={resolveImageUrl(session.current_item.situation.situation_image_url)}
                             alt="situation"
                             className="mt-4 rounded-lg max-w-full border border-gray-200 cursor-zoom-in hover:opacity-90 transition-opacity"
                             onClick={() => {
                               const url = session.current_item.situation?.situation_image_url;
                               if (url) {
                                 setPreviewImage(
-                                  url.startsWith("http")
-                                    ? url
-                                    : `${process.env.NEXT_PUBLIC_API_URL}${url}`
+                                  resolveImageUrl(url)
                                 );
                               }
                             }}
@@ -1075,7 +1072,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                   )}
 
                   {/* STEP 2: Question + STEP 3: Options (same card) */}
-                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                  <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-clip">
 
                     {/* Question header */}
                     <div className="px-6 pt-5 pb-4 border-b border-gray-100">
@@ -1083,15 +1080,7 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                         <span className="text-xs font-medium text-white bg-gray-500 px-2.5 py-1 rounded-full">
                           ข้อ {session.num_items + 1}
                         </span>
-                        {session.current_item.sub_topics && session.current_item.sub_topics.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5">
-                            {session.current_item.sub_topics.map(st => (
-                              <span key={st.sub_topic_id} className="text-xs font-medium bg-green-50 text-green-700 px-2.5 py-0.5 rounded-full border border-green-100">
-                                {st.sub_topic_name}
-                              </span>
-                            ))}
-                          </div>
-                        )}
+                        {/* ไม่แสดงหัวข้อย่อยระหว่างสอบ เพราะชื่อหัวข้อมักบอกใบ้คำตอบ — ดูได้ในหน้าเฉลย */}
                       </div>
 
                       {/* Question text */}
@@ -1102,18 +1091,14 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                       {session.current_item.question_image_url && (
                         <div className="mt-4">
                           <img
-                            src={session.current_item.question_image_url.startsWith("http")
-                              ? session.current_item.question_image_url
-                              : `${process.env.NEXT_PUBLIC_API_URL}${session.current_item.question_image_url}`}
+                            src={resolveImageUrl(session.current_item.question_image_url)}
                             alt="question"
                             className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white cursor-zoom-in hover:opacity-90 transition-opacity"
                             onClick={() => {
                               const url = session.current_item.question_image_url;
                               if (url) {
                                 setPreviewImage(
-                                  url.startsWith("http")
-                                    ? url
-                                    : `${process.env.NEXT_PUBLIC_API_URL}${url}`
+                                  resolveImageUrl(url)
                                 );
                               }
                             }}
@@ -1162,16 +1147,12 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                                 {option.option_image_url && option.option_image_url.trim() !== '' && (
                                   <div className={option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' ? "mt-2" : ""}>
                                     <img
-                                      src={option.option_image_url.startsWith("http")
-                                        ? option.option_image_url
-                                        : `${process.env.NEXT_PUBLIC_API_URL}${option.option_image_url}`}
+                                      src={resolveImageUrl(option.option_image_url)}
                                       alt={`ตัวเลือก ${label}`}
                                       className="max-h-40 rounded-lg border border-gray-200 bg-white cursor-pointer hover:opacity-90 transition-opacity object-contain"
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        const url = option.option_image_url!.startsWith("http")
-                                          ? option.option_image_url!
-                                          : `${process.env.NEXT_PUBLIC_API_URL}${option.option_image_url}`;
+                                        const url = resolveImageUrl(option.option_image_url);
                                         setPreviewImage(url);
                                       }}
                                     />
@@ -1182,6 +1163,30 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                           );
                         })}
                       </div>
+
+                      {/* ปุ่มส่งคำตอบ วางใต้ตัวเลือกให้กดต่อได้ทันที (เดิมอยู่ท้าย sidebar ต้องเลื่อนไกล)
+                          บนมือถือติดขอบล่างจอไว้ตลอด */}
+                      {!isFinished && (
+                        <div className="sticky bottom-0 z-20 -mx-6 -mb-5 mt-5 px-6 py-3 bg-white/95 backdrop-blur border-t border-gray-100 lg:static lg:mx-0 lg:mb-0 lg:px-0 lg:pb-0 lg:bg-transparent lg:backdrop-blur-none">
+                          <button
+                            onClick={submitAnswer}
+                            disabled={!selectedOptionId || loading}
+                            className="w-full py-3.5 bg-primary hover:bg-primary-hover text-white font-medium rounded-xl transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                          >
+                            {loading ? (
+                              <>
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                กำลังคำนวณ...
+                              </>
+                            ) : (
+                              "ข้อถัดไป"
+                            )}
+                          </button>
+                          {!selectedOptionId && !loading && (
+                            <p className="mt-1.5 text-xs text-center text-gray-600">เลือกคำตอบก่อนกดส่ง</p>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </>
@@ -1235,30 +1240,6 @@ function CATExamPageContent({ initialSession }: { initialSession: CATSession | n
                     </div>
                   </div>
                 </div>
-
-                {/* Submit button */}
-                {!isFinished && (
-                  <>
-                    <button
-                      onClick={submitAnswer}
-                      disabled={!selectedOptionId || loading}
-                      className="w-full py-3.5 bg-primary hover:bg-primary-hover text-white font-medium rounded-xl transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          กำลังคำนวณ...
-                        </>
-                      ) : (
-                        "ข้อถัดไป"
-                      )}
-                    </button>
-
-                    {!selectedOptionId && !loading && (
-                      <p className="text-xs text-center text-gray-600">เลือกคำตอบก่อนกดส่ง</p>
-                    )}
-                  </>
-                )}
               </div>
             </div>
           </div>

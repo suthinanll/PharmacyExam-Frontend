@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import ImagePreviewModal from '@/components/ImagePreviewModal';
 import { formatScientificText } from '@/utils/formatText';
+import { resolveImageUrl } from '@/utils/imageUrl';
 import {
     CheckCircle,
     X,
@@ -145,7 +146,7 @@ function QuestionDetailModal({ row, situationSeqMap, onClose }: { row: FlatRow; 
                                 {situation.situation_text}
                             </p>
                             {situation.situation_image_url && (
-                                <img src={situation.situation_image_url} alt="situation" className="mt-3 max-h-48 rounded-lg border border-slate-200" />
+                                <img src={resolveImageUrl(situation.situation_image_url)} alt="situation" className="mt-3 max-h-48 rounded-lg border border-slate-200" />
                             )}
                         </div>
                     )}
