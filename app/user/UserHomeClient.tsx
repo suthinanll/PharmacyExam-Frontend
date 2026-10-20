@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar_user";
 import { CountdownHero, CountdownHeroSkeleton } from "@/components/home/CountdownHero";
 import UpcomingExamCard from "@/components/home/UpcomingExamCard";
 import Footer from "@/components/Footer";
+import Link from "next/link";
 import NewsCard from "@/components/News";
 import FloatingChatbot from "@/components/chatbot/FloatingChatbot";
 import {
@@ -15,15 +16,25 @@ import {
   Medal,
   Users,
   ClipboardList,
+  BookOpenCheck,
+  ArrowRight,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { deriveSchedule, EMPTY_SCHEDULE, type DerivedSchedule } from "@/lib/schedule";
+import {
+  deriveSchedule,
+  EMPTY_SCHEDULE,
+  readSavedTrack,
+  saveTrack,
+  type DerivedSchedule,
+  type TrackFilter,
+} from "@/lib/schedule";
+import TrackFilterChips from "@/components/TrackFilterChips";
 
 // ─── Leaderboard Types ──────────────────────────────────
+// backend ไม่ส่งชื่อมหาวิทยาลัยมาเลย มีแค่ธง is_mine บอกว่าแถวไหนเป็นของผู้ใช้
 interface LeaderboardEntry {
   rank: number;
-  university_id: number;
-  university_name: string;
+  is_mine: boolean;
   avg_score: number;
   top_score: number;
   total_students: number;
@@ -61,11 +72,9 @@ const RANK_STYLES = [
 const UniversityLeaderboard = ({
   entries,
   loading,
-  userUniversityId,
 }: {
   entries: LeaderboardEntry[];
   loading: boolean;
-  userUniversityId: number | null;
 }) => {
   const maxScore = entries[0]?.avg_score ?? 100;
 
@@ -107,12 +116,12 @@ const UniversityLeaderboard = ({
             entries.map((entry) => {
               const isTop3 = entry.rank <= 3;
               const style = isTop3 ? RANK_STYLES[entry.rank - 1] : null;
-              const isUserUni = userUniversityId === entry.university_id;
+              const isUserUni = entry.is_mine;
               const barWidth = maxScore > 0 ? (entry.avg_score / maxScore) * 100 : 0;
 
               return (
                 <div
-                  key={entry.university_id}
+                  key={entry.rank}
                   className={`grid grid-cols-[3rem_1fr_auto] sm:grid-cols-[3rem_1fr_7rem_5.5rem] gap-x-4 items-center
                     px-5 py-3.5 transition-colors duration-150 border-l-4
                     ${isTop3 ? `${style!.bg} ${style!.border}` : "bg-white border-l-transparent hover:bg-gray-50"}                  
@@ -132,14 +141,9 @@ const UniversityLeaderboard = ({
                   {/* Name + bar + tags */}
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-gray-800 truncate max-w-[200px] sm:max-w-sm">
-                        {entry.university_name}
+                      <span className={`text-sm font-medium truncate max-w-[200px] sm:max-w-sm ${isUserUni ? "text-gray-800" : "text-gray-500"}`}>
+                        {isUserUni ? "มหาวิทยาลัยของคุณ" : `มหาวิทยาลัยอันดับ ${entry.rank}`}
                       </span>
-                      {isUserUni && (
-                        <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200">
-                          มหาวิทยาลัยของคุณ
-                        </span>
-                      )}
                     </div>
                     {/* Progress bar */}
                     <div className="mt-1.5 h-1.5 bg-gray-100 rounded-full overflow-hidden max-w-xs">
@@ -183,7 +187,7 @@ const UniversityLeaderboard = ({
         {!loading && entries.length > 0 && (
           <div className="px-5 py-2.5 bg-white border-t border-gray-100">
             <p className="text-sm text-gray-500">
-              จัดอันดับจากคะแนนเฉลี่ย
+              จัดอันดับจากคะแนนเฉลี่ย · ไม่เปิดเผยชื่อมหาวิทยาลัย
             </p>
           </div>
         )}
@@ -234,8 +238,11 @@ const UserHomeClient = ({ initialSchedules }: { initialSchedules: unknown | null
   const [upcomingExams, setUpcomingExams] = useState<any[]>(seed.upcomingExams);
   const [todayExams, setTodayExams] = useState<any[]>(seed.todayExams);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  // เก็บตารางสอบดิบไว้ คำนวณการ์ดนับถอยหลังใหม่ได้ทันทีเมื่อเปลี่ยนสาย ไม่ต้องดึงซ้ำ
+  const [rawSchedules, setRawSchedules] = useState<unknown | null>(initialSchedules);
+  const [trackFilter, setTrackFilter] = useState<TrackFilter>("all");
+  const trackFilterRef = useRef<TrackFilter>("all");
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
-  const [myUniversityId, setMyUniversityId] = useState<number | null>(null);
 
 
   const handleBookmarkToggle = async (articleId: number) => {
@@ -278,6 +285,23 @@ const UserHomeClient = ({ initialSchedules }: { initialSchedules: unknown | null
     setUpcomingExams(next.upcomingExams);
   }, []);
 
+  // HTML จากเซิร์ฟเวอร์คำนวณแบบทุกสาย แล้วค่อยปรับตามสายที่จำไว้ในเครื่องหลัง hydrate
+  useEffect(() => {
+    const saved = readSavedTrack();
+    if (saved === "all") return;
+    trackFilterRef.current = saved;
+    setTrackFilter(saved);
+    if (initialSchedules !== null) applySchedule(deriveSchedule(initialSchedules, Date.now(), saved));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const changeTrackFilter = (value: TrackFilter) => {
+    trackFilterRef.current = value;
+    setTrackFilter(value);
+    saveTrack(value);
+    if (rawSchedules !== null) applySchedule(deriveSchedule(rawSchedules, Date.now(), value));
+  };
+
   const fetchData = useCallback(async () => {
     try {
       const token = getToken();
@@ -292,7 +316,9 @@ const UserHomeClient = ({ initialSchedules }: { initialSchedules: unknown | null
       );
 
       if (resSched.ok) {
-        applySchedule(deriveSchedule(await resSched.json(), now));
+        const raw = await resSched.json();
+        setRawSchedules(raw);
+        applySchedule(deriveSchedule(raw, now, trackFilterRef.current));
       }
 
       setLoadingNews(true);
@@ -334,25 +360,13 @@ const UserHomeClient = ({ initialSchedules }: { initialSchedules: unknown | null
           headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const [lbRes, meRes] = await Promise.all([
-          fetch(`${apiUrl}/universities/leaderboard`, { headers }),
-          token
-            ? fetch(`${apiUrl}/auth/me`, {
-                headers,
-                credentials: 'include',
-              })
-            : Promise.resolve(null),
-        ]);
+        const lbRes = await fetch(`${apiUrl}/universities/leaderboard`, { headers });
 
         if (lbRes && lbRes.ok) {
           const data = await lbRes.json();
           setLeaderboard(Array.isArray(data) ? data : []);
         } else {
           console.warn('Leaderboard response not ok:', lbRes?.status);
-        }
-        if (meRes && meRes.ok) {
-          const me = await meRes.json();
-          setMyUniversityId(me?.university_id ? Number(me.university_id) : null);
         }
       } catch (e) {
         console.error('Leaderboard fetch error:', e);
@@ -422,6 +436,7 @@ const UserHomeClient = ({ initialSchedules }: { initialSchedules: unknown | null
       <Navbar />
       <div className="bg-gray-50 min-h-screen py-8 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
+          <TrackFilterChips value={trackFilter} onChange={changeTrackFilter} className="mb-3" />
           {loadingSchedule ? (
             <CountdownHeroSkeleton />
           ) : (
@@ -439,11 +454,25 @@ const UserHomeClient = ({ initialSchedules }: { initialSchedules: unknown | null
               )}
             />
           )}
+          {/* ── ทบทวนประจำวัน ── */}
+          <Link
+            href="/user/daily-review"
+            className="mb-10 flex items-center gap-4 rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-sm transition-colors hover:border-green-200 hover:bg-green-50/40"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-700">
+              <BookOpenCheck size={22} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-medium text-gray-800">ทบทวนประจำวัน</span>
+              <span className="block text-sm text-gray-500">วันละ 5 ข้อ เน้นข้อที่เคยตอบผิด ใช้เวลาไม่กี่นาที</span>
+            </span>
+            <ArrowRight size={18} className="shrink-0 text-gray-400" />
+          </Link>
+
           {/* ── University Leaderboard ── */}
           <UniversityLeaderboard
             entries={leaderboard}
             loading={loadingLeaderboard}
-            userUniversityId={myUniversityId}
           />
 
 

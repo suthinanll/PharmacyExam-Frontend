@@ -11,7 +11,9 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/LoadingSpinner';
+import ReportItemButton from '@/components/ReportItemButton';
 import { formatScientificText } from '@/utils/formatText';
+import { resolveImageUrl } from '@/utils/imageUrl';
 import RichText from "@/components/RichText";
 import { rememberExamResultSession } from "@/lib/resultSession";
 
@@ -169,13 +171,16 @@ function QuestionCard({
                         </span>
                     )}
                 </div>
-                <button
-                    onClick={() => onShowStats(question.item_id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:text-gray-900 bg-white/80 hover:bg-white border border-gray-200/80 transition-all cursor-pointer shadow-2xs"
-                >
-                    <BarChart2 className="w-3.5 h-3.5 text-gray-500" />
-                    สถิติ
-                </button>
+                <div className="flex items-center gap-2">
+                    <ReportItemButton itemId={question.item_id} />
+                    <button
+                        onClick={() => onShowStats(question.item_id)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-gray-600 hover:text-gray-900 bg-white/80 hover:bg-white border border-gray-200/80 transition-all cursor-pointer shadow-2xs"
+                    >
+                        <BarChart2 className="w-3.5 h-3.5 text-gray-500" />
+                        สถิติ
+                    </button>
+                </div>
             </div>
 
             <div className="p-5 space-y-5">
@@ -186,14 +191,12 @@ function QuestionCard({
                 />
                 {question.question_image_url && (
                     <img
-                        src={question.question_image_url.startsWith('http')
-                            ? question.question_image_url
-                            : `${API_URL}${question.question_image_url}`}
+                        src={resolveImageUrl(question.question_image_url)}
                         alt="คำถาม"
                         className="max-h-64 rounded-xl border border-gray-200 object-contain cursor-zoom-in hover:opacity-90 transition-opacity bg-white"
                         onClick={() => {
                             const url = question.question_image_url!;
-                            setPreviewImage(url.startsWith('http') ? url : `${API_URL}${url}`);
+                            setPreviewImage(resolveImageUrl(url));
                         }}
                     />
                 )}
@@ -254,13 +257,13 @@ function QuestionCard({
                                     )}
                                     {opt.option_image_url?.trim() && (
                                         <img
-                                            src={opt.option_image_url.startsWith('http') ? opt.option_image_url : `${API_URL}${opt.option_image_url}`}
+                                            src={resolveImageUrl(opt.option_image_url)}
                                             alt={`ตัวเลือก ${LABELS[oIdx]}`}
                                             className="mt-2 max-h-36 rounded-lg border border-gray-200 bg-white object-contain cursor-zoom-in hover:opacity-90 transition-opacity"
                                             onClick={e => {
                                                 e.stopPropagation();
                                                 const url = opt.option_image_url!;
-                                                setPreviewImage(url.startsWith('http') ? url : `${API_URL}${url}`);
+                                                setPreviewImage(resolveImageUrl(url));
                                             }}
                                         />
                                     )}
@@ -543,10 +546,10 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
                                                     <RichText className="text-sm lg:text-[0.9375rem] text-gray-700 leading-relaxed whitespace-pre-wrap" html={formatScientificText(group.situation.situation_text)} />
                                                     {group.situation.situation_image_url && (
                                                         <img
-                                                            src={group.situation.situation_image_url}
+                                                            src={resolveImageUrl(group.situation.situation_image_url)}
                                                             alt="สถานการณ์"
                                                             className="mt-4 rounded-xl border border-blue-100 max-h-72 object-contain bg-white cursor-zoom-in hover:opacity-90 transition-opacity"
-                                                            onClick={() => setPreviewImage(group.situation!.situation_image_url!)}
+                                                            onClick={() => setPreviewImage(resolveImageUrl(group.situation!.situation_image_url))}
                                                         />
                                                     )}
                                                 </div>

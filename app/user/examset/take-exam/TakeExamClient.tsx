@@ -12,6 +12,7 @@ import { rememberExamResultSession } from "@/lib/resultSession";
 import ImagePreviewModal from '@/components/ImagePreviewModal';
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { formatScientificText } from "@/utils/formatText";
+import { resolveImageUrl } from "@/utils/imageUrl";
 import RichText from "@/components/RichText";
 
 // Types
@@ -683,13 +684,13 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
                                             />
                                             {currentQuestion.situation.situation_image_url && (
                                                 <img
-                                                    src={currentQuestion.situation.situation_image_url}
+                                                    src={resolveImageUrl(currentQuestion.situation.situation_image_url)}
                                                     alt="situation"
                                                     className="mt-4 rounded-lg max-w-full border border-gray-200 cursor-zoom-in hover:opacity-90 transition-opacity"
                                                     onClick={() => {
                                                         const url = currentQuestion.situation?.situation_image_url;
                                                         if (url) {
-                                                            setPreviewImage(url);
+                                                            setPreviewImage(resolveImageUrl(url));
                                                         }
                                                     }}
                                                 />
@@ -728,18 +729,14 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
                                         {currentQuestion.question_image_url && (
                                             <div className="mt-4 mb-2">
                                                 <img
-                                                    src={currentQuestion.question_image_url.startsWith("http")
-                                                        ? currentQuestion.question_image_url
-                                                        : `${process.env.NEXT_PUBLIC_API_URL}${currentQuestion.question_image_url}`}
+                                                    src={resolveImageUrl(currentQuestion.question_image_url)}
                                                     alt="question"
                                                     className="max-h-72 rounded-xl object-contain border border-gray-200 shadow-sm bg-white cursor-zoom-in hover:opacity-90 transition-opacity"
                                                     onClick={() => {
                                                         const url = currentQuestion.question_image_url;
                                                         if (url) {
                                                             setPreviewImage(
-                                                                url.startsWith("http")
-                                                                    ? url
-                                                                    : `${process.env.NEXT_PUBLIC_API_URL}${url}`
+                                                                resolveImageUrl(url)
                                                             );
                                                         }
                                                     }}
@@ -748,20 +745,7 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
                                         )}
                                     </div>
 
-                                    {/* Topic / Sub-topics (อ่านหัวข้อต่อท้ายคำถาม) */}
-                                    {currentQuestion.sub_topics && currentQuestion.sub_topics.length > 0 && (
-                                        <div className="flex flex-wrap items-center gap-2 mb-6 pt-1">
-
-                                            {currentQuestion.sub_topics.map((st) => (
-                                                <span
-                                                    key={st.sub_topic_id}
-                                                    className="text-xs sm:text-sm font-medium bg-green-50 text-green-700 border border-green-200/60 px-3 py-1 rounded-md"
-                                                >
-                                                    {st.sub_topic_name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    )}
+                                    {/* ไม่แสดงหัวข้อย่อยระหว่างสอบ เพราะชื่อหัวข้อมักบอกใบ้คำตอบ — ดูได้ในหน้าเฉลย */}
 
                                     {/* Options */}
                                     <div className="space-y-3">
@@ -796,11 +780,54 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
                                                                 html={formatScientificText(option.option_text)}
                                                             />
                                                         )}
-                                                        
+                                                        {option.option_image_url && option.option_image_url.trim() !== '' && (
+                                                            <div className={option.option_text && option.option_text.replace(/<[^>]*>/g, '').trim() !== '' ? "mt-2" : ""}>
+                                                                <img
+                                                                    src={resolveImageUrl(option.option_image_url)}
+                                                                    alt={`ตัวเลือก ${['ก', 'ข', 'ค', 'ง', 'จ'][index] || String.fromCharCode(65 + index)}`}
+                                                                    className="max-h-40 rounded-lg border border-gray-200 bg-white cursor-zoom-in hover:opacity-90 transition-opacity object-contain"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setPreviewImage(resolveImageUrl(option.option_image_url));
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </button>
                                             );
                                         })}
+                                    </div>
+
+                                    {/* ปุ่มเปลี่ยนข้อ วางใต้ตัวเลือกให้กดต่อได้ทันที (เดิมอยู่ท้าย sidebar ต้องเลื่อนไกล)
+                                        บนมือถือติดขอบล่างจอไว้ตลอด */}
+                                    <div className="sticky bottom-0 z-20 -mx-6 mt-6 px-6 py-3 bg-white/95 backdrop-blur border-t border-gray-100 flex items-center gap-3 lg:static lg:mx-0 lg:px-0 lg:pb-0 lg:bg-transparent lg:backdrop-blur-none">
+                                        <button
+                                            onClick={() =>
+                                                currentQuestionIndex > 0 &&
+                                                goToQuestionByIndex(currentQuestionIndex - 1)
+                                            }
+                                            disabled={currentQuestionIndex === 0 || submitting}
+                                            className="flex-1 sm:flex-none px-5 py-3 bg-green-100 text-green-700 font-medium rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            ← ย้อนกลับ
+                                        </button>
+                                        <span className="hidden sm:block flex-1 text-center text-sm text-gray-500">
+                                            ข้อ {currentQuestionIndex + 1} / {questions.length}
+                                        </span>
+                                        <button
+                                            onClick={() =>
+                                                currentQuestionIndex < questions.length - 1 &&
+                                                goToQuestionByIndex(currentQuestionIndex + 1)
+                                            }
+                                            disabled={
+                                                currentQuestionIndex === questions.length - 1 ||
+                                                submitting
+                                            }
+                                            className="flex-1 sm:flex-none px-5 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            ถัดไป →
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -918,33 +945,6 @@ function TakeExam({ initial }: { initial: InitialExam | null }) {
                                         <div className="w-4 h-4 bg-gray-100 rounded border-2 border-dotted border-green-500"></div>
                                         <span className="text-gray-600">สถานการณ์เดียวกัน</span>
                                     </div>
-                                </div>
-
-                                {/* Navigation Buttons */}
-                                <div className="flex justify-between items-center pb-6">
-                                    <button
-                                        onClick={() =>
-                                            currentQuestionIndex > 0 &&
-                                            goToQuestionByIndex(currentQuestionIndex - 1)
-                                        }
-                                        disabled={currentQuestionIndex === 0 || submitting}
-                                        className="px-6 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        ← ย้อนกลับ
-                                    </button>
-                                    <button
-                                        onClick={() =>
-                                            currentQuestionIndex < questions.length - 1 &&
-                                            goToQuestionByIndex(currentQuestionIndex + 1)
-                                        }
-                                        disabled={
-                                            currentQuestionIndex === questions.length - 1 ||
-                                            submitting
-                                        }
-                                        className="px-6 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                    >
-                                        ถัดไป →
-                                    </button>
                                 </div>
 
                                 {/* {process.env.NODE_ENV === 'development' && (

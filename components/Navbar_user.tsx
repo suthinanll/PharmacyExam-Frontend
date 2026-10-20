@@ -134,7 +134,8 @@ const Navbar = () => {
       label: 'คลังข้อสอบ',
       submenu: [
         { href: '/user/examset', label: 'ชุดข้อสอบมาตรฐาน (Standard Exam)' },
-        { href: '/user/cat-exam', label: 'ข้อสอบแบบปรับเหมาะรายข้อ (CAT)' }
+        { href: '/user/cat-exam', label: 'ข้อสอบแบบปรับเหมาะรายข้อ (CAT)' },
+        { href: '/user/daily-review', label: 'ทบทวนประจำวัน (5 ข้อ)' }
       ]
     },
     { href: '/user/calendar', label: 'ปฏิทินการสอบ' },
