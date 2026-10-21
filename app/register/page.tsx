@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { getSafeRedirect, withRedirect } from "@/utils/redirect";
+import PrivacyNotice from "@/components/PrivacyNotice";
 
 export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
@@ -558,6 +559,8 @@ export default function RegisterPage() {
                 </div>
               </div>
             </div>
+
+            <PrivacyNotice className="mt-6" />
 
             <div className="pt-6">
               <button

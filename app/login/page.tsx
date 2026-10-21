@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ShieldCheck, ArrowRight, Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { getSafeRedirect, withRedirect } from "@/utils/redirect";
+import PrivacyNotice from "@/components/PrivacyNotice";
 
 export default function Page() {
   const { login } = useAuth();
@@ -102,6 +103,8 @@ export default function Page() {
             </div>
           </div>
         )}
+
+        <PrivacyNotice className="mb-6" />
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-1.5">
