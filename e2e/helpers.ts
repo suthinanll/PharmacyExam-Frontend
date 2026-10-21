@@ -9,6 +9,14 @@ import path from 'node:path';
 
 export const BASE_URL = (process.env.E2E_BASE_URL || 'http://localhost:3000').replace(/\/+$/, '');
 export const ADMIN_AUTH_FILE = path.join(__dirname, '.auth', 'admin.json');
+export const STUDENT_AUTH_FILE = path.join(__dirname, '.auth', 'student.json');
+
+/** ตั้งค่าบัญชีผู้เรียนไว้หรือไม่ — เทสต์ฝั่งผู้เรียนใช้ test.skip(!hasStudent, ...) */
+export const hasStudent = !!(process.env.E2E_STUDENT_EMAIL && process.env.E2E_STUDENT_PASSWORD);
+export const SKIP_NO_STUDENT = 'ไม่ได้ตั้งค่าบัญชีผู้เรียน (E2E_STUDENT_EMAIL / E2E_STUDENT_PASSWORD)';
+
+/** สถานะเบราว์เซอร์ที่ยังไม่ได้เข้าสู่ระบบ (ผู้เยี่ยมชม) */
+export const GUEST_STATE = { cookies: [], origins: [] };
 
 // ─── ชื่อข้อมูลทดสอบ ──────────────────────────────────────────────────────────
 /** ข้อมูลที่เทสต์สร้างทุกชิ้นชื่อขึ้นต้นด้วย "E2E-" ใช้ค้นหาแยกจากข้อมูลจริงและลบทิ้งตอนจบ */
@@ -88,6 +96,18 @@ export async function newAdminPage(browser: Browser): Promise<Page> {
   const context = await browser.newContext({
     baseURL: BASE_URL,
     storageState: ADMIN_AUTH_FILE,
+    locale: 'th-TH',
+    timezoneId: 'Asia/Bangkok',
+    viewport: { width: 1440, height: 900 },
+  });
+  return context.newPage();
+}
+
+/** เปิดหน้าใหม่ในฐานะผู้เรียน (ใช้ใน beforeAll / afterAll) */
+export async function newStudentPage(browser: Browser): Promise<Page> {
+  const context = await browser.newContext({
+    baseURL: BASE_URL,
+    storageState: STUDENT_AUTH_FILE,
     locale: 'th-TH',
     timezoneId: 'Asia/Bangkok',
     viewport: { width: 1440, height: 900 },

@@ -438,7 +438,8 @@ test.describe('1.6 การเพิ่มกำหนดการจากไ�
   /** รอกล่อง "AI กำลังประมวลผล..." ขึ้นแล้วหายไป */
   async function waitAiDone(page: Page) {
     await expect(swal(page).title).toHaveText('AI กำลังประมวลผล...');
-    await expect(swal(page).title).not.toHaveText('AI กำลังประมวลผล...', { timeout: 150_000 });
+    // รอให้กล่องประมวลผลหายไป (ใช้ toHaveCount เพราะ not.toHaveText ล้มเมื่อไม่มีกล่องใดเหลืออยู่เลย)
+    await expect(page.locator('.swal2-title', { hasText: 'AI กำลังประมวลผล...' })).toHaveCount(0, { timeout: 150_000 });
   }
 
   test('CAL-T27 ยังไม่เลือกไฟล์ ปุ่ม "ประมวลผลด้วย AI" กดไม่ได้', async ({ page }) => {
