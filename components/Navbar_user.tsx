@@ -23,7 +23,6 @@ import {
   Smartphone,
   Moon,
   Sun,
-  ClipboardList,
 } from 'lucide-react';
 import Swal from "@/utils/sweetalert";
 import { isRunningStandalone, openInstallGuide } from '@/utils/pwaInstall';
@@ -81,20 +80,7 @@ const Navbar = () => {
   const [imgError, setImgError] = useState(false);
 
   // ดึงข้อมูลผู้ใช้จาก AuthContext
-  const { user, logout, getToken } = useAuth();
-
-  // เมนูแบบประเมิน: แสดงเฉพาะตอนแอดมินเปิดแบบประเมินอยู่
-  // ถามสถานะตอนเปิดเมนูรูปโปรไฟล์เท่านั้น ไม่ยิง request เพิ่มทุกครั้งที่โหลดหน้า
-  const [survey, setSurvey] = useState<{ isOpen: boolean; hasResponded: boolean } | null>(null);
-  useEffect(() => {
-    if (!isProfileDropdownOpen) return;
-    const token = getToken();
-    if (!token) return;
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/survey/status`, { headers: { Authorization: `Bearer ${token}` } })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => data && setSurvey(data))
-      .catch(() => {});
-  }, [isProfileDropdownOpen, getToken]);
+  const { user, logout } = useAuth();
 
   // ปุ่มลัดสลับธีม (ตั้งค่าละเอียดได้ที่หน้าโปรไฟล์ แท็บ "การแสดงผล")
   const theme = useTheme();
@@ -462,17 +448,6 @@ const Navbar = () => {
                     <Link href="/user/examhis" className="flex items-center px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200" onClick={() => setIsProfileDropdownOpen(false)}>
                       <History className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />ประวัติการทำข้อสอบ
                     </Link>
-                    {survey?.isOpen && (
-                      <Link href="/user/survey" className="flex items-center px-4 sm:px-5 py-2.5 sm:py-3 text-sm sm:text-base text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors duration-200" onClick={() => setIsProfileDropdownOpen(false)}>
-                        <ClipboardList className="w-4 sm:w-5 h-4 sm:h-5 mr-3 sm:mr-4 text-gray-500" />
-                        <span className="flex-1">แบบประเมินความพึงพอใจ</span>
-                        {survey.hasResponded ? (
-                          <span className="text-[0.6875rem] font-medium bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">ตอบแล้ว</span>
-                        ) : (
-                          <span className="w-2 h-2 rounded-full bg-red-500" aria-label="ยังไม่ได้ตอบ" />
-                        )}
-                      </Link>
-                    )}
                     {/* เปิดอยู่ในแอปที่ติดตั้งแล้ว ไม่ต้องชวนติดตั้งซ้ำ */}
                     {!isInstalledApp && (
                       <button
