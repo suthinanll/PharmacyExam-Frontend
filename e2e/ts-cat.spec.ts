@@ -147,7 +147,9 @@ test.describe('5.2 การทำข้อสอบ CAT', () => {
     await step('Expected: แสดงข้อ 1 ตัวเลือกคำตอบ และค่า "ระดับความสามารถ (θ)"', async () => {
       await expect(itemBadge(page)).toHaveText('ข้อ 1');
       expect(await catOptions(page).count()).toBeGreaterThan(1);
-      await expect(page.getByText('ระดับความสามารถ (θ)').first()).toBeVisible();
+      // หน้าสอบแสดงการ์ด "ระดับความสามารถ" พร้อมค่า Theta (ข้อความ "ระดับความสามารถ (θ)" มีเฉพาะหน้าสรุปตอนสอบจบ)
+      await expect(page.getByRole('heading', { name: 'ระดับความสามารถ', exact: true })).toBeVisible();
+      await expect(page.getByText('ค่าความสามารถ (Theta)')).toBeVisible();
     });
   });
 

@@ -63,16 +63,25 @@ function Page() {
     window.history.replaceState(null, '', next === 'info' ? window.location.pathname : `#${next}`);
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        first_name: user.first_name || "",
-        last_name: user.last_name || "",
-        email: user.email || "",
-        tel: user.tel || "",
-      });
-    }
+  // ค่าในฟอร์มตั้งต้นจากข้อมูลบัญชีปัจจุบัน — ใช้ซ้ำตอนกด "ยกเลิก" เพื่อทิ้งค่าที่พิมพ์ค้างไว้
+  const resetForm = useCallback(() => {
+    if (!user) return;
+    setFormData({
+      first_name: user.first_name || "",
+      last_name: user.last_name || "",
+      email: user.email || "",
+      tel: user.tel || "",
+    });
   }, [user]);
+
+  useEffect(() => {
+    resetForm();
+  }, [resetForm]);
+
+  const cancelEdit = () => {
+    resetForm();
+    setIsEditing(false);
+  };
 
   useEffect(() => {
     const token = getToken();
@@ -181,7 +190,7 @@ function Page() {
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => setIsEditing(false)}
+              onClick={cancelEdit}
               aria-label="ยกเลิกการแก้ไขโปรไฟล์"
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition cursor-pointer"
             >

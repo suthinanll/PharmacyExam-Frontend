@@ -21,6 +21,7 @@ import {
 import Link from "next/link";
 import Swal from "@/utils/sweetalert";
 import SuggestInput from '@/components/SuggestInput';
+import { isEndBeforeStart, isHttpUrl } from "@/lib/validators";
 
 const CATEGORY_STYLES: Record<string, string> = {
   "PLE-CC1": "bg-blue-50 text-blue-700 border-blue-200",
@@ -286,6 +287,14 @@ function Page() {
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedEvent) return;
+    if (isEndBeforeStart(editFormData.startDate, editFormData.endDate)) {
+      Swal.fire("วันที่ไม่ถูกต้อง", "วันสิ้นสุดต้องไม่อยู่ก่อนวันเริ่มต้น", "warning");
+      return;
+    }
+    if (editFormData.link_url?.trim() && !isHttpUrl(editFormData.link_url)) {
+      Swal.fire("ลิงก์ไม่ถูกต้อง", "ลิงก์แนบต้องขึ้นต้นด้วย http:// หรือ https://", "warning");
+      return;
+    }
     try {
       const token = getToken();
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/schedules/${selectedEvent.id}`, {
@@ -305,6 +314,10 @@ function Page() {
         setIsEditModalOpen(false);
         fetchEvents();
         Swal.fire({ title: "บันทึกสำเร็จ", icon: "success", timer: 1200, showConfirmButton: false });
+      } else {
+        const err = await res.json().catch(() => null);
+        const msg = Array.isArray(err?.message) ? err.message.join(", ") : err?.message;
+        Swal.fire("บันทึกไม่สำเร็จ", msg || "ไม่สามารถบันทึกข้อมูลได้", "error");
       }
     } catch {
       Swal.fire("ผิดพลาด", "ไม่สามารถบันทึกข้อมูลได้", "error");

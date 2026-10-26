@@ -431,7 +431,7 @@ function AnswerPageContent({ initialResult }: { initialResult: ExamResult | null
     return (
         <>
             <Navbar_user />
-            <div className="min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8">
+            <div className={`min-h-screen bg-gray-50 p-4 md:p-6 lg:p-8 ${showTOC ? "lg:pr-76" : "lg:pr-20"}`}>
                 <div className="max-w-7xl mx-auto">
 
                     <Breadcrumb />

@@ -13,6 +13,7 @@ import {
 import Link from "next/link";
 import { useAuth } from '@/contexts/AuthContext';
 import Swal from "@/utils/sweetalert";
+import { isHttpUrl } from "@/lib/validators";
 import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import LinkExtension from '@tiptap/extension-link';
@@ -241,6 +242,11 @@ export default function EditBlogDetail() {
 
         if (!formData.title.trim()) {
             setToast({ type: "warning", message: "กรุณากรอกหัวข้อข่าว" });
+            return;
+        }
+
+        if (formData.source_url.trim() && !isHttpUrl(formData.source_url)) {
+            setToast({ type: "warning", message: "ลิงก์แหล่งข่าวต้องขึ้นต้นด้วย http:// หรือ https://" });
             return;
         }
 

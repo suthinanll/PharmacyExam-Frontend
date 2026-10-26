@@ -556,10 +556,15 @@ export default function ItemBankEditPage() {
 
     const removeSituation = async (index: number) => {
         const situation = situations[index];
+        // คำถามเดี่ยวไม่มี situation_id แต่ตัวคำถามที่บันทึกแล้วมี item_id — ต้องลบจากฐานข้อมูลด้วย
+        const savedItemIds = situation.questions.map(q => q.item_id).filter((id): id is number => Boolean(id));
+        const isStandalone = !situation.situation_id;
 
         const result = await Swal.fire({
             title: 'คุณแน่ใจหรือไม่?',
-            html: `ต้องการลบสถานการณ์นี้ใช่หรือไม่?<br/>${situation.situation_id ? '<span class="text-red-600">จะลบออกจากฐานข้อมูลทันที พร้อมคำถามทั้งหมด</span>' : ''}`,
+            html: isStandalone
+                ? `ต้องการลบคำถามนี้ใช่หรือไม่?${savedItemIds.length ? '<br/><span class="text-red-600">จะลบออกจากฐานข้อมูลทันที</span>' : ''}`
+                : `ต้องการลบสถานการณ์นี้ใช่หรือไม่?<br/><span class="text-red-600">จะลบออกจากฐานข้อมูลทันที พร้อมคำถามทั้งหมด</span>`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
@@ -603,7 +608,39 @@ export default function ItemBankEditPage() {
                     confirmButtonColor: '#ef4444'
                 });
             }
+        } else if (savedItemIds.length > 0) {
+            try {
+                const token = getToken();
+                for (const itemId of savedItemIds) {
+                    const response = await fetch(`${API_URL}/items-bank/item/${itemId}`, {
+                        method: 'DELETE',
+                        credentials: 'include',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!response.ok) {
+                        const error = await response.json().catch(() => null);
+                        throw new Error(error?.message || 'ไม่สามารถลบคำถามได้');
+                    }
+                }
+                setSituations(situations.filter((_, i) => i !== index));
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'ลบสำเร็จ!',
+                    text: 'ลบคำถามเรียบร้อยแล้ว',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            } catch (error: any) {
+                console.error('Error deleting question:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'เกิดข้อผิดพลาด',
+                    text: error.message || 'ไม่สามารถลบคำถามได้',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
         } else {
+            // คำถามใหม่ที่ยังไม่บันทึก ลบออกจากหน้าจออย่างเดียว
             setSituations(situations.filter((_, i) => i !== index));
         }
     };
@@ -1442,7 +1479,8 @@ export default function ItemBankEditPage() {
 
     return (
         <Navbar_admin>
-            <div className="max-w-7xl mx-auto w-full space-y-6 relative" suppressHydrationWarning>
+            {/* เว้นขอบขวาให้สารบัญลอย จะได้ไม่ทับปุ่มสร้าง/แก้ไขคำถาม */}
+            <div className={`max-w-7xl mx-auto w-full space-y-6 relative ${showTOC ? "lg:pr-72" : "lg:pr-40"}`} suppressHydrationWarning>
 
                 <ItemBankHeader
                     itemBankInfo={itemBankInfo}

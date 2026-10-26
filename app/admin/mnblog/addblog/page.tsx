@@ -27,6 +27,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from '@/contexts/AuthContext';
 import Swal from "@/utils/sweetalert";
+import { isHttpUrl } from "@/lib/validators";
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -492,6 +493,11 @@ function AddBlogPage() {
             setToast({ type: "warning", message: "กรุณากรอกเนื้อหาข่าวให้ครบทุกรายการ" });
             return;
         }
+        const badLink = drafts.find(d => d.sourceUrl?.trim() && !isHttpUrl(d.sourceUrl));
+        if (badLink) {
+            setToast({ type: "warning", message: `ลิงก์แหล่งข่าวต้องขึ้นต้นด้วย http:// หรือ https:// (${badLink.title})` });
+            return;
+        }
         const uploading = drafts.filter(d => d.isUploading);
         if (uploading.length > 0) {
             setToast({ type: "warning", message: "กรุณารอการอัปโหลดรูปภาพให้เสร็จก่อน" });
@@ -543,6 +549,11 @@ function AddBlogPage() {
         const emptyContent = drafts.filter(d => !d.content.trim() || d.content === '<p></p>');
         if (emptyContent.length > 0) {
             setToast({ type: "warning", message: "กรุณากรอกเนื้อหาข่าวให้ครบทุกรายการ" });
+            return;
+        }
+        const badLink = drafts.find(d => d.sourceUrl?.trim() && !isHttpUrl(d.sourceUrl));
+        if (badLink) {
+            setToast({ type: "warning", message: `ลิงก์แหล่งข่าวต้องขึ้นต้นด้วย http:// หรือ https:// (${badLink.title})` });
             return;
         }
         const uploading = drafts.filter(d => d.isUploading);

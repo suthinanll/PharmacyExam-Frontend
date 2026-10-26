@@ -6,6 +6,7 @@ import { ChevronLeft, Plus, X, Calendar, CheckCircle2, Save, Send, Link as LinkI
 import Link from "next/link";
 import Swal from "@/utils/sweetalert";
 import { useAuth } from "@/contexts/AuthContext";
+import { isEndBeforeStart, isHttpUrl } from "@/lib/validators";
 
 const CATEGORY_OPTIONS = [
   { label: "PLE-CC1", value: "PLE-CC1", color: "bg-blue-50 text-blue-700 border-blue-300" },
@@ -95,6 +96,18 @@ function Page() {
     const isValid = validEvents.every((e) => e.startDate);
     if (!isValid && isPublished) {
       Swal.fire("ข้อมูลไม่ครบ", "กรุณาระบุวันเริ่มต้นให้ครบทุกรายการ", "warning");
+      return;
+    }
+
+    const badDate = validEvents.find((e) => isEndBeforeStart(e.startDate, e.endDate));
+    if (badDate) {
+      Swal.fire("วันที่ไม่ถูกต้อง", `วันสิ้นสุดต้องไม่อยู่ก่อนวันเริ่มต้น (${badDate.title})`, "warning");
+      return;
+    }
+
+    const badLink = validEvents.find((e) => e.link_url?.trim() && !isHttpUrl(e.link_url));
+    if (badLink) {
+      Swal.fire("ลิงก์ไม่ถูกต้อง", `ลิงก์แนบต้องขึ้นต้นด้วย http:// หรือ https:// (${badLink.title})`, "warning");
       return;
     }
 
@@ -207,23 +220,28 @@ function Page() {
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
       });
-      const data = await res.json();
+      const data = await res.json().catch(() => null);
       Swal.close();
-      if (data) {
-        const existing = events.filter((e) => e.title.trim());
-        const baseTime = Date.now();
-        const newEvents = data.map((e: any, idx: number) => ({
-          id: baseTime + idx,
-          title: e.title || "",
-          description: e.description || "",
-          link_url: e.link_url || "",
-          startDate: e.startDate || "",
-          endDate: e.endDate || "",
-          type_event: e.type_event || [],
-        }));
-        setEvents([...existing, ...newEvents]);
-        setPdfFile(null);
+      // ไฟล์ผิดประเภทหรือประมวลผลไม่สำเร็จ
+      if (!res.ok) throw new Error();
+      // ไม่พบกำหนดการในไฟล์ — แจ้งเตือนและคงฟอร์มเดิมไว้ให้กรอกเอง
+      if (!Array.isArray(data) || data.length === 0) {
+        Swal.fire("ไม่พบข้อมูลกำหนดการ", "ไม่พบกำหนดการในไฟล์นี้ กรุณาตรวจสอบไฟล์ หรือกรอกข้อมูลเอง", "warning");
+        return;
       }
+      const existing = events.filter((e) => e.title.trim());
+      const baseTime = Date.now();
+      const newEvents = data.map((e: any, idx: number) => ({
+        id: baseTime + idx,
+        title: e.title || "",
+        description: e.description || "",
+        link_url: e.link_url || "",
+        startDate: e.startDate || "",
+        endDate: e.endDate || "",
+        type_event: e.type_event || [],
+      }));
+      setEvents([...existing, ...newEvents]);
+      setPdfFile(null);
     } catch {
       Swal.fire("ผิดพลาด", "ไม่สามารถประมวลผล PDF ได้", "error");
     }
