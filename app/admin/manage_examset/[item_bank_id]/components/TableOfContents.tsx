@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { List, ChevronRight, ChevronDown, GripVertical, Plus, ArrowUp } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ReportFlag from './ReportFlag';
 
 /** Scroll page to top — targets the real scroll container in Navbar_admin (main#admin-main-content with overflow-y-auto) */
 function scrollToTop() {
@@ -30,6 +31,8 @@ interface TableOfContentsProps {
     onExpandSituation: (index: number) => void;
     onAddSituation?: () => void;
     onAddStandaloneQuestion?: () => void;
+    /** จำนวนรายงานปัญหาที่รอตรวจของแต่ละข้อ (key = item_id) */
+    reportCounts?: Record<number, number>;
 }
 
 function stripHtml(html?: string): string {
@@ -47,7 +50,10 @@ export default function TableOfContents({
     onExpandSituation,
     onAddSituation,
     onAddStandaloneQuestion,
+    reportCounts = {},
 }: TableOfContentsProps) {
+    const countOf = (q: { item_id?: number }) => (q.item_id ? reportCounts[q.item_id] ?? 0 : 0);
+    const reportedQuestions = situations.reduce((n, s) => n + s.questions.filter(q => countOf(q) > 0).length, 0);
     // State to track expanded situations in TOC
     const [expandedSituations, setExpandedSituations] = useState<Set<number>>(new Set([0]));
 
@@ -61,6 +67,17 @@ export default function TableOfContents({
             situationIndexMap[idx] = sitCounter;
         }
     });
+
+    // กางสถานการณ์ที่มีข้อถูกแจ้งปัญหา ให้เห็นธงทันที
+    const reportedKey = situations.map((s, i) => (s.questions.some(q => countOf(q) > 0) ? i : -1)).filter(i => i >= 0).join(',');
+    useEffect(() => {
+        if (!reportedKey) return;
+        setExpandedSituations(prev => {
+            const next = new Set(prev);
+            reportedKey.split(',').forEach(i => next.add(Number(i)));
+            return next;
+        });
+    }, [reportedKey]);
 
     // Auto-expand the active situation when it changes
     useEffect(() => {
@@ -138,6 +155,12 @@ export default function TableOfContents({
                                 {totalQuestions} ข้อ
                             </span>
                         </div>
+                        {reportedQuestions > 0 && (
+                            <div className="px-3 py-2 bg-red-50 border-b border-red-100 text-sm text-red-700 flex items-center gap-1.5">
+                                <ReportFlag count={reportedQuestions} compact />
+                                <span>มีข้อที่ถูกแจ้งปัญหารอตรวจ {reportedQuestions} ข้อ</span>
+                            </div>
+                        )}
                         <div className="max-h-[60vh] overflow-y-auto p-2 space-y-1">
                         {situations.map((situation, idx) => {
                             const questionStartIndex = situations.slice(0, idx).reduce((acc, s) => acc + s.questions.length, 0);
@@ -177,7 +200,8 @@ export default function TableOfContents({
                                                     <span className="shrink-0 w-5 h-5 rounded-md bg-blue-100 text-blue-700 font-medium text-[0.6875rem] flex items-center justify-center">
                                                         {globalNum}
                                                     </span>
-                                                    <span className="truncate">{displayText}</span>
+                                                    <span className="truncate flex-1">{displayText}</span>
+                                                    <ReportFlag count={countOf(q)} compact />
                                                 </button>
                                             );
                                         })}
@@ -208,6 +232,7 @@ export default function TableOfContents({
                                         >
                                             สถานการณ์ที่ {situationIndexMap[idx] || idx + 1}
                                         </button>
+                                        <ReportFlag count={situation.questions.reduce((n, q) => n + countOf(q), 0)} compact />
                                     </div>
 
                                     {/* Questions Sub-list */}
@@ -242,7 +267,8 @@ export default function TableOfContents({
                                                         <span className="shrink-0 w-5 h-5 rounded-md bg-gray-100 text-gray-700 group-hover:bg-green-100 group-hover:text-green-700 font-medium text-[0.6875rem] flex items-center justify-center transition-colors">
                                                             {globalNum}
                                                         </span>
-                                                        <span className="truncate">{displayText}</span>
+                                                        <span className="truncate flex-1">{displayText}</span>
+                                                        <ReportFlag count={countOf(q)} compact />
                                                     </button>
                                                 );
                                             })}

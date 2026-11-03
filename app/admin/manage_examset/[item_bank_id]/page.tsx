@@ -11,6 +11,9 @@ import ItemBankHeader from './components/ItemBankHeader';
 import AddSubTopicModal from './components/AddSubTopicModal';
 import SubTopicSearchDropdown from './components/SubTopicSearchDropdown';
 import SituationViewer from './components/SituationViewer';
+import ReportFlag from './components/ReportFlag';
+import ReportNotes from './components/ReportNotes';
+import type { OpenItemReport } from '@/utils/itemReports';
 import QuestionTableView from './components/QuestionTableView';
 import CATGuideModal from '../../cat_management/components/CATGuideModal';
 import DashboardView from './components/DashboardView';
@@ -120,6 +123,18 @@ export default function ItemBankEditPage() {
     const [showTOC, setShowTOC] = useState(true);
     const situationRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+    // ลิงก์จากหน้ารายงานปัญหาข้อสอบ (?item=ID) — เปิดโหมดดูข้อสอบแล้วเลื่อนไปไฮไลต์ข้อนั้น
+    const focusItemId = useRef<number | null>(null);
+    const [highlightItemId, setHighlightItemId] = useState<number | null>(null);
+
+    // รายงานปัญหาที่รอตรวจของแต่ละข้อ — ใช้มาร์กในสารบัญ และแสดงรายละเอียดใต้ข้อนั้น
+    const [openReports, setOpenReports] = useState<Record<number, OpenItemReport[]>>({});
+    const reportCounts = useMemo(
+        () => Object.fromEntries(Object.entries(openReports).map(([id, list]) => [Number(id), list.length])) as Record<number, number>,
+        [openReports]
+    );
+    const [resolvingItemId, setResolvingItemId] = useState<number | null>(null);
+
     // State for CAT Guide Modal
     const [showCATGuide, setShowCATGuide] = useState(false);
 
@@ -172,6 +187,139 @@ export default function ItemBankEditPage() {
         window.addEventListener('beforeunload', handleBeforeUnload);
         return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [itemBankId]);
+
+    // รอให้ข้อสอบเรนเดอร์ก่อนค่อยเลื่อนไป แล้วเลื่อนซ้ำอีกรอบหลังรูปภาพโหลด (ตำแหน่งขยับได้)
+    const scrollToQuestionWhenReady = (elementId: string, block: ScrollLogicalPosition) => {
+        let tries = 0;
+        const attempt = () => {
+            const el = document.getElementById(elementId);
+            if (!el) {
+                if (tries++ < 30) setTimeout(attempt, 150);
+                return;
+            }
+            el.scrollIntoView({ behavior: 'smooth', block });
+            setTimeout(() => document.getElementById(elementId)?.scrollIntoView({ behavior: 'auto', block }), 1200);
+        };
+        setTimeout(attempt, 150);
+    };
+
+    useEffect(() => {
+        const id = Number(new URLSearchParams(window.location.search).get('item'));
+        if (id > 0) focusItemId.current = id;
+    }, []);
+
+    useEffect(() => {
+        const id = focusItemId.current;
+        if (loading || !id) return;
+        let sitIdx = -1;
+        let qIdx = -1;
+        situations.forEach((s, si) => s.questions.forEach((q, qi) => {
+            if (q.item_id === id && sitIdx < 0) { sitIdx = si; qIdx = qi; }
+        }));
+        focusItemId.current = null;
+        if (sitIdx < 0) {
+            Swal.fire({ icon: 'warning', title: 'ไม่พบข้อนี้ในคลังข้อสอบ', text: 'ข้ออาจถูกลบหรือย้ายออกจากคลังแล้ว', confirmButtonColor: '#16a34a' });
+            return;
+        }
+        setViewMode('editor');
+        setIsEditing(false);
+        setCollapsedSituations(prev => { const next = new Set(prev); next.delete(sitIdx); return next; });
+        setCollapsedQuestions(prev => { const next = new Set(prev); next.delete(`${sitIdx}-${qIdx}`); return next; });
+        setActiveSituationIndex(sitIdx);
+        setHighlightItemId(id);
+        scrollToQuestionWhenReady(`question-${sitIdx}-${qIdx}`, 'center');
+    }, [loading, situations]);
+
+    const itemIdsKey = useMemo(
+        () => situations.flatMap(s => s.questions).map(q => q.item_id).filter((id): id is number => !!id).sort((a, b) => a - b).join(','),
+        [situations]
+    );
+
+    useEffect(() => {
+        if (!itemIdsKey) { setOpenReports({}); return; }
+        let cancelled = false;
+        const load = async () => {
+            const ids = itemIdsKey.split(',');
+            const merged: Record<number, OpenItemReport[]> = {};
+            try {
+                for (let i = 0; i < ids.length; i += 500) {
+                    const res = await fetch(`${API_URL}/item-reports/open-by-items?ids=${ids.slice(i, i + 500).join(',')}`, {
+                        headers: { 'Authorization': `Bearer ${getToken()}` },
+                    });
+                    if (!res.ok) return;
+                    const { reports } = await res.json() as { reports: Record<string, OpenItemReport[]> };
+                    Object.entries(reports).forEach(([id, list]) => { merged[Number(id)] = list; });
+                }
+                if (!cancelled) setOpenReports(merged);
+            } catch {
+                // ข้อมูลเสริม — ถ้าโหลดไม่ได้ก็แค่ไม่แสดงธง
+            }
+        };
+        load();
+        window.addEventListener('item-reports-changed', load);
+        return () => {
+            cancelled = true;
+            window.removeEventListener('item-reports-changed', load);
+        };
+    }, [itemIdsKey, getToken]);
+
+    // ปุ่ม "แก้ไขข้อนี้" ในกล่องรายงาน — เข้าโหมดแก้ไขแล้วเลื่อนไปที่ข้อนั้น
+    const editReportedQuestion = (sitIdx: number, qIdx: number) => {
+        setHighlightItemId(null);
+        setIsEditing(true);
+        setEditViewMode('accordion');
+        setCollapsedSituations(prev => { const next = new Set(prev); next.delete(sitIdx); return next; });
+        setCollapsedQuestions(prev => { const next = new Set(prev); next.delete(`${sitIdx}-${qIdx}`); return next; });
+        setActiveSituationIndex(sitIdx);
+        scrollToQuestionWhenReady(`question-${sitIdx}-${qIdx}`, 'start');
+    };
+
+    // ปุ่ม "แก้ไขแล้ว" ในกล่องรายงาน — ปิดรายงานที่รอตรวจทั้งหมดของข้อนี้
+    // ถ้าแก้ค้างไว้ยังไม่บันทึก จะบันทึกให้ก่อน, ถ้ายังไม่เคยแก้เลย จะเตือนให้ยืนยันอีกครั้ง
+    const resolveReportedItem = async (itemId: number) => {
+        const question = situations.flatMap(s => s.questions).find(q => q.item_id === itemId);
+        const hasUnsavedEdit = Boolean(question && getQuestionHash(question) !== initialQuestionHashes.current.get(itemId));
+        const editedAlready = (openReports[itemId] ?? []).some(r => r.item_edited_at);
+
+        const result = await Swal.fire({
+            icon: hasUnsavedEdit || editedAlready ? 'question' : 'warning',
+            title: hasUnsavedEdit || editedAlready ? 'ยืนยันว่าแก้ไขข้อนี้แล้ว' : 'ยังไม่ได้แก้ไขข้อนี้',
+            text: hasUnsavedEdit
+                ? 'ระบบจะบันทึกการแก้ไขข้อสอบให้ก่อน แล้วปิดรายงานเป็น "แก้ไขแล้ว"'
+                : editedAlready
+                    ? 'ข้อนี้บันทึกการแก้ไขไว้แล้ว — ปิดรายงานเป็น "แก้ไขแล้ว"'
+                    : 'แน่ใจใช่ไหมว่าจะปิดรายงานเป็น "แก้ไขแล้ว" โดยยังไม่ได้แก้ปัญหาในข้อสอบ',
+            input: 'textarea',
+            inputLabel: 'บันทึกของผู้ดูแล (ไม่บังคับ)',
+            inputPlaceholder: 'เช่น แก้เฉลยเป็นข้อ ค แล้ว',
+            showCancelButton: true,
+            confirmButtonText: hasUnsavedEdit ? 'บันทึกและปิดรายงาน' : 'ปิดรายงานเป็นแก้ไขแล้ว',
+            cancelButtonText: 'ยกเลิก',
+            confirmButtonColor: hasUnsavedEdit || editedAlready ? '#16a34a' : '#d97706',
+            cancelButtonColor: '#6b7280',
+        });
+        if (!result.isConfirmed) return;
+        setResolvingItemId(itemId);
+        try {
+            if (hasUnsavedEdit) {
+                const saved = await handleSubmit(undefined, { skipResolveOffer: true });
+                if (!saved) return; // บันทึกไม่สำเร็จ — ไม่ปิดรายงาน (handleSubmit แจ้งข้อผิดพลาดแล้ว)
+            }
+            const res = await fetch(`${API_URL}/item-reports/resolve-items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` },
+                body: JSON.stringify({ item_ids: [itemId], admin_note: typeof result.value === 'string' ? result.value : undefined }),
+            });
+            if (!res.ok) throw new Error();
+            if (highlightItemId === itemId) setHighlightItemId(null);
+            window.dispatchEvent(new Event('item-reports-changed'));
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'ปิดรายงานแล้ว', showConfirmButton: false, timer: 2000 });
+        } catch {
+            Swal.fire({ icon: 'error', title: 'ปิดรายงานไม่สำเร็จ', confirmButtonColor: '#16a34a' });
+        } finally {
+            setResolvingItemId(null);
+        }
+    };
 
     const initialSituationHashes = useRef<Map<number, string>>(new Map());
     const initialQuestionHashes = useRef<Map<number, string>>(new Map());
@@ -944,8 +1092,44 @@ export default function ItemBankEditPage() {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    // ถ้าข้อที่เพิ่งแก้มีรายงานปัญหารอตรวจ ให้ถามว่าจะปิดเป็น "แก้ไขแล้ว" เลยไหม (ไม่ทำให้การบันทึกล้มถ้าเรียกไม่สำเร็จ)
+    const offerResolveReports = async (itemIds: number[], token: ReturnType<typeof getToken>) => {
+        if (itemIds.length === 0) return;
+        try {
+            const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+            const res = await fetch(`${API_URL}/item-reports/open-by-items?ids=${itemIds.join(',')}`, { headers });
+            if (!res.ok) return;
+            const { total, counts } = await res.json() as { total: number; counts: Record<string, number> };
+            if (!total) return;
+            const reported = itemIds.filter(id => counts[id]);
+            const result = await Swal.fire({
+                icon: 'question',
+                title: 'ปิดรายงานปัญหาข้อสอบ?',
+                text: `ข้อที่แก้ไขมีรายงานปัญหารอตรวจ ${total} รายการ — ปิดเป็น "แก้ไขแล้ว" เลยไหม`,
+                showCancelButton: true,
+                confirmButtonText: 'ปิดเป็นแก้ไขแล้ว',
+                cancelButtonText: 'ยังไม่ปิด',
+                confirmButtonColor: '#16a34a',
+                cancelButtonColor: '#6b7280',
+            });
+            if (!result.isConfirmed) return;
+            const done = await fetch(`${API_URL}/item-reports/resolve-items`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ item_ids: reported, admin_note: 'แก้ไขข้อสอบในคลังแล้ว' }),
+            });
+            if (!done.ok) throw new Error();
+            setHighlightItemId(prev => (prev && reported.includes(prev) ? null : prev));
+            window.dispatchEvent(new Event('item-reports-changed'));
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'ปิดรายงานแล้ว', showConfirmButton: false, timer: 2000 });
+        } catch {
+            Swal.fire({ icon: 'error', title: 'ปิดรายงานไม่สำเร็จ', text: 'ข้อสอบบันทึกแล้ว ปิดรายงานได้ที่หน้ารายงานปัญหาข้อสอบ', confirmButtonColor: '#16a34a' });
+        }
+    };
+
+    /** บันทึกทั้งคลัง — คืนค่า true เมื่อบันทึกสำเร็จ (ใช้ตอนกด "แก้ไขแล้ว" ที่ต้องบันทึกให้ก่อน) */
+    const handleSubmit = async (e?: React.FormEvent, opts?: { skipResolveOffer?: boolean }): Promise<boolean> => {
+        e?.preventDefault();
 
         if (situations.length === 0) {
             Swal.fire({
@@ -954,7 +1138,7 @@ export default function ItemBankEditPage() {
                 icon: 'warning',
                 confirmButtonColor: '#16a34a'
             });
-            return;
+            return false;
         }
 
         // Validation
@@ -981,7 +1165,7 @@ export default function ItemBankEditPage() {
                     icon: 'warning',
                     confirmButtonColor: '#16a34a'
                 });
-                return;
+                return false;
             }
 
             if (sit.questions.length === 0) {
@@ -993,7 +1177,7 @@ export default function ItemBankEditPage() {
                     icon: 'warning',
                     confirmButtonColor: '#16a34a'
                 });
-                return;
+                return false;
             }
 
             for (let j = 0; j < sit.questions.length; j++) {
@@ -1010,7 +1194,7 @@ export default function ItemBankEditPage() {
                         icon: 'warning',
                         confirmButtonColor: '#16a34a'
                     });
-                    return;
+                    return false;
                 }
             }
         }
@@ -1027,6 +1211,11 @@ export default function ItemBankEditPage() {
 
             // สร้าง copy ของ situations เพื่ออัพเดต
             const updatedSituations: Situation[] = JSON.parse(JSON.stringify(situations));
+
+            // ข้อเดิมที่ถูกแก้ในรอบนี้ — ใช้ถามปิดรายงานปัญหาข้อสอบหลังบันทึก
+            const modifiedItemIds = situations.flatMap(s => s.questions)
+                .filter(q => q.item_id && getQuestionHash(q) !== initialQuestionHashes.current.get(q.item_id))
+                .map(q => q.item_id as number);
 
             for (let sitIdx = 0; sitIdx < situations.length; sitIdx++) {
                 const situation = situations[sitIdx];
@@ -1284,6 +1473,9 @@ export default function ItemBankEditPage() {
             });
 
             setIsEditing(false);
+            setHighlightItemId(null);
+
+            if (!opts?.skipResolveOffer) await offerResolveReports(modifiedItemIds, token);
 
             // บันทึกลำดับของสถานการณ์และคำถาม
             await saveOrdering();
@@ -1302,6 +1494,7 @@ export default function ItemBankEditPage() {
                 isInitialLoad.current = false;
             }, 500);
 
+            return true;
         } catch (error: any) {
             console.error('Error:', error);
             Swal.fire({
@@ -1310,6 +1503,7 @@ export default function ItemBankEditPage() {
                 icon: 'error',
                 confirmButtonColor: '#ef4444'
             });
+            return false;
         } finally {
             setSubmitting(false);
         }
@@ -1492,7 +1686,7 @@ export default function ItemBankEditPage() {
                     onSettingsClick={() => setShowSettingsModal(true)}
                     onCATGuideClick={() => setShowCATGuide(true)}
                     isEditing={isEditing}
-                    onToggleEdit={() => setIsEditing(true)}
+                    onToggleEdit={() => { setHighlightItemId(null); setIsEditing(true); }}
                     onCancel={handleCancel}
                     onSave={handleSubmit}
                     onUploadPdf={() => fileInputRef.current?.click()}
@@ -1556,6 +1750,7 @@ export default function ItemBankEditPage() {
                         onExpandSituation={expandSituation}
                         onAddSituation={isEditing ? addSituation : undefined}
                         onAddStandaloneQuestion={isEditing ? addStandaloneQuestion : undefined}
+                        reportCounts={reportCounts}
                     />
                 )}
 
@@ -1572,6 +1767,12 @@ export default function ItemBankEditPage() {
                             situationRefs={situationRefs}
                             onCollapseAll={collapseAllSituations}
                             onExpandAll={expandAllSituations}
+                            highlightItemId={highlightItemId}
+                            reportCounts={reportCounts}
+                            openReports={openReports}
+                            onEditQuestion={editReportedQuestion}
+                            onResolveItem={resolveReportedItem}
+                            resolvingItemId={resolvingItemId}
                         />
                     </div>
                 )}
@@ -1742,6 +1943,15 @@ export default function ItemBankEditPage() {
                                                                 const isQCollapsed = collapsedQuestions.has(`${sitIdx}-${qIdx}`);
                                                                 return (
                                                                     <div id={`question-${sitIdx}-${qIdx}`} key={qIdx} className="scroll-mt-32">
+                                                                        {question.item_id && (
+                                                                            <div className="pt-3">
+                                                                                <ReportNotes
+                                                                                    reports={openReports[question.item_id]}
+                                                                                    onResolve={() => resolveReportedItem(question.item_id!)}
+                                                                                    resolving={resolvingItemId === question.item_id}
+                                                                                />
+                                                                            </div>
+                                                                        )}
                                                                         {/* Question Header (Only inside a situation with multiple questions) */}
                                                                         {isSituation && (
                                                                             <div className="flex items-center gap-3 px-5 py-4 transition-colors group hover:bg-gray-50/70">
@@ -1752,6 +1962,7 @@ export default function ItemBankEditPage() {
                                                                                 >
                                                                                     {questionStartIndex + qIdx + 1}
                                                                                 </div>
+                                                                                {question.item_id && <ReportFlag count={reportCounts[question.item_id]} />}
 
                                                                                 {/* question text preview */}
                                                                                 <div

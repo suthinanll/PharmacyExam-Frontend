@@ -136,6 +136,32 @@ export default function Navbar_admin({
     };
   }, [user?.role_id, getToken]);
 
+  // จำนวนรายงานปัญหาข้อสอบที่รอตรวจ — โชว์เป็นตัวเลขหลังเมนู, หน้า item_reports ยิง event นี้เมื่อเปลี่ยนสถานะ
+  const [openReports, setOpenReports] = useState(0);
+
+  useEffect(() => {
+    if (!user || (user.role_id !== 2 && user.role_id !== 3)) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/item-reports/open-count`, {
+          headers: { Authorization: `Bearer ${getToken()}` },
+        });
+        if (res.ok && !cancelled) setOpenReports((await res.json()).open ?? 0);
+      } catch {
+        // เป็นข้อมูลเสริม ไม่ควรทำให้ navbar พัง
+      }
+    };
+    load();
+    window.addEventListener("item-reports-changed", load);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("item-reports-changed", load);
+    };
+  }, [user, getToken, pathname]);
+
+  const badges: Record<string, number> = { "/admin/item_reports": openReports };
+
   const sidebarItems = [
     { title: "แดชบอร์ด", href: "/admin", icon: LayoutDashboard },
     { title: "รายชื่อผู้ใช้งาน", href: "/admin/manage_users", icon: Users },
@@ -249,17 +275,20 @@ export default function Navbar_admin({
           <div className="space-y-1">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
+              const badge = badges[item.href] ?? 0;
+              const badgeId = `badge-${item.href.replace(/\W/g, "-")}`;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 w-full px-3 py-2.5 transition-all duration-150 rounded-xl group text-sm ${
+                  className={`relative flex items-center gap-3 w-full px-3 py-2.5 transition-all duration-150 rounded-xl group text-sm ${
                     isActive(item.href)
                       ? "bg-green-50 text-green-700 font-medium"
                       : "text-gray-600 hover:bg-gray-50 hover:text-green-700 font-medium"
                   } ${isCollapsed ? "justify-center" : ""}`}
                   aria-label={item.title}
-                  title={isCollapsed ? item.title : ""}
+                  aria-describedby={badge > 0 ? badgeId : undefined}
+                  title={isCollapsed ? (badge > 0 ? `${item.title} (รอตรวจ ${badge})` : item.title) : ""}
                 >
                   <Icon
                     aria-hidden="true"
@@ -269,6 +298,18 @@ export default function Navbar_admin({
                   />
                   {!isCollapsed && (
                     <span className="truncate whitespace-nowrap">{item.title}</span>
+                  )}
+                  {badge > 0 && (
+                    <span
+                      id={badgeId}
+                      className={`min-w-[1.375rem] h-[1.375rem] px-1.5 rounded-full bg-red-600 text-white text-xs leading-[1.375rem] text-center font-medium motion-safe:animate-pulse motion-safe:[animation-duration:2.5s] ${
+                        isCollapsed ? "absolute top-1 right-2.5 scale-90" : "ml-auto shrink-0"
+                      }`}
+                    >
+                      <span className="sr-only">รอตรวจ </span>
+                      {badge > 99 ? "99+" : badge}
+                      <span className="sr-only"> รายการ</span>
+                    </span>
                   )}
                 </Link>
               );
@@ -432,13 +473,19 @@ export default function Navbar_admin({
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`block w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
+                    className={`flex items-center w-full text-left px-3 sm:px-4 py-2.5 sm:py-3 transition-all duration-200 text-sm sm:text-base ${
                       isActive(item.href)
                         ? "bg-green-50 text-green-700 font-medium border-l-4 border-green-700"
                         : "text-gray-700 hover:bg-gray-50 hover:text-green-700 font-medium"
                     }`}
                   >
                     {item.title}
+                    {(badges[item.href] ?? 0) > 0 && (
+                      <span className="ml-auto min-w-[1.375rem] h-[1.375rem] px-1.5 rounded-full bg-red-600 text-white text-xs leading-[1.375rem] text-center font-medium motion-safe:animate-pulse motion-safe:[animation-duration:2.5s]">
+                        <span className="sr-only">รอตรวจ </span>
+                        {badges[item.href] > 99 ? "99+" : badges[item.href]}
+                      </span>
+                    )}
                   </Link>
                 ))}
 

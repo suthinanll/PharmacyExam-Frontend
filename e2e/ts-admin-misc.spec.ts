@@ -132,6 +132,70 @@ test.describe('12.2 รายงานปัญหาข้อสอบ (ผู�
     });
   });
 
+  /** กล่องรายละเอียดปัญหาใต้ข้อที่ถูกแจ้งในหน้าคลังข้อสอบ (เฉพาะกล่องของรายงานทดสอบรอบนี้) */
+  const notes = (page: Page) => page.getByRole('region', { name: 'รายงานปัญหาจากผู้เรียน' }).filter({ hasText: message });
+  const highlighted = (page: Page) => page.locator('[id^="question-"][class*="ring-amber"]');
+
+  /** เปิดข้อที่ถูกแจ้งในคลังข้อสอบผ่านลิงก์บนการ์ดรายงาน */
+  async function openReportedQuestion(page: Page) {
+    await openReports(page);
+    await card(page).getByRole('link', { name: /^คลัง .+ · ข้อที่ \d+/ }).first().click();
+    await page.waitForURL(/\/admin\/manage_examset\/\d+\?item=\d+/);
+    await expect(notes(page)).toBeVisible({ timeout: 30_000 });
+    // หน้าเลื่อนไปที่ข้อที่ถูกแจ้งเอง (ไม่ต้องเลื่อนหา)
+    await expect(notes(page)).toBeInViewport({ timeout: 10_000 });
+  }
+
+  test('RPT-T08 เมนู "รายงานปัญหาข้อสอบ" แสดงตัวเลขแจ้งเตือนจำนวนรายงานที่รอตรวจ', async ({ page }) => {
+    await step('1. (ผู้ดูแลระบบ) เปิดหน้าแดชบอร์ด', () => page.goto('/admin'));
+    await step('Expected: หลังเมนู "รายงานปัญหาข้อสอบ" มีตัวเลขบอกจำนวนรายงานที่รอตรวจ', async () => {
+      const link = page.getByRole('navigation', { name: 'เมนูหลักระบบผู้ดูแล' }).getByRole('link', { name: 'รายงานปัญหาข้อสอบ', exact: true });
+      await expect(link).toHaveAccessibleDescription(/รอตรวจ\s+\d+\s+รายการ/, { timeout: 15_000 });
+    });
+  });
+
+  test('RPT-T09 กดลิงก์ "คลัง … · ข้อที่ …" บนการ์ดรายงาน ไปยังข้อนั้นในคลังข้อสอบ พร้อมไฮไลต์และรายละเอียดปัญหา', async ({ page }) => {
+    await step('1. เปิดแท็บ "รอตรวจ" แล้วกดลิงก์คลังข้อสอบบนการ์ดรายงานทดสอบ', () => openReportedQuestion(page));
+    await step('Expected: ข้อที่ถูกแจ้งมีกรอบไฮไลต์ และมีกล่องรายละเอียดปัญหา "เฉลยผิด" พร้อมข้อความของผู้เรียน', async () => {
+      await expect(highlighted(page)).toHaveCount(1);
+      await expect(notes(page).getByText('เฉลยผิด', { exact: true })).toBeVisible();
+      await expect(notes(page).getByRole('button', { name: 'แก้ไขข้อนี้' })).toBeVisible();
+      await expect(notes(page).getByRole('button', { name: 'แก้ไขแล้ว' })).toBeVisible();
+    });
+  });
+
+  test('RPT-T10 สารบัญคำถามในคลังข้อสอบแสดงจำนวนข้อที่ถูกแจ้งปัญหารอตรวจ', async ({ page }) => {
+    await step('1. เปิดข้อที่ถูกแจ้งในคลังข้อสอบผ่านลิงก์บนการ์ดรายงาน', () => openReportedQuestion(page));
+    await step('Expected: สารบัญคำถามแสดง "มีข้อที่ถูกแจ้งปัญหารอตรวจ"', () =>
+      expect(page.getByText(/มีข้อที่ถูกแจ้งปัญหารอตรวจ \d+ ข้อ/)).toBeVisible());
+  });
+
+  test('RPT-T11 กด "แก้ไขแล้ว" ในกล่องรายงานโดยยังไม่ได้แก้ข้อสอบ ระบบเตือนก่อน และกด "ยกเลิก" รายงานยังรอตรวจ', async ({ page }) => {
+    await step('1. เปิดข้อที่ถูกแจ้งในคลังข้อสอบ แล้วกด "แก้ไขแล้ว" ในกล่องรายงาน', async () => {
+      await openReportedQuestion(page);
+      await notes(page).getByRole('button', { name: 'แก้ไขแล้ว' }).click();
+    });
+    await step('2. ระบบเตือน "ยังไม่ได้แก้ไขข้อนี้" แล้วกด "ยกเลิก"', async () => {
+      await expect(swal(page).title).toHaveText('ยังไม่ได้แก้ไขข้อนี้');
+      await expect(swal(page).text).toContainText('โดยยังไม่ได้แก้ปัญหา');
+      await swal(page).cancel.click();
+    });
+    await step('Expected: กล่องรายงานยังแสดงอยู่ (รายงานยังรอตรวจ)', () => expect(notes(page)).toBeVisible());
+  });
+
+  test('RPT-T12 กด "แก้ไขข้อนี้" ในกล่องรายงาน เข้าโหมดแก้ไข กรอบไฮไลต์หายไป และยังเห็นรายละเอียดปัญหา', async ({ page }) => {
+    await step('1. เปิดข้อที่ถูกแจ้งในคลังข้อสอบ แล้วกด "แก้ไขข้อนี้"', async () => {
+      await openReportedQuestion(page);
+      await notes(page).getByRole('button', { name: 'แก้ไขข้อนี้' }).click();
+    });
+    await step('Expected: อยู่ในโหมดแก้ไข ไม่มีกรอบไฮไลต์ และกล่องรายงานยังแสดงพร้อมปุ่ม "แก้ไขแล้ว"', async () => {
+      await expect(page.getByRole('button', { name: 'สร้างสถานการณ์หรือคำถามใหม่' })).toBeVisible();
+      await expect(highlighted(page)).toHaveCount(0);
+      await expect(notes(page).getByRole('button', { name: 'แก้ไขแล้ว' })).toBeVisible();
+      await expect(notes(page)).toBeInViewport({ timeout: 10_000 });
+    });
+  });
+
   test('RPT-T04 กด "ไม่แก้ไข" พร้อมบันทึกผู้ดูแล รายงานย้ายไปแท็บ "ไม่แก้ไข"', async ({ page }) => {
     await step('1. เปิดแท็บ "รอตรวจ" แล้วกด "ไม่แก้ไข" ของรายงานทดสอบ', async () => {
       await openReports(page);
@@ -183,6 +247,12 @@ test.describe('12.2 รายงานปัญหาข้อสอบ (ผู�
       await page.getByRole('tab', { name: /^แก้ไขแล้ว/ }).click();
       await expect(card(page)).toHaveCount(1);
     });
+  });
+
+  test('RPT-T13 รายงานในแท็บ "แก้ไขแล้ว" แสดงเวลาที่ปิดรายงานและชื่อผู้ดูแลที่ปิด', async ({ page }) => {
+    await step('1. เปิดแท็บ "แก้ไขแล้ว"', () => openReports(page, 'แก้ไขแล้ว'));
+    await step('Expected: การ์ดรายงานแสดง "ปิดเป็นแก้ไขแล้ว เมื่อ …" และชื่อผู้ปิด', () =>
+      expect(card(page).getByText(/ปิดเป็นแก้ไขแล้ว เมื่อ .+ โดย .+/)).toBeVisible());
   });
 });
 

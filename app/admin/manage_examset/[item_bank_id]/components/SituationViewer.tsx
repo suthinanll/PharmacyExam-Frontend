@@ -13,6 +13,9 @@ import {
     Eye,
     EyeOff,
 } from 'lucide-react';
+import ReportFlag from './ReportFlag';
+import ReportNotes from './ReportNotes';
+import type { OpenItemReport } from '@/utils/itemReports';
 import ImagePreviewModal from '@/components/ImagePreviewModal';
 import { formatScientificText } from '@/utils/formatText';
 import { sanitizeHtml } from "@/utils/sanitize";
@@ -52,6 +55,15 @@ interface SituationViewerProps {
     situationRefs: React.MutableRefObject<(HTMLDivElement | null)[]>;
     onCollapseAll?: () => void;
     onExpandAll?: () => void;
+    /** ข้อที่เปิดมาจากลิงก์หน้ารายงานปัญหาข้อสอบ — ไฮไลต์ให้เห็นชัด */
+    highlightItemId?: number | null;
+    /** จำนวนรายงานปัญหาที่รอตรวจของแต่ละข้อ (key = item_id) */
+    reportCounts?: Record<number, number>;
+    /** รายละเอียดรายงานที่รอตรวจของแต่ละข้อ (key = item_id) */
+    openReports?: Record<number, OpenItemReport[]>;
+    onEditQuestion?: (sitIdx: number, qIdx: number) => void;
+    onResolveItem?: (itemId: number) => void;
+    resolvingItemId?: number | null;
 }
 
 const OPTION_LABELS = ['ก', 'ข', 'ค', 'ง', 'จ'];
@@ -65,6 +77,12 @@ export default function SituationViewer({
     situationRefs,
     onCollapseAll,
     onExpandAll,
+    highlightItemId,
+    reportCounts = {},
+    openReports = {},
+    onEditQuestion,
+    onResolveItem,
+    resolvingItemId = null,
 }: SituationViewerProps) {
     const [showAnswers, setShowAnswers] = useState(true);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -221,7 +239,7 @@ export default function SituationViewer({
                                     <div
                                         id={`question-${sitIdx}-${qIdx}`}
                                         key={qIdx}
-                                        className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden scroll-mt-32"
+                                        className={`bg-white rounded-2xl shadow-sm border overflow-hidden scroll-mt-32 ${highlightItemId && question.item_id === highlightItemId ? "border-amber-400 ring-2 ring-amber-300" : "border-gray-200"}`}
                                     >
                                         <div
                                             className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-gray-50/70 transition-colors group"
@@ -230,6 +248,7 @@ export default function SituationViewer({
                                             <div className="w-8 h-8 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-medium text-sm shrink-0 mt-0.5">
                                                 {globalNum}
                                             </div>
+                                            {question.item_id && <ReportFlag count={reportCounts[question.item_id]} />}
                                             <div className="flex-1 min-w-0">
                                                 <div
                                                     className="text-gray-800 font-medium text-sm leading-relaxed line-clamp-2 pr-2 prose prose-sm max-w-none"
@@ -249,6 +268,15 @@ export default function SituationViewer({
                                                 }
                                             </div>
                                         </div>
+
+                                        {question.item_id && (
+                                            <ReportNotes
+                                                reports={openReports[question.item_id]}
+                                                onEdit={onEditQuestion ? () => onEditQuestion(sitIdx, qIdx) : undefined}
+                                                onResolve={onResolveItem ? () => onResolveItem(question.item_id!) : undefined}
+                                                resolving={resolvingItemId === question.item_id}
+                                            />
+                                        )}
 
                                         {!isQCollapsed && (
                                             <div className="px-5 pb-5 bg-gray-50/40 border-t border-gray-100">
@@ -409,7 +437,7 @@ export default function SituationViewer({
                                             <div
                                                 id={`question-${sitIdx}-${qIdx}`}
                                                 key={qIdx}
-                                                className="scroll-mt-32"
+                                                className={`scroll-mt-32 ${highlightItemId && question.item_id === highlightItemId ? "bg-amber-50 ring-2 ring-inset ring-amber-300" : ""}`}
                                             >
                                                 {/* Question Header */}
                                                 <div
@@ -419,6 +447,7 @@ export default function SituationViewer({
                                                     <div className="w-8 h-8 rounded-full border-2 border-blue-200 bg-blue-50 flex items-center justify-center text-blue-700 font-medium text-sm shrink-0 mt-0.5">
                                                         {globalNum}
                                                     </div>
+                                                    {question.item_id && <ReportFlag count={reportCounts[question.item_id]} />}
 
                                                     <div className="flex-1 min-w-0">
                                                         <div
@@ -440,6 +469,15 @@ export default function SituationViewer({
                                                         }
                                                     </div>
                                                 </div>
+
+                                                {question.item_id && (
+                                                    <ReportNotes
+                                                        reports={openReports[question.item_id]}
+                                                        onEdit={onEditQuestion ? () => onEditQuestion(sitIdx, qIdx) : undefined}
+                                                        onResolve={onResolveItem ? () => onResolveItem(question.item_id!) : undefined}
+                                                        resolving={resolvingItemId === question.item_id}
+                                                    />
+                                                )}
 
                                                 {/* Question Detail */}
                                                 {!isQCollapsed && (
